@@ -51,6 +51,8 @@ export function EvalMatrix({
   const oldTotal = comparison.oldSummary.passed + comparison.oldSummary.failed;
   const newTotal = comparison.newSummary.passed + comparison.newSummary.failed;
   const correctionRow = correctionCaseId ? rows.find((r) => r.caseId === correctionCaseId) : undefined;
+  /** The engine itself flipped this case from failing to passing. */
+  const engineFlip = Boolean(correctionRow && !correctionRow.oldPass && correctionRow.newPass);
 
   return (
     <section aria-labelledby="learn-step-4-title" id="learn-step-4" tabIndex={-1} className="scroll-mt-4">
@@ -119,12 +121,27 @@ export function EvalMatrix({
         </div>
       )}
 
-      {assertion ? (
+      {engineFlip ? (
         <div className="mt-3 rounded-xl border border-recommend/30 bg-recommend/5 p-3">
           <p className="flex items-start gap-1.5 text-xs font-semibold text-recommend">
             <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             The correction eval now passes
           </p>
+          <p className="mt-1.5 text-xs text-ink">
+            <span className="font-mono">{correctionCaseId}</span> failed on v{baseVersion} and passes
+            on v{nextVersion} — the replay now reproduces the expert&apos;s decision.
+            {assertion ? (
+              <>
+                {' '}
+                The corrected field: <span className="font-mono">{assertion.ruleId} {assertion.field}</span>{' '}
+                {assertion.before ?? '—'} → {assertion.after ?? '—'} minutes.
+              </>
+            ) : null}
+          </p>
+        </div>
+      ) : assertion ? (
+        <div className="mt-3 rounded-xl border border-accent/30 bg-accent/5 p-3">
+          <p className="text-xs font-semibold text-ink">Correction assertion</p>
           <p className="mt-1.5 text-xs text-ink">
             <span className="font-mono">
               {assertion.ruleId} {assertion.field}
@@ -134,8 +151,9 @@ export function EvalMatrix({
             {assertion.after ?? '—'} <span className="font-medium text-recommend">— pass</span>.
           </p>
           <p className="mt-1.5 text-[11px] text-ink-muted">
-            Engine evals compare decision statuses, so the corrected deadline is asserted as a field
-            check on the rule itself — that is what flips this eval from failing to passing.
+            The eval specifies an expected deadline, so the corrected value is asserted on the rule
+            itself. Until the engine compares that field in runEvals, the matrix above reports
+            statuses only.
             {correctionRow && !correctionRow.newPass
               ? ' Other assertions in this case still fail; they are listed above and are not part of this correction.'
               : ''}
@@ -168,7 +186,9 @@ export function EvalMatrix({
           </p>
           {comparison.improvements.length === 0 ? (
             <p className="mt-1 text-[11px] text-ink-muted">
-              None recorded by status comparison — see the correction assertion above.
+              {engineFlip
+                ? `v${nextVersion} fixes ${correctionCaseId} — see above.`
+                : 'None recorded — see the correction assertion above.'}
             </p>
           ) : (
             <ul className="mt-1.5 space-y-1 text-[11px] font-mono">

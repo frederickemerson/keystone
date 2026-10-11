@@ -112,11 +112,11 @@ export function LearningFlow({
   const [outcome, setOutcome] = useState<OutcomeDraft>(() => defaultOutcome(incident));
   const [outcomeSaved, setOutcomeSaved] = useState(false);
   const [correction, setCorrection] = useState<CorrectionDraft>(() => ({
-    ruleId: bundle.pill.rules.find((r) => r.id === 'TS-03')?.id ?? bundle.pill.rules[0]?.id ?? '',
+    ruleId: bundle.pill.rules.find((r) => r.id === 'TS-02')?.id ?? bundle.pill.rules[0]?.id ?? '',
     verdict: 'wrong_for_asset',
     after: 10,
     reason:
-      'Tenant-area isolation must be decided in 10 minutes, not 15 — at 15 the team went to the riser valve and took out L17–L19. If tenant access is not granted in 10 minutes, isolate at the riser.',
+      'Branch-before-riser isolation must be decided in 10 minutes, not 15. At 15 minutes the team went to the riser valve and took out L17–L19. If tenant access is not granted in 10 minutes, isolate at the riser.',
   }));
   const [proposalVersion, setProposalVersion] = useState<string | null>(null);
   const [rolledBack, setRolledBack] = useState(false);

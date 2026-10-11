@@ -127,7 +127,7 @@ export function correctionReason(c: CorrectionDraft): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Turn `describeRulesDelta` lines ("TS-03 deadline_minutes 15 → 10") into
+ * Turn `describeRulesDelta` lines ("TS-02 deadline_minutes 15 → 10") into
  * DiffView items: label = rule + field, before/after = the two values.
  */
 export function toDiffItems(changes: readonly string[]): DiffItem[] {
@@ -137,7 +137,7 @@ export function toDiffItems(changes: readonly string[]): DiffItem[] {
       const left = change.slice(0, arrow);
       const after = change.slice(arrow + 3);
       const cut = left.lastIndexOf(" ");
-      // "TS-03 deadline_minutes 15" → label "TS-03 deadline_minutes", before "15"
+      // "TS-02 deadline_minutes 15" → label "TS-02 deadline_minutes", before "15"
       const label = cut === -1 ? left : left.slice(0, cut);
       const before = cut === -1 ? "" : left.slice(cut + 1);
       return { label, before, after, kind: "change" as const };
@@ -204,8 +204,9 @@ export function buildEvalMatrix(
 
 /**
  * The eval case the Chief Engineer's correction is about: the tenant-area
- * isolation replay (pills/.../evals/eval-2025-09-tenant-area-isolation-deadline.yaml).
- * Matched by name so a rename of the file still resolves.
+ * isolation replay (pills/.../evals/eval-2025-09-tenant-area-isolation-deadline.yaml),
+ * which records `expected_decisions.TS-02.deadline_minutes: 10` — the intended
+ * v1.2.0 failure. Matched by name so a rename of the file still resolves.
  */
 export function findCorrectionCaseId(cases: readonly EvalCase[]): string | undefined {
   return cases.find((c) => /tenant-area-isolation/.test(c.id))?.id;
@@ -222,12 +223,11 @@ export interface DeadlineAssertion {
 }
 
 /**
- * Field-level check for the correction itself.
+ * Field-level check for the correction itself (TS-02 deadline_minutes 15 → 10).
  *
- * `runEvals` compares decision *statuses*; the expert's correction changes a
- * rule *field* (deadline_minutes 15 → 10), so the corrected value is asserted
- * against both versions explicitly. This is what flips the correction eval
- * from failing to passing.
+ * Where the eval specifies an expected deadline, `runEvals` compares it and the
+ * matrix row flips on its own; this assertion keeps the corrected field visible
+ * either way, so the screen is correct whether or not the engine compares it yet.
  */
 export function deadlineAssertion(
   baseRules: readonly { id: string; deadline_minutes: number | null }[],
