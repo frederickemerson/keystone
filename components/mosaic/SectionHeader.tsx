@@ -15,12 +15,14 @@ export function SectionHeader({
   className?: string;
 }) {
   return (
-    <div className={cn('flex items-start justify-between gap-4 border-b border-line pb-3', className)}>
+    <div className={cn('flex items-end justify-between gap-4 border-b border-line pb-2.5', className)}>
       <div className="flex min-w-0 items-start gap-2.5">
-        {icon ? <span className="mt-0.5 shrink-0 text-ink-muted">{icon}</span> : null}
+        {icon ? <span className="mt-1.5 shrink-0 text-ink-muted">{icon}</span> : null}
         <div className="min-w-0">
-          <h2 className="text-base font-semibold tracking-tight text-ink">{title}</h2>
-          {description ? <p className="mt-0.5 text-xs text-ink-muted">{description}</p> : null}
+          <h2 className="text-[21px] font-semibold leading-tight text-heading">{title}</h2>
+          {description ? (
+            <p className="mt-1 max-w-[70ch] text-[13px] leading-snug text-ink-muted">{description}</p>
+          ) : null}
         </div>
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}

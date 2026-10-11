@@ -90,6 +90,10 @@ export interface WhyDrawerExpertSource {
   timestamp: string;
   /** Audio/transcript source id passed to onPlay. */
   source?: string;
+  /** Expert's name for the handwritten attribution (defaults to "the expert"). */
+  expert?: string;
+  /** Expert's role, shown typeset beside the attribution. */
+  role?: string;
 }
 
 // ---------------------------------------------------------------------------

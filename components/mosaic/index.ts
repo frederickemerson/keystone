@@ -17,6 +17,19 @@ export { SectionHeader } from './SectionHeader';
 export { PersonaName } from './PersonaName';
 export { pillTitle } from './pillTitle';
 
+// Notebook marginalia — the expert's handwritten voice (docs/design/DESIGN.md).
+export { MarginNote, HandArrow } from './MarginNote';
+export type { MarginArrowDirection } from './MarginNote';
+export { MarkerHighlight } from './MarkerHighlight';
+export { PillLabel } from './PillLabel';
+export { ExpertQuote } from './ExpertQuote';
+export { Sticker } from './Sticker';
+export type { StickerKind } from './Sticker';
+export { RomanList, toRoman } from './RomanList';
+export type { RomanListItem } from './RomanList';
+export { TONE_CHIP, TONE_PANEL, CHIP_BASE } from './tones';
+export type { Tone } from './tones';
+
 export type {
   TimelineEvent,
   TimelineSource,

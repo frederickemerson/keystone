@@ -5,6 +5,7 @@ import { Quote, Check, Pencil, X, ArrowUpRight, ShieldAlert, CheckCircle2, Ban }
 import { cn } from '@/lib/ui/cn';
 import type { Rule } from '@/lib/engine/types';
 import { PersonaName } from './PersonaName';
+import { ExpertQuote } from './ExpertQuote';
 
 export function RuleTile({
   rule,
@@ -19,7 +20,8 @@ export function RuleTile({
   rule: Rule;
   /** Confirmation state from the Decision Canvas: true=confirmed, false=rejected, undefined=pending. */
   confirmed?: boolean;
-  provenance?: { quote: string; timestamp: string };
+  /** `expert` (optional) is the handwritten attribution; defaults to "onboarding interview". */
+  provenance?: { quote: string; timestamp: string; expert?: string };
   onConfirm?: () => void;
   onEdit?: () => void;
   onReject?: () => void;
@@ -42,10 +44,10 @@ export function RuleTile({
 
   const ring =
     confirmed === true
-      ? 'ring-2 ring-recommend/40'
+      ? 'border-recommend ring-2 ring-recommend/25'
       : confirmed === false
-        ? 'ring-2 ring-escalate/40'
-        : 'ring-1 ring-line';
+        ? 'border-blocked ring-2 ring-blocked/20'
+        : 'border-line-strong';
 
   const conditionPaths = [
     ...rule.trigger.all.map((c) => c.path),
@@ -54,13 +56,13 @@ export function RuleTile({
 
   return (
     <article
-      className={cn('flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 ring-inset', ring, className)}
+      className={cn('flex flex-col gap-3.5 rounded-xl border bg-surface p-4 shadow-card', ring, className)}
       aria-labelledby={`rule-${rule.id}-title`}
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-mono text-[11px] text-ink-muted">{rule.id}</p>
-          <h3 id={`rule-${rule.id}-title`} className="text-sm font-semibold leading-snug text-ink">
+          <p className="font-mono text-xs font-medium text-ink-muted">{rule.id}</p>
+          <h3 id={`rule-${rule.id}-title`} className="mt-0.5 text-[15px] font-semibold leading-snug text-ink">
             {rule.title}
           </h3>
         </div>
@@ -72,7 +74,10 @@ export function RuleTile({
           }}
           aria-expanded={provOpen}
           aria-label="Show provenance"
-          className="rounded-md border border-line bg-surface-raised p-1.5 text-ink-muted hover:border-accent hover:text-ink"
+          className={cn(
+            'grid size-9 shrink-0 place-items-center rounded-full border-[1.5px] border-ink text-ink transition-[background-color,scale] duration-150 hover:bg-dew-drop active:scale-[0.96]',
+            provOpen && 'bg-dew-drop',
+          )}
         >
           <Quote className="size-3.5" aria-hidden="true" />
         </button>
@@ -82,22 +87,24 @@ export function RuleTile({
         <div
           ref={popRef}
           role="note"
-          className="relative rounded-lg border border-line bg-surface-raised p-2.5 text-xs"
+          aria-label="Provenance"
+          className="relative rounded-lg border border-line bg-dew-drop/70 px-3 pb-3 pt-4"
         >
-          <p className="font-mono text-[10px] text-ink-muted">Provenance</p>
-          <blockquote className="mt-1 border-l-2 border-accent/40 pl-2 italic text-ink">
-            “{provenance.quote}”
-          </blockquote>
-          <p className="mt-1 font-mono text-[11px] text-ink-muted">{provenance.timestamp}</p>
+          <ExpertQuote
+            size="sm"
+            quote={provenance.quote}
+            expert={provenance.expert ?? 'onboarding interview'}
+            timestamp={provenance.timestamp}
+          />
         </div>
       ) : null}
 
       <Field label="Trigger">
-        <span className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-ink">
+        <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-mono text-xs text-ink">
           {rule.trigger.incident_type}
         </span>
         {conditionPaths.length > 0 ? (
-          <span className="text-ink-muted"> · {conditionPaths.length} condition(s)</span>
+          <span className="text-[13px] text-ink-muted"> · {conditionPaths.length} condition(s)</span>
         ) : null}
       </Field>
 
@@ -106,7 +113,7 @@ export function RuleTile({
           {rule.required_evidence.map((key) => (
             <span
               key={key}
-              className="rounded border border-line bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-ink"
+              className="rounded-full border border-line bg-surface px-2 py-0.5 font-mono text-[11px] text-ink"
             >
               {key}
             </span>
@@ -115,15 +122,15 @@ export function RuleTile({
       </Field>
 
       <Field label="Decision">
-        <p className="text-sm text-ink">{rule.decision}</p>
+        <p className="text-[14px] leading-relaxed text-ink">{rule.decision}</p>
       </Field>
 
       {rule.allowed_actions.length > 0 ? (
         <Field label="Allowed">
           <ul className="space-y-0.5">
             {rule.allowed_actions.map((a) => (
-              <li key={a} className="flex items-center gap-1.5 text-xs text-recommend">
-                <CheckCircle2 className="size-3.5" aria-hidden="true" /> {a}
+              <li key={a} className="flex items-start gap-1.5 text-[13px] text-ink">
+                <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-recommend" aria-hidden="true" /> {a}
               </li>
             ))}
           </ul>
@@ -134,8 +141,8 @@ export function RuleTile({
         <Field label="Forbidden">
           <ul className="space-y-0.5">
             {rule.forbidden_actions.map((a) => (
-              <li key={a} className="flex items-center gap-1.5 text-xs text-escalate">
-                <Ban className="size-3.5" aria-hidden="true" /> {a}
+              <li key={a} className="flex items-start gap-1.5 text-[13px] text-blocked">
+                <Ban className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /> {a}
               </li>
             ))}
           </ul>
@@ -143,8 +150,8 @@ export function RuleTile({
       ) : null}
 
       <Field label="Escalation">
-        <p className="flex items-center gap-1.5 text-xs text-ink">
-          <ArrowUpRight className="size-3.5 text-approval" aria-hidden="true" />
+        <p className="flex items-center gap-1.5 text-[13px] text-ink">
+          <ArrowUpRight className="size-3.5 shrink-0 text-escalate-mark" aria-hidden="true" />
           <span>
             <PersonaName role={rule.escalate_to.role} />
             {rule.escalate_to.fallback ? (
@@ -158,31 +165,31 @@ export function RuleTile({
       </Field>
 
       <Field label="Owner">
-        <p className="flex items-center gap-1.5 text-xs text-ink">
+        <p className="flex items-center gap-1.5 text-[13px] text-ink">
           <ShieldAlert className="size-3.5 text-ink-muted" aria-hidden="true" />
           <PersonaName role={rule.owner} />
         </p>
       </Field>
 
-      <div className="mt-auto flex flex-wrap gap-2 pt-1">
+      <div className="mt-auto flex flex-wrap gap-2 border-t border-line pt-3">
         <button
           type="button"
           onClick={onConfirm}
-          className="inline-flex items-center gap-1.5 rounded-md bg-recommend/15 px-2.5 py-1.5 text-xs font-medium text-recommend hover:bg-recommend/25"
+          className={cn('btn-pill text-xs', confirmed === true && 'border-recommend bg-recommend-tint text-recommend')}
         >
           <Check className="size-3.5" aria-hidden="true" /> Confirm
         </button>
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-ink hover:border-accent"
+          className="btn-pill text-xs"
         >
           <Pencil className="size-3.5" aria-hidden="true" /> Edit
         </button>
         <button
           type="button"
           onClick={onReject}
-          className="inline-flex items-center gap-1.5 rounded-md bg-escalate/15 px-2.5 py-1.5 text-xs font-medium text-escalate hover:bg-escalate/25"
+          className={cn('btn-pill text-xs', confirmed === false && 'border-blocked bg-blocked-tint text-blocked')}
         >
           <X className="size-3.5" aria-hidden="true" /> Reject
         </button>
@@ -194,7 +201,7 @@ export function RuleTile({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-ink-muted">{label}</p>
+      <p className="mb-1 text-xs font-medium text-ink-muted">{label}</p>
       {children}
     </div>
   );

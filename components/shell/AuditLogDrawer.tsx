@@ -50,19 +50,19 @@ export function AuditLogDrawer({ open, onClose }: { open: boolean; onClose: () =
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="presentation">
-      <div className="absolute inset-0 bg-black/40" aria-hidden="true" onClick={onClose} />
+      <div className="absolute inset-0 bg-cocoa-ink/30" aria-hidden="true" onClick={onClose} />
       <aside
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Audit log"
         tabIndex={-1}
-        className="relative flex h-full w-full max-w-lg flex-col border-l border-line bg-surface shadow-xl outline-none"
+        className="relative flex h-full w-full max-w-lg flex-col border-l border-line-strong bg-canvas shadow-lift outline-none"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-line px-6 py-5">
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-ink">Audit log</h2>
-            <p className="mt-0.5 text-xs text-ink-muted">
+            <h2 className="text-[22px] font-semibold leading-tight">audit log</h2>
+            <p className="mt-1 text-[13px] text-ink-muted">
               Append-only. Who / when / pill version / action / outcome.
             </p>
           </div>
@@ -70,25 +70,25 @@ export function AuditLogDrawer({ open, onClose }: { open: boolean; onClose: () =
             type="button"
             onClick={onClose}
             aria-label="Close audit log"
-            className="rounded-md p-1.5 text-ink-muted hover:bg-surface-raised hover:text-ink"
+            className="grid size-9 shrink-0 place-items-center rounded-full border-[1.5px] border-ink text-ink transition-[background-color,scale] duration-150 hover:bg-dew-drop active:scale-[0.96]"
           >
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="flex-1 overflow-y-auto px-6 py-5">
           {newestFirst.length === 0 ? (
             <p className="text-sm text-ink-muted">No audit events yet.</p>
           ) : (
             <ol className="space-y-2">
               {newestFirst.map((e) => (
-                <li key={e.id} className="rounded-lg border border-line bg-surface-raised/40 p-3 text-xs">
+                <li key={e.id} className="rounded-xl border border-line bg-surface px-4 py-3 text-xs">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-ink-muted">{e.id}</span>
-                    <time dateTime={e.at} className="tabular-nums text-ink">
+                    <time dateTime={e.at} className="font-mono tabular-nums text-ink">
                       {formatAt(e.at)}
                     </time>
-                    <span className="rounded bg-surface px-1.5 py-0.5 font-medium text-ink">
+                    <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-medium text-ink">
                       {actionLabel(e.action)}
                     </span>
                     {e.ruleId ? <span className="font-mono text-ink">{e.ruleId}</span> : null}
@@ -99,10 +99,10 @@ export function AuditLogDrawer({ open, onClose }: { open: boolean; onClose: () =
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-ink">
+                  <p className="mt-1.5 text-[13px] text-ink">
                     {e.actor} <span className="text-ink-muted">({roleLabel(e.role)})</span>
                   </p>
-                  <p className="mt-0.5 text-ink-muted">{e.detail}</p>
+                  <p className="mt-0.5 text-[13px] leading-snug text-ink-muted">{e.detail}</p>
                 </li>
               ))}
             </ol>

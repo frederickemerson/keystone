@@ -78,8 +78,8 @@ export function EvidenceTimeline({
                 className={cn(
                   'grid size-8 shrink-0 place-items-center rounded-full border',
                   isNewest
-                    ? 'border-accent bg-accent/10 text-accent'
-                    : 'border-line bg-surface-raised text-ink-muted',
+                    ? 'border-line-strong bg-ink text-canvas'
+                    : 'border-line bg-dew-drop text-ink-muted',
                 )}
                 aria-hidden="true"
               >
@@ -90,23 +90,23 @@ export function EvidenceTimeline({
 
             <div
               className={cn(
-                'flex-1 rounded-lg border p-3',
-                isNewest ? 'border-accent/40 bg-accent/5' : 'border-line bg-surface',
+                'flex-1 rounded-xl border px-4 py-3',
+                isNewest ? 'border-line-strong bg-surface shadow-card' : 'border-line bg-surface',
               )}
             >
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <time className="font-medium tabular-nums text-ink" dateTime={event.at}>
+                <time className="font-mono font-medium tabular-nums text-ink" dateTime={event.at}>
                   {formatTime(event.at)}
                 </time>
-                <span className="rounded bg-surface-raised px-1.5 py-0.5 font-medium text-ink-muted">
+                <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-medium text-ink">
                   {label}
                 </span>
                 {event.type ? (
                   <span className="text-ink-muted">{event.type}</span>
                 ) : null}
                 {isNewest ? (
-                  <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
-                    newest
+                  <span className="rounded-full bg-ink px-2 py-0.5 text-[11px] font-medium text-canvas">
+                    Newest
                   </span>
                 ) : null}
                 {sensitive ? (
@@ -120,7 +120,7 @@ export function EvidenceTimeline({
                 ) : null}
               </div>
 
-              <p className="mt-1.5 text-sm leading-relaxed text-ink">{event.text}</p>
+              <p className="mt-1.5 text-[14px] leading-normal text-ink">{event.text}</p>
 
               {Object.keys(updates).length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Evidence updates">
@@ -129,10 +129,10 @@ export function EvidenceTimeline({
                       key={key}
                       title={`${key}: ${String(upd.value)} (${upd.confirmed ? 'confirmed' : 'unconfirmed'})`}
                       className={cn(
-                        'inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-medium',
+                        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium',
                         upd.confirmed
-                          ? 'border-recommend/30 bg-recommend/10 text-recommend'
-                          : 'border-line bg-surface-raised text-ink-muted',
+                          ? 'border-recommend/40 bg-recommend-tint text-recommend'
+                          : 'border-line bg-dew-drop text-ink-muted',
                       )}
                     >
                       {upd.confirmed ? (
