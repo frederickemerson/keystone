@@ -87,7 +87,7 @@ describe("counterfactual — plain-English summary format", () => {
 });
 
 describe("counterfactual — data_centre override", () => {
-  it("flips from escalate to escalate (already escalate with exception)", () => {
+  it("data_centre exception does not unblock the gate — still blocked", () => {
     const pill = makePill();
     const result = counterfactual(
       pill,
@@ -96,8 +96,8 @@ describe("counterfactual — data_centre override", () => {
       makeEvidence(),
       "TS-07",
     );
-    // With the data_centre exception, blocked is overridden → already escalate.
-    expect(result.currentStatus).toBe("escalate");
+    // Exception annotates but cannot relax the gate: still blocked.
+    expect(result.currentStatus).toBe("blocked");
   });
 });
 

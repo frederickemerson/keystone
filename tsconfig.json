@@ -19,7 +19,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  // TEMP: lib/engine is being rewritten by a concurrent session — excluded from the
-  // typecheck/build gate only. Remove this entry once lib/engine compiles clean.
-  "exclude": ["node_modules", "lib/engine/**"]
+  "exclude": ["node_modules"]
 }

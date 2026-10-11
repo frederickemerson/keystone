@@ -1,7 +1,7 @@
 // Shared inline test fixtures for the MOSAIC engine tests.
 // These are self-contained — no file reads from pills/.
 
-import type { Asset, Evidence, Incident, Pill, Rule } from "../index.js";
+import type { Asset, Evidence, EvidenceItem, Incident, Pill, Rule } from "../index.js";
 
 // ---------------------------------------------------------------------------
 // Rule builders
@@ -105,7 +105,7 @@ export const fireIncident: Incident = {
 // ---------------------------------------------------------------------------
 
 export function makeEvidence(
-  overrides: Partial<Record<string, { value: unknown; source: string; at: string; confirmed: boolean }>> = {},
+  overrides: Partial<Record<string, EvidenceItem>> = {},
 ): Evidence {
   const base: Evidence = {
     water_near_electrical: {

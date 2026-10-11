@@ -180,6 +180,8 @@ export interface TraceStep {
   exceptionNote: string | null;
   status: ActionStatus;
   actionClass: ActionClass;
+  /** Effective escalate target (exception > asset override > base). */
+  escalateTo: EscalateTarget;
 }
 
 export interface ConditionTrace {

@@ -15,7 +15,7 @@ function makeEvalCase(
   id: string,
   asset: typeof officeAsset,
   evidence: ReturnType<typeof makeEvidence>,
-  expected: Record<string, "allowed" | "blocked" | "needs_approval" | "escalate">,
+  expected: Record<string, "allowed" | "blocked" | "needs_approval" | "escalate" | "not_applicable">,
 ): EvalCase {
   return {
     id,
@@ -62,7 +62,7 @@ describe("runEvals — basic pass/fail", () => {
 });
 
 describe("runEvals — rule not fired", () => {
-  it("reports 'allowed' status for rules that did not fire", () => {
+  it("reports 'not_applicable' status for rules that did not fire", () => {
     const pill = makePill();
     // Use an incident type that doesn't match.
     const cases: EvalCase[] = [
@@ -71,23 +71,23 @@ describe("runEvals — rule not fired", () => {
         asset: officeAsset,
         incident: { id: "INC-X", type: "fire_alarm" },
         evidence: makeEvidence(),
-        expected: { "TS-07": "allowed" },
+        expected: { "TS-07": "not_applicable" },
       },
     ];
     const result = runEvals(pill, cases);
-    expect(result.results[0].actual).toBe("allowed");
+    expect(result.results[0].actual).toBe("not_applicable");
     expect(result.passed).toBe(1);
   });
 });
 
 describe("runEvals — data_centre exception", () => {
-  it("evals correctly when the data_centre exception applies", () => {
+  it("data_centre exception annotates but does not unblock the gate", () => {
     const pill = makePill();
     const cases = [
-      makeEvalCase("case-dc", dataCentreAsset, makeEvidence(), { "TS-07": "escalate" }),
+      makeEvalCase("case-dc", dataCentreAsset, makeEvidence(), { "TS-07": "blocked" }),
     ];
     const result = runEvals(pill, cases);
-    expect(result.results[0].actual).toBe("escalate");
+    expect(result.results[0].actual).toBe("blocked");
     expect(result.passed).toBe(1);
   });
 });

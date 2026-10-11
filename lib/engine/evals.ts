@@ -26,8 +26,9 @@ export function runEvals(pill: Pill, cases: EvalCase[]): EvalSummary {
 
     for (const [ruleId, expected] of Object.entries(evalCase.expected)) {
       const action = result.actions.find((a) => a.ruleId === ruleId);
-      // If the rule didn't fire, its status is implicitly "allowed" (no action).
-      const actual = action?.status ?? "allowed";
+      // If the rule didn't fire (no action produced), its status is
+      // 'not_applicable' — never 'allowed'.
+      const actual = action?.status ?? "not_applicable";
 
       const isPass = actual === expected;
       if (isPass) {

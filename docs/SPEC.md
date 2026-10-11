@@ -1,7 +1,7 @@
 # MOSAIC — Build Spec (v1, 2026-10-11)
 
 Keppel "AI HARVEST" track · Tencent Cloud AI CAN DO IT SG 2026 · **Submission: 16 Oct 2026**
-Built with **CodeBuddy Code** (implementation); Claude Code used for planning and review.
+Built with **CodeBuddy Code** (primary builder: scaffold, pills, engine, data, UI) and **Claude Code** (planning, code review, governance/data layers). Keep this attribution accurate in the submission write-up.
 Research backing every decision: `docs/research/*.md`.
 
 Blurb (<10 words): **Turn expert judgement into governed, versioned Intelligence Pills.**

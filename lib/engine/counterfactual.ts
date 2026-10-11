@@ -43,7 +43,7 @@ export function counterfactual(
   // 1. Current status.
   const currentResult = evaluate(pill, asset, incident, evidence);
   const currentTrace = currentResult.trace.find((t) => t.ruleId === ruleId);
-  const currentStatus: ActionStatus = currentTrace?.status ?? "allowed";
+  const currentStatus: ActionStatus = currentTrace?.status ?? "not_applicable";
 
   // 2. Determine what would flip the status.
   //
@@ -75,7 +75,7 @@ export function counterfactual(
 
   const flippedResult = evaluate(pill, asset, incident, flippedEvidence);
   const flippedTrace = flippedResult.trace.find((t) => t.ruleId === ruleId);
-  const flippedStatus: ActionStatus = flippedTrace?.status ?? "allowed";
+  const flippedStatus: ActionStatus = flippedTrace?.status ?? "not_applicable";
 
   // 3. Build the ifEvidence list.
   //
@@ -102,7 +102,7 @@ export function counterfactual(
       }
       const singleResult = evaluate(pill, asset, incident, singleFlip);
       const singleTrace = singleResult.trace.find((t) => t.ruleId === ruleId);
-      const singleStatus = singleTrace?.status ?? "allowed";
+      const singleStatus = singleTrace?.status ?? "not_applicable";
       if (singleStatus !== currentStatus) {
         ifEvidence.push(key);
         flipsTo = singleStatus;
@@ -166,7 +166,7 @@ export function counterfactual(
 
         const hypoResult = evaluate(pill, asset, incident, hypoEvidence);
         const hypoTrace = hypoResult.trace.find((t) => t.ruleId === ruleId);
-        const hypoStatus = hypoTrace?.status ?? "allowed";
+        const hypoStatus = hypoTrace?.status ?? "not_applicable";
         if (hypoStatus !== currentStatus) {
           flipsTo = hypoStatus;
           ifEvidence.push(...new Set([...missingTriggerEv, ...missingNow]));

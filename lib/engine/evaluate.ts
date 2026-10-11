@@ -12,6 +12,7 @@ import type {
   Incident,
   Pill,
   Rule,
+  RuleException,
   TraceStep,
 } from "./types.js";
 import {
@@ -100,25 +101,36 @@ function evaluateRule(
     triggerReason = "Trigger matched (incident type + all conditions + any conditions)";
   }
 
-  // 4. Missing evidence.
-  const missingEvidence = computeMissingEvidence(rule, ctx.evidence);
+  // 4. Effective action class and forbidden_if_missing_evidence (with asset overrides).
+  const effectiveClass = resolveActionClass(rule, ctx.asset.type);
+  const effectiveForbidden = resolveForbiddenIfMissing(rule, ctx.asset.type);
 
-  // 5. Exception check.
+  // 5. Exception check — exceptions annotate and may ADD requirements, never relax.
   let exceptionApplied = false;
   let exceptionNote: string | null = null;
+  let exceptionAddRequired: string[] = [];
+  // Exception escalate_to is supported in the schema/types. When set, it
+  // takes precedence over the asset override and base rule value.
+  let exceptionEscalateTo: EscalateTarget | null = null;
   if (triggered) {
     const ex = checkExceptions(rule.exceptions, ctx);
     if (ex) {
       exceptionApplied = true;
       exceptionNote = ex.note;
+      exceptionAddRequired = ex.add_required_evidence ?? [];
+      exceptionEscalateTo = ex.escalate_to ?? null;
     }
   }
 
-  // 6. Compute status.
-  const status = computeStatus(rule, triggered, missingEvidence, exceptionApplied);
+  // 6. Missing evidence — base required + any exception-added evidence.
+  const missingEvidence = computeMissingEvidence(rule, ctx.evidence, exceptionAddRequired);
 
-  // 7. Effective action class (with asset overrides applied).
-  const effectiveClass = resolveActionClass(rule, ctx.asset.type);
+  // 7. Compute status — exceptions never relax a gate.
+  const status = computeStatus(triggered, effectiveClass, effectiveForbidden, missingEvidence);
+
+  // Effective escalate_to: exception > asset override > base.
+  const effectiveEscalateTo =
+    exceptionEscalateTo ?? resolveEscalateTo(rule, ctx.asset.type);
 
   return {
     ruleId: rule.id,
@@ -132,6 +144,7 @@ function evaluateRule(
     exceptionNote,
     status,
     actionClass: effectiveClass,
+    escalateTo: effectiveEscalateTo,
   };
 }
 
@@ -143,10 +156,18 @@ function evaluateRule(
  * A required evidence key is "missing" if:
  *  - it is absent from the evidence record, OR
  *  - its confirmed flag is false.
+ *
+ * Includes exception-added evidence keys (exceptions may add requirements,
+ * never relax them).
  */
-function computeMissingEvidence(rule: Rule, evidence: Evidence): string[] {
+function computeMissingEvidence(
+  rule: Rule,
+  evidence: Evidence,
+  extraRequired: string[] = [],
+): string[] {
   const missing: string[] = [];
-  for (const key of rule.required_evidence) {
+  const allRequired = [...rule.required_evidence, ...extraRequired];
+  for (const key of allRequired) {
     const item = evidence[key];
     if (item === undefined || !item.confirmed) {
       missing.push(key);
@@ -180,46 +201,43 @@ function checkExceptions(
 // ---------------------------------------------------------------------------
 
 /**
- * Status logic per SPEC §5:
- *   must_escalate → 'escalate'
- *   forbidden_if_missing_evidence && missing → 'blocked'
- *   requires_approval → 'needs_approval'
- *   else → 'allowed'
+ * Status logic with strict precedence (exceptions NEVER relax a gate):
  *
- * If the rule is not triggered, status is 'allowed' (no action fires).
- * If an exception applies, it can override the blocking: the status becomes
- * 'needs_approval' (the exception note describes the co-sign requirement).
+ *   1. Not triggered                 → 'not_applicable'
+ *   2. forbidden_if_missing_evidence
+ *      && missing evidence           → 'blocked'  (always wins, even for
+ *                                                  must_escalate; escalateTo
+ *                                                  is still populated)
+ *   3. action_class == must_escalate → 'escalate'
+ *   4. action_class == requires_approval → 'needs_approval'
+ *   5. else                          → 'allowed'
+ *
+ * The actionClass and forbidden parameters are the *effective* values after
+ * asset overrides have been applied.
  */
 function computeStatus(
-  rule: Rule,
   triggered: boolean,
+  actionClass: ActionClass,
+  forbiddenIfMissing: boolean,
   missingEvidence: string[],
-  exceptionApplied: boolean,
 ): ActionStatus {
   if (!triggered) {
-    return "allowed";
+    return "not_applicable";
   }
 
-  // must_escalate rules always escalate.
-  if (rule.action_class === "must_escalate") {
-    // But if evidence is missing AND forbidden_if_missing_evidence, block first.
-    if (rule.forbidden_if_missing_evidence && missingEvidence.length > 0 && !exceptionApplied) {
-      return "blocked";
-    }
-    return "escalate";
-  }
-
-  // Blocked if evidence missing and forbidden_if_missing_evidence.
-  if (rule.forbidden_if_missing_evidence && missingEvidence.length > 0 && !exceptionApplied) {
+  // forbidden_if_missing_evidence + missing → blocked (always wins).
+  if (forbiddenIfMissing && missingEvidence.length > 0) {
     return "blocked";
   }
 
-  // requires_approval → needs_approval.
-  if (rule.action_class === "requires_approval") {
+  if (actionClass === "must_escalate") {
+    return "escalate";
+  }
+
+  if (actionClass === "requires_approval") {
     return "needs_approval";
   }
 
-  // recommend → allowed.
   return "allowed";
 }
 
@@ -236,6 +254,18 @@ function resolveActionClass(rule: Rule, assetType: string): ActionClass {
     return override.action_class;
   }
   return rule.action_class;
+}
+
+/**
+ * Resolve the effective forbidden_if_missing_evidence for a rule given asset
+ * type overrides.
+ */
+function resolveForbiddenIfMissing(rule: Rule, assetType: string): boolean {
+  const override = rule.asset_overrides[assetType];
+  if (override?.forbidden_if_missing_evidence !== undefined) {
+    return override.forbidden_if_missing_evidence;
+  }
+  return rule.forbidden_if_missing_evidence;
 }
 
 /**
@@ -284,7 +314,6 @@ function buildAction(
   asset: Asset,
   pill: Pill,
 ): ActionDecision {
-  const escalateTo = resolveEscalateTo(rule, asset.type);
   const deadline = resolveDeadline(rule, asset.type);
   const { allowed, forbidden } = resolveActions(rule, asset.type);
 
@@ -295,7 +324,7 @@ function buildAction(
     status: step.status,
     missingEvidence: step.missingEvidence,
     owner: rule.owner,
-    escalateTo: step.status === "escalate" || step.status === "blocked" ? escalateTo : null,
+    escalateTo: step.status === "escalate" || step.status === "blocked" ? step.escalateTo : null,
     deadline,
     provenance: rule.provenance,
     pillId: pill.manifest.name,

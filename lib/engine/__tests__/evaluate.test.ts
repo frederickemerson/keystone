@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { evaluate } from "../evaluate.js";
+import type { Rule } from "../index.js";
 import {
   makePill,
   makeRule,
@@ -148,11 +149,17 @@ describe("evaluate — data_centre asset override", () => {
     expect(trace?.exceptionNote).toBe("Critical facilities manager co-signs");
   });
 
-  it("with exception applied, blocked becomes escalate (missing evidence overridden)", () => {
+  it("with exception applied, blocked stays blocked — exception cannot relax the gate", () => {
     const pill = makePill();
     const result = evaluate(pill, dataCentreAsset, waterIngressIncident, makeEvidence());
-    // Exception overrides forbidden_if_missing_evidence → must_escalate → escalate
-    expect(result.actions[0].status).toBe("escalate");
+    // Exception annotates (note) but does NOT unblock the gate.
+    const trace = result.trace.find((t) => t.ruleId === "TS-07");
+    expect(trace?.exceptionApplied).toBe(true);
+    expect(trace?.exceptionNote).toBe("Critical facilities manager co-signs");
+    expect(result.actions[0].status).toBe("blocked");
+    expect(result.actions[0].escalateTo).toEqual({
+      role: "dc_critical_facilities_manager",
+    });
   });
 });
 
@@ -225,5 +232,107 @@ describe("evaluate — requires_approval", () => {
     const pill = makePill([rule]);
     const result = evaluate(pill, officeAsset, waterIngressIncident, makeEvidence());
     expect(result.actions[0].status).toBe("needs_approval");
+  });
+});
+
+describe("evaluate — no exception can unblock a gate (property)", () => {
+  // For every rule in a fixture pill that has forbidden_if_missing_evidence
+  // and is triggered with missing evidence, no exception configuration should
+  // ever produce a non-blocked status. Exceptions may only annotate and add
+  // requirements — never relax a gate.
+  it("every triggered forbidden rule stays blocked regardless of exceptions", () => {
+    // Build a pill with several rules, each with different exceptions.
+    const rules: Rule[] = [
+      // Rule with a data_centre exception that annotates only.
+      makeRule({ id: "R1" }),
+      // Rule with an exception that adds evidence (tightens, not relaxes).
+      makeRule({
+        id: "R2",
+        exceptions: [
+          {
+            when: [{ path: "asset.type", op: "eq", value: "data_centre" }],
+            note: "CFM co-signs",
+            add_required_evidence: ["cfm_cosign"],
+          },
+        ],
+      }),
+      // Rule with no exceptions.
+      makeRule({ id: "R3", exceptions: [] }),
+      // Rule with an exception matching office.
+      makeRule({
+        id: "R4",
+        exceptions: [
+          {
+            when: [{ path: "asset.type", op: "eq", value: "office" }],
+            note: "Office-specific note",
+          },
+        ],
+      }),
+    ];
+    const pill = makePill(rules);
+    const ev = makeEvidence(); // all required evidence missing/unconfirmed
+
+    for (const asset of [officeAsset, dataCentreAsset]) {
+      const result = evaluate(pill, asset, waterIngressIncident, ev);
+      for (const action of result.actions) {
+        expect(action.status).toBe("blocked");
+        expect(action.missingEvidence.length).toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
+describe("evaluate — data_centre override changes status (not just displayed class)", () => {
+  it("asset override on action_class changes the effective status", () => {
+    // Rule is must_escalate with forbidden_if_missing_evidence=false and all
+    // evidence confirmed → status escalate. With a data_centre override to
+    // requires_approval, the status must change to needs_approval.
+    const rule = makeRule({
+      id: "TS-OVERRIDE-01",
+      action_class: "must_escalate",
+      forbidden_if_missing_evidence: false,
+      required_evidence: [],
+      asset_overrides: {
+        data_centre: {
+          action_class: "requires_approval",
+        },
+      },
+    });
+    const pill = makePill([rule]);
+
+    // Office: must_escalate, no missing evidence → escalate
+    const officeResult = evaluate(pill, officeAsset, waterIngressIncident, makeEvidence());
+    expect(officeResult.actions[0].status).toBe("escalate");
+    expect(officeResult.actions[0].actionClass).toBe("must_escalate");
+
+    // Data centre: overridden to requires_approval → needs_approval
+    const dcResult = evaluate(pill, dataCentreAsset, waterIngressIncident, makeEvidence());
+    expect(dcResult.actions[0].status).toBe("needs_approval");
+    expect(dcResult.actions[0].actionClass).toBe("requires_approval");
+  });
+
+  it("asset override on forbidden_if_missing_evidence changes block behaviour", () => {
+    // Rule has forbidden_if_missing_evidence=true at base. Office with missing
+    // evidence → blocked. Data centre override sets forbidden=false → the rule
+    // no longer blocks on missing evidence (must_escalate → escalate).
+    const rule = makeRule({
+      id: "TS-FORBIDDEN-OVERRIDE",
+      action_class: "must_escalate",
+      forbidden_if_missing_evidence: true,
+      asset_overrides: {
+        data_centre: {
+          forbidden_if_missing_evidence: false,
+        },
+      },
+    });
+    const pill = makePill([rule]);
+
+    // Office: forbidden=true, missing evidence → blocked
+    const officeResult = evaluate(pill, officeAsset, waterIngressIncident, makeEvidence());
+    expect(officeResult.actions[0].status).toBe("blocked");
+
+    // Data centre: forbidden overridden to false → escalate (not blocked)
+    const dcResult = evaluate(pill, dataCentreAsset, waterIngressIncident, makeEvidence());
+    expect(dcResult.actions[0].status).toBe("escalate");
   });
 });

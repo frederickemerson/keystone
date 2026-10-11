@@ -1,0 +1,128 @@
+import { describe, expect, it } from "vitest";
+import {
+  bumpMinor,
+  currentApproved,
+  diffVersions,
+  markApproved,
+  proposeVersion,
+  rollback,
+  seedVersion,
+  type PillVersion,
+} from "../versions";
+import { AOM, CE, HTS, PILL_ID, pill, rule } from "./fixtures";
+
+const AT = "2026-10-11T08:00:00.000Z";
+
+function seeded(): PillVersion {
+  return seedVersion(PILL_ID, pill(), { createdBy: CE, approvedBy: HTS }, AT);
+}
+
+describe("proposeVersion", () => {
+  it("bumps the minor version, starts as Draft and links its parent", () => {
+    const base = seeded();
+    const v = proposeVersion(base, [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], CE, "eval flag", [base], AT);
+    expect(v.version).toBe("1.3.0");
+    expect(v.status).toBe("Draft");
+    expect(v.parentVersion).toBe("1.2.0");
+    expect(v.rules.find((r) => r.id === "TS-03")?.deadline_minutes).toBe(10);
+    // base is untouched
+    expect(base.rules.find((r) => r.id === "TS-03")?.deadline_minutes).toBe(15);
+  });
+
+  it("never collides with an existing version", () => {
+    const base = seeded();
+    const v13 = proposeVersion(base, [], CE, "a", [base], AT);
+    const v14 = proposeVersion(base, [], CE, "b", [base, v13], AT);
+    expect(v14.version).toBe("1.4.0");
+    expect(bumpMinor("1.2")).toBe("1.3.0");
+  });
+});
+
+describe("diffVersions", () => {
+  it('produces "TS-xx field a → b" strings keyed by rule id', () => {
+    const base = seeded();
+    const v = proposeVersion(
+      base,
+      [
+        { op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } },
+        { op: "update", ruleId: "TS-01", patch: { action_class: "must_escalate" } },
+      ],
+      CE,
+      "correction",
+      [base],
+      AT,
+    );
+    const diff = diffVersions(base, v);
+    expect(diff.delta).toBeDefined();
+    expect(diff.changes).toContain("TS-03 deadline_minutes 15 → 10");
+    expect(diff.changes).toContain("TS-01 action_class recommend → must_escalate");
+    expect(diff.changes).toHaveLength(2);
+  });
+
+  it("keys by rule id, not position, and reports list edits, adds and removals", () => {
+    const base = seeded();
+    const v = proposeVersion(
+      base,
+      [
+        { op: "remove", ruleId: "TS-01" },
+        { op: "add", rule: rule("TS-13") },
+        { op: "update", ruleId: "TS-02", patch: { required_evidence: ["location_confirmed", "shutoff_map_available"] } },
+      ],
+      CE,
+      "restructure",
+      [base],
+      AT,
+    );
+    const { changes } = diffVersions(base, v);
+    expect(changes).toContain("TS-01 removed");
+    expect(changes).toContain("TS-13 added");
+    expect(changes).toContain("TS-02 required_evidence + shutoff_map_available");
+    // TS-02/TS-03 shifted position but are not reported as changed wholesale
+    expect(changes.some((c) => c.startsWith("TS-03"))).toBe(false);
+  });
+
+  it("identical versions have no changes", () => {
+    const base = seeded();
+    const v = proposeVersion(base, [], CE, "noop", [base], AT);
+    expect(diffVersions(base, v).changes).toEqual([]);
+  });
+});
+
+describe("rollback", () => {
+  it("creates a new version, retires the rolled-back one, and preserves history", () => {
+    const base = seeded();
+    const v13 = proposeVersion(base, [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], CE, "fix", [base], AT);
+    let history = markApproved([base, v13], "1.3.0", HTS, AT);
+    expect(history.find((v) => v.version === "1.2.0")?.status).toBe("Retired");
+
+    const before = structuredClone(history);
+    history = rollback(history, PILL_ID, "1.2.0", AOM, "1.3 regressed in production", AT);
+
+    expect(history).toHaveLength(3);
+    // all prior entries still present, same rules, only status changed
+    for (const old of before) {
+      const now = history.find((v) => v.version === old.version);
+      expect(now).toBeDefined();
+      expect(now?.rules).toEqual(old.rules);
+    }
+    expect(history.find((v) => v.version === "1.3.0")?.status).toBe("Retired");
+
+    const restored = history[history.length - 1];
+    expect(restored.version).toBe("1.4.0");
+    expect(restored.status).toBe("Approved");
+    expect(restored.rollbackOf).toBe("1.2.0");
+    expect(restored.parentVersion).toBe("1.3.0");
+    expect(restored.rules).toEqual(base.rules);
+    expect(currentApproved(history)?.version).toBe("1.4.0");
+    expect(history.filter((v) => v.status === "Approved")).toHaveLength(1);
+  });
+
+  it("does not mutate its input and requires a reason", () => {
+    const base = seeded();
+    const v13 = proposeVersion(base, [], CE, "x", [base], AT);
+    const history = Object.freeze(markApproved([base, v13], "1.3.0", HTS, AT));
+    expect(() => rollback(history, PILL_ID, "1.2.0", AOM, "  ", AT)).toThrow(/reason/);
+    rollback(history, PILL_ID, "1.2.0", AOM, "ok", AT);
+    expect(history).toHaveLength(2);
+  });
+});
