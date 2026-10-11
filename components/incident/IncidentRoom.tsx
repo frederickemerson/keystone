@@ -719,6 +719,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
           <div>
             <h2 className="mb-2 text-[19px] font-semibold leading-tight">tenant message</h2>
             <TenantMessagePanel
+              key={incidentId}
               fixture={scenario.tenantMessage}
               role={role}
               replayAt={currentEvent?.at ?? null}

@@ -52,7 +52,18 @@ export function candidateToRule(c: RuleCandidate): Rule {
   };
 }
 
-const extractionOutputSchema = z.object({ rule_candidates: z.array(z.unknown()) });
+const extractionOutputSchema = z.object({ rule_candidates: z.array(z.unknown()).max(20) });
+
+/** Use the existing field-by-field guard for both provider output and fixtures. */
+export const draftExtractionSchema = extractionOutputSchema.transform((raw, ctx) => {
+  const parsed = toDraftCandidates(raw);
+  const ids = parsed.candidates.map((c) => c.rule.id);
+  if (parsed.rejected.length || new Set(ids).size !== ids.length) {
+    ctx.addIssue({ code: 'custom', message: 'Invalid or duplicate rule candidates.' });
+    return z.NEVER;
+  }
+  return parsed;
+});
 
 /**
  * Parse raw extractor output into draft candidates. Never throws: malformed

@@ -154,8 +154,8 @@ Next.js 15 (App Router, TS) · React 19 · Tailwind v4
 ├─ lib/engine/            DETERMINISTIC, pure TS, no LLM:
 │                         evaluate(pill, asset, incident, evidence) → actions + confidence + trace
 │                         counterfactual() · runEvals() · conditions · schema
-├─ lib/llm/               AI SDK 7 → Tencent TokenHub (OpenAI-compatible).
-│                         Language work only. Recorded fixtures for every path.
+├─ lib/llm/               CodeBuddy Agent SDK → Hunyuan hy4-preview (opt-in live).
+│                         TokenHub ready pending KYC; recorded fixtures fallback.
 ├─ lib/governance/        versions (semver, jsondiffpatch diff, rollback) ·
 │                         approval (separation of duties + eval-regression gate) ·
 │                         access (role/sensitivity RBAC + redaction) · audit log
@@ -170,8 +170,10 @@ Seven routes ship: `/` (Portfolio Pulse), `/capture`, `/canvas/[pillId]`, `/regi
 
 ### 5.3 How prompts drive AI generation
 
-The LLM is confined to **language work**. Four prompt-driven paths are implemented (all
-with recorded offline fixtures in `data/fixtures/llm/`):
+The LLM is confined to **language work**. Extraction and tenant drafting have
+opt-in live endpoints via **CodeBuddy Agent SDK → Hunyuan hy4-preview**. Interviewer
+probes and contradiction detection remain scripted/recorded, not live inference.
+All screens default to recorded fixtures in `data/fixtures/llm/`:
 
 1. **Interviewer probes (Expert Capture).** The interviewer is driven by a probe library
    (`research_domain.md` §1.3 — 31 probes) drawn from the Critical Decision Method and
@@ -191,7 +193,27 @@ with recorded offline fixtures in `data/fixtures/llm/`):
 4. **Tenant-message drafting.** A prompt drafts the first notice under hard constraints
    expressed in the Tenant Experience pill: no cause before the source is confirmed
    (TE-03), no completion time before isolation (TE-02), PII masking (TE-05). The draft
-   is `needs_approval` and executes only after a named human signs off.
+   is `needs_approval`; a named human signs off but MOSAIC never sends it. Live
+   drafting selects and arranges reviewed first-notice sentences for INC-2026-1011
+   as of 08:20. Unsupported prose, cause claims and completion promises fail closed
+   to the recorded fixture. This is bounded composition, not unrestricted drafting.
+
+`MOSAIC_LLM_PROVIDER=auto` selects CodeBuddy with a server API key or cached local
+CLI login, then TokenHub if only its key is present, otherwise recorded fixtures.
+**TokenHub is not verified live: account KYC is pending.** A selected provider's
+error, invalid JSON/schema, safety rejection or 25-second timeout falls back to a
+recorded fixture with a reason, not a second live-provider retry. Output badges
+show `live · hy4-preview via CodeBuddy · <measured seconds> s` or `recorded output`.
+The CodeBuddy SDK has no tools, one model turn, plan permission mode and no session
+persistence. All extraction output passes the existing DRAFT-only guard.
+
+**CodeBuddy API keys require a Pro plan.** Vercel normally has no key and does not
+have the local CLI login: when neither provider key exists it selects recorded
+fixtures directly, **without spawning the SDK or attempting inference**. Local
+CLI login reuse remains available. Do not set `CODEBUDDY_INTERNET_ENVIRONMENT`
+(the integration uses the international edition). Vercel live inference is not
+claimed as verified. The demo's optional inference endpoints need server-side auth
+and rate limiting before production use with billable credentials.
 
 ### 5.4 What is deliberately deterministic
 
@@ -405,12 +427,15 @@ control of building systems anywhere in the design.
 
 ## 10. Credible implementation path on Tencent Cloud
 
-Everything below maps to shipping Tencent products. Current state: the demo runs on
-recorded fixtures and mock data; the integration points are the proposed production path.
+Current state: mock incident data and recorded defaults, with opt-in live Hunyuan
+extraction and bounded tenant drafting through the CodeBuddy Agent SDK. TokenHub
+is wired but blocked by pending account verification. Other integration points
+below are the proposed production path, not claims of completed integrations.
 
 | Layer | Tencent product | Role in MOSAIC |
 |---|---|---|
-| **Models** | **TokenHub** (Singapore: `https://tokenhub-intl.tencentcloudmaas.com/v1`; models `hy4-preview`, `hy3`, `deepseek-v4-pro`, `glm-5.3`, `kimi-k3`) | OpenAI-compatible provider for extraction, probes, contradiction, tenant-message drafting, incident summary. Model swap is a config change; the decision is identical. |
+| **Models (live)** | **CodeBuddy Agent SDK → Hunyuan `hy4-preview`** | Opt-in extraction and tenant drafts; local CLI login or Pro API key. Recorded defaults and fallback. No autonomous approvals or tool use. |
+| **Models (pending verification)** | **TokenHub** (`https://tokenhub-intl.tencentcloudmaas.com/v1`) | OpenAI-compatible adapter ready once account KYC completes; not yet verified live. |
 | **Expert host** | **WorkBuddy** — Skills & Expert Center, Experts, Expert Teams | A pill becomes a Skill; a domain pill + persona becomes an Expert; the Asset Ops orchestrator becomes an Expert Team leader. Skills are security-scanned before install; `access` maps to RBAC. |
 | **Builder skills** | **CodeBuddy** — `.codebuddy/skills/<name>/SKILL.md` | The same pill loads as a CodeBuddy skill; `rules.yaml` and `evals/` are consumed by the MOSAIC engine. |
 | **Enterprise governance** | **ADP** (Agent Development Platform) — custom skills as a ZIP with `SKILL.md` at the root, YAML metadata, semantic versioning, sandbox security review, **Approval Center** for enterprise sharing | The governed distribution path for pills across business units. |

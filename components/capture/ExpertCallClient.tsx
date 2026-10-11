@@ -10,6 +10,7 @@ import { computePhaseByTurn } from './phases';
 import { useCallPlayback } from './useCallPlayback';
 import { CallPanel } from './CallPanel';
 import { CapturedPanel } from './CapturedPanel';
+import { LiveExtractionPanel } from './LiveExtractionPanel';
 import type { CaptureProps } from './types';
 
 export function ExpertCallClient(props: CaptureProps) {
@@ -74,6 +75,7 @@ export function ExpertCallClient(props: CaptureProps) {
         title="expert onboarding call"
         subtitle="A simulated, fully offline voice interview. MOSAIC extracts rule candidates as the expert speaks, each linked to the exact transcript span."
       />
+      <LiveExtractionPanel transcript={transcript} rules={rules} />
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <CallPanel
           playback={playback}

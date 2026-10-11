@@ -80,10 +80,10 @@ Next.js 15 (App Router, TS) + React 19 + Tailwind v4 + shadcn-style components
 │       └─ CHANGELOG.md           semantic version history
 ├─ lib/engine/                    pure TS, NO LLM: evaluate() → decisions + trace;
 │                                 counterfactual(); runEvals(); schema; conditions
-├─ lib/llm/                       AI SDK 7, OpenAI-compatible → Tencent TokenHub.
-│                                 Used ONLY for: rule extraction, probe generation,
-│                                 contradiction detection, tenant-message drafting,
-│                                 incident summary. Every path has a recorded fallback.
+├─ lib/llm/                       CodeBuddy Agent SDK → Hunyuan hy4-preview (live).
+│                                 TokenHub adapter ready pending account verification.
+│                                 Opt-in extraction + tenant drafts; recorded fallback.
+│                                 Probes, contradictions and summaries remain recorded.
 ├─ lib/governance/                versions (semver + jsondiffpatch + rollback),
 │                                 approval (separation of duties + eval gate),
 │                                 access (role/sensitivity RBAC + redaction), audit
@@ -159,7 +159,7 @@ See `pills/README.md` for the full portability note.
 
 ## Run instructions
 
-Requires Node 18+ (Next.js 15 / React 19).
+Requires Node 18.20.8+ (Next.js 15 / React 19 / bundled CodeBuddy CLI).
 
 ```bash
 npm install
@@ -171,23 +171,66 @@ npm run build      # production build
 
 ### Environment variables (all optional)
 
-**The app runs fully offline.** With no API key set, every AI step reads a recorded
-fallback from `data/fixtures/llm/*.json`, so the live demo never depends on the network.
+**Every screen opens on recorded output, even when credentials are present.**
+Only **re-extract live with Hunyuan** on `/capture` or **draft live with Hunyuan**
+in the Incident Room makes a request. The scripted voice call stays offline.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `TOKENHUB_API_KEY` | _(unset)_ | Enables live LLM calls via Tencent TokenHub |
-| `TOKENHUB_BASE_URL` | `https://tokenhub-intl.tencentcloudmaas.com/v1` | TokenHub (Singapore) endpoint |
-| `MOSAIC_MODEL` | `hy4-preview` | Model id (e.g. `hy4-preview`, `hy3`, `deepseek-v4-pro`) |
+| `MOSAIC_LLM_PROVIDER` | `auto` | `auto`, `codebuddy`, `tokenhub`, or `fixtures` |
+| `CODEBUDDY_API_KEY` | _(unset)_ | CodeBuddy international API key; requires a **Pro plan** |
+| `TOKENHUB_API_KEY` | _(unset)_ | TokenHub adapter; account KYC is currently pending, not verified live |
+| `TOKENHUB_BASE_URL` | `https://tokenhub-intl.tencentcloudmaas.com/v1` | TokenHub endpoint |
+| `MOSAIC_MODEL` | `hy4-preview` | TokenHub model only; CodeBuddy always requests Hunyuan `hy4-preview` |
 
-When `TOKENHUB_API_KEY` is unset, `lib/llm/client.ts` reports "not configured" and
-callers use the fixtures. There is no silent network dependency.
+`auto` selects **CodeBuddy Agent SDK → Hunyuan hy4-preview** when a CodeBuddy
+key is set or a local saved CLI login is present; otherwise **TokenHub** when
+its key is set; otherwise **recorded fixtures**. This is a selection order,
+not sequential retries: a selected provider's failure goes directly to the fixture.
+Local login detection reads only the installed SDK's shared auth-cache shape and
+logout marker, without spawning a CLI or decrypting credentials. The SDK handles
+actual login reuse/refresh; a stale login fails safely to recorded output.
+
+**Vercel normally has no CodeBuddy key** because API-key access requires Pro.
+Vercel/CI never inspect a local CLI login. With no CodeBuddy key and no TokenHub
+key, the API selects recorded fixtures immediately: **no SDK spawn or network
+attempt**. Explicit `codebuddy` with neither a key nor a local login also falls
+back without spawning. Set `MOSAIC_LLM_PROVIDER=fixtures` to force offline mode.
+Do **not** set `CODEBUDDY_INTERNET_ENVIRONMENT`; this integration uses the
+international edition. Keep all credentials server-side (never `NEXT_PUBLIC_*`).
+
+The Node routes `/api/llm/extract` and `/api/llm/tenant-message` have a 60-second
+platform budget and a 25-second inference timeout. Requests are limited to 64 KB;
+extraction permits at most 100 turns of 4,000 characters each. Results include
+`data`, `source`, `provider`, `model`, `latencyMs` and a safe fallback `reason`.
+The badge reports actual provenance and latency; recorded output exposes its reason
+on hover. Keys, full prompts and raw provider errors are not logged by this layer;
+SDK conversation persistence is disabled. Tool whitelists are empty, with an
+additional deny-all permission callback and pre-tool hook; no model tool execution
+is permitted. Each SDK query requests an ephemeral local listener port so it does
+not collide with an existing developer CLI session.
+
+All extracted rules pass `lib/llm/candidates.ts` and remain **DRAFT** previews for
+Tan Wei Ming's review, not automatically copied to Canvas or applied to pills.
+Tenant drafting is bounded to selecting/arranging reviewed factual sentences from
+the **INC-2026-1011 first-notice snapshot at 08:20**, not current replay evidence.
+A fail-closed sentence bank rejects unverified cause claims (TE-03), completion
+promises (TE-02), and other unsupported prose, including claims in the subject.
+Recipients, sensitivity and approver are server-owned; each live draft gets a fresh
+id and needs **Lim Hui Fen's** named approval. Nothing is sent by MOSAIC. Unknown
+incidents and DC clients do not receive the office fixture (DC uses the CFM SLA flow).
+
+The bundled CLI is externalized and its headless assets traced for Node deployment.
+Vercel live inference is **not claimed as verified**; absent Pro credentials it is
+intentionally a recorded demo. These demo APIs are not authenticated production
+endpoints: add server-side authentication, authorization and distributed rate
+limiting before enabling billable inference on a public deployment.
 
 ---
 
 ## Tests
 
-`npm test` runs **161 tests** across the deterministic core and the governance layer,
+`npm test` runs the regression suite across the deterministic core, LLM boundary and governance layer,
 including the safety invariants that make the demo defensible:
 
 - **Evidence can never be faked open** — a required item counts only when it is
@@ -205,7 +248,10 @@ including the safety invariants that make the demo defensible:
 
 Coverage spans `lib/engine` (conditions, evaluate, counterfactual, evals, schema,
 real-pill conformance), `lib/governance` (versions, approval, access, audit, store),
-`lib/data` (schema + cross-file consistency) and `lib/pills` (package loading).
+`lib/data` (schema + cross-file consistency), `lib/pills` (package loading), and
+`lib/llm` (mocked SDK/provider selection, no-spawn fallback, timeout, malformed JSON,
+injected controls, bounded HTTP inputs, and TE-02/TE-03 rejection). Tests make no
+inference requests.
 
 ---
 

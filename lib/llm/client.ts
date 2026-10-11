@@ -1,7 +1,7 @@
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 
 /**
- * LLM access goes through Tencent TokenHub (OpenAI-compatible).
+ * TokenHub adapter for providers.ts (CodeBuddy is the primary live provider).
  * Used only for: rule extraction, follow-up probes, contradiction detection,
  * tenant-message drafting, incident summary. Decisions stay deterministic.
  *

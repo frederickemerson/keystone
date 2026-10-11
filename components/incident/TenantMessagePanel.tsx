@@ -1,10 +1,12 @@
 'use client';
 
-import { useId } from 'react';
+import { useId, useState } from 'react';
+import { LlmBadge } from '@/components/mosaic/LlmBadge';
+import type { Generation } from '@/lib/llm/providers';
 import { Check, EyeOff, Mail, X } from 'lucide-react';
 import { StatusBadge } from '@/components/mosaic';
 import type { ActionStatus } from '@/lib/engine/types';
-import { canSee, redact, roleLabel } from '@/lib/governance/access';
+import { canSee, getRole, redact, roleLabel } from '@/lib/governance/access';
 import type { ActionDecisionRecord, ActionOutcome } from '@/lib/governance/store';
 import type { TenantMessageFixture } from '@/lib/data/schemas';
 import { cn } from '@/lib/ui/cn';
@@ -25,7 +27,9 @@ function DraftCard({
   gate,
   record,
   onDecide,
+  generation,
 }: {
+  generation?: Generation<{ draft: Draft; snapshotAt: string }> | null;
   draft: Draft;
   role: string;
   replayAt: string | null;
@@ -44,11 +48,12 @@ function DraftCard({
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-approval/40 bg-approval-tint px-2.5 py-[3px] text-xs font-medium text-approval">
           <Mail className="size-3.5" aria-hidden="true" />
-          Draft — requires {roleLabel(draft.approved_by_role)} approval
+          DRAFT — requires {getRole(draft.approved_by_role)?.person ?? roleLabel(draft.approved_by_role)}’s approval
         </span>
         <span className="text-[11px] text-ink-muted">
-          {draft.channel} · recorded LLM draft {draft.draft_id}
+          {draft.channel} · {draft.draft_id}
         </span>
+        <LlmBadge result={generation} />
         {masked ? (
           <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted">
             <EyeOff className="size-3.5" aria-hidden="true" /> {draft.sensitivity} masked for {roleLabel(role)}
@@ -141,15 +146,45 @@ export function TenantMessagePanel({
   onDecide: (draft: Draft, outcome: ActionOutcome) => void;
   noDraftReason: string;
 }) {
+  const [generation, setGeneration] = useState<Generation<{ draft: Draft; snapshotAt: string }> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const mayDraft = Boolean(getRole(role)?.can_draft_tenant_message);
+  async function draftLive() {
+    if (!fixture || !mayDraft) return;
+    setLoading(true);
+    setGeneration(null);
+    try {
+      const response = await fetch('/api/llm/tenant-message', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ incidentId: fixture.source_incident }),
+        signal: AbortSignal.timeout(35_000),
+      });
+      if (!response.ok) throw new Error('request-failed');
+      setGeneration(await response.json());
+    } catch {
+      setGeneration({ data: { draft: fixture.drafts[0], snapshotAt: fixture.generated_at }, source: 'recorded', provider: 'fixtures', model: fixture.model, latencyMs: 0, reason: 'Live request unavailable; showing the recorded first notice.' });
+    } finally {
+      setLoading(false);
+    }
+  }
   if (!fixture || fixture.drafts.length === 0) {
     return <p className="rounded-lg border border-dashed border-line px-3 py-4 text-xs text-ink-muted">{noDraftReason}</p>;
   }
   return (
-    <div className="space-y-3">
-      {fixture.drafts.map((d) => (
+    <div className="space-y-3" aria-busy={loading}>
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" className="btn-pill text-xs" disabled={loading || !mayDraft} onClick={draftLive} title={mayDraft ? 'Optional live drafting; nothing is sent.' : 'Switch to a role permitted to draft tenant messages.'}>
+          {loading ? 'drafting with Hunyuan…' : 'draft live with Hunyuan'}
+        </button>
+        {generation ? <button type="button" className="btn-pill text-xs" onClick={() => setGeneration(null)}>Use recorded draft</button> : null}
+      </div>
+      <p className="text-[11px] text-ink-muted">First-notice snapshot at {formatClock(fixture.generated_at)}, not the current replay step. Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.</p>
+      <span className="sr-only" role="status">{loading ? 'drafting with Hunyuan…' : generation ? `${generation.source} draft ready for human review` : 'recorded output'}</span>
+      {(generation ? [generation.data.draft] : fixture.drafts).map((d) => (
         <DraftCard
           key={d.draft_id}
           draft={d}
+          generation={generation}
           role={role}
           replayAt={replayAt}
           gate={gate}

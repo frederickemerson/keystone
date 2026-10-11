@@ -1,7 +1,7 @@
 // Server component — loads the interview transcript, the recorded extraction and
 // contradiction fallbacks (lib/data), and the real pill (lib/pills/load, import
 // only). Maps extraction candidates into draft engine `Rule`s (lib/llm/candidates) and passes purely
-// serialisable props to the client component. No client-side data fetching.
+// serialisable recorded defaults to the client. Live extraction is opt-in only.
 
 import { loadTranscript, loadExtractionFixture, loadContradictionFixture } from '@/lib/data';
 import { loadPill } from '@/lib/pills/load';
