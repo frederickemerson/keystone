@@ -28,7 +28,7 @@ function toRule(c: RuleCandidate): EngineRule {
     forbidden_actions: c.forbidden_actions,
     exceptions: c.exceptions,
     action_class: c.action_class,
-    forbidden_if_missing_evidence: false,
+    forbidden_if_missing_evidence: c.forbidden_if_missing_evidence,
     escalate_to: c.escalate_to,
     owner: c.owner,
     deadline_minutes: c.deadline_minutes,

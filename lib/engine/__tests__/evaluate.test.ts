@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { evaluate } from "../evaluate.js";
-import type { Rule } from "../index.js";
+import { evaluate } from "../evaluate";
+import type { EvidenceItem, Rule } from "../index";
 import {
   makePill,
   makeRule,
@@ -10,7 +10,7 @@ import {
   fireIncident,
   makeEvidence,
   fullConfirmedEvidence,
-} from "./fixtures.js";
+} from "./fixtures";
 
 describe("evaluate — trigger matching", () => {
   it("fires the rule when incident type matches and all conditions are met", () => {
@@ -334,5 +334,63 @@ describe("evaluate — data_centre override changes status (not just displayed c
     // Data centre: forbidden overridden to false → escalate (not blocked)
     const dcResult = evaluate(pill, dataCentreAsset, waterIngressIncident, makeEvidence());
     expect(dcResult.actions[0].status).toBe("escalate");
+  });
+});
+
+describe("evaluate — required evidence invariant (safety)", () => {
+  // A required key is satisfied iff item exists && confirmed === true && value === true.
+  // A confirmed "did NOT sign off" (value false) must never unblock a gate.
+
+  it("confirmed-false never satisfies required evidence", () => {
+    const pill = makePill();
+    const ev = makeEvidence({
+      lew_signoff: { value: false, source: "s", at: "t", confirmed: true },
+      insulation_resistance_ok: { value: true, source: "s", at: "t", confirmed: true },
+      area_dry: { value: true, source: "s", at: "t", confirmed: true },
+    });
+    const result = evaluate(pill, officeAsset, waterIngressIncident, ev);
+    expect(result.actions[0].status).toBe("blocked");
+    expect(result.actions[0].missingEvidence).toEqual(["lew_signoff"]);
+    expect(result.confidence.confirmed).toBe(2);
+  });
+
+  it("unconfirmed-true never satisfies required evidence", () => {
+    const pill = makePill();
+    const ev = makeEvidence({
+      lew_signoff: { value: true, source: "s", at: "t", confirmed: false },
+      insulation_resistance_ok: { value: true, source: "s", at: "t", confirmed: true },
+      area_dry: { value: true, source: "s", at: "t", confirmed: true },
+    });
+    const result = evaluate(pill, officeAsset, waterIngressIncident, ev);
+    expect(result.actions[0].status).toBe("blocked");
+    expect(result.actions[0].missingEvidence).toEqual(["lew_signoff"]);
+  });
+
+  it("property: a required key is satisfied iff value === true && confirmed === true", () => {
+    const pill = makePill();
+    const rule = pill.rules[0];
+
+    for (const value of [true, false] as const) {
+      for (const confirmed of [true, false] as const) {
+        for (const key of rule.required_evidence) {
+          // Satisfy every required key, then vary exactly this one.
+          const overrides: Record<string, EvidenceItem> = {};
+          for (const k of rule.required_evidence) {
+            overrides[k] = { value: true, source: "s", at: "t", confirmed: true };
+          }
+          overrides[key] = { value, source: "s", at: "t", confirmed };
+
+          const result = evaluate(pill, officeAsset, waterIngressIncident, makeEvidence(overrides));
+          const action = result.actions[0];
+
+          if (value === true && confirmed === true) {
+            expect(action.missingEvidence).not.toContain(key);
+          } else {
+            expect(action.missingEvidence).toContain(key);
+            expect(action.status).toBe("blocked");
+          }
+        }
+      }
+    }
   });
 });

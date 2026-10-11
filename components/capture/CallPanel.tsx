@@ -23,11 +23,11 @@ import type { Rule } from '@/lib/engine/types';
 import type { CallPlayback, Speed } from './useCallPlayback';
 import { PHASE_ORDER } from './phases';
 import type { PhaseLabel } from './phases';
-import { ContradictionCard, computeCoverage } from './CoverageMeter';
+import { computeCoverage } from './CoverageMeter';
+import { ContradictionCard } from './ContradictionCard';
 
 type Contradiction = import('@/lib/data').ContradictionFixture['contradiction'];
 
-const EXPERT_SPEAKER = 'Tan Wei Ming';
 const SPEEDS: Speed[] = [1, 2, 4];
 const JUMP_MOMENTS = [
   { t: '00:14:32', label: '00:14:32 — LEW rule (TS-07)' },
@@ -195,7 +195,7 @@ function ActiveView({
 }) {
   const { currentTurn, paused, muted, speed, turnIndex } = playback;
   const running = playback.status === 'active' && !paused;
-  const isExpert = currentTurn?.speaker === EXPERT_SPEAKER;
+  const isExpert = currentTurn?.speaker === expert.name;
   const extracted = currentTurn?.extracted_rule_ids ?? [];
 
   return (

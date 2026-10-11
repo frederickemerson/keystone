@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { counterfactual } from "../counterfactual.js";
+import { counterfactual } from "../counterfactual";
 import {
   makePill,
   officeAsset,
@@ -7,7 +7,7 @@ import {
   waterIngressIncident,
   makeEvidence,
   fullConfirmedEvidence,
-} from "./fixtures.js";
+} from "./fixtures";
 
 describe("counterfactual — flips from blocked to escalate", () => {
   it("reports that confirming lew_signoff flips TS-07 from blocked to escalate", () => {
@@ -107,5 +107,18 @@ describe("counterfactual — error on unknown rule", () => {
     expect(() =>
       counterfactual(pill, officeAsset, waterIngressIncident, makeEvidence(), "NOPE-99"),
     ).toThrow("not found");
+  });
+});
+
+describe("counterfactual — confirmed-false evidence is not satisfied", () => {
+  it("still needs to flip a confirmed-false key (value false)", () => {
+    const pill = makePill();
+    const ev = fullConfirmedEvidence();
+    // area_dry is confirmed but its value is false — the gate must stay blocked.
+    ev.area_dry = { value: false, source: "s", at: "t", confirmed: true };
+    const result = counterfactual(pill, officeAsset, waterIngressIncident, ev, "TS-07");
+    expect(result.currentStatus).toBe("blocked");
+    expect(result.ifEvidence).toEqual(["area_dry"]);
+    expect(result.flipsTo).toBe("escalate");
   });
 });

@@ -5,8 +5,8 @@ import {
   evaluateCondition,
   evaluateAll,
   evaluateAny,
-} from "../conditions.js";
-import type { Asset, Evidence, Incident } from "../types.js";
+} from "../conditions";
+import type { Asset, Evidence, Incident } from "../types";
 
 const ctx = {
   evidence: {

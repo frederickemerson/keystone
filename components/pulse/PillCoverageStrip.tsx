@@ -4,14 +4,6 @@ import type { AssetRecord } from '@/lib/data';
 import type { PillBundle } from '@/lib/pills/load';
 import { assetTypeMeta } from './assetMeta';
 
-// The pill SKILL.md `scope.asset_types` is preserved as a YAML string on the
-// manifest; extract the list so coverage is data-derived, not hard-coded.
-function assetTypesFromScope(scope: string): string[] {
-  const block = scope.match(/asset_types:\s*\n([\s\S]*?)(?=\n\s*\w|$)/);
-  if (!block) return [];
-  return [...block[1].matchAll(/-\s*([a-z_]+)/g)].map((m) => m[1]);
-}
-
 export function PillCoverageStrip({
   pills,
   assets,
@@ -23,7 +15,8 @@ export function PillCoverageStrip({
   const coverage = pills.map((p) => ({
     id: p.id,
     name: p.pill.manifest.name,
-    types: assetTypesFromScope(p.pill.manifest.scope),
+    // Coverage is the authored SKILL.md `scope.asset_types` list.
+    types: p.pill.manifest.scope.asset_types ?? [],
   }));
 
   return (

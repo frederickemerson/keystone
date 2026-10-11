@@ -57,14 +57,9 @@ function expertAgreementPct(pills: ReturnType<typeof loadAllPills>): number {
 export default function PortfolioPulsePage() {
   const assets = loadAssets();
   const incidents = loadIncidents();
-  // Defensive: loadAllPills parses both pills; if the second pill's package is
-  // not yet parseable, degrade gracefully rather than 500-ing the whole page.
-  let pills: ReturnType<typeof loadAllPills> = [];
-  try {
-    pills = loadAllPills();
-  } catch {
-    pills = [];
-  }
+  // Pill load errors are real data bugs — let them throw to the error boundary
+  // rather than silently showing an empty portfolio.
+  const pills = loadAllPills();
 
   const activeIncidents = incidents.filter((i) => i.status !== 'closed').length;
   const avgIsolate = avgTimeToIsolate(incidents);
@@ -73,7 +68,7 @@ export default function PortfolioPulsePage() {
     0,
   );
   const pillsApproved = pills.filter(
-    (p) => p.pill.manifest.status.toLowerCase() === 'approved',
+    (p) => p.pill.manifest.status === 'approved',
   ).length;
   const agreement = expertAgreementPct(pills);
   const downtimeAvoided = downtimeAvoidedHours(incidents);

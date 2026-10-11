@@ -1,20 +1,41 @@
 // MOSAIC deterministic rule engine — eval replay + regression detection.
 
 import type {
-  Asset,
+  ActionDecision,
   EvalCase,
   EvalCaseResult,
+  EvalField,
   EvalSummary,
-  Evidence,
-  Incident,
+  EvalValue,
+  ExpectedDecision,
   Pill,
   Regression,
-} from "./types.js";
-import { evaluate } from "./evaluate.js";
+} from "./types";
+import { evaluate } from "./evaluate";
 
 // ---------------------------------------------------------------------------
 // runEvals — replay past incidents through the pill and compare expected vs actual
 // ---------------------------------------------------------------------------
+
+/** The actual value of one asserted field. A rule that didn't fire has status
+ *  'not_applicable' (never 'allowed') and no deadline. */
+function actualField(action: ActionDecision | undefined, field: EvalField): EvalValue {
+  switch (field) {
+    case "status":
+      return action?.status ?? "not_applicable";
+    case "deadline_minutes":
+      return action?.deadline ?? null;
+  }
+}
+
+/** Every field the eval author specified for a rule, in a stable order. */
+function assertedFields(expected: ExpectedDecision): [EvalField, EvalValue][] {
+  const fields: [EvalField, EvalValue][] = [["status", expected.status]];
+  if (expected.deadline_minutes !== undefined) {
+    fields.push(["deadline_minutes", expected.deadline_minutes]);
+  }
+  return fields;
+}
 
 export function runEvals(pill: Pill, cases: EvalCase[]): EvalSummary {
   const results: EvalCaseResult[] = [];
@@ -24,26 +45,19 @@ export function runEvals(pill: Pill, cases: EvalCase[]): EvalSummary {
   for (const evalCase of cases) {
     const result = evaluate(pill, evalCase.asset, evalCase.incident, evalCase.evidence);
 
-    for (const [ruleId, expected] of Object.entries(evalCase.expected)) {
+    for (const [ruleId, expectedDecision] of Object.entries(evalCase.expected)) {
       const action = result.actions.find((a) => a.ruleId === ruleId);
-      // If the rule didn't fire (no action produced), its status is
-      // 'not_applicable' — never 'allowed'.
-      const actual = action?.status ?? "not_applicable";
 
-      const isPass = actual === expected;
-      if (isPass) {
-        passed++;
-      } else {
-        failed++;
+      for (const [field, expected] of assertedFields(expectedDecision)) {
+        const actual = actualField(action, field);
+        const isPass = actual === expected;
+        if (isPass) {
+          passed++;
+        } else {
+          failed++;
+        }
+        results.push({ caseId: evalCase.id, ruleId, field, expected, actual, pass: isPass });
       }
-
-      results.push({
-        caseId: evalCase.id,
-        ruleId,
-        expected,
-        actual,
-        pass: isPass,
-      });
     }
   }
 
@@ -75,11 +89,11 @@ export function compareVersions(
   // Build a lookup of old results by caseId + ruleId.
   const oldLookup = new Map<string, EvalCaseResult>();
   for (const r of oldSummary.results) {
-    oldLookup.set(`${r.caseId}:${r.ruleId}`, r);
+    oldLookup.set(`${r.caseId}:${r.ruleId}:${r.field}`, r);
   }
 
   for (const newResult of newSummary.results) {
-    const key = `${newResult.caseId}:${newResult.ruleId}`;
+    const key = `${newResult.caseId}:${newResult.ruleId}:${newResult.field}`;
     const oldResult = oldLookup.get(key);
     if (!oldResult) continue;
 
@@ -88,6 +102,7 @@ export function compareVersions(
       regressions.push({
         caseId: newResult.caseId,
         ruleId: newResult.ruleId,
+        field: newResult.field,
         expected: newResult.expected,
         oldActual: oldResult.actual,
         newActual: newResult.actual,
@@ -99,6 +114,7 @@ export function compareVersions(
       improvements.push({
         caseId: newResult.caseId,
         ruleId: newResult.ruleId,
+        field: newResult.field,
         expected: newResult.expected,
         oldActual: oldResult.actual,
         newActual: newResult.actual,

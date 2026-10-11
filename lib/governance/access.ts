@@ -35,6 +35,21 @@ export function getRole(role: string): RoleDefinition | undefined {
   return ROLES.find((r) => r.role === role);
 }
 
+/**
+ * Demo personas — the named human behind each role, straight from
+ * data/roles.json `person` (one source of truth; no names live in code).
+ */
+export const DEMO_PERSONAS: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(ROLES.map((r) => [r.role, r.person])),
+);
+
+/** The named persona acting in a role. Every role the app references is in roles.json. */
+export function personaFor(role: string): { name: string; role: string } {
+  const person = DEMO_PERSONAS[role];
+  if (person === undefined) throw new Error(`Role "${role}" is not defined in data/roles.json`);
+  return { name: person, role };
+}
+
 export function roleLabel(role: string): string {
   return getRole(role)?.label ?? role;
 }

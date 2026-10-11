@@ -1,5 +1,5 @@
 import { SectionHeader } from '@/components/mosaic';
-import { loadPill, type PillBundle } from '@/lib/pills/load';
+import { loadPill } from '@/lib/pills/load';
 import { loadContradictionFixture } from '@/lib/data';
 import { CanvasHeader } from '@/components/canvas/CanvasHeader';
 import { ContradictionCallout } from '@/components/canvas/ContradictionCallout';
@@ -12,12 +12,9 @@ export default async function CanvasPage({
 }) {
   const { pillId } = await params;
 
-  let pill: PillBundle | undefined;
-  try {
-    pill = loadPill(pillId);
-  } catch {
-    pill = undefined;
-  }
+  // Parse errors throw to the error boundary (see app/error.tsx); a genuinely
+  // unknown id returns undefined and gets the friendly not-found message below.
+  const pill = loadPill(pillId);
   if (!pill) {
     return (
       <div className="space-y-3">

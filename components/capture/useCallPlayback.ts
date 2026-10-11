@@ -39,7 +39,6 @@ export interface CallPlayback {
   jumpTo: (t: string) => void;
 }
 
-const EXPERT_SPEAKER = 'Tan Wei Ming';
 const WORDS_PER_SEC = 2.8;
 const MIN_TURN_MS = 1400;
 
@@ -50,11 +49,13 @@ function firstGeo(turns: TranscriptTurn[], t: string): number {
 
 export function useCallPlayback(args: {
   turns: TranscriptTurn[];
+  /** Transcript `expert.name` — identifies the expert's turns (voice + captions). */
+  expertName: string;
   phaseByTurn: string[];
   contradictionStartT: string;
   contradictionResolvedT: string;
 }): CallPlayback {
-  const { turns, phaseByTurn, contradictionStartT, contradictionResolvedT } = args;
+  const { turns, expertName, phaseByTurn, contradictionStartT, contradictionResolvedT } = args;
 
   const [status, setStatus] = useState<CallStatus>('idle');
   const [turnIndex, setTurnIndex] = useState(0);
@@ -124,12 +125,12 @@ export function useCallPlayback(args: {
       try {
         const u = new SpeechSynthesisUtterance(turn.text);
         u.rate = speed;
-        u.pitch = turn.speaker === EXPERT_SPEAKER ? 0.55 : 1.0;
+        u.pitch = turn.speaker === expertName ? 0.55 : 1.0;
         const voices = synth.getVoices?.() ?? [];
         const pick = (langs: string[]) =>
           voices.find((v) => langs.some((l) => v.lang?.toLowerCase().startsWith(l)));
         const voice =
-          turn.speaker === EXPERT_SPEAKER
+          turn.speaker === expertName
             ? pick(['en-us', 'en-au']) ?? voices[0]
             : pick(['en-gb', 'en-sg', 'en-uk']) ?? voices[0];
         if (voice) u.voice = voice;
@@ -165,7 +166,7 @@ export function useCallPlayback(args: {
         }
       }
     };
-  }, [status, turnIndex, paused, muted, speed, turns, turnCount]);
+  }, [status, turnIndex, paused, muted, speed, turns, turnCount, expertName]);
 
   const accept = useCallback(() => {
     setStatus('active');

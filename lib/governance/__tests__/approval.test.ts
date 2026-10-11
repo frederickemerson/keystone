@@ -8,7 +8,7 @@ const AT = "2026-10-11T08:00:00.000Z";
 const CLEAN = { regressions: [] as Regression[] };
 const REGRESSED = {
   regressions: [
-    { caseId: "eval-2024-08-sprinkler-leak", ruleId: "TS-05", expected: "needs_approval", oldActual: "needs_approval", newActual: "allowed" },
+    { caseId: "eval-2024-08-sprinkler-leak", ruleId: "TS-05", field: "status", expected: "needs_approval", oldActual: "needs_approval", newActual: "allowed" },
   ] satisfies Regression[],
 };
 

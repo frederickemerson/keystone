@@ -28,6 +28,12 @@ describe("audit log", () => {
     }).toThrow(TypeError);
   });
 
+  it("accepts the evidence_requested audit action", () => {
+    const log = appendAudit(EMPTY_AUDIT_LOG, { ...ev, action: "action_evidence_requested", detail: "Requested evidence: moisture_reading" });
+    expect(log[0].action).toBe("action_evidence_requested");
+    expect(log[0].detail).toBe("Requested evidence: moisture_reading");
+  });
+
   it("exposes no update/delete API", () => {
     const fns = Object.entries(audit)
       .filter(([, v]) => typeof v === "function")

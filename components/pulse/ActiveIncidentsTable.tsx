@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { cn } from '@/lib/ui/cn';
 import type { IncidentRecord } from '@/lib/data';
+import { personaFor } from '@/lib/governance/access';
 
 // Stable demo clock so "time since detection" is deterministic across renders.
 const DEMO_NOW = new Date('2026-10-11T11:30:00+08:00');
@@ -31,7 +32,9 @@ function unresolvedOwner(incident: IncidentRecord): string | null {
   const top = [...unresolved].sort(
     (a, b) => (ACTION_RANK[a.action_class] ?? 9) - (ACTION_RANK[b.action_class] ?? 9),
   )[0];
-  return top.escalate_to?.name ?? top.escalate_to?.role ?? top.owner ?? null;
+  // The named human an unresolved action routes to: its escalation target's
+  // persona from roles.json (one source of truth for names).
+  return top.escalate_to ? personaFor(top.escalate_to.role).name : null;
 }
 
 const SEVERITY_TONE: Record<string, string> = {

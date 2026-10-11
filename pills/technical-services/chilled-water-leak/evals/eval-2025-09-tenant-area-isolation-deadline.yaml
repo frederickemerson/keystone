@@ -1,139 +1,73 @@
 # Eval: 2025-09 tenant-area isolation deadline
 # Pill: technical-services/chilled-water-leak v1.2.0
 #
-# THIS IS THE V1.2 "WRONG" EVAL.
+# =========================================================================
+# INTENTIONAL FAILURE ON v1.2.0 — THIS IS THE CORRECTION THE LEARNING
+# SCREEN APPLIES. Do not "fix" this file to match the rule.
 #
-# v1.2.0 sets TS-02 deadline_minutes to 10 for all isolation cases.
-# However, the expert's later correction (2026-10-02 outcome review,
-# 01:10:00) specified that tenant-area isolation (where a tenant must be
-# vacated or given access) should have a 10-minute deadline, not 15.
-# v1.2.0 actually has TS-02 at 10 minutes which is CORRECT for the
-# standard case, but the eval below tests a tenant-area scenario where
-# the deadline should also be 10 (not 15 as a draft had proposed).
+#   TS-02 deadline_minutes   expected 10   (expert ground truth)
+#                            v1.2.0 has 15 (captured from the interview,
+#                            ce-interview-2026-10-02#00:11:35)
 #
-# The actual v1.2 "wrong" case: v1.2.0 has TS-03 (whole-floor power-down)
-# deadline_minutes set to 15. The expert corrected this: when the trigger
-# involves a tenant-area isolation decision (not a full power-down, but
-# a floor isolation sub-valve that requires tenant access), the deadline
-# should be 10 minutes, not 15. v1.2.0 will produce a decision with a
-# 15-minute deadline for TS-03, which the expert says is wrong — it should
-# be 10. This is flagged for correction in v1.3.0.
+# Every status expectation below passes on v1.2.0; the deadline does not.
+# The Chief Engineer's outcome review: tenant-area isolation must be
+# complete within 10 minutes — if access to the sub-valve cannot be
+# arranged in 10, go to the riser. v1.3.0 corrects TS-02 15 -> 10, which
+# makes this case pass. It is the ONLY intentional failure in v1.2.0.
+# =========================================================================
 #
-# See provenance.json TS-06 edit_note for the related correction pattern.
-# See CHANGELOG.md 1.3.0 (pending) for the planned fix.
+# Expert ground truth for the CURRENT rules. Evidence values are bare
+# (confirmed: true). Keys come from ../evidence.yaml. Absent key = not known.
 
 id: eval-2025-09-tenant-area-isolation-deadline
-title: "Chilled-water branch leak in locked tenant fit-out — isolation deadline correction"
+title: "Chilled-water branch leak in locked tenant fit-out — isolation deadline"
 incident_date: "2025-09-03"
+incident_type: water_ingress
 asset:
   name: "Harbourfront One"
   type: grade_a_office
   floor: 18
   anchor_tenant: false
-  green_mark: "Platinum SLE"
 evidence:
-  water_near_electrical: false
-  water_in_electrical_room: false
-  water_above_switchgear: false
-  water_flowing_toward_electrical: false
   active_water_release: true
-  ceiling_stain_or_drip: true
-  condensate_leak_alarm: false
-  tenant_report_drip: true
-  source_is_sprinkler: false
-  source_is_wet_riser: false
-  source_is_hose_reel: false
-  source_is_fire_pump: false
-  isolation_affects_fire_alarm: false
-  lift_pit_water: false
-  water_in_lift_shaft: false
-  water_in_lift_car: false
-  equipment_wetted_or_isolated: false
+  water_near_electrical: false
   isolation_complete: false
-  estimated_loss_above_threshold: false
-  fire_protection_impaired: false
-  tenant_property_damage: true
-  wet_building_fabric: true
-  standing_water_present: false
-  pub_heavy_rain_or_flood_alert: false
-  crah_condensate_alarm: false
-  underfloor_leak_detection: false
-  high_humidity_alarm_server_room: false
-  visual_or_alarm_confirmation: true
+  source_behind_locked_tenancy: true
+  sub_valve_accessible: true
   location_confirmed: true
   shutoff_map_available: true
-  pre_cleanup_photos: true
-  failed_component_retained: true
-  moisture_meter_readings: false
-  affected_materials_inventory: false
-  standing_water_location_photos: false
-  pub_alert_received: false
+  ceiling_stain_or_drip: true
+  tenant_report_drip: true
   visual_inspection: true
-  lew_or_evidence_confirms_risk: false
-  tenant_request_power_down: false
-  immediate_life_safety_hazard: false
-  drip_onto_tenant_it: false
-  water_on_switchgear: false
-  breaker_tripped: false
-  water_category: "category_1"
-  source_behind_locked_tenancy: true
-  lew_confirms_dead_section: false
-  water_confined_sealed_trench: false
+  tenant_property_damage: true
+  wet_building_fabric: true
 expected_decisions:
-  TS-01:
-    status: blocked
-    reason: "trigger not matched — water not near electrical"
+  TS-01: { status: not_applicable, reason: "water not near electrical" }
   TS-02:
     status: allowed
-    reason: "active water release — isolate at floor isolation sub-valve; exception fires (source behind locked tenancy, arrange tenant access)"
-  TS-03:
-    status: blocked
-    reason: "trigger not matched — no power-down request"
+    deadline_minutes: 10   # INTENTIONAL FAILURE on v1.2.0 (rule says 15)
+    reason: "active branch leak in a tenant area — arrange tenant access and isolate at the sub-valve within 10 minutes, else go to the riser"
+  TS-03: { status: not_applicable, reason: "no power-down request" }
   TS-04:
     status: allowed
-    reason: "ceiling stain + tenant drip report — inspect for condensate vs active leak"
-  TS-05:
-    status: blocked
-    reason: "trigger not matched — no fire-protection source"
-  TS-06:
-    status: blocked
-    reason: "trigger not matched — no lift water"
-  TS-07:
-    status: blocked
-    reason: "trigger not matched — no equipment wetted or isolated"
-  TS-08:
-    status: needs_approval
-    reason: "tenant property damage — insurer evidence preservation required"
-  TS-09:
-    status: blocked
-    reason: "trigger not matched — isolation not complete"
-  TS-10:
-    status: blocked
-    reason: "trigger not matched — not a data centre"
-  TS-11:
-    status: blocked
-    reason: "trigger not matched — no standing water"
-  TS-12:
-    status: blocked
-    reason: "trigger not matched — no PUB alert"
+    reason: "ceiling drip + tenant report — inspected: active chilled-water leak, isolate"
+  TS-05: { status: not_applicable, reason: "no fire-protection source" }
+  TS-06: { status: not_applicable, reason: "no lift water" }
+  TS-07: { status: not_applicable, reason: "no electrical equipment wetted or isolated" }
+  TS-08: { status: not_applicable, reason: "isolation not yet complete" }
+  TS-09: { status: not_applicable, reason: "isolation not yet complete" }
+  TS-10: { status: not_applicable, reason: "not a data centre" }
+  TS-11: { status: not_applicable, reason: "no standing water" }
+  TS-12: { status: not_applicable, reason: "water_ingress incident — not a PUB external alert" }
 expert_decision: >-
-  Chilled-water branch leak above the L18 tenant ceiling, but the branch
-  isolation sub-valve is inside the locked tenant fit-out. Called Property
-  Manager to arrange tenant access within 10 minutes — NOT 15. The
-  technician was tempted to isolate at the riser valve (which would have
-  affected L17-L19), but the correct call was to get tenant access and
-  isolate locally. The 10-minute deadline for tenant-area isolation is
-  firm: if you cannot get access in 10 minutes, then you go to the riser.
-  v1.2.0's TS-03 carries a 15-minute deadline for the whole-floor
-  power-down decision, which the expert says should also be 10 when it
-  involves a tenant-area isolation. This is the v1.2 "wrong" — flagged for
-  v1.3.0 correction.
+  Chilled-water branch leak above the L18 tenant ceiling; the branch
+  isolation sub-valve is inside the locked tenant fit-out. Tenant
+  Experience arranged tenant access and the branch was isolated locally.
+  The technician was tempted to close the riser valve (L17-L19 affected),
+  but the correct call was tenant access and local isolation — within 10
+  minutes, not 15. If access cannot be arranged in 10 minutes, go to the
+  riser.
 outcome: >-
   Tenant access arranged in 8 minutes. Local isolation sub-valve closed.
   Branch repaired. No riser shutdown needed. Expert correction recorded:
-  tenant-area isolation deadline must be 10 minutes, not 15.
-pass: false
-# pass: false because v1.2.0's TS-03 deadline_minutes (15) does not match
-# the expert's corrected deadline (10) for tenant-area isolation scenarios.
-# This eval will flag in the regression matrix and block promotion to
-# approved unless the steward overrides with a rationale.
+  tenant-area isolation deadline is 10 minutes, not 15.

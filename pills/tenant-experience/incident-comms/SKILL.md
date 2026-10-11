@@ -2,7 +2,7 @@
 name: incident-comms
 description: >-
   Tenant Experience pill for incident communications to affected tenants
-  and DC clients. Encodes the Property Manager's comms judgement: factual
+  and DC clients. Encodes the Tenant Experience Manager's comms judgement: factual
   first notice within 30 minutes, named human approval before sending,
   no unverified cause claims, bank anchor tenant gets an account-manager
   call, DC clients get SLA notice via the critical facilities manager,
@@ -33,14 +33,13 @@ access:
     - tenant_experience_manager
     - asset_operations_manager
     - property_manager
+    - account_manager
     - head_technical_services
   roles_read_only:
     - chief_engineer
     - duty_facilities_manager
   denied:
     - technician
-    - tenant
-    - external_contractor
   sensitivity_default: tenant_pii
 review_cadence:
   interval_months: 6
@@ -55,8 +54,8 @@ review_cadence:
 
 ## Purpose
 
-This pill encodes the comms judgement of the **Tenant Experience Manager**
-(10 years property management, Keppel REIT asset portfolio) as deterministic
+This pill encodes the comms judgement of **Lim Hui Fen, Tenant Experience
+Manager** (9 years property management, Keppel REIT asset portfolio) as deterministic
 rules for incident communications. An LLM host (CodeBuddy, WorkBuddy, Claude,
 or any agentskills-compatible host) may draft messages, but every outbound
 message requires a named human approver before sending — no autonomous
@@ -68,7 +67,9 @@ communications, consistent with IMDA MGF for Agentic AI 2026.
    services, or safety, feed the evidence map to `rules.yaml`. The engine
    produces comms action chips: **Recommend** (draft notice), **Requires
    approval** (send notice), or **Must escalate** (anchor tenant / media
-   risk / PII breach).
+   risk / PII breach). Evidence keys are declared in `evidence.yaml`.
+   Approval is never an evidence item — it is the `requires_approval`
+   action class, given by a named human in the approval panel.
 
 2. **Comms log** — Every notice (drafted, sent, updated) is logged with
    the approver name, timestamp, pill version, and message content. The
@@ -119,7 +120,7 @@ When `asset.type == data_centre`:
   **SLA notice** via the **critical facilities manager** under the client
   SLA terms. The comms channel is different, the language is different
   (SLA event reference, impact assessment, estimated resolution window
-  if known), and the approver is the CFM, not the Property Manager.
+  if known), and the approver is the CFM, not Tenant Experience.
 
 ### PII masking
 
@@ -143,7 +144,7 @@ When `asset.type == data_centre`:
 
 - Life-safety instructions (evacuate, stay put, do not use lifts) are
   issued **immediately** by the FSM/FCC via the building PA system and
-  mass-notification system. These do not require Property Manager comms
+  mass-notification system. These do not require Tenant Experience comms
   approval — the FSM has authority. The tenant-experience pill logs that
   the instruction was issued and follows up with a written notice.
 
@@ -159,8 +160,9 @@ When `asset.type == data_centre`:
 
 ### Requires approval (action_class: requires_approval)
 
-- Send the first notice to affected tenants — requires Property Manager
-  or named approver sign-off
+- Send the first notice to affected tenants — requires the Tenant
+  Experience Manager (or her delegate, e.g. the Property Manager)
+- State a cause — only once Technical Services or the LEW has confirmed it
 - Send update notices — requires named approver sign-off
 - Arrange tenant access for isolation behind locked tenancy
 
@@ -171,4 +173,4 @@ When `asset.type == data_centre`:
 - Media risk or potential PII breach — escalate to Asset Manager and
   Head of Technical Services
 - Any situation where the cause is suspected but unconfirmed and a tenant
-  is demanding a statement — escalate to Property Manager
+  is demanding a statement — escalate to the Tenant Experience Manager

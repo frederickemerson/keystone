@@ -26,6 +26,7 @@ export function ExpertCallClient(props: CaptureProps) {
 
   const playback = useCallPlayback({
     turns: transcript.turns,
+    expertName: transcript.expert.name,
     phaseByTurn,
     contradictionStartT,
     contradictionResolvedT,

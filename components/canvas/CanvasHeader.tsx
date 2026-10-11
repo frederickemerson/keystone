@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react';
 import { User, ShieldCheck, BadgeCheck } from 'lucide-react';
 import type { PillBundle } from '@/lib/pills/load';
+import type { PillStatus } from '@/lib/engine';
 
 function prettyRole(role: string): string {
   return role
@@ -8,7 +10,7 @@ function prettyRole(role: string): string {
     .join(' ');
 }
 
-const STATUS_TONE: Record<string, string> = {
+const STATUS_TONE: Record<PillStatus, string> = {
   draft: 'border-line bg-surface-raised text-ink-muted',
   shadow: 'border-approval/30 bg-approval/10 text-approval',
   approved: 'border-recommend/30 bg-recommend/10 text-recommend',
@@ -17,7 +19,6 @@ const STATUS_TONE: Record<string, string> = {
 
 export function CanvasHeader({ pill }: { pill: PillBundle }) {
   const m = pill.pill.manifest;
-  const status = m.status.toLowerCase();
   return (
     <header className="space-y-3 rounded-xl border border-line bg-surface p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -28,7 +29,7 @@ export function CanvasHeader({ pill }: { pill: PillBundle }) {
         </div>
         <span
           className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-            STATUS_TONE[status] ?? STATUS_TONE.draft
+            STATUS_TONE[m.status]
           }`}
           role="status"
           aria-label={`Status: ${m.status}`}
@@ -46,7 +47,7 @@ export function CanvasHeader({ pill }: { pill: PillBundle }) {
   );
 }
 
-function RaciItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function RaciItem({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <div className="rounded-lg border border-line bg-surface-raised/50 p-2.5">
       <p className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-ink-muted">

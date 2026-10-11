@@ -1,7 +1,7 @@
 // Shared inline test fixtures for the MOSAIC engine tests.
 // These are self-contained — no file reads from pills/.
 
-import type { Asset, Evidence, EvidenceItem, Incident, Pill, Rule } from "../index.js";
+import type { Asset, Evidence, EvidenceItem, Incident, Pill, Rule } from "../index";
 
 // ---------------------------------------------------------------------------
 // Rule builders
@@ -52,18 +52,26 @@ export function makePill(rules?: Rule[]): Pill {
       owner: "chief_engineer",
       steward: "ts_steward",
       approver: "fm_director",
-      scope: "water_ingress",
-      access: "internal",
+      status: "approved",
+      scope: { incident_types: ["water_ingress"] },
+      access: { sensitivity_default: "internal" },
     },
     rules: rules ?? [makeRule()],
     provenance: {
       "TS-07": {
+        source: "ce-interview-2026-10-02",
+        start: "00:14:32",
+        end: "00:16:10",
+        quote: "never re-energise before the LEW signs off",
+        confirmation: "confirmed",
+        confirmed_by: "Tan Wei Ming",
+        confirmed_at: "2026-10-02T12:45:00+08:00",
         transcript_segment: "ce-interview-2026-10-02#00:14:32",
         confirmation_status: "confirmed",
-        expert_role: "Chief Engineer",
       },
     },
     evals: {},
+    evidenceCatalog: {},
   };
 }
 
@@ -105,7 +113,7 @@ export const fireIncident: Incident = {
 // ---------------------------------------------------------------------------
 
 export function makeEvidence(
-  overrides: Partial<Record<string, EvidenceItem>> = {},
+  overrides: Evidence = {},
 ): Evidence {
   const base: Evidence = {
     water_near_electrical: {

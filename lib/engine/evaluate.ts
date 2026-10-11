@@ -9,18 +9,19 @@ import type {
   EscalateTarget,
   EvaluationResult,
   Evidence,
+  EvidenceItem,
   Incident,
   Pill,
   Rule,
   RuleException,
   TraceStep,
-} from "./types.js";
+} from "./types";
 import {
   type ConditionContext,
   evaluateAll,
   evaluateAny,
   evaluateCondition,
-} from "./conditions.js";
+} from "./conditions";
 
 // ---------------------------------------------------------------------------
 // Public API: evaluate(pill, asset, incident, evidence)
@@ -48,10 +49,7 @@ export function evaluate(
     if (step.triggered) {
       // Confidence contribution from this fired rule.
       const req = rule.required_evidence.length;
-      const conf = rule.required_evidence.filter((key) => {
-        const item = evidence[key];
-        return item !== undefined && item.confirmed;
-      }).length;
+      const conf = rule.required_evidence.filter((key) => isEvidenceSatisfied(evidence[key])).length;
       totalRequired += req;
       totalConfirmed += conf;
 
@@ -153,12 +151,21 @@ function evaluateRule(
 // ---------------------------------------------------------------------------
 
 /**
- * A required evidence key is "missing" if:
- *  - it is absent from the evidence record, OR
- *  - its confirmed flag is false.
+ * A required evidence key is satisfied iff the item exists, is confirmed, and
+ * its value is exactly `true`.
  *
- * Includes exception-added evidence keys (exceptions may add requirements,
- * never relax them).
+ * A confirmed "LEW did NOT sign off" (value `false`, confirmed `true`) is NOT
+ * satisfied — it must never unblock a gate. Missing, unconfirmed, and false all
+ * count as missing.
+ */
+export function isEvidenceSatisfied(item: EvidenceItem | undefined): boolean {
+  return item !== undefined && item.confirmed === true && item.value === true;
+}
+
+/**
+ * A required evidence key is "missing" unless it is satisfied (see
+ * {@link isEvidenceSatisfied}). Includes exception-added evidence keys
+ * (exceptions may add requirements, never relax them).
  */
 function computeMissingEvidence(
   rule: Rule,
@@ -168,8 +175,7 @@ function computeMissingEvidence(
   const missing: string[] = [];
   const allRequired = [...rule.required_evidence, ...extraRequired];
   for (const key of allRequired) {
-    const item = evidence[key];
-    if (item === undefined || !item.confirmed) {
+    if (!isEvidenceSatisfied(evidence[key])) {
       missing.push(key);
     }
   }

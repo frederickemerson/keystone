@@ -7,7 +7,7 @@ import type {
   Evidence,
   Incident,
   Operator,
-} from "./types.js";
+} from "./types";
 
 // ---------------------------------------------------------------------------
 // Path resolution: resolve dotted path over {evidence, asset, incident}

@@ -37,7 +37,7 @@ describe("redact", () => {
   });
 
   it("tenant experience / AOM see tenant PII but not commercial", () => {
-    for (const role of ["tenant_experience", "asset_operations_manager"]) {
+    for (const role of ["tenant_experience_manager", "asset_operations_manager"]) {
       const r = redact(incidentLike, role);
       expect(r.affected_tenant.name).toBe("Straits Meridian Bank");
       expect(r.affected_client.sla_credit_trigger).toBe("[masked: commercial]");

@@ -52,9 +52,7 @@ access:
   roles_read_only:
     - technician
     - security_fcc_operator
-  denied:
-    - tenant
-    - external_contractor
+    - duty_lew
   sensitivity_default: internal
 review_cadence:
   interval_months: 6
@@ -81,6 +79,9 @@ a blocked action.
 
 1. **Incident mode** — When an incident is declared (iBMS leak alarm, tenant
    call, security patrol report), feed the evidence map to `rules.yaml`.
+   Evidence keys are the vocabulary declared in `evidence.yaml` (label, type,
+   who may confirm each item). A required item counts only when it is
+   confirmed and true; an unknown fact is simply absent.
    The deterministic engine evaluates each rule's `trigger` conditions against
    the evidence and produces action chips: **Recommend**, **Requires approval**,
    or **Must escalate**.
@@ -108,7 +109,13 @@ the rules in `rules.yaml` are.
 - Isolation proceeds: **local FCU/branch valve → floor isolation sub-valve →
   riser valve → domestic main** for the stack. Each step has a time budget.
   If the source is not found at 5 minutes, move to the next level. At 10
-  minutes, isolate the main and escalate.
+  minutes, isolate the riser and escalate to the Duty Facilities Manager.
+
+- **Branch before riser.** For an AHU branch leak where the sub-valve is
+  accessible and stops the flow, isolate the branch only and leave the riser
+  open. Riser isolation is for a leak on the riser pipe, a seized or
+  inaccessible sub-valve, or a source not confirmed within 10 minutes
+  (resolved contradiction, interview 00:23:30).
 
 - **Never close a fire-protection valve** (sprinkler, wet riser, hose reel,
   fire pump) without FSM authorisation. This is a red-tag impairment under
@@ -178,8 +185,9 @@ When `asset.type == data_centre`:
 - IT power-down decisions are proposed only, never executed by Technical
   Services. The IT/BCP owner or critical facilities manager makes that call.
 
-- The `asset_overrides` block in TS-06 and TS-07 reroutes escalation from
-  `duty_lew`/`head_technical_services` to `dc_critical_facilities_manager`.
+- The `asset_overrides` block in TS-07 reroutes escalation from
+  `duty_lew` to `dc_critical_facilities_manager`, who co-signs any return to
+  service. TS-10 escalates data-hall leaks to the same role.
 
 - CRAH unit condensate or chilled-water loop leaks follow the same isolation
   logic as office AHU/FCU leaks, but with higher urgency (PUE impact, thermal
@@ -225,7 +233,7 @@ When `asset.type == data_centre`:
 - Any fire-protection impairment (sprinkler/wet riser/hose reel isolation)
   — requires FSM authorisation + red-tag permit
 - Mobilising restoration contractor beyond emergency mitigation scope
-- Notifying insurer/broker of a claim (Property Manager approval)
+- Notifying insurer/broker of a claim (Asset Operations Manager approval)
 - Lift contractor return-to-service sign-off
 - Drying equipment energised from circuits in the affected zone (LEW clearance)
 - Tenant access arrangement for isolation behind locked tenancy

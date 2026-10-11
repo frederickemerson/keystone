@@ -15,6 +15,7 @@ export type AuditAction =
   | "action_approved"
   | "action_rejected"
   | "action_escalated"
+  | "action_evidence_requested"
   | "demo_reset";
 
 export interface AuditEvent {

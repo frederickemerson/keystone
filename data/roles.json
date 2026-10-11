@@ -3,6 +3,7 @@
     "role": "technician",
     "label": "Technician",
     "description": "On-site M&E / FM technician responding to incidents. Sees operational evidence but not commercial or PII data.",
+    "person": "Rajesh Kumar",
     "sensitivity_levels_visible": ["public", "internal"],
     "sensitivity_levels_masked": ["tenant_pii", "commercial"],
     "can_see": {
@@ -12,8 +13,7 @@
     },
     "cannot_see": {
       "evidence": ["tenant caller name", "tenant phone number", "lease terms", "rent figures", "SLA credit amounts"],
-      "incident_fields": ["tenant_pii", "commercial_terms", "financial_exposure"],
-      "pill_fields": ["provenance.transcript_segment (if sensitivity = commercial)"]
+      "incident_fields": ["tenant_pii", "commercial_terms", "financial_exposure"]
     },
     "can_approve": [],
     "can_escalate": true,
@@ -21,13 +21,18 @@
     "can_publish_pill": false,
     "ui_highlights": {
       "masked_fields_placeholder": "[masked: tenant PII — visible to Tenant Experience and above]",
-      "action_class_colors": { "recommend": "green", "requires_approval": "amber", "must_escalate": "red" }
+      "action_class_colors": {
+        "recommend": "green",
+        "requires_approval": "amber",
+        "must_escalate": "red"
+      }
     }
   },
   {
     "role": "asset_operations_manager",
     "label": "Asset Operations Manager",
-    "description": "REIT asset management layer — supervises property and facility managers. Primary incident-room user; supervises, verifies, and escalates.",
+    "description": "REIT asset management layer — supervises property and facility managers. Primary incident-room user: approves requires_approval actions, stewards both pills (shadow-to-approved sign-off), and escalates.",
+    "person": "Priya Nair",
     "sensitivity_levels_visible": ["public", "internal", "tenant_pii"],
     "sensitivity_levels_masked": ["commercial"],
     "can_see": {
@@ -51,9 +56,10 @@
     }
   },
   {
-    "role": "tenant_experience",
-    "label": "Tenant Experience",
-    "description": "Tenant relations lead responsible for tenant communications and satisfaction. Sees tenant PII; does not see commercial terms.",
+    "role": "tenant_experience_manager",
+    "label": "Tenant Experience Manager",
+    "description": "Tenant relations lead responsible for tenant communications and satisfaction. Owns the incident-comms pill and approves (or delegates approval of) every outbound tenant notice. Sees tenant PII; does not see commercial terms.",
+    "person": "Lim Hui Fen",
     "sensitivity_levels_visible": ["public", "internal", "tenant_pii"],
     "sensitivity_levels_masked": ["commercial"],
     "can_see": {
@@ -78,6 +84,7 @@
     "role": "executive",
     "label": "Executive",
     "description": "REIT / portfolio executive view. Sees everything including commercial terms. Reviews pill health and portfolio pulse.",
+    "person": "Tan Siew Leng",
     "sensitivity_levels_visible": ["public", "internal", "tenant_pii", "commercial"],
     "sensitivity_levels_masked": [],
     "can_see": {
@@ -95,6 +102,251 @@
       "pill_health_cards": true,
       "audit_log": true,
       "raci_matrix": true
+    }
+  },
+  {
+    "role": "head_technical_services",
+    "label": "Head of Technical Services",
+    "description": "Approver of record for both pills: approves pill version promotion and rollback, and is the only role that may override an eval regression, with a recorded reason. Fallback escalation above the Duty Facilities Manager and the duty LEW.",
+    "person": "Goh Boon Kheng",
+    "sensitivity_levels_visible": ["public", "internal", "tenant_pii", "commercial"],
+    "sensitivity_levels_masked": [],
+    "can_see": {
+      "evidence": ["all evidence with sensitivity labels", "financial exposure estimates"],
+      "incident_fields": ["all incident fields", "commercial_terms", "financial_exposure"],
+      "pill_fields": ["all rule fields", "provenance", "version", "status", "eval_results", "owner", "steward", "approver", "eval_regression_log"]
+    },
+    "cannot_see": {},
+    "can_approve": ["pill version promotion (final approver for commercial-sensitivity pills)", "rollback"],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": true,
+    "ui_highlights": {
+      "pill_health_cards": true,
+      "audit_log": true,
+      "raci_matrix": true,
+      "eval_regression_override": true
+    }
+  },
+  {
+    "role": "chief_engineer",
+    "label": "Chief Engineer",
+    "description": "Senior technical authority; owner of the chilled-water-leak pill. Provides electrical-safety and isolation judgement; escalates to LEW and Head of Technical Services.",
+    "person": "Tan Wei Ming",
+    "sensitivity_levels_visible": ["public", "internal"],
+    "sensitivity_levels_masked": ["tenant_pii", "commercial"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "CMMS work orders", "technician photos", "sensor readings", "equipment IDs", "isolation valve status", "LEW sign-off status", "moisture readings"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline", "evidence_feed", "actions", "tenant_impact"],
+      "pill_fields": ["all technical-services rule fields", "provenance", "version", "status", "owner", "steward", "approver"]
+    },
+    "cannot_see": {
+      "evidence": ["tenant caller name", "tenant phone number", "lease terms", "rent figures"],
+      "incident_fields": ["tenant_pii", "commercial_terms", "financial_exposure"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "why_drawer": true,
+      "counterfactual": true
+    }
+  },
+  {
+    "role": "technical_services_lead",
+    "label": "Technical Services Lead",
+    "description": "Coordinates isolation, containment and remediation on site. Owns day-to-day technical-services rule execution; escalates electrical and fire-protection decisions upward.",
+    "person": "Muhammad Hafiz",
+    "sensitivity_levels_visible": ["public", "internal"],
+    "sensitivity_levels_masked": ["tenant_pii", "commercial"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "CMMS work orders", "technician photos", "sensor readings", "equipment IDs", "isolation valve status", "moisture readings"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline", "evidence_feed", "actions"],
+      "pill_fields": ["technical-services rule fields", "owner", "deadline"]
+    },
+    "cannot_see": {
+      "evidence": ["tenant caller name", "tenant phone number", "lease terms", "rent figures"],
+      "incident_fields": ["tenant_pii", "commercial_terms"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "evidence_coverage_meter": true,
+      "why_drawer": true
+    }
+  },
+  {
+    "role": "fire_safety_manager",
+    "label": "Fire Safety Manager",
+    "description": "Authorises fire-protection system impairments (red-tag permits) and owns life-safety evacuation instructions. Single authority for sprinkler/riser/hose-reel isolation.",
+    "person": "Aziz bin Rahman",
+    "sensitivity_levels_visible": ["public", "internal"],
+    "sensitivity_levels_masked": ["tenant_pii", "commercial"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "fire-system status", "technician photos", "isolation valve status"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline", "evidence_feed", "actions"],
+      "pill_fields": ["fire-protection rule fields", "owner", "deadline"]
+    },
+    "cannot_see": {
+      "evidence": ["tenant caller name", "tenant phone number", "lease terms"],
+      "incident_fields": ["tenant_pii", "commercial_terms"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "why_drawer": true
+    }
+  },
+  {
+    "role": "duty_lew",
+    "label": "Duty Licensed Electrical Worker",
+    "description": "Licensed Electrical Worker on duty. Sole authority to inspect, test insulation resistance, and sign off before re-energisation of wetted or isolated electrical circuits. Electrical safety gate.",
+    "person": "Rahul Menon",
+    "sensitivity_levels_visible": ["public", "internal"],
+    "sensitivity_levels_masked": ["tenant_pii", "commercial"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "sensor readings", "equipment IDs", "isolation valve status", "moisture readings", "LEW inspection status"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline", "evidence_feed", "actions"],
+      "pill_fields": ["electrical-safety rule fields", "owner", "deadline"]
+    },
+    "cannot_see": {
+      "evidence": ["tenant caller name", "lease terms", "rent figures"],
+      "incident_fields": ["tenant_pii", "commercial_terms"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "why_drawer": true,
+      "signoff_badge": true
+    }
+  },
+  {
+    "role": "dc_critical_facilities_manager",
+    "label": "DC Critical Facilities Manager",
+    "description": "Owns data-centre client SLA notifications and co-signs re-energisation for DC asset types. Critical escalation point for CRAH/chilled-water leaks in colocation facilities.",
+    "person": "Steven Wong",
+    "sensitivity_levels_visible": ["public", "internal", "commercial"],
+    "sensitivity_levels_masked": ["tenant_pii"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "DCIM telemetry", "sensor readings", "equipment IDs", "SLA terms", "moisture readings"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline", "evidence_feed", "actions", "sla_breach_risk"],
+      "pill_fields": ["data-centre overlay rule fields", "owner", "deadline", "sla_terms"]
+    },
+    "cannot_see": {
+      "evidence": ["tenant caller name", "tenant phone number"],
+      "incident_fields": ["tenant_pii"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "sla_timer": true,
+      "why_drawer": true
+    }
+  },
+  {
+    "role": "property_manager",
+    "label": "Property Manager",
+    "description": "Property management lead for the building. May approve tenant notices as the Tenant Experience Manager's delegate and arranges tenant access for isolation behind locked tenancies; reviews PII masking (TE-05).",
+    "person": "Nur Aisyah Rahim",
+    "sensitivity_levels_visible": ["public", "internal", "tenant_pii"],
+    "sensitivity_levels_masked": ["commercial"],
+    "can_see": {
+      "evidence": ["tenant call logs (full)", "tenant contact details", "contractor reports", "timeline (tenant-facing subset)"],
+      "incident_fields": ["id", "asset_id", "status", "type", "tenant_impact", "tenant_message_log", "sla_first_notice_deadline"],
+      "pill_fields": ["tenant-experience pill rules", "trigger", "decision", "allowed_actions", "owner"]
+    },
+    "cannot_see": {
+      "evidence": ["moisture readings (operational)", "contractor pricing", "lease termination clauses (full text)"],
+      "pill_fields": ["technical-services rule internals"]
+    },
+    "can_approve": ["tenant message draft before send"],
+    "can_escalate": true,
+    "can_draft_tenant_message": true,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "tenant_message_editor": true,
+      "sla_timer": true
+    }
+  },
+  {
+    "role": "account_manager",
+    "label": "Account Manager",
+    "description": "Relationship owner for anchor and SLA tenants. Places the mandated phone call to bank anchor tenants during an incident; not an approver of written notices.",
+    "person": "Clare Tan",
+    "sensitivity_levels_visible": ["public", "internal", "tenant_pii"],
+    "sensitivity_levels_masked": ["commercial"],
+    "can_see": {
+      "evidence": ["tenant contact details", "tenant complaint history", "SLA terms"],
+      "incident_fields": ["id", "asset_id", "status", "type", "tenant_impact", "tenant_message_log"],
+      "pill_fields": ["tenant-experience pill rules", "trigger", "decision"]
+    },
+    "cannot_see": {
+      "evidence": ["operational sensor readings", "contractor pricing", "lease termination clauses (full text)"],
+      "pill_fields": ["technical-services rule internals"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "tenant_message_editor": true
+    }
+  },
+  {
+    "role": "duty_facilities_manager",
+    "label": "Duty Facilities Manager",
+    "description": "The Duty Manager. Out-of-hours facilities authority; receives escalations when isolation overruns its deadline (TS-02) and coordinates contractor response; read-only on pill internals.",
+    "person": "Ravi Chandran",
+    "sensitivity_levels_visible": ["public", "internal"],
+    "sensitivity_levels_masked": ["tenant_pii", "commercial"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "CMMS work orders", "technician photos", "sensor readings", "equipment IDs"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline", "evidence_feed", "actions"],
+      "pill_fields": ["rule_id", "title", "trigger", "allowed_actions", "forbidden_actions", "owner", "deadline"]
+    },
+    "cannot_see": {
+      "evidence": ["tenant caller name", "tenant phone number", "lease terms", "rent figures"],
+      "incident_fields": ["tenant_pii", "commercial_terms"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "why_drawer": true
+    }
+  },
+  {
+    "role": "security_fcc_operator",
+    "label": "Security / FCC Operator",
+    "description": "Fire Command Centre (FCC) operator on duty. Issues life-safety instructions via PA / mass notification, takes lifts out of service, and monitors patrol points; read-only on pill rules and tenant PII.",
+    "person": "Kelvin Lim",
+    "sensitivity_levels_visible": ["public", "internal"],
+    "sensitivity_levels_masked": ["tenant_pii", "commercial"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "security patrol logs", "evacuation status"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline"],
+      "pill_fields": ["rule_id", "title", "action_class"]
+    },
+    "cannot_see": {
+      "evidence": ["tenant caller name", "tenant phone number", "lease terms", "rent figures", "moisture readings"],
+      "incident_fields": ["tenant_pii", "commercial_terms"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "why_drawer": false
     }
   }
 ]

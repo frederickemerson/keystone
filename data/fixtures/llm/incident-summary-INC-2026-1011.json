@@ -4,9 +4,9 @@
   "model": "hy4-preview",
   "generated_at": "2026-10-11T08:21:00+08:00",
   "fixture_type": "llm_fallback",
-  "description": "Recorded LLM output for offline fallback. Auto-generated incident summary for the Harbourfront One L23 chilled-water leak incident room.",
+  "description": "Recorded LLM output for offline fallback. Incident summary for the Harbourfront One L23 chilled-water leak, as of 08:20.",
   "summary": {
-    "headline": "Chilled-water leak from AHU-23-01 supply branch above L22 bank tenant ceiling; water within 1.5 m of DB-23A; re-energisation blocked pending LEW sign-off.",
+    "headline": "Chilled-water leak at the AHU-23-01 supply branch above the L22 bank tenant ceiling; water reached DB-23A trunking; re-energisation of AHU-23-01 / DB-23A blocked pending LEW sign-off.",
     "incident_id": "INC-2026-1011",
     "asset": "Harbourfront One",
     "status": "Active",
@@ -16,25 +16,37 @@
     "location": "L23 ceiling void / CHW riser R2 branch, above L22 tenant ceiling",
     "affected_tenant": "Straits Meridian Bank (L20-26)",
     "sensitivity": "tenant_pii",
-    "timeline_summary": "At 08:02 the iBMS leak detector LD-23-04 triggered, followed by an AHU-23-01 chilled-water delta-T anomaly and a tenant call from the bank facilities desk. A P1 CMMS work order was raised. The on-site technician identified the source as a CHW supply branch coupling at AHU-23-01 and observed water tracking toward Distribution Board DB-23A (within 1.5 m). The isolation sub-valve ISV-L23-CHW was closed at 08:09, stopping the flow. The MOSAIC engine triggered Rule TS-07 (v1.2), blocking re-energisation of the AHU/DB circuit. The Duty LEW was dispatched at 08:14 with ETA 08:39. An insulation resistance test is pending LEW arrival. The AOM is drafting the first-notice tenant message within the 30-minute SLA window.",
+    "timeline_summary": "At 08:02 leak detector LD-23-04 alarmed, followed by an AHU-23-01 chilled-water ΔT anomaly and a call from the bank facilities desk at 08:04. A P1 work order linked the isolation diagram. At 08:07 the technician found an active chilled-water leak at the AHU-23-01 supply branch; at 08:09 water was tracking toward distribution board DB-23A (about 1.5 m). The branch sub-valve ISV-L23-CHW was closed at 08:09:42 with the riser left open. At 08:11 AHU-23-01 was switched off and its DB-23A circuit isolated after water reached the control panel and trunking. The duty LEW was called at 08:12 (ETA 08:39). The bank reported wet ceiling tiles and workstations at 08:15; the next tenant update is set for 08:50.",
     "key_decisions": [
       {
         "rule_id": "TS-07",
         "action_class": "must_escalate",
         "status": "blocked",
-        "text": "Re-energisation of AHU-23-01 / DB-23A circuit blocked. Missing evidence: LEW sign-off, insulation resistance test, area dry. LEW Rahul Menon dispatched."
+        "text": "Re-energising AHU-23-01 / DB-23A is blocked: LEW sign-off, insulation resistance test and area-dry confirmation are missing. Duty LEW Rahul Menon dispatched."
+      },
+      {
+        "rule_id": "TS-01",
+        "action_class": "must_escalate",
+        "status": "escalate",
+        "text": "Water tracking toward the L23 electrical riser cupboard — nobody enters; escalated to the duty LEW."
       },
       {
         "rule_id": "TS-02",
         "action_class": "recommend",
         "status": "completed",
-        "text": "Chilled-water source isolated at sub-valve ISV-L23-CHW at 08:09 (7 minutes from alarm). Branch isolation only — riser R2 left open."
+        "text": "Branch sub-valve ISV-L23-CHW closed at 08:09:42, 7 minutes after the alarm. Riser R2 left open."
       },
       {
         "rule_id": "TE-01",
         "action_class": "requires_approval",
         "status": "needs_approval",
-        "text": "First-notice tenant message drafting. 30-min SLA clock started at 08:04 (tenant call). Deadline: 08:34."
+        "text": "First notice to the affected L22 tenant drafted; awaiting the Tenant Experience Manager's approval. 30-minute clock from the 08:04 call — due 08:34."
+      },
+      {
+        "rule_id": "TE-04",
+        "action_class": "must_escalate",
+        "status": "escalate",
+        "text": "Anchor tenant: account manager Clare Tan to phone the bank's facilities director."
       }
     ],
     "evidence_coverage": {
@@ -42,8 +54,8 @@
       "confirmed": 0,
       "pending": ["lew_signoff", "insulation_resistance_ok", "area_dry"]
     },
-    "current_risk": "Water stopped but DB-23A area moisture elevated (18% vs 12% baseline). No water inside switchroom. Risk of escalation to building-wide power outage if moisture reaches switchgear before LEW inspects.",
-    "pill_applied": "technical-services/chilled-water-leak v1.2",
+    "current_risk": "Flow stopped, but moisture at the DB-23A cupboard threshold is 18% against a 12% baseline. No water inside the cupboard. Re-energising before the LEW tests and signs off risks a short or arc flash.",
+    "pill_applied": "technical-services/chilled-water-leak v1.2.0; tenant-experience/incident-comms v1.0.0",
     "provenance_ref": "ce-interview-2026-10-02#00:14:32"
   }
 }

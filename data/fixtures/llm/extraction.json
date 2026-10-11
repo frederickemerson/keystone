@@ -2,97 +2,623 @@
   "fixture_id": "extraction-ce-interview-2026-10-02",
   "source_transcript": "data/transcripts/ce-interview-2026-10-02.json",
   "model": "hy4-preview",
-  "generated_at": "2026-10-02T00:26:00+08:00",
+  "generated_at": "2026-10-02T10:35:10+08:00",
   "fixture_type": "llm_fallback",
-  "description": "Recorded LLM output for offline fallback. Extracts rule candidates from the Chief Engineer onboarding transcript using schema-constrained scribe.",
+  "description": "Recorded LLM output for offline fallback. Rule candidates extracted from the Chief Engineer onboarding transcript by the schema-constrained scribe, one per rule, each anchored to the expert turns it came from. Candidates await confirmation on the Decision Canvas.",
   "rule_candidates": [
+    {
+      "rule_id": "TS-01",
+      "title": "Water near switchgear or electrical room — evacuate and escalate",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          {
+            "path": "evidence.water_near_electrical",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "any": [
+          {
+            "path": "evidence.water_in_electrical_room",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.water_above_switchgear",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.water_flowing_toward_electrical",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "required_evidence": ["visual_or_alarm_confirmation"],
+      "decision": "Treat as electrical hazard. Evacuate the electrical room immediately. Nobody enters until LEW confirms de-energised and safe. Isolate water upstream of the room outside the threshold. Call LEW and Duty Manager.",
+      "allowed_actions": ["Cordon and signage at electrical room threshold", "Call LEW", "Upstream water isolation outside the room", "Notify Duty Manager and FSM", "Log and photograph from outside the threshold"],
+      "forbidden_actions": ["Entering the room before LEW confirms de-energised and safe", "Operating any wet breaker or switch", "Powering pumps or wet-vacs from the affected board", "Security 'quick look' entry"],
+      "exceptions": [
+        {
+          "when": [
+            {
+              "path": "evidence.lew_confirms_dead_section",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "LEW confirms the affected section is a spare/dead board and documents it"
+        },
+        {
+          "when": [
+            {
+              "path": "evidence.water_confined_sealed_trench",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "Water confined to a sealed trench with no contact path — LEW judgement"
+        }
+      ],
+      "action_class": "must_escalate",
+      "forbidden_if_missing_evidence": false,
+      "escalate_to": {
+        "role": "duty_lew",
+        "fallback": "head_technical_services"
+      },
+      "owner": "technical_services_lead",
+      "deadline_minutes": 5,
+      "provenance": ["ce-interview-2026-10-02#00:25:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.95
+    },
+    {
+      "rule_id": "TS-02",
+      "title": "Isolate at the nearest isolation sub-valve — branch before riser",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          {
+            "path": "evidence.active_water_release",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.water_near_electrical",
+            "op": "neq",
+            "value": true
+          },
+          {
+            "path": "evidence.isolation_complete",
+            "op": "neq",
+            "value": true
+          },
+          {
+            "path": "evidence.source_is_fire_protection",
+            "op": "neq",
+            "value": true
+          }
+        ],
+        "any": []
+      },
+      "required_evidence": ["location_confirmed", "shutoff_map_available"],
+      "decision": "Isolate at the nearest accessible isolation sub-valve. For a branch leak where the sub-valve is accessible and stops the flow, isolate the branch only and leave the riser open. Isolate the riser only when the leak is on the riser pipe, the sub-valve is seized or inaccessible, or the source is not confirmed within 10 minutes. In a tenant-occupied area isolation must be complete within the deadline; if it is not, escalate to the Duty Facilities Manager.",
+      "allowed_actions": ["Close the branch isolation sub-valve", "Close the floor isolation sub-valve", "Close the riser valve (riser-pipe leak, seized sub-valve, or source unconfirmed at 10 min)"],
+      "forbidden_actions": ["Closing any fire-protection valve without FSM authorisation (see TS-05)", "Shutting the whole riser for a branch leak the sub-valve can stop", "Leaving an isolated valve unlabelled"],
+      "exceptions": [
+        {
+          "when": [
+            {
+              "path": "evidence.leak_on_riser_pipe",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "Leak is on the riser pipe itself — isolate the riser"
+        },
+        {
+          "when": [
+            {
+              "path": "evidence.sub_valve_accessible",
+              "op": "eq",
+              "value": false
+            }
+          ],
+          "note": "Branch sub-valve seized or inaccessible — isolate the riser"
+        },
+        {
+          "when": [
+            {
+              "path": "evidence.source_behind_locked_tenancy",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "Source is behind a locked tenancy — arrange tenant access, then isolate locally"
+        }
+      ],
+      "action_class": "recommend",
+      "forbidden_if_missing_evidence": false,
+      "escalate_to": {
+        "role": "duty_facilities_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "technical_services_lead",
+      "deadline_minutes": 15,
+      "provenance": ["ce-interview-2026-10-02#00:23:30", "ce-interview-2026-10-02#00:06:30", "ce-interview-2026-10-02#00:11:35"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.91,
+      "contradiction_resolved": true,
+      "distinguishing_condition": "Branch leak with a working sub-valve -> isolate the branch only. Riser-pipe leak, seized/inaccessible sub-valve, or source unconfirmed at 10 min -> isolate the riser. Condensate -> AHU unit level, never the riser."
+    },
+    {
+      "rule_id": "TS-03",
+      "title": "Do not shut down whole floor power unless electrical risk confirmed",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          {
+            "path": "evidence.water_near_electrical",
+            "op": "eq",
+            "value": false
+          },
+          {
+            "path": "evidence.tenant_request_power_down",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "any": []
+      },
+      "required_evidence": ["lew_or_evidence_confirms_risk"],
+      "decision": "Do not shut down a whole floor's power based on a tenant request or a precautionary instinct. Power-down only when electrical risk is confirmed by the LEW or by clear evidence: water on switchgear, breaker already tripped, or insulation resistance below threshold. A false power-down on a bank anchor tenant's trading floor is a seven-figure incident.",
+      "allowed_actions": ["Send technician to assess with moisture meter", "Request LEW inspection if risk uncertain", "Isolate individual affected circuit on LEW advice"],
+      "forbidden_actions": ["Shutting down a whole floor on tenant request alone", "Shutting down a whole floor without LEW or confirmed evidence", "De-energising circuits not in the water path"],
+      "exceptions": [
+        {
+          "when": [
+            {
+              "path": "evidence.water_on_switchgear",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "Water confirmed on switchgear — TS-01 electrical gate applies"
+        },
+        {
+          "when": [
+            {
+              "path": "evidence.breaker_tripped",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "Breaker already tripped — LEW to inspect before reset"
+        }
+      ],
+      "action_class": "requires_approval",
+      "forbidden_if_missing_evidence": true,
+      "escalate_to": {
+        "role": "duty_lew",
+        "fallback": "head_technical_services"
+      },
+      "owner": "technical_services_lead",
+      "deadline_minutes": null,
+      "provenance": ["ce-interview-2026-10-02#00:26:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.93
+    },
+    {
+      "rule_id": "TS-04",
+      "title": "Condensate vs active leak — distinguish before committing resources",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          {
+            "path": "evidence.ceiling_stain_or_drip",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "any": [
+          {
+            "path": "evidence.condensate_leak_alarm",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.tenant_report_drip",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "required_evidence": ["visual_inspection"],
+      "decision": "Determine whether this is condensate (tray overflow, drain blockage) or an active chilled-water branch leak. Condensate is a drip, ambient temperature, from the condensate tray or drain line. Active chilled-water is a stream, cold (8-14 degrees C), from the branch pipe or riser. Condensate: clear tray, place drip protection, schedule repair. Active leak: isolate the FCU chilled-water isolation valves immediately (TS-02). When in doubt, treat as active and isolate.",
+      "allowed_actions": ["Inspect condensate tray and drain line", "Clear blocked condensate drain", "Place drip tray and absorbent socks", "Close FCU chilled-water isolation valves if active leak suspected", "Check adjacent FCUs on same drain line", "Notify tenant", "Schedule repair work order"],
+      "forbidden_actions": ["Assuming condensate without visual inspection", "Leaving FCU valves open overnight pending repair if active leak", "Working above live tenant workstations without clearing the area"],
+      "exceptions": [
+        {
+          "when": [
+            {
+              "path": "evidence.drip_onto_tenant_it",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "Drip onto tenant IT/electrical equipment — TS-01 electrical gate applies"
+        }
+      ],
+      "action_class": "recommend",
+      "forbidden_if_missing_evidence": false,
+      "escalate_to": {
+        "role": "technical_services_lead",
+        "fallback": "asset_operations_manager"
+      },
+      "owner": "technician",
+      "deadline_minutes": 30,
+      "provenance": ["ce-interview-2026-10-02#00:27:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.94
+    },
+    {
+      "rule_id": "TS-05",
+      "title": "Fire-protection impairment requires FSM authorisation and red-tag",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [],
+        "any": [
+          {
+            "path": "evidence.source_is_fire_protection",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.isolation_affects_fire_alarm",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "required_evidence": ["fsm_authorisation"],
+      "decision": "FSM (or deputy) authorises the impairment. Raise a red-tag impairment permit. Notify property insurer. Post fire watch patrols every 30 minutes in the affected zone. Restore protection as the first priority after life safety. Isolate the smallest sprinkler zone possible.",
+      "allowed_actions": ["Isolate smallest sprinkler zone possible", "Fire watch patrols every 30 minutes", "Insurer impairment notification", "Call fire-protection contractor"],
+      "forbidden_actions": ["Technician closing a sprinkler control valve on own authority", "Leaving the system impaired overnight without fire watch and FSM sign-off", "Restoring protection without contractor functional test"],
+      "exceptions": [
+        {
+          "when": [
+            {
+              "path": "evidence.immediate_life_safety_hazard",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "Immediate life-safety hazard (e.g. water on live equipment) permits emergency isolation first, with FSM informed within 5 min and permit raised retrospectively"
+        }
+      ],
+      "action_class": "requires_approval",
+      "forbidden_if_missing_evidence": true,
+      "escalate_to": {
+        "role": "fire_safety_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "fire_safety_manager",
+      "deadline_minutes": 5,
+      "provenance": ["ce-interview-2026-10-02#00:28:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.95
+    },
+    {
+      "rule_id": "TS-06",
+      "title": "Lift pit water — take lift out of service and call contractor",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [],
+        "any": [
+          {
+            "path": "evidence.lift_pit_water",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.water_in_lift_shaft",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.water_in_lift_car",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "required_evidence": ["lift_out_of_service_confirmed"],
+      "decision": "Park lift at an upper floor and take out of service via FCC. Call lift maintenance contractor. Assess against BCA Reportable Matters Regulations 2025 — call BCA within 6 hours if a reportable safety incident occurred. Return to service only after contractor inspection and clearance.",
+      "allowed_actions": ["Take lift out of service via FCC", "Call lift maintenance contractor", "BCA incident call if reportable safety incident", "Cordon lift landing doors"],
+      "forbidden_actions": ["Running the lift to 'test' with water in the pit", "Entering the pit without contractor and isolation", "Returning lift to service without contractor clearance"],
+      "exceptions": [],
+      "action_class": "requires_approval",
+      "forbidden_if_missing_evidence": false,
+      "escalate_to": {
+        "role": "asset_operations_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "technical_services_lead",
+      "deadline_minutes": 15,
+      "provenance": ["ce-interview-2026-10-02#00:29:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.94
+    },
     {
       "rule_id": "TS-07",
       "title": "No re-energisation without LEW sign-off",
       "trigger": {
         "incident_type": "water_ingress",
         "all": [
-          { "path": "evidence.water_near_electrical", "op": "eq", "value": true },
-          { "path": "evidence.water_near_db_23a", "op": "eq", "value": true }
+          {
+            "path": "evidence.equipment_wetted_or_isolated",
+            "op": "eq",
+            "value": true
+          }
         ],
         "any": []
       },
       "required_evidence": ["lew_signoff", "insulation_resistance_ok", "area_dry"],
-      "decision": "Re-energise affected AHU / DB",
-      "allowed_actions": ["Keep circuit isolated", "Request LEW inspection", "Deploy drip trays and cordon area"],
-      "forbidden_actions": ["Re-energise before LEW sign-off", "Entering electrical cupboard before LEW confirms safe", "Operating any wet breaker or switch"],
+      "decision": "Re-energise affected AHU, DB, or circuit only after LEW inspection and certification. LEW inspects, tests insulation resistance, documents fitness. Technical Services restores in sequence. FCC confirms alarms normal. No re-energisation on visual inspection alone.",
+      "allowed_actions": ["Keep circuit isolated", "Request LEW inspection", "Staged re-energisation on LEW certification", "Alarm verification via FCC"],
+      "forbidden_actions": ["Re-energise before LEW sign-off", "Re-energise on visual inspection alone", "Re-energise before the room is dry", "Reset a tripped breaker before LEW tests insulation resistance"],
       "exceptions": [
-        { "when": [{ "path": "asset.type", "op": "eq", "value": "data_centre" }], "note": "Critical facilities manager co-signs" },
-        { "when": [{ "path": "evidence.lew_confirms_dead_board", "op": "eq", "value": true }], "note": "LEW confirms affected section is spare/dead board" }
+        {
+          "when": [
+            {
+              "path": "asset.type",
+              "op": "eq",
+              "value": "data_centre"
+            }
+          ],
+          "note": "Critical facilities manager co-signs; client SLA notification triggered"
+        }
       ],
       "action_class": "must_escalate",
-      "escalate_to": { "role": "duty_lew", "fallback": "head_technical_services" },
+      "forbidden_if_missing_evidence": true,
+      "escalate_to": {
+        "role": "duty_lew",
+        "fallback": "head_technical_services"
+      },
       "owner": "chief_engineer",
       "deadline_minutes": null,
       "asset_overrides": {
-        "data_centre": { "escalate_to": { "role": "dc_critical_facilities_manager" } }
+        "data_centre": {
+          "escalate_to": {
+            "role": "dc_critical_facilities_manager"
+          }
+        }
       },
-      "threshold_note": "2 m proximity threshold is expert professional judgement, not a code requirement. Code says 'near electrical equipment' without defining distance.",
-      "provenance": ["ce-interview-2026-10-02#00:14:32", "ce-interview-2026-10-02#00:16:30", "ce-interview-2026-10-02#00:22:15"],
-      "confirmation_status": "confirmed",
-      "confidence": 0.97
+      "provenance": ["ce-interview-2026-10-02#00:14:32"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.97,
+      "threshold_note": "The 2 m proximity threshold (water_near_electrical) is the expert's professional judgement, not a code requirement (00:16:30, 00:25:00)."
     },
     {
-      "rule_id": "TS-02",
-      "title": "Isolate chilled-water source at nearest accessible valve within 10 minutes",
+      "rule_id": "TS-08",
+      "title": "Preserve evidence and photos for insurer before cleanup",
       "trigger": {
         "incident_type": "water_ingress",
         "all": [
-          { "path": "evidence.leak_alarm_active", "op": "eq", "value": true }
+          {
+            "path": "evidence.isolation_complete",
+            "op": "eq",
+            "value": true
+          }
         ],
         "any": [
-          { "path": "evidence.chw_leak_suspected", "op": "eq", "value": true },
-          { "path": "evidence.tenant_report", "op": "eq", "value": true }
+          {
+            "path": "evidence.estimated_loss_above_threshold",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.fire_protection_impaired",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.tenant_property_damage",
+            "op": "eq",
+            "value": true
+          }
         ]
       },
-      "required_evidence": ["shutoff_valve_map"],
-      "decision": "Isolate at nearest local sub-valve; if source is riser pipe or sub-valve inaccessible, isolate riser; if condensate, isolate at AHU unit level",
-      "allowed_actions": ["Close local/zone isolation sub-valve", "Close floor or riser valve if branch valve inaccessible", "Close domestic water main for stack (Duty Manager informed)"],
-      "forbidden_actions": ["Closing fire-protection valves without FSM authorisation", "Re-energising AHU circuit before LEW sign-off if water near electrical"],
-      "exceptions": [
-        { "when": [{ "path": "evidence.source_is_condensate", "op": "eq", "value": true }], "note": "Condensate — isolate at AHU unit level, do not isolate riser" },
-        { "when": [{ "path": "evidence.source_is_riser_pipe", "op": "eq", "value": true }], "note": "Riser pipe leak — isolate riser" }
-      ],
-      "action_class": "recommend",
-      "escalate_to": { "role": "duty_manager", "fallback": "head_technical_services" },
-      "owner": "technician",
-      "deadline_minutes": 10,
-      "distinguishing_condition": "Leak on branch with working sub-valve → isolate branch only. Leak on riser pipe or inaccessible sub-valve → isolate riser. Condensate → isolate at AHU unit, never riser.",
-      "provenance": ["ce-interview-2026-10-02#00:06:30", "ce-interview-2026-10-02#00:23:30", "ce-interview-2026-10-02#00:24:30"],
-      "confirmation_status": "confirmed",
-      "contradiction_resolved": true,
-      "confidence": 0.95
+      "required_evidence": ["pre_cleanup_photos", "failed_component_retained"],
+      "decision": "Notify insurer or broker within the policy notification window. Preserve evidence: pre-cleanup photos with timestamps, failed component retained and tagged. Schedule loss adjuster. Separate landlord vs tenant damage scope. Do not commit to repairs beyond emergency mitigation before adjuster contact.",
+      "allowed_actions": ["Insurer notification", "Evidence pack compilation (photos, video, timeline)", "Retain and tag failed component", "Contractor quotations for emergency mitigation"],
+      "forbidden_actions": ["Disposing of the failed component before adjuster release", "Committing to repairs beyond emergency mitigation before adjuster contact", "Allowing cleanup before pre-cleanup photos are taken"],
+      "exceptions": [],
+      "action_class": "requires_approval",
+      "forbidden_if_missing_evidence": true,
+      "escalate_to": {
+        "role": "asset_operations_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "asset_operations_manager",
+      "deadline_minutes": 60,
+      "provenance": ["ce-interview-2026-10-02#00:30:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.92
     },
     {
-      "rule_id": "TE-01",
-      "title": "Tenant-area isolation within 15 minutes; first-notice message within 30 min",
+      "rule_id": "TS-09",
+      "title": "Start extraction and drying within 24 hours, verify dry within 48",
       "trigger": {
         "incident_type": "water_ingress",
         "all": [
-          { "path": "evidence.tenant_affected", "op": "exists", "value": true },
-          { "path": "evidence.water_visible_to_tenant", "op": "eq", "value": true }
+          {
+            "path": "evidence.isolation_complete",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.wet_building_fabric",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "any": []
+      },
+      "required_evidence": ["moisture_meter_readings", "affected_materials_inventory"],
+      "decision": "Mobilise extraction, dehumidifiers and air movers. Moisture-map the affected area. Discard porous materials (ceiling tiles, fibreglass insulation). Re-check moisture at 24 hours and 48 hours. Drying equipment must be energised from circuits cleared by LEW, not from the affected board.",
+      "allowed_actions": ["Contractor mobilisation", "Equipment hire (dehumidifiers, air movers)", "Material disposal (wet ceiling tiles, insulation)", "Moisture mapping and logging"],
+      "forbidden_actions": ["Closing up ceilings or walls before moisture readings are within target", "Running drying equipment from circuits not yet cleared by LEW", "Reusing wet porous materials"],
+      "exceptions": [
+        {
+          "when": [
+            {
+              "path": "evidence.water_category",
+              "op": "in",
+              "value": ["category_2", "category_3"]
+            }
+          ],
+          "note": "Category 2/3 water — disinfect before drying; PPE required"
+        }
+      ],
+      "action_class": "recommend",
+      "forbidden_if_missing_evidence": false,
+      "escalate_to": {
+        "role": "asset_operations_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "technical_services_lead",
+      "deadline_minutes": 1440,
+      "provenance": ["ce-interview-2026-10-02#00:31:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.9
+    },
+    {
+      "rule_id": "TS-10",
+      "title": "Data-centre CRAH or chilled-water leak — contain, escalate to CFM",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          {
+            "path": "asset.type",
+            "op": "eq",
+            "value": "data_centre"
+          }
+        ],
+        "any": [
+          {
+            "path": "evidence.crah_condensate_alarm",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.underfloor_leak_detection",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.high_humidity_alarm_server_room",
+            "op": "eq",
+            "value": true
+          }
         ]
       },
-      "required_evidence": ["tenant_contact", "tenant_message_draft"],
-      "decision": "Draft first-notice tenant message within 30 min of tenant call; isolate source within 15 min to prevent business interruption",
-      "allowed_actions": ["Draft tenant message", "Notify tenant facilities coordinator", "Deploy containment in tenant area"],
-      "forbidden_actions": ["Delaying first-notice beyond 30 min", "Re-energising before LEW sign-off if water near electrical"],
+      "required_evidence": ["leak_alarm_confirmed"],
+      "decision": "Notify DC operations and critical facilities manager immediately. Isolate the water source (CRAC/CRAH condensate, chilled-water branch). Deploy containment and drip diversion. Any IT power-down is proposed only and executed by the IT/BCP owner or critical facilities manager. Client SLA notification is triggered via the critical facilities manager, not via the tenant experience comms flow.",
+      "allowed_actions": ["Isolate CRAH/chilled-water branch", "Containment and drip diversion", "Notify critical facilities manager with evidence pack", "Client SLA notification via critical facilities manager"],
+      "forbidden_actions": ["Switching off IT racks or UPS output without BCP owner approval", "Pumping water with equipment powered from in-room circuits", "Sending tenant-experience comms to DC clients (use SLA channel)"],
       "exceptions": [
-        { "when": [{ "path": "asset.type", "op": "eq", "value": "data_centre" }], "note": "DC overlay: tenant message replaced by client-SLA notification (15 min SLA)" }
+        {
+          "when": [
+            {
+              "path": "evidence.water_contacting_live_it",
+              "op": "eq",
+              "value": true
+            }
+          ],
+          "note": "Water contacting live IT equipment — TS-01 electrical gate applies"
+        }
       ],
-      "action_class": "requires_approval",
-      "escalate_to": { "role": "tenant_experience" },
-      "owner": "asset_operationsManager",
-      "deadline_minutes": 30,
-      "tenant_isolation_window_min": 15,
-      "provenance": ["ce-interview-2026-10-02#00:11:35", "ce-interview-2026-10-02#00:19:25"],
-      "confirmation_status": "confirmed",
+      "action_class": "must_escalate",
+      "forbidden_if_missing_evidence": false,
+      "escalate_to": {
+        "role": "dc_critical_facilities_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "technical_services_lead",
+      "deadline_minutes": 5,
+      "provenance": ["ce-interview-2026-10-02#00:32:30"],
+      "confirmation_status": "pending_expert_review",
       "confidence": 0.93
+    },
+    {
+      "rule_id": "TS-11",
+      "title": "Clear stagnant water within 24 hours — NEA vector control",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          {
+            "path": "evidence.standing_water_present",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.isolation_complete",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "any": []
+      },
+      "required_evidence": ["standing_water_location_photos"],
+      "decision": "Remove standing water within 24 hours. Where it cannot be removed, treat with larvicide via pest-control contractor and inspect daily until dry. Record in the vector-control log. NEA holds owners and occupiers liable for mosquito breeding.",
+      "allowed_actions": ["Pump out standing water", "Larvicide via pest-control contractor", "Daily inspection until dry", "Vector-control log entry"],
+      "forbidden_actions": ["Leaving pooled water over a weekend without treatment", "Discharging water into storm drains without checking for contaminants"],
+      "exceptions": [],
+      "action_class": "recommend",
+      "forbidden_if_missing_evidence": false,
+      "escalate_to": {
+        "role": "asset_operations_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "technical_services_lead",
+      "deadline_minutes": 1440,
+      "provenance": ["ce-interview-2026-10-02#00:33:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.9
+    },
+    {
+      "rule_id": "TS-12",
+      "title": "PUB heavy-rain alert — pre-emptive basement and roof checks",
+      "trigger": {
+        "incident_type": "external_alert",
+        "all": [
+          {
+            "path": "evidence.pub_heavy_rain_or_flood_alert",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "any": []
+      },
+      "required_evidence": ["pub_alert_station_near_asset"],
+      "decision": "Within 30 minutes of the alert: test basement sump pumps and float switches, clear roof outlets and rainwater downpipes, stage flood barriers at carpark ramps and known low points, brief security on patrol points. Do not deploy barriers that block egress routes.",
+      "allowed_actions": ["Sump pump test", "Rainwater downpipe and roof drain clearance", "Flood barrier deployment at carpark ramps", "Security briefing on patrol points"],
+      "forbidden_actions": ["Deploying barriers that block egress routes", "Ignoring a pump-run alarm during the warning window"],
+      "exceptions": [],
+      "action_class": "recommend",
+      "forbidden_if_missing_evidence": false,
+      "escalate_to": {
+        "role": "asset_operations_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "technician",
+      "deadline_minutes": 30,
+      "provenance": ["ce-interview-2026-10-02#00:34:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.9
     }
   ],
   "scribe_metadata": {
@@ -100,7 +626,7 @@
     "temperature": 0.2,
     "schema": "mosaic-rule-candidate-v1",
     "content_requirements_met": true,
-    "transcript_spans_extracted": 8,
-    "probes_processed": ["P01", "P02", "P03", "P04", "P06", "P07", "P08", "P09", "P11", "P13", "P14", "P28", "P31"]
+    "transcript_spans_extracted": 27,
+    "probes_processed": ["P01", "P02", "P03", "P04", "P06", "P07", "P08", "P09", "P11", "P13", "P14", "P15", "P16", "P17", "P18", "P21", "P24", "P25", "P26", "P28", "P29", "P30", "P31"]
   }
 }

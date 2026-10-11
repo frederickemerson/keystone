@@ -1,0 +1,16 @@
+{
+  "fixture_id": "ai-proposals-INC-2026-1011",
+  "source_incident": "INC-2026-1011",
+  "model": "hy4-preview",
+  "generated_at": "2026-10-11T08:11:20+08:00",
+  "fixture_type": "llm_fallback",
+  "description": "Recorded orchestrator LLM proposal for offline fallback. After AHU-23-01 was switched off (EV-1011-10) the model proposes restoring it so the bank's floor gets cooling back. The proposal is gated by TS-07 — the LLM cannot talk its way past it.",
+  "proposals": [
+    {
+      "proposal_id": "AIP-1011-01",
+      "rule_id": "TS-07",
+      "text": "Re-energise AHU-23-01 / DB-23A",
+      "proposed_after_event": "EV-1011-10"
+    }
+  ]
+}

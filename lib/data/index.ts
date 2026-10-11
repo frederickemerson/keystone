@@ -6,6 +6,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { z } from "zod";
 import {
+  aiProposalFixtureSchema,
   assetsSchema,
   contradictionFixtureSchema,
   extractionFixtureSchema,
@@ -15,6 +16,7 @@ import {
   tenantMessageFixtureSchema,
   timelineSchema,
   transcriptSchema,
+  type AiProposalFixture,
   type AssetRecord,
   type ContradictionFixture,
   type ExtractionFixture,
@@ -143,4 +145,10 @@ export function loadIncidentSummaryFixture(incidentId: string): IncidentSummaryF
   const stem = `incident-summary-${incidentId}`;
   if (!listLlmFixtureIds().includes(stem)) return undefined;
   return readJson(join(FIXTURES, `${stem}.json`), incidentSummaryFixtureSchema);
+}
+
+export function loadAiProposalFixture(incidentId: string): AiProposalFixture | undefined {
+  const stem = `ai-proposals-${incidentId}`;
+  if (!listLlmFixtureIds().includes(stem)) return undefined;
+  return readJson(join(FIXTURES, `${stem}.json`), aiProposalFixtureSchema);
 }

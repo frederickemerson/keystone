@@ -4,23 +4,32 @@
 # Owner: tenant_experience_manager
 # Schema: docs/SPEC.md §4
 # Structured conditions only. op: eq | neq | gt | gte | lt | lte | in | exists
+# Evidence vocabulary: every evidence.<key> and required_evidence key is
+# declared in evidence.yaml (same folder).
+#
+# Status precedence (engine): not triggered -> not_applicable;
+# forbidden_if_missing_evidence && missing evidence -> blocked;
+# must_escalate -> escalate; requires_approval -> needs_approval; else allowed.
+# Approval of an outbound message is the action class (requires_approval),
+# never a required-evidence key. An escalation is never blocked.
 
 - id: TE-01
   title: Notify affected tenant within 30 minutes with named approval
   trigger:
     incident_type: water_ingress
     all:
-      - { path: evidence.incident_affects_tenant_premises, op: eq, value: true }
+      - { path: evidence.tenant_premises_affected, op: eq, value: true }
+      - { path: asset.type, op: neq, value: data_centre }
     any: []
   required_evidence:
-    - incident_log_with_affected_units
-    - named_approver_signoff
+    - affected_units_confirmed
   decision: >-
-    Draft and send a first notice to affected tenants within 30 minutes.
+    Send a first notice to the affected tenants only, within 30 minutes.
     The notice states: what happened, where, what we are doing, the next
     update time, and a contact. No cause, no liability, no completion
-    promise. The notice requires a named human approver (Property Manager
-    or delegate) before sending.
+    promise. The notice requires a named human approver (Tenant Experience
+    Manager or delegate) before sending. Data-centre clients are handled by
+    TE-06 instead.
   allowed_actions:
     - "Draft first notice (what, where, action, next update, contact)"
     - "Send after named approver sign-off"
@@ -37,7 +46,7 @@
   action_class: requires_approval
   forbidden_if_missing_evidence: true
   escalate_to:
-    role: property_manager
+    role: tenant_experience_manager
     fallback: asset_operations_manager
   owner: tenant_experience_manager
   deadline_minutes: 30
@@ -46,18 +55,18 @@
     - "brick:Room"
   sensitivity: tenant_pii
   provenance:
-    - "pm-interview-2026-10-02#00:06:15"
+    - "te-interview-2026-10-03#00:02:50"
 
 - id: TE-02
   title: Never promise completion time before source confirmed
   trigger:
     incident_type: water_ingress
     all:
-      - { path: evidence.source_confirmed, op: eq, value: false }
       - { path: evidence.tenant_request_completion_time, op: eq, value: true }
+      - { path: evidence.source_confirmed, op: neq, value: true }
     any: []
   required_evidence:
-    - incident_log
+    - next_update_time_set
   decision: >-
     Do not promise a completion or resolution time. The source is not yet
     confirmed and isolation is not complete. The correct response is:
@@ -73,31 +82,30 @@
   action_class: recommend
   forbidden_if_missing_evidence: false
   escalate_to:
-    role: property_manager
-    fallback: asset_operations_manager
+    role: tenant_experience_manager
+    fallback: property_manager
   owner: tenant_experience_manager
   deadline_minutes: 30
   asset_refs:
     - "brick:Floor"
   sensitivity: tenant_pii
   provenance:
-    - "pm-interview-2026-10-02#00:14:00"
+    - "te-interview-2026-10-03#00:05:30"
 
 - id: TE-03
-  title: No unverified cause claims in any outbound message
+  title: No cause in any outbound message until the source is confirmed
   trigger:
     incident_type: water_ingress
-    all: []
-    any:
-      - { path: evidence.cause_unverified, op: eq, value: true }
+    all:
       - { path: evidence.draft_message_contains_cause, op: eq, value: true }
+    any: []
   required_evidence:
-    - source_confirmed_by_technical_services_or_lew
+    - source_confirmed
   decision: >-
-    Do not state or imply the cause in any outbound message until confirmed
-    by the Technical Services lead or the LEW. Remove any cause language
-    from the draft. Replace with: "We are investigating the source and
-    will share confirmed information at the next update."
+    State the cause in an outbound message only after Technical Services or
+    the LEW has confirmed it. Until then, remove all cause language from the
+    draft and replace it with: "We are investigating the source and will
+    share confirmed information at the next update."
   allowed_actions:
     - "Remove cause language from draft"
     - "State that investigation is ongoing"
@@ -106,22 +114,19 @@
     - "Stating 'the cause appears to be' or 'we believe the cause is' before confirmation"
     - "Naming a specific component or system as the cause before confirmed"
     - "Accepting a tenant's suggested cause without verification"
-  exceptions:
-    - when:
-        - { path: evidence.source_confirmed, op: eq, value: true }
-      note: "Source confirmed by Technical Services or LEW — cause may be stated in the next update"
-  action_class: recommend
-  forbidden_if_missing_evidence: false
+  exceptions: []
+  action_class: requires_approval
+  forbidden_if_missing_evidence: true
   escalate_to:
-    role: property_manager
-    fallback: asset_operations_manager
+    role: tenant_experience_manager
+    fallback: property_manager
   owner: tenant_experience_manager
   deadline_minutes: null
   asset_refs:
     - "brick:Floor"
   sensitivity: tenant_pii
   provenance:
-    - "pm-interview-2026-10-02#00:14:00"
+    - "te-interview-2026-10-03#00:07:30"
 
 - id: TE-04
   title: Bank anchor tenant gets account-manager phone call
@@ -149,7 +154,7 @@
     - "Delegating the call to a junior without account-manager oversight"
   exceptions: []
   action_class: must_escalate
-  forbidden_if_missing_evidence: true
+  forbidden_if_missing_evidence: false
   escalate_to:
     role: account_manager
     fallback: asset_operations_manager
@@ -164,7 +169,7 @@
     - "brick:Floor"
   sensitivity: commercial
   provenance:
-    - "pm-interview-2026-10-02#00:22:30"
+    - "te-interview-2026-10-03#00:09:30"
 
 - id: TE-05
   title: PII masking on all outbound messages
@@ -206,7 +211,7 @@
   asset_refs: []
   sensitivity: tenant_pii
   provenance:
-    - "pm-interview-2026-10-02#00:30:00"
+    - "te-interview-2026-10-03#00:11:50"
 
 - id: TE-06
   title: DC clients get SLA notice via critical facilities manager
@@ -214,7 +219,7 @@
     incident_type: water_ingress
     all:
       - { path: asset.type, op: eq, value: data_centre }
-      - { path: evidence.client_affected, op: eq, value: true }
+      - { path: evidence.dc_client_affected, op: eq, value: true }
     any: []
   required_evidence:
     - sla_terms_on_file
@@ -224,8 +229,9 @@
     not a tenant-experience comms message. The SLA notice includes: SLA
     event reference, impact assessment, estimated resolution window if
     known, and the CFM as the point of contact. The approver is the CFM,
-    not the Property Manager. The standard tenant-experience first-notice
-    flow (TE-01) is suppressed for DC assets.
+    not Tenant Experience. The standard first-notice flow (TE-01) does not
+    apply to DC assets. Deadline follows the strictest client SLA on file
+    (15 minutes for the Harbourfront DC1 hyperscale client).
   allowed_actions:
     - "Draft SLA notice with event reference and impact assessment"
     - "Send after CFM sign-off"
@@ -233,19 +239,19 @@
   forbidden_actions:
     - "Sending tenant-experience comms to DC clients"
     - "Using the same notice template as office tenants"
-    - "Property Manager approving DC client comms (CFM approves)"
+    - "Tenant Experience approving DC client comms (CFM approves)"
     - "Promising SLA credit before CFM and Asset Manager review"
   exceptions: []
   action_class: must_escalate
-  forbidden_if_missing_evidence: true
+  forbidden_if_missing_evidence: false
   escalate_to:
     role: dc_critical_facilities_manager
     fallback: head_technical_services
   owner: tenant_experience_manager
-  deadline_minutes: 30
+  deadline_minutes: 15
   asset_refs:
     - "brick:Server_Room"
     - "brick:CRAC"
   sensitivity: commercial
   provenance:
-    - "pm-interview-2026-10-02#00:35:15"
+    - "te-interview-2026-10-03#00:14:10"

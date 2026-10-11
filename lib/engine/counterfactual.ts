@@ -6,22 +6,31 @@ import type {
   Asset,
   CounterfactualResult,
   Evidence,
+  EvidenceItem,
   Incident,
   Pill,
   Rule,
-} from "./types.js";
-import { evaluate } from "./evaluate.js";
+} from "./types";
+import { evaluate, isEvidenceSatisfied } from "./evaluate";
 
-// Re-implement missing evidence inline to avoid exporting a private helper.
+/**
+ * Build the hypothetical item that would satisfy a required evidence key.
+ * Satisfaction requires value === true AND confirmed === true, so the
+ * counterfactual change is "key confirmed true" (with value true).
+ */
+function satisfy(key: string, evidence: Evidence): EvidenceItem {
+  const existing = evidence[key];
+  return {
+    value: true,
+    source: existing?.source ?? "counterfactual-hypothesis",
+    at: existing?.at ?? new Date().toISOString(),
+    confirmed: true,
+  };
+}
+
+/** Required evidence keys that are not satisfied (see isEvidenceSatisfied). */
 function computeMissing(rule: Rule, evidence: Evidence): string[] {
-  const missing: string[] = [];
-  for (const key of rule.required_evidence) {
-    const item = evidence[key];
-    if (item === undefined || !item.confirmed) {
-      missing.push(key);
-    }
-  }
-  return missing;
+  return rule.required_evidence.filter((key) => !isEvidenceSatisfied(evidence[key]));
 }
 
 // ---------------------------------------------------------------------------
@@ -55,22 +64,10 @@ export function counterfactual(
 
   const missingNow = computeMissing(rule, evidence);
 
-  // Build a hypothetical evidence where all missing required evidence is confirmed.
+  // Build a hypothetical evidence where all missing required evidence is satisfied.
   const flippedEvidence: Evidence = { ...evidence };
   for (const key of missingNow) {
-    const existing = evidence[key];
-    if (existing) {
-      // Unconfirmed → confirm it.
-      flippedEvidence[key] = { ...existing, confirmed: true };
-    } else {
-      // Absent → add a confirmed true value.
-      flippedEvidence[key] = {
-        value: true,
-        source: "counterfactual-hypothesis",
-        at: new Date().toISOString(),
-        confirmed: true,
-      };
-    }
+    flippedEvidence[key] = satisfy(key, evidence);
   }
 
   const flippedResult = evaluate(pill, asset, incident, flippedEvidence);
@@ -89,17 +86,7 @@ export function counterfactual(
     let minimalFound = false;
     for (const key of missingNow) {
       const singleFlip: Evidence = { ...evidence };
-      const existing = evidence[key];
-      if (existing) {
-        singleFlip[key] = { ...existing, confirmed: true };
-      } else {
-        singleFlip[key] = {
-          value: true,
-          source: "counterfactual-hypothesis",
-          at: new Date().toISOString(),
-          confirmed: true,
-        };
-      }
+      singleFlip[key] = satisfy(key, evidence);
       const singleResult = evaluate(pill, asset, incident, singleFlip);
       const singleTrace = singleResult.trace.find((t) => t.ruleId === ruleId);
       const singleStatus = singleTrace?.status ?? "not_applicable";
@@ -126,42 +113,17 @@ export function counterfactual(
         ...rule.trigger.any.filter((c) => c.path.startsWith("evidence.")),
       ];
       const evKeys = evidenceConds.map((c) => c.path.split(".")[1]);
-      const missingTriggerEv = evKeys.filter((k) => {
-        const item = evidence[k];
-        return !item || !item.confirmed || item.value !== true;
-      });
+      const missingTriggerEv = evKeys.filter((k) => !isEvidenceSatisfied(evidence[k]));
 
       if (missingTriggerEv.length > 0) {
         // Hypothesize: provide all missing trigger evidence + all missing required evidence.
         const hypoEvidence: Evidence = { ...evidence };
         for (const key of missingTriggerEv) {
-          const existing = evidence[key];
-          if (existing) {
-            hypoEvidence[key] = { ...existing, value: true, confirmed: true };
-          } else {
-            hypoEvidence[key] = {
-              value: true,
-              source: "counterfactual-hypothesis",
-              at: new Date().toISOString(),
-              confirmed: true,
-            };
-          }
+          hypoEvidence[key] = satisfy(key, evidence);
         }
-        // Also confirm all required evidence.
+        // Also satisfy all required evidence.
         for (const key of missingNow) {
-          if (!hypoEvidence[key] || !hypoEvidence[key].confirmed) {
-            const existing = hypoEvidence[key];
-            if (existing) {
-              hypoEvidence[key] = { ...existing, confirmed: true };
-            } else {
-              hypoEvidence[key] = {
-                value: true,
-                source: "counterfactual-hypothesis",
-                at: new Date().toISOString(),
-                confirmed: true,
-              };
-            }
-          }
+          hypoEvidence[key] = satisfy(key, evidence);
         }
 
         const hypoResult = evaluate(pill, asset, incident, hypoEvidence);

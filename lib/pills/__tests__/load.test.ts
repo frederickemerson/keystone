@@ -23,6 +23,18 @@ describe("pill loader", () => {
     expect(Object.keys(te?.pill.evals ?? {})).toHaveLength(3);
   });
 
+  it("reads evidence.yaml into evidenceCatalog, declaring every required_evidence key", () => {
+    for (const b of loadAllPills()) {
+      const catalog = b.pill.evidenceCatalog;
+      expect(Object.keys(catalog).length).toBeGreaterThan(0);
+      for (const r of b.pill.rules) {
+        for (const key of r.required_evidence) {
+          expect(catalog[key], `${b.id} ${r.id} required_evidence ${key}`).toBeDefined();
+        }
+      }
+    }
+  });
+
   it("bundles are plain JSON (serialisable to client components)", () => {
     for (const b of loadAllPills()) {
       expect(JSON.parse(JSON.stringify(b))).toEqual(b);

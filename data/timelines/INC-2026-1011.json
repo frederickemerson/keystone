@@ -2,18 +2,19 @@
   "incident_id": "INC-2026-1011",
   "asset_id": "asset-hf1",
   "asset_name": "Harbourfront One",
-  "timeline_version": "1.0",
+  "timeline_version": "2.0",
   "events": [
     {
       "id": "EV-1011-01",
       "at": "2026-10-11T08:02:18+08:00",
       "source": "iBMS",
       "type": "alarm",
-      "text": "Leak detector LD-23-04 alarm triggered. Zone L23-Zone-04. Cable-type sensor, ceiling void above L22 tenant ceiling. Alarm class: brick:Leak_Alarm.",
+      "text": "Leak detector LD-23-04 alarm. Zone L23-Zone-04, cable-type sensor in the L23 ceiling void above the L22 tenant ceiling (brick:Leak_Alarm). Source not yet located.",
       "evidence_updates": {
-        "leak_alarm_active": { "value": true, "confirmed": true },
-        "leak_detector_id": { "value": "LD-23-04", "confirmed": true },
-        "location": { "value": "L23 ceiling void / L22 tenant ceiling above", "confirmed": true }
+        "leak_alarm_active": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
@@ -22,10 +23,16 @@
       "at": "2026-10-11T08:03:05+08:00",
       "source": "iBMS",
       "type": "sensor_anomaly",
-      "text": "AHU-23-01 chilled-water supply/return ΔT anomaly: supply 6.5°C, return 7.1°C (expected ΔT ~6°C, actual ΔT 0.6°C). Possible CHW flow bypass or leak at AHU-23-01 supply branch.",
+      "text": "AHU-23-01 chilled-water ΔT anomaly: supply 6.5 °C, return 7.1 °C (expected ΔT about 6 °C). Consistent with chilled water leaving the branch before the coil — an active release is suspected, not yet seen.",
       "evidence_updates": {
-        "ahu_delta_t_anomaly": { "value": true, "confirmed": true },
-        "chw_leak_suspected": { "value": true, "confirmed": false }
+        "chw_flow_anomaly": {
+          "value": true,
+          "confirmed": true
+        },
+        "active_water_release": {
+          "value": true,
+          "confirmed": false
+        }
       },
       "sensitivity": "internal"
     },
@@ -34,11 +41,28 @@
       "at": "2026-10-11T08:04:12+08:00",
       "source": "tenant",
       "type": "call",
-      "text": "Call from Straits Meridian Bank facilities desk (L22): 'Water dripping from ceiling grid above workstations near core area, trading floor not affected yet. Please send someone.' Caller: bank facilities coordinator.",
+      "text": "Straits Meridian Bank facilities coordinator (L22): 'Water dripping from the ceiling grid above workstations near the core. Trading floor not affected yet. Please send someone.' AOM Priya Nair logged the call and confirmed from the leak-zone map that only the L22 core-area units sit under LD-23-04. Anchor-tenant protocol applies.",
       "evidence_updates": {
-        "tenant_report": { "value": true, "confirmed": true },
-        "tenant_affected": { "value": "Straits Meridian Bank", "confirmed": true },
-        "water_visible_to_tenant": { "value": true, "confirmed": true }
+        "tenant_premises_affected": {
+          "value": true,
+          "confirmed": true
+        },
+        "affected_units_confirmed": {
+          "value": true,
+          "confirmed": true
+        },
+        "anchor_tenant_affected": {
+          "value": true,
+          "confirmed": true
+        },
+        "tenant_report_drip": {
+          "value": true,
+          "confirmed": true
+        },
+        "ceiling_stain_or_drip": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "tenant_pii"
     },
@@ -47,100 +71,150 @@
       "at": "2026-10-11T08:05:30+08:00",
       "source": "CMMS",
       "type": "work_order",
-      "text": "CMMS work order WO-2026-1011-0347 raised. Priority: P1. Asset: AHU-23-01 + CHW riser R2 L23 branch. Assigned to: Technical Services on-duty technician. Description: 'Investigate leak alarm LD-23-04 and AHU ΔT anomaly. Potential CHW supply branch leak.'",
+      "text": "Work order WO-2026-1011-0347 raised, priority P1, assets AHU-23-01 and CHW riser R2 L23 branch. The WO links the isolation diagram for the branch (sub-valve ISV-L23-CHW, riser valve CHW-R2-V-L23).",
       "evidence_updates": {
-        "cmms_work_order": { "value": "WO-2026-1011-0347", "confirmed": true },
-        "priority": { "value": "P1", "confirmed": true }
+        "shutoff_map_available": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
     {
       "id": "EV-1011-05",
-      "at": "2026-10-11T08:07:15+08:00",
-      "source": "technician",
-      "type": "observation",
-      "text": "On-site technician arrived L23 mechanical riser. Visual: water pooling on AHU-23-01 supply branch insulation, dripping down through ceiling void toward L22. Source appears to be CHW supply branch coupling at AHU-23-01 inlet. Water category: Category 1 (clean chilled water).",
+      "at": "2026-10-11T08:06:10+08:00",
+      "source": "tenant_experience",
+      "type": "call",
+      "text": "Account manager Clare Tan reached by Tenant Experience Manager Lim Hui Fen; she will phone the bank's facilities director herself.",
       "evidence_updates": {
-        "source_identified": { "value": "AHU-23-01 CHW supply branch coupling", "confirmed": false },
-        "water_category": { "value": "Category 1 (clean)", "confirmed": false }
+        "account_manager_available": {
+          "value": true,
+          "confirmed": true
+        }
       },
-      "sensitivity": "internal"
+      "sensitivity": "tenant_pii"
     },
     {
       "id": "EV-1011-06",
-      "at": "2026-10-11T08:08:00+08:00",
+      "at": "2026-10-11T08:07:15+08:00",
       "source": "technician",
-      "type": "photo",
-      "text": "Technician photo metadata: IMG_20261011_080800.jpg. Location: L23 riser, AHU-23-01 supply branch. EXIF: 08:08:00 SGT. Shows water on insulation jacket and drip pattern. Uploaded to CMMS WO-2026-1011-0347.",
+      "type": "observation",
+      "text": "Technician Rajesh Kumar at the L23 mechanical riser: a cold, steady stream from the AHU-23-01 chilled-water supply branch, running down the insulation into the ceiling void toward L22. Active chilled-water leak, not condensate. Branch sub-valve ISV-L23-CHW is within reach. Source appears to be the branch coupling (not yet confirmed).",
       "evidence_updates": {
-        "photo_evidence": { "value": "IMG_20261011_080800.jpg", "confirmed": true }
+        "active_water_release": {
+          "value": true,
+          "confirmed": true
+        },
+        "location_confirmed": {
+          "value": true,
+          "confirmed": true
+        },
+        "visual_inspection": {
+          "value": true,
+          "confirmed": true
+        },
+        "sub_valve_accessible": {
+          "value": true,
+          "confirmed": true
+        },
+        "source_system": {
+          "value": "chilled_water_branch",
+          "confirmed": false
+        },
+        "water_category": {
+          "value": "category_1",
+          "confirmed": false
+        }
       },
       "sensitivity": "internal"
     },
     {
       "id": "EV-1011-07",
-      "at": "2026-10-11T08:09:10+08:00",
+      "at": "2026-10-11T08:08:00+08:00",
       "source": "technician",
-      "type": "observation",
-      "text": "Critical observation: water tracking along ceiling void conduit toward L23 Electrical Riser Cupboard. Water within approximately 1.5 m of Distribution Board DB-23A. Not yet in contact with DB-23A. Floor dry outside cupboard.",
+      "type": "photo",
+      "text": "Photo IMG_20261011_080800.jpg (EXIF 08:08:00 SGT): water on the AHU-23-01 supply-branch insulation and the drip pattern into the ceiling void. Uploaded to WO-2026-1011-0347 before any cleanup.",
       "evidence_updates": {
-        "water_near_electrical": { "value": true, "confirmed": true },
-        "water_near_db_23a": { "value": true, "confirmed": true },
-        "distance_to_db_23a_m": { "value": 1.5, "confirmed": false },
-        "water_in_electrical_room": { "value": false, "confirmed": true }
+        "pre_cleanup_photos": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
     {
       "id": "EV-1011-08",
-      "at": "2026-10-11T08:09:42+08:00",
+      "at": "2026-10-11T08:09:10+08:00",
       "source": "technician",
-      "type": "action",
-      "text": "Isolation sub-valve ISV-L23-CHW closed (CHW branch isolation for Riser R2 at L23). Flow to AHU-23-01 supply branch stopped. Valve tagged. Time of isolation logged. Upstream riser valve CHW-R2-V-L23 left open — only local branch isolated.",
+      "type": "observation",
+      "text": "Water is tracking along a ceiling-void conduit toward the L23 electrical riser cupboard — about 1.5 m from distribution board DB-23A. Not inside the cupboard; floor outside the cupboard dry. Nobody to open the cupboard.",
       "evidence_updates": {
-        "source_isolated": { "value": true, "confirmed": true },
-        "isolation_valve_id": { "value": "ISV-L23-CHW", "confirmed": true },
-        "isolation_time": { "value": "2026-10-11T08:09:42+08:00", "confirmed": true },
-        "riser_isolated": { "value": false, "confirmed": true }
+        "water_near_electrical": {
+          "value": true,
+          "confirmed": true
+        },
+        "water_flowing_toward_electrical": {
+          "value": true,
+          "confirmed": true
+        },
+        "water_in_electrical_room": {
+          "value": false,
+          "confirmed": true
+        },
+        "visual_or_alarm_confirmation": {
+          "value": true,
+          "confirmed": true
+        },
+        "distance_to_electrical_m": {
+          "value": 1.5,
+          "confirmed": false
+        }
       },
       "sensitivity": "internal"
     },
     {
       "id": "EV-1011-09",
-      "at": "2026-10-11T08:10:15+08:00",
+      "at": "2026-10-11T08:09:42+08:00",
       "source": "technician",
-      "type": "notification",
-      "text": "Chief Engineer Tan Wei Ming notified Duty Manager and Head of Technical Services Goh Boon Kheng. AOM Priya Nair notified via CMMS escalation rule. Water near DB-23A flagged for LEW dispatch.",
+      "type": "action",
+      "text": "Branch isolation sub-valve ISV-L23-CHW closed and tagged; flow to the AHU-23-01 supply branch stopped. Riser valve CHW-R2-V-L23 left open — only the branch is isolated.",
       "evidence_updates": {
-        "duty_manager_notified": { "value": true, "confirmed": true },
-        "aom_notified": { "value": true, "confirmed": true },
-        "head_ts_notified": { "value": true, "confirmed": true }
+        "isolation_complete": {
+          "value": true,
+          "confirmed": true
+        },
+        "active_water_release": {
+          "value": false,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
     {
       "id": "EV-1011-10",
       "at": "2026-10-11T08:11:00+08:00",
-      "source": "iBMS",
-      "type": "gate",
-      "text": "MOSAIC engine evaluation: Rule TS-07 (v1.2) triggered — water near electrical (DB-23A within 1.5 m). Action 'Re-energise affected AHU / DB' blocked. Missing evidence: lew_signoff, insulation_resistance_ok, area_dry. Escalate to: duty_lew (Rahul Menon), fallback: head_technical_services. Provenance: ce-interview-2026-10-02#00:14:32.",
+      "source": "technician",
+      "type": "action",
+      "text": "Water has reached the AHU-23-01 control panel and the DB-23A outgoing-circuit trunking. Technician switched AHU-23-01 off at its local isolator; its circuit at DB-23A is isolated and locked off. Any return to service is now a re-energisation.",
       "evidence_updates": {
-        "gate_ts07_blocked": { "value": true, "confirmed": true },
-        "lew_signoff": { "value": false, "confirmed": true },
-        "insulation_resistance_ok": { "value": false, "confirmed": true },
-        "area_dry": { "value": false, "confirmed": true }
+        "equipment_wetted_or_isolated": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
     {
       "id": "EV-1011-11",
-      "at": "2026-10-11T08:14:05+08:00",
-      "source": "contractor",
+      "at": "2026-10-11T08:12:30+08:00",
+      "source": "technical_services",
       "type": "dispatch",
-      "text": "Duty LEW Rahul Menon dispatched to site. ETA 25 min (08:39). Task: inspect DB-23A and surrounding area for moisture ingress, perform insulation resistance test, certify safe / not safe for re-energisation.",
+      "text": "Technical Services Lead Muhammad Hafiz called the duty LEW, Rahul Menon (ETA 08:39), and informed Duty Facilities Manager Ravi Chandran and Head of Technical Services Goh Boon Kheng.",
       "evidence_updates": {
-        "lew_dispatched": { "value": true, "confirmed": true },
-        "lew_eta": { "value": "2026-10-11T08:39:00+08:00", "confirmed": false }
+        "lew_dispatched": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
@@ -148,37 +222,127 @@
       "id": "EV-1011-12",
       "at": "2026-10-11T08:15:00+08:00",
       "source": "tenant",
-      "type": "update",
-      "text": "Straits Meridian Bank facilities coordinator follow-up: 'Drip has stopped but ceiling tiles are saturated. Trading floor L20-L26 requesting status update. Do we need to evacuate?' AOM Priya Nair responding.",
+      "type": "call",
+      "text": "Straits Meridian Bank follow-up: 'The drip has stopped but the ceiling tiles are saturated and two workstations are wet. When will it be fixed? Do we need to evacuate?' AOM Priya Nair responding.",
       "evidence_updates": {
-        "tenant_follow_up": { "value": true, "confirmed": true },
-        "tenant_awaiting_status": { "value": true, "confirmed": true }
+        "tenant_request_completion_time": {
+          "value": true,
+          "confirmed": true
+        },
+        "tenant_property_damage": {
+          "value": true,
+          "confirmed": true
+        },
+        "wet_building_fabric": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "tenant_pii"
     },
     {
       "id": "EV-1011-13",
-      "at": "2026-10-11T08:18:00+08:00",
-      "source": "technician",
-      "type": "observation",
-      "text": "Moisture meter reading at DB-23A cupboard threshold: 18% (ambient baseline 12%). No water inside cupboard. Drip tray deployed at ceiling void entry point. Area cordoned. AHU-23-01 remains isolated.",
+      "at": "2026-10-11T08:16:30+08:00",
+      "source": "tenant_experience",
+      "type": "note",
+      "text": "Lim Hui Fen sets the next tenant update for 08:50 and the 30-minute update cadence.",
       "evidence_updates": {
-        "moisture_at_db_threshold_pct": { "value": 18, "confirmed": true },
-        "water_in_switchroom": { "value": false, "confirmed": true },
-        "area_cordoned": { "value": true, "confirmed": true }
+        "next_update_time_set": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
     {
       "id": "EV-1011-14",
-      "at": "2026-10-11T08:20:00+08:00",
+      "at": "2026-10-11T08:18:00+08:00",
       "source": "technician",
-      "type": "pending",
-      "text": "Insulation resistance test pending LEW arrival. DB-23A remains energised but access restricted. No re-energisation of AHU-23-01 circuit until LEW signs off. AOM drafting first-notice tenant message (30-min SLA first notice clock started at 08:04 tenant call).",
+      "type": "observation",
+      "text": "Moisture map logged for the L22 ceiling and the DB-23A cupboard threshold: 18% at the threshold (baseline about 12%). Fourteen saturated ceiling tiles listed for disposal. Drip trays placed and the area cordoned.",
       "evidence_updates": {
-        "insulation_resistance_test_pending": { "value": true, "confirmed": true },
-        "re_energise_blocked": { "value": true, "confirmed": true },
-        "tenant_message_drafting": { "value": true, "confirmed": true }
+        "moisture_meter_readings": {
+          "value": true,
+          "confirmed": true
+        },
+        "moisture_reading_pct": {
+          "value": 18,
+          "confirmed": true
+        },
+        "affected_materials_inventory": {
+          "value": true,
+          "confirmed": true
+        }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-1011-15",
+      "at": "2026-10-11T08:41:00+08:00",
+      "source": "lew",
+      "type": "inspection",
+      "text": "Duty LEW Rahul Menon on site. Insulation resistance test on the AHU-23-01 circuit at DB-23A passed. Trunking still damp (moisture 18%) — no sign-off until the area is dry.",
+      "evidence_updates": {
+        "lew_on_site": {
+          "value": true,
+          "confirmed": true
+        },
+        "insulation_resistance_ok": {
+          "value": true,
+          "confirmed": true
+        }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-1011-16",
+      "at": "2026-10-11T09:35:00+08:00",
+      "source": "technical_services",
+      "type": "action",
+      "text": "Contractor replaced the failed AHU-23-01 supply-branch coupling. Muhammad Hafiz confirms the source: gasket failure at the coupling. The failed coupling is bagged and tagged for the loss adjuster.",
+      "evidence_updates": {
+        "source_confirmed": {
+          "value": true,
+          "confirmed": true
+        },
+        "source_system": {
+          "value": "chilled_water_branch",
+          "confirmed": true
+        },
+        "failed_component_retained": {
+          "value": true,
+          "confirmed": true
+        }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-1011-17",
+      "at": "2026-10-11T10:20:00+08:00",
+      "source": "lew",
+      "type": "signoff",
+      "text": "Moisture at DB-23A and in the trunking back to 12% baseline; area dry. Rahul Menon signs off AHU-23-01 / DB-23A in writing as fit to re-energise. Re-energisation is his to perform, in sequence, with FCC confirming alarms normal.",
+      "evidence_updates": {
+        "area_dry": {
+          "value": true,
+          "confirmed": true
+        },
+        "lew_signoff": {
+          "value": true,
+          "confirmed": true
+        },
+        "moisture_reading_pct": {
+          "value": 12,
+          "confirmed": true
+        },
+        "water_near_electrical": {
+          "value": false,
+          "confirmed": true
+        },
+        "water_flowing_toward_electrical": {
+          "value": false,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     }

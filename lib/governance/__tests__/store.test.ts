@@ -33,7 +33,7 @@ describe("governance store", () => {
     expect(s().approveVersion(PILL_ID, "1.3.0", { regressions: [] }).allowed).toBe(false);
 
     s().setRole("asset_operations_manager");
-    const regressed = [{ caseId: "c", ruleId: "TS-03", expected: "allowed", oldActual: "allowed", newActual: "blocked" }] satisfies Regression[];
+    const regressed = [{ caseId: "c", ruleId: "TS-03", field: "status", expected: "allowed", oldActual: "allowed", newActual: "blocked" }] satisfies Regression[];
     expect(s().approveVersion(PILL_ID, "1.3.0", { regressions: regressed }).allowed).toBe(false);
     expect(s().approveVersion(PILL_ID, "1.3.0", { regressions: [] }).allowed).toBe(true);
 
@@ -64,15 +64,51 @@ describe("governance store", () => {
     expect(ctx.store.getState().audit.at(-1)).toMatchObject({ action: "action_escalated", ruleId: "TS-07" });
   });
 
+  it("records an evidence request with its keys and note", () => {
+    ctx.store.getState().setRole("asset_operations_manager");
+    ctx.store.getState().decideAction({
+      incidentId: "INC-2026-1011",
+      ruleId: "TS-07",
+      outcome: "evidence_requested",
+      requestedEvidence: ["moisture_reading", "lew_signoff"],
+      note: "Need readings before isolating",
+    });
+    const rec = ctx.store.getState().decisions["INC-2026-1011"]["TS-07"];
+    expect(rec).toMatchObject({
+      outcome: "evidence_requested",
+      requestedEvidence: ["moisture_reading", "lew_signoff"],
+      note: "Need readings before isolating",
+    });
+    expect(ctx.store.getState().audit.at(-1)).toMatchObject({
+      action: "action_evidence_requested",
+      ruleId: "TS-07",
+      detail: "Need readings before isolating",
+    });
+  });
+
+  it("summarises requested evidence keys when no note is given", () => {
+    ctx.store.getState().setRole("asset_operations_manager");
+    ctx.store.getState().decideAction({
+      incidentId: "INC-1",
+      ruleId: "TS-03",
+      outcome: "evidence_requested",
+      requestedEvidence: ["location_confirmed"],
+    });
+    expect(ctx.store.getState().audit.at(-1)).toMatchObject({
+      action: "action_evidence_requested",
+      detail: "Requested evidence: location_confirmed",
+    });
+  });
+
   it("persists to storage under a versioned key and rehydrates", async () => {
-    ctx.store.getState().setRole("tenant_experience");
+    ctx.store.getState().setRole("tenant_experience_manager");
     const raw = await ctx.storage.getItem(GOVERNANCE_STORE_KEY);
     expect(raw).toBeTruthy();
     expect(JSON.parse(String(raw)).version).toBe(GOVERNANCE_STORE_VERSION);
 
     const again = createGovernanceStore(ctx.storage, clock);
     await again.persist.rehydrate();
-    expect(again.getState().currentActor.role).toBe("tenant_experience");
+    expect(again.getState().currentActor.role).toBe("tenant_experience_manager");
     expect(again.getState().versions[PILL_ID]).toHaveLength(1);
     expect(Object.isFrozen(again.getState().audit)).toBe(true);
   });

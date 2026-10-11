@@ -5,6 +5,15 @@
 # Schema: docs/SPEC.md §4
 # Structured conditions only. op: eq | neq | gt | gte | lt | lte | in | exists
 # No string expressions, no eval, no LLM judgement on gates.
+# Evidence vocabulary: every evidence.<key> and required_evidence key is
+# declared in evidence.yaml (same folder).
+#
+# Status precedence (engine): not triggered -> not_applicable;
+# forbidden_if_missing_evidence && missing evidence -> blocked;
+# must_escalate -> escalate; requires_approval -> needs_approval; else allowed.
+# Required evidence counts only when confirmed AND value === true.
+# forbidden_if_missing_evidence is true only where the decision is itself a
+# hazardous or irreversible action; an escalation is never blocked.
 
 - id: TS-01
   title: Water near switchgear or electrical room — evacuate and escalate
@@ -41,7 +50,7 @@
         - { path: evidence.water_confined_sealed_trench, op: eq, value: true }
       note: "Water confined to a sealed trench with no contact path — LEW judgement"
   action_class: must_escalate
-  forbidden_if_missing_evidence: true
+  forbidden_if_missing_evidence: false
   escalate_to:
     role: duty_lew
     fallback: head_technical_services
@@ -54,45 +63,58 @@
     - "brick:Breaker_Panel"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#00:03:10"
+    - "ce-interview-2026-10-02#00:25:30"
 
 - id: TS-02
-  title: Isolate source via isolation sub-valve within 10 minutes
+  title: Isolate at the nearest isolation sub-valve — branch before riser
   trigger:
     incident_type: water_ingress
     all:
       - { path: evidence.active_water_release, op: eq, value: true }
       - { path: evidence.water_near_electrical, op: neq, value: true }
+      - { path: evidence.isolation_complete, op: neq, value: true }
+      - { path: evidence.source_is_fire_protection, op: neq, value: true }
     any: []
   required_evidence:
     - location_confirmed
     - shutoff_map_available
   decision: >-
-    Isolate at the nearest local isolation sub-valve. If source unknown after
-    5 minutes, isolate the floor isolation sub-valve. If still unknown at
-    10 minutes, isolate the domestic main for the stack and escalate to
-    Duty Manager.
+    Isolate at the nearest accessible isolation sub-valve. For a branch leak
+    where the sub-valve is accessible and stops the flow, isolate the branch
+    only and leave the riser open. Isolate the riser only when the leak is on
+    the riser pipe, the sub-valve is seized or inaccessible, or the source is
+    not confirmed within 10 minutes. In a tenant-occupied area isolation must
+    be complete within the deadline; if it is not, escalate to the Duty
+    Facilities Manager.
   allowed_actions:
-    - "Close local/zone isolation sub-valves"
-    - "Close floor isolation sub-valve"
-    - "Close domestic water main for the stack (Duty Manager informed)"
+    - "Close the branch isolation sub-valve"
+    - "Close the floor isolation sub-valve"
+    - "Close the riser valve (riser-pipe leak, seized sub-valve, or source unconfirmed at 10 min)"
   forbidden_actions:
     - "Closing any fire-protection valve without FSM authorisation (see TS-05)"
+    - "Shutting the whole riser for a branch leak the sub-valve can stop"
     - "Leaving an isolated valve unlabelled"
   exceptions:
     - when:
-        - { path: evidence.source_is_fire_protection, op: eq, value: true }
-      note: "Source is fire-protection system — TS-05 governs"
+        - { path: evidence.leak_on_riser_pipe, op: eq, value: true }
+      note: "Leak is on the riser pipe itself — isolate the riser"
+    - when:
+        - { path: evidence.sub_valve_accessible, op: eq, value: false }
+      note: "Branch sub-valve seized or inaccessible — isolate the riser"
     - when:
         - { path: evidence.source_behind_locked_tenancy, op: eq, value: true }
-      note: "Source is tenant fit-out plumbing behind locked tenancy — arrange tenant access"
+      note: "Source is behind a locked tenancy — arrange tenant access, then isolate locally"
   action_class: recommend
   forbidden_if_missing_evidence: false
   escalate_to:
-    role: asset_operations_manager
+    role: duty_facilities_manager
     fallback: head_technical_services
   owner: technical_services_lead
-  deadline_minutes: 10
+  # Captured as 15 min from the interview (00:11:35, tenant-occupied area).
+  # Flagged by evals/eval-2025-09-tenant-area-isolation-deadline.yaml: the
+  # Chief Engineer's outcome review sets tenant-area isolation at 10 min.
+  # Correction scheduled for v1.3.0 (Learning screen).
+  deadline_minutes: 15
   asset_refs:
     - "brick:Valve"
     - "brick:Water_Pump"
@@ -100,7 +122,9 @@
     - "brick:Leak_Alarm"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#00:21:10"
+    - "ce-interview-2026-10-02#00:23:30"
+    - "ce-interview-2026-10-02#00:06:30"
+    - "ce-interview-2026-10-02#00:11:35"
 
 - id: TS-03
   title: Do not shut down whole floor power unless electrical risk confirmed
@@ -139,14 +163,14 @@
     role: duty_lew
     fallback: head_technical_services
   owner: technical_services_lead
-  deadline_minutes: 15
+  deadline_minutes: null
   asset_refs:
     - "brick:Switchgear"
     - "brick:Breaker_Panel"
     - "brick:Electrical_Room"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#00:28:45"
+    - "ce-interview-2026-10-02#00:26:30"
 
 - id: TS-04
   title: Condensate vs active leak — distinguish before committing resources
@@ -196,7 +220,7 @@
     - "brick:Condensate_Leak_Alarm"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#00:57:00"
+    - "ce-interview-2026-10-02#00:27:30"
 
 - id: TS-05
   title: Fire-protection impairment requires FSM authorisation and red-tag
@@ -204,10 +228,7 @@
     incident_type: water_ingress
     all: []
     any:
-      - { path: evidence.source_is_sprinkler, op: eq, value: true }
-      - { path: evidence.source_is_wet_riser, op: eq, value: true }
-      - { path: evidence.source_is_hose_reel, op: eq, value: true }
-      - { path: evidence.source_is_fire_pump, op: eq, value: true }
+      - { path: evidence.source_is_fire_protection, op: eq, value: true }
       - { path: evidence.isolation_affects_fire_alarm, op: eq, value: true }
   required_evidence:
     - fsm_authorisation
@@ -242,7 +263,7 @@
     - "brick:Valve"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#00:08:30"
+    - "ce-interview-2026-10-02#00:28:30"
 
 - id: TS-06
   title: Lift pit water — take lift out of service and call contractor
@@ -272,7 +293,7 @@
     - "Returning lift to service without contractor clearance"
   exceptions: []
   action_class: requires_approval
-  forbidden_if_missing_evidence: true
+  forbidden_if_missing_evidence: false
   escalate_to:
     role: asset_operations_manager
     fallback: head_technical_services
@@ -283,7 +304,7 @@
     - "brick:Water_Level_Alarm"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#00:31:00"
+    - "ce-interview-2026-10-02#00:29:30"
 
 - id: TS-07
   title: No re-energisation without LEW sign-off
@@ -376,7 +397,7 @@
     - "brick:Fan_Coil_Unit"
   sensitivity: commercial
   provenance:
-    - "ce-interview-2026-10-02#00:40:00"
+    - "ce-interview-2026-10-02#00:30:30"
 
 - id: TS-09
   title: Start extraction and drying within 24 hours, verify dry within 48
@@ -406,7 +427,7 @@
     - "Reusing wet porous materials"
   exceptions:
     - when:
-        - { path: evidence.water_category, op: eq, value: "category_2_3" }
+        - { path: evidence.water_category, op: in, value: [category_2, category_3] }
       note: "Category 2/3 water — disinfect before drying; PPE required"
   action_class: recommend
   forbidden_if_missing_evidence: false
@@ -420,7 +441,7 @@
     - "brick:Room"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#00:40:00"
+    - "ce-interview-2026-10-02#00:31:30"
 
 - id: TS-10
   title: Data-centre CRAH or chilled-water leak — contain, escalate to CFM
@@ -454,8 +475,8 @@
     - when:
         - { path: evidence.water_contacting_live_it, op: eq, value: true }
       note: "Water contacting live IT equipment — TS-01 electrical gate applies"
-  action_class: requires_approval
-  forbidden_if_missing_evidence: true
+  action_class: must_escalate
+  forbidden_if_missing_evidence: false
   escalate_to:
     role: dc_critical_facilities_manager
     fallback: head_technical_services
@@ -469,7 +490,7 @@
     - "brick:Leak_Alarm"
   sensitivity: commercial
   provenance:
-    - "ce-interview-2026-10-02#00:50:10"
+    - "ce-interview-2026-10-02#00:32:30"
 
 - id: TS-11
   title: Clear stagnant water within 24 hours — NEA vector control
@@ -508,7 +529,7 @@
     - "brick:Water_Pump"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#01:02:15"
+    - "ce-interview-2026-10-02#00:33:30"
 
 - id: TS-12
   title: PUB heavy-rain alert — pre-emptive basement and roof checks
@@ -518,7 +539,7 @@
       - { path: evidence.pub_heavy_rain_or_flood_alert, op: eq, value: true }
     any: []
   required_evidence:
-    - pub_alert_received
+    - pub_alert_station_near_asset
   decision: >-
     Within 30 minutes of the alert: test basement sump pumps and float
     switches, clear roof outlets and rainwater downpipes, stage flood
@@ -547,4 +568,4 @@
     - "brick:Basement"
   sensitivity: internal
   provenance:
-    - "ce-interview-2026-10-02#00:50:00"
+    - "ce-interview-2026-10-02#00:34:30"

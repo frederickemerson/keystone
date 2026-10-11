@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { runEvals, compareVersions } from "../evals.js";
-import type { EvalCase } from "../types.js";
+import { runEvals, compareVersions } from "../evals";
+import type { ActionStatus, EvalCase, ExpectedDecision } from "../types";
 import {
   makePill,
   makeRule,
@@ -9,20 +9,22 @@ import {
   waterIngressIncident,
   makeEvidence,
   fullConfirmedEvidence,
-} from "./fixtures.js";
+} from "./fixtures";
 
 function makeEvalCase(
   id: string,
   asset: typeof officeAsset,
   evidence: ReturnType<typeof makeEvidence>,
-  expected: Record<string, "allowed" | "blocked" | "needs_approval" | "escalate" | "not_applicable">,
+  expected: Record<string, ActionStatus | ExpectedDecision>,
 ): EvalCase {
   return {
     id,
     asset,
     incident: waterIngressIncident,
     evidence,
-    expected,
+    expected: Object.fromEntries(
+      Object.entries(expected).map(([ruleId, e]) => [ruleId, typeof e === "string" ? { status: e } : e]),
+    ),
   };
 }
 
@@ -71,7 +73,7 @@ describe("runEvals — rule not fired", () => {
         asset: officeAsset,
         incident: { id: "INC-X", type: "fire_alarm" },
         evidence: makeEvidence(),
-        expected: { "TS-07": "not_applicable" },
+        expected: { "TS-07": { status: "not_applicable" } },
       },
     ];
     const result = runEvals(pill, cases);
@@ -175,5 +177,39 @@ describe("compareVersions — summary counts", () => {
     const result = compareVersions(oldPill, newPill, cases);
     expect(result.oldSummary.passed).toBe(1);
     expect(result.newSummary.failed).toBe(1);
+  });
+});
+
+describe("runEvals — field-level assertions", () => {
+  it("asserts deadline_minutes when the eval specifies it and reports the mismatched field", () => {
+    const pill = makePill([makeRule({ deadline_minutes: 15 })]);
+    const cases = [
+      makeEvalCase("case-deadline", officeAsset, makeEvidence(), {
+        "TS-07": { status: "blocked", deadline_minutes: 10 },
+      }),
+    ];
+    const result = runEvals(pill, cases);
+    expect(result.results).toEqual([
+      { caseId: "case-deadline", ruleId: "TS-07", field: "status", expected: "blocked", actual: "blocked", pass: true },
+      { caseId: "case-deadline", ruleId: "TS-07", field: "deadline_minutes", expected: 10, actual: 15, pass: false },
+    ]);
+    expect(result.passed).toBe(1);
+    expect(result.failed).toBe(1);
+  });
+
+  it("a rule that did not fire has no deadline (null)", () => {
+    const pill = makePill([makeRule({ deadline_minutes: 15 })]);
+    const cases: EvalCase[] = [
+      {
+        id: "case-nofire",
+        asset: officeAsset,
+        incident: { id: "INC-X", type: "fire_alarm" },
+        evidence: makeEvidence(),
+        expected: { "TS-07": { status: "not_applicable", deadline_minutes: null } },
+      },
+    ];
+    const result = runEvals(pill, cases);
+    expect(result.failed).toBe(0);
+    expect(result.results.map((r) => r.field)).toEqual(["status", "deadline_minutes"]);
   });
 });

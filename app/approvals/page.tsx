@@ -1,10 +1,11 @@
-import { PagePlaceholder } from '@/components/page-placeholder';
+import { loadAllPills } from "@/lib/pills/load";
+import { loadIncidents } from "@/lib/data";
+import { ApprovalsQueue } from "@/components/approvals/ApprovalsQueue";
 
 export default function ApprovalsPage() {
-  return (
-    <PagePlaceholder
-      title="Approvals"
-      purpose="Queue of decisions that must be approved or escalated by a named human."
-    />
-  );
+  // Server loads pill bundles (for version approvals) and incidents (for
+  // pending action decisions); the client queue seeds the governance store.
+  const bundles = loadAllPills();
+  const incidents = loadIncidents();
+  return <ApprovalsQueue bundles={bundles} incidents={incidents} />;
 }

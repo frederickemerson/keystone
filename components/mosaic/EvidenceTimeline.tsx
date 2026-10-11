@@ -27,10 +27,20 @@ function sourceIcon(source: TimelineSource): { icon: LucideIcon; label: string }
   return SOURCE_MAP[source] ?? { icon: FileText, label: source };
 }
 
+// Deterministic wall-clock time in Singapore, identical on server and client —
+// never use toLocaleTimeString, which depends on the viewer's timezone.
+const SGT_TIME = new Intl.DateTimeFormat('en-GB', {
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false,
+  timeZone: 'Asia/Singapore',
+});
+
 function formatTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return SGT_TIME.format(d);
 }
 
 const SENSITIVE = new Set(['tenant_pii', 'commercial']);
@@ -100,11 +110,13 @@ export function EvidenceTimeline({
                   </span>
                 ) : null}
                 {sensitive ? (
-                  <Lock
-                    className="size-3.5 text-ink-muted"
-                    aria-label={`Sensitivity: ${event.sensitivity} (masked by role)`}
-                    title={`Sensitivity: ${event.sensitivity}`}
-                  />
+                  <span title={`Sensitivity: ${event.sensitivity}`} className="inline-flex">
+                    <Lock
+                      className="size-3.5 text-ink-muted"
+                      role="img"
+                      aria-label={`Sensitivity: ${event.sensitivity} (masked by role)`}
+                    />
+                  </span>
                 ) : null}
               </div>
 

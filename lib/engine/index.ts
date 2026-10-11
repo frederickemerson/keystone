@@ -12,22 +12,32 @@ export type {
   EscalateTarget,
   EvalCase,
   EvalCaseResult,
+  EvalField,
+  EvalValue,
+  ExpectedDecision,
+  ScopeObject,
+  AccessObject,
+  PillStatus,
   EvalSummary,
   EvaluationResult,
   Evidence,
+  EvidenceCatalog,
+  EvidenceCatalogEntry,
   EvidenceItem,
   Incident,
   Operator,
   Pill,
   PillManifest,
+  Provenance,
   ProvenanceMap,
+  ProvenanceRuleEntry,
   Regression,
   Rule,
   RuleException,
   Sensitivity,
   TraceStep,
   ConditionTrace,
-} from "./types.js";
+} from "./types";
 
 export {
   type ConditionContext,
@@ -36,7 +46,7 @@ export {
   evaluateCondition,
   evaluateAll,
   evaluateAny,
-} from "./conditions.js";
+} from "./conditions";
 
 export {
   conditionSchema,
@@ -49,9 +59,10 @@ export {
   sensitivitySchema,
   extractFrontmatter,
   parsePill,
+  parseEvalFile,
   type PillFiles,
-} from "./schema.js";
+} from "./schema";
 
-export { evaluate } from "./evaluate.js";
-export { counterfactual } from "./counterfactual.js";
-export { runEvals, compareVersions, type ComparisonResult } from "./evals.js";
+export { evaluate } from "./evaluate";
+export { counterfactual } from "./counterfactual";
+export { runEvals, compareVersions, type ComparisonResult } from "./evals";

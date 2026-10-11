@@ -8,7 +8,7 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { createStore, type Mutate, type StoreApi } from "zustand/vanilla";
 import type { ComparisonResult, Pill } from "@/lib/engine";
 import { canApprove, type ApprovalCheck, type ApprovalOverride, type ShadowRun } from "./approval";
-import { hasCapability, roleLabel } from "./access";
+import { hasCapability, personaFor, roleLabel } from "./access";
 import { appendAudit, EMPTY_AUDIT_LOG, type AuditInput, type AuditLog } from "./audit";
 import {
   findVersion,
@@ -23,27 +23,12 @@ import {
 } from "./versions";
 
 export const GOVERNANCE_STORE_KEY = "mosaic-governance";
-/** Bump when the persisted shape changes; older snapshots are discarded. */
-export const GOVERNANCE_STORE_VERSION = 1;
+/** Bump when the persisted shape or role ids change; older snapshots are discarded.
+ *  v2: role `tenant_experience` renamed to `tenant_experience_manager` in roles.json. */
+export const GOVERNANCE_STORE_VERSION = 2;
 
-/**
- * Demo personas — the named human behind each role in the role switcher.
- * Names come from data/assets.json `people` where that role is staffed.
- */
-export const DEMO_PERSONAS: Record<string, string> = {
-  technician: "Duty Technician",
-  asset_operations_manager: "Priya Nair",
-  tenant_experience: "Lim Hui Fen",
-  executive: "Portfolio Executive",
-  head_technical_services: "Goh Boon Kheng",
-  chief_engineer: "Tan Wei Ming",
-  duty_lew: "Rahul Menon",
-  dc_critical_facilities_manager: "Steven Wong",
-};
-
-export function personaFor(role: string): Actor {
-  return { name: DEMO_PERSONAS[role] ?? roleLabel(role), role };
-}
+// Personas (named human per role) live with the role policy in ./access.
+export { DEMO_PERSONAS, personaFor } from "./access";
 
 /** Minimal seed input — structurally satisfied by lib/pills PillBundle. */
 export interface PillSeed {
@@ -51,7 +36,7 @@ export interface PillSeed {
   pill: Pill;
 }
 
-export type ActionOutcome = "approved" | "rejected" | "escalated";
+export type ActionOutcome = "approved" | "rejected" | "escalated" | "evidence_requested";
 
 export interface ActionDecisionRecord {
   incidentId: string;
@@ -60,6 +45,8 @@ export interface ActionDecisionRecord {
   actor: Actor;
   at: string;
   note?: string;
+  /** Evidence keys the actor asked for when outcome is "evidence_requested". */
+  requestedEvidence?: string[];
   pillId?: string;
   pillVersion?: string;
 }
@@ -115,11 +102,22 @@ function initialData(seedVersions: Record<string, PillVersion[]> = {}): Governan
   };
 }
 
-const ACTION_AUDIT = {
+const ACTION_AUDIT: Record<ActionOutcome, AuditInput["action"]> = {
   approved: "action_approved",
   rejected: "action_rejected",
   escalated: "action_escalated",
-} as const;
+  evidence_requested: "action_evidence_requested",
+};
+
+/** Audit detail for a decision: the note if present, else a readable summary. */
+function decisionDetail(record: ActionDecisionRecord): string {
+  if (record.note) return record.note;
+  if (record.outcome === "evidence_requested") {
+    const keys = record.requestedEvidence ?? [];
+    return keys.length > 0 ? `Requested evidence: ${keys.join(", ")}` : "Evidence requested";
+  }
+  return `${record.ruleId} ${record.outcome}`;
+}
 
 /** In-memory storage for tests / SSR. */
 export function memoryStorage(): StateStorage {
@@ -290,7 +288,7 @@ export function createGovernanceStore(
               ruleId: record.ruleId,
               pillId: record.pillId,
               pillVersion: record.pillVersion,
-              detail: record.note ?? `${record.ruleId} ${record.outcome}`,
+              detail: decisionDetail(record),
             });
             return record;
           },

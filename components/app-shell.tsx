@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { cn } from '@/lib/ui/cn';
+import { RoleSwitcher } from '@/components/shell/RoleSwitcher';
+import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 
 export const NAV_ITEMS = [
   { href: '/', label: 'Portfolio Pulse', purpose: 'Portfolio-wide posture at a glance' },
@@ -31,11 +33,9 @@ export const NAV_ITEMS = [
   },
 ] as const;
 
-const ROLES = ['Technician', 'Asset Ops Manager', 'Tenant Experience', 'Executive'] as const;
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [role, setRole] = useState<string>(ROLES[0]);
+  const [auditOpen, setAuditOpen] = useState(false);
 
   return (
     <div className="flex min-h-dvh bg-canvas text-ink">
@@ -76,22 +76,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-4">
           <div className="md:hidden text-sm font-semibold">MOSAIC</div>
           <div className="ml-auto flex items-center gap-2">
-            <label className="flex items-center gap-2 text-xs text-ink-muted">
-              <span className="uppercase tracking-widest">Role</span>
-              <select
-                value={role}
-                onChange={(event) => setRole(event.target.value)}
-                className="rounded-md border border-line bg-surface-raised px-2 py-1 text-xs text-ink"
-              >
-                {ROLES.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <RoleSwitcher />
             <button
               type="button"
+              onClick={() => setAuditOpen(true)}
               className="rounded-md border border-line bg-surface-raised px-3 py-1.5 text-xs font-medium text-ink hover:border-accent"
             >
               Audit log
@@ -101,6 +89,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <main className="min-w-0 flex-1 p-6">{children}</main>
       </div>
+
+      <AuditLogDrawer open={auditOpen} onClose={() => setAuditOpen(false)} />
     </div>
   );
 }

@@ -22,10 +22,16 @@ pills/<domain>/<name>/
                     heuristics and a Boundaries section for the LLM host
   rules.yaml        Deterministic rules following docs/SPEC.md §4 schema
                     (structured conditions, op: eq|neq|gt|gte|lt|lte|in|exists)
-  provenance.json   Rule ID → { source, start, end, quote, confirmation,
-                    confirmed_by, confirmed_at } — transcript provenance
+  evidence.yaml     Evidence catalogue: key → { label, type, confirmable_by,
+                    description }. Every evidence key a rule reads (trigger,
+                    exception, required_evidence) is declared here; incident
+                    timelines and evals may only use declared keys
+  provenance.json   { pill, version, source_interview, expert, rules: rule ID →
+                    { source, start, end, quote, confirmation, confirmed_by,
+                    confirmed_at } } — the quote is verbatim from the expert turn
   evals/*.yaml      Past incidents with evidence maps and expected decisions
-                    per rule (status: allowed|blocked|needs_approval|escalate)
+                    per rule (status: allowed | blocked | needs_approval |
+                    escalate | not_applicable)
   CHANGELOG.md      Semantic version history with who approved and why
 ```
 

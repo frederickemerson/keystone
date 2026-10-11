@@ -78,6 +78,7 @@ function loadFromFolder(domain: string, name: string): PillBundle {
       skillMd,
       rulesYaml: readFileSync(join(dir, "rules.yaml"), "utf8"),
       provenanceJson: readFileSync(join(dir, "provenance.json"), "utf8"),
+      evidenceYaml: readOptional(join(dir, "evidence.yaml")),
       evals,
     });
   } catch (err) {

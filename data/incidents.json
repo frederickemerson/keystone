@@ -16,35 +16,56 @@
       "floors": "20-26",
       "sensitivity": "tenant_pii"
     },
-    "description": "Chilled-water leak from AHU-23-01 supply branch above L22 tenant ceiling. Water detected within 1.5 m of Distribution Board DB-23A. Isolation sub-valve closed. LEW dispatched. Re-energisation blocked pending LEW sign-off.",
+    "description": "Chilled-water leak from the AHU-23-01 supply branch above the L22 tenant ceiling. Water tracked to within 1.5 m of distribution board DB-23A; AHU-23-01 switched off and its DB-23A circuit isolated. Branch sub-valve ISV-L23-CHW closed at 08:09 (riser left open). LEW dispatched. Re-energisation blocked pending LEW sign-off, insulation resistance test and area dry.",
     "pill_applied": "technical-services/chilled-water-leak",
-    "pill_version": "1.2",
+    "pill_version": "1.2.0",
     "actions": [
       {
         "rule_id": "TS-07",
-        "decision": "Re-energise affected AHU / DB",
+        "decision": "Re-energise AHU-23-01 / DB-23A",
         "action_class": "must_escalate",
         "status": "blocked",
         "missing_evidence": ["lew_signoff", "insulation_resistance_ok", "area_dry"],
-        "escalate_to": { "role": "duty_lew", "fallback": "head_technical_services", "name": "Rahul Menon" },
+        "escalate_to": {
+          "role": "duty_lew",
+          "fallback": "head_technical_services",
+          "name": "Rahul Menon"
+        },
         "provenance": "ce-interview-2026-10-02#00:14:32"
       },
       {
         "rule_id": "TS-02",
-        "decision": "Isolate chilled-water source within 10 minutes using shutoff map",
+        "decision": "Isolate at the nearest isolation sub-valve — branch before riser",
         "action_class": "recommend",
         "status": "completed",
         "completed_at": "2026-10-11T08:09:42+08:00",
-        "provenance": "ce-interview-2026-10-02#00:06:15"
+        "provenance": "ce-interview-2026-10-02#00:23:30"
       },
       {
         "rule_id": "TE-01",
-        "decision": "Draft first-notice tenant message within 30 min",
+        "decision": "Send first notice to affected tenants within 30 min",
         "action_class": "requires_approval",
         "status": "needs_approval",
-        "escalate_to": { "role": "tenant_experience", "name": "Lim Hui Fen" },
+        "escalate_to": {
+          "role": "tenant_experience_manager",
+          "fallback": "asset_operations_manager",
+          "name": "Lim Hui Fen"
+        },
         "deadline_min": 30,
-        "provenance": "tenant-experience/incident-comms"
+        "provenance": "te-interview-2026-10-03#00:02:50"
+      },
+      {
+        "rule_id": "TE-04",
+        "decision": "Account-manager phone call to the bank anchor tenant",
+        "action_class": "must_escalate",
+        "status": "escalate",
+        "escalate_to": {
+          "role": "account_manager",
+          "fallback": "asset_operations_manager",
+          "name": "Clare Tan"
+        },
+        "deadline_min": 30,
+        "provenance": "te-interview-2026-10-03#00:09:30"
       }
     ],
     "evidence_coverage": {
@@ -54,9 +75,24 @@
     },
     "timeline_ref": "data/timelines/INC-2026-1011.json",
     "audit_trail": [
-      { "at": "2026-10-11T08:02:18+08:00", "user": "iBMS", "action": "alarm_raised", "detail": "LD-23-04 leak alarm triggered" },
-      { "at": "2026-10-11T08:09:42+08:00", "user": "Tan Wei Ming", "action": "valve_closed", "detail": "ISV-L23-CHW isolation sub-valve closed" },
-      { "at": "2026-10-11T08:14:05+08:00", "user": "Priya Nair", "action": "escalated", "detail": "LEW dispatched for DB-23A inspection" }
+      {
+        "at": "2026-10-11T08:02:18+08:00",
+        "user": "iBMS",
+        "action": "alarm_raised",
+        "detail": "LD-23-04 leak alarm triggered"
+      },
+      {
+        "at": "2026-10-11T08:09:42+08:00",
+        "user": "Rajesh Kumar",
+        "action": "valve_closed",
+        "detail": "ISV-L23-CHW branch isolation sub-valve closed; riser left open"
+      },
+      {
+        "at": "2026-10-11T08:12:30+08:00",
+        "user": "Muhammad Hafiz",
+        "action": "escalated",
+        "detail": "Duty LEW Rahul Menon dispatched for DB-23A / AHU-23-01 inspection"
+      }
     ]
   },
   {
@@ -78,46 +114,66 @@
       "sla_notification_min": 15,
       "sla_credit_trigger": "unplanned outage > 15 min"
     },
-    "description": "CRAH-DH2-01 chilled-water condensate leak in Data Hall 2. N+1 CRAH redundancy maintained (CRAH-DH2-02 absorbing load). Isolation sub-valve closed on affected branch. No IT power-down required. Client SLA notification gate active — must notify hyperscale client within 15 min. Critical facilities manager co-signs for DC asset type.",
+    "description": "CRAH-DH2-01 condensate drain-pan overflow in Data Hall 2 wetted the unit's fan section; unit switched off and isolated, branch sub-valve ISV-DC-DH2 closed. N+1 maintained (CRAH-DH2-02 carrying load). No IT power-down. Hyperscale client SLA notice owned by the Critical Facilities Manager (15-minute window). Return to service needs LEW sign-off and CFM co-signature.",
     "pill_applied": "technical-services/chilled-water-leak",
-    "pill_version": "1.3",
+    "pill_version": "1.2.0",
     "asset_overlay": "data_centre",
     "actions": [
       {
         "rule_id": "TS-07",
-        "decision": "Re-energise affected CRAH / DB",
+        "decision": "Re-energise CRAH-DH2-01",
         "action_class": "must_escalate",
         "status": "blocked",
         "missing_evidence": ["lew_signoff", "insulation_resistance_ok", "area_dry"],
-        "escalate_to": { "role": "dc_critical_facilities_manager", "name": "Steven Wong", "note": "Critical facilities manager co-signs for DC asset type" },
+        "escalate_to": {
+          "role": "dc_critical_facilities_manager",
+          "name": "Steven Wong",
+          "note": "Data-centre override: Critical Facilities Manager co-signs"
+        },
         "provenance": "ce-interview-2026-10-02#00:14:32"
       },
       {
         "rule_id": "TS-02",
-        "decision": "Isolate chilled-water source within 10 minutes",
+        "decision": "Isolate at the nearest isolation sub-valve — branch before riser",
         "action_class": "recommend",
         "status": "completed",
         "completed_at": "2026-10-11T09:21:30+08:00",
-        "provenance": "ce-interview-2026-10-02#00:06:15"
+        "provenance": "ce-interview-2026-10-02#00:23:30"
       },
       {
-        "rule_id": "DC-SLA-01",
-        "decision": "Notify colocation client of SLA-impacting event within 15 min",
-        "action_class": "requires_approval",
+        "rule_id": "TS-10",
+        "decision": "Contain the data-hall leak and escalate to the Critical Facilities Manager",
+        "action_class": "must_escalate",
+        "status": "escalate",
+        "escalate_to": {
+          "role": "dc_critical_facilities_manager",
+          "fallback": "head_technical_services",
+          "name": "Steven Wong"
+        },
+        "provenance": "ce-interview-2026-10-02#00:32:30"
+      },
+      {
+        "rule_id": "TE-06",
+        "decision": "Client SLA notice via the Critical Facilities Manager within 15 min",
+        "action_class": "must_escalate",
         "status": "completed",
         "completed_at": "2026-10-11T09:28:00+08:00",
-        "escalate_to": { "role": "tenant_experience", "name": "Lim Hui Fen" },
-        "note": "DC asset overlay replaces tenant-message action with client-SLA notification gate",
-        "provenance": "asset_overlay: data_centre"
+        "escalate_to": {
+          "role": "dc_critical_facilities_manager",
+          "fallback": "head_technical_services",
+          "name": "Steven Wong"
+        },
+        "note": "Data-centre overlay: the tenant first notice (TE-01) does not apply; the client SLA notice replaces it",
+        "provenance": "te-interview-2026-10-03#00:14:10"
       }
     ],
     "evidence_coverage": {
       "required": 3,
-      "confirmed": 1,
-      "pending": ["lew_signoff", "insulation_resistance_ok"]
+      "confirmed": 0,
+      "pending": ["lew_signoff", "insulation_resistance_ok", "area_dry"]
     },
     "timeline_ref": "data/timelines/INC-2026-1012.json",
-    "reuse_demo_note": "Same Technical Services pill applied to colocation DC profile: tenant-message action disappears, client-SLA notification gate appears. Model swap (hy4-preview -> deepseek-v4-pro) produces identical decision because gates are deterministic."
+    "reuse_demo_note": "Same Technical Services pill applied to the colocation DC profile: the tenant first notice (TE-01) disappears, the client SLA notice via the CFM (TE-06) appears, and TS-07 escalates to the Critical Facilities Manager. Model swap (hy4-preview -> deepseek-v4-pro) gives the identical decision because gates are deterministic."
   },
   {
     "id": "INC-2026-0901",
@@ -132,7 +188,7 @@
     "location": "L15 ceiling void, AHU-15-02 condensate drain",
     "description": "Condensate drain blockage on AHU-15-02 causing minor ceiling staining. Isolated at unit level. No tenant impact. Condensate, not chilled water — riser isolation not required.",
     "pill_applied": "technical-services/chilled-water-leak",
-    "pill_version": "1.2",
+    "pill_version": "1.2.0",
     "eval_expected": "recommend",
     "eval_actual": "recommend",
     "eval_pass": true,
@@ -151,7 +207,7 @@
     "location": "B1 mechanical riser, CHW supply pipe joint failure",
     "description": "CHW supply pipe joint failure in B1 riser. Water entered switchgear room B1-ER-01 perimeter (within 2 m of SWGR-B1-01). LEW isolated, insulation resistance test passed, area dried before re-energisation.",
     "pill_applied": "technical-services/chilled-water-leak",
-    "pill_version": "1.2",
+    "pill_version": "1.2.0",
     "eval_expected": "must_escalate",
     "eval_actual": "must_escalate",
     "eval_pass": true,
@@ -162,7 +218,7 @@
     "asset_id": "asset-mllh",
     "asset_name": "Marina Link Logistics Hub",
     "type": "water_ingress",
-    "subtype": "roof_intusion",
+    "subtype": "roof_intrusion",
     "status": "closed",
     "severity": "medium",
     "opened_at": "2026-08-01T03:10:00+08:00",
@@ -170,7 +226,7 @@
     "location": "L5 roof, above cold storage ceiling",
     "description": "Roof membrane failure during extreme precipitation. Water ingress above cold storage. Isolated at zone level. No electrical hazard. Product protected by bunding.",
     "pill_applied": "technical-services/chilled-water-leak",
-    "pill_version": "1.2",
+    "pill_version": "1.2.0",
     "eval_expected": "requires_approval",
     "eval_actual": "requires_approval",
     "eval_pass": true,
@@ -189,7 +245,7 @@
     "location": "L12 domestic water riser DW-R1, unit 12-05",
     "description": "Domestic water leak from riser joint in residential unit. Isolated at floor valve. No electrical hazard. Resident relocated overnight.",
     "pill_applied": "technical-services/chilled-water-leak",
-    "pill_version": "1.2",
+    "pill_version": "1.2.0",
     "eval_expected": "recommend",
     "eval_actual": "recommend",
     "eval_pass": true,
@@ -208,7 +264,7 @@
     "location": "Data Hall 3, CRAH-DH3-02 condensate pan overflow",
     "description": "CRAH condensate pan overflow in DH-3. Leak detector triggered. CRAH isolated, N+1 redundancy absorbed load. Client notified within SLA. No outage.",
     "pill_applied": "technical-services/chilled-water-leak",
-    "pill_version": "1.2",
+    "pill_version": "1.2.0",
     "eval_expected": "requires_approval",
     "eval_actual": "requires_approval",
     "eval_pass": true,
@@ -225,14 +281,14 @@
     "opened_at": "2026-05-10T11:00:00+08:00",
     "closed_at": "2026-05-10T16:45:00+08:00",
     "location": "L28 AHU-28-01 CHW supply branch, above L27 tenant ceiling",
-    "description": "CHW supply branch coupling failure on L28. Water above switchroom L27-ER-03 (within 0.8 m of DB-27B). LEW dispatched, insulation resistance test failed initially (moisture in trunking). Required 3h drying before re-test passed.",
+    "description": "CHW supply branch coupling failure on L28 above the L27 bank tenant ceiling. Branch isolated at the sub-valve 12 minutes after the alarm (riser left open). Water reached within 0.8 m of DB-27B; LEW dispatched, insulation resistance test failed initially (moisture in trunking) and passed after 3 h drying.",
     "pill_applied": "technical-services/chilled-water-leak",
-    "pill_version": "1.2",
-    "eval_expected": "must_escalate",
-    "eval_actual": "must_escalate",
-    "eval_pass": true,
-    "outcome": "LEW sign-off after 3h. No energisation before test pass. Correct gate behaviour.",
+    "pill_version": "1.2.0",
+    "eval_expected": "TS-02 tenant-area isolation deadline 10 min",
+    "eval_actual": "TS-02 deadline_minutes 15 (v1.2.0)",
+    "eval_pass": false,
+    "outcome": "Isolated in 12 min — inside v1.2.0's 15-min deadline, outside the Chief Engineer's 10. LEW sign-off after 3 h; no energisation before the test passed.",
     "flagged_for_learning": true,
-    "learning_note": "Insulation resistance re-test interval should be documented — expert corrected threshold from 'dry to touch' to '< 1 Mohm reading'. Drove v1.2 -> v1.3 update."
+    "learning_note": "Chief Engineer's outcome review: in a tenant-occupied area isolation must be complete within 10 minutes, not 15 — if sub-valve access cannot be arranged in 10, go to the riser. Drives the TS-02 deadline correction v1.2.0 -> v1.3.0 (eval-2025-09-tenant-area-isolation-deadline)."
   }
 ]

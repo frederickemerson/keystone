@@ -2,18 +2,23 @@
   "incident_id": "INC-2026-1012",
   "asset_id": "asset-hfdc1",
   "asset_name": "Harbourfront DC1",
-  "timeline_version": "1.0",
+  "timeline_version": "2.0",
   "events": [
     {
       "id": "EV-1012-01",
       "at": "2026-10-11T09:15:00+08:00",
       "source": "iBMS",
       "type": "alarm",
-      "text": "Leak detector LD-DH2-01 alarm triggered. Underfloor cable-type sensor, Data Hall 2. Alarm class: brick:Leak_Alarm. Connected to iBMS / DCIM.",
+      "text": "Underfloor leak detector LD-DH2-01 alarm, Data Hall 2 (brick:Leak_Alarm, via iBMS / DCIM). Not yet confirmed on site.",
       "evidence_updates": {
-        "leak_alarm_active": { "value": true, "confirmed": true },
-        "leak_detector_id": { "value": "LD-DH2-01", "confirmed": true },
-        "location": { "value": "Data Hall 2 underfloor", "confirmed": true }
+        "leak_alarm_active": {
+          "value": true,
+          "confirmed": true
+        },
+        "underfloor_leak_detection": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
@@ -22,11 +27,16 @@
       "at": "2026-10-11T09:16:30+08:00",
       "source": "iBMS",
       "type": "sensor_anomaly",
-      "text": "CRAH-DH2-01 condensate drain pan high-level alarm. Chilled-water supply temp stable at 7.0°C but return temp dropping (overcooling risk if CRAH-DH2-02 absorbs full load after isolation). N+1 redundancy confirmed: CRAH-DH2-02 operational and absorbing 60% load.",
+      "text": "CRAH-DH2-01 condensate drain-pan high-level alarm. N+1 intact: CRAH-DH2-02 running and absorbing load. Water release suspected, not yet seen.",
       "evidence_updates": {
-        "crah_dh2_01_fault": { "value": true, "confirmed": true },
-        "n_plus_1_redundancy_intact": { "value": true, "confirmed": true },
-        "overcooling_risk": { "value": true, "confirmed": false }
+        "crah_condensate_alarm": {
+          "value": true,
+          "confirmed": true
+        },
+        "active_water_release": {
+          "value": true,
+          "confirmed": false
+        }
       },
       "sensitivity": "internal"
     },
@@ -35,10 +45,12 @@
       "at": "2026-10-11T09:17:00+08:00",
       "source": "CMMS",
       "type": "work_order",
-      "text": "CMMS work order WO-2026-1012-0512 raised. Priority: P1. Asset: CRAH-DH2-01 + CHW-DC-LOOP-A DH-2 branch. Assigned to: Critical Facilities on-duty technician. Description: 'CRAH-DH2-01 condensate/CHW leak in Data Hall 2. N+1 maintained. Investigate and isolate affected branch.'",
+      "text": "Work order WO-2026-1012-0512 raised, priority P1, assets CRAH-DH2-01 and the CHW-DC-LOOP-A DH-2 branch. The WO links the isolation diagram (sub-valve ISV-DC-DH2).",
       "evidence_updates": {
-        "cmms_work_order": { "value": "WO-2026-1012-0512", "confirmed": true },
-        "priority": { "value": "P1", "confirmed": true }
+        "shutoff_map_available": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
@@ -47,11 +59,32 @@
       "at": "2026-10-11T09:19:00+08:00",
       "source": "technician",
       "type": "observation",
-      "text": "Critical facilities technician on-site DH-2. Visual: water from CRAH-DH2-01 condensate drain pan overflow, tracking along underfloor cable tray. Water confined to underfloor plenum — not in contact with IT racks or power whips. Cold aisle containment intake temp stable at 24°C. CRAH-DH2-02 absorbing load.",
+      "text": "Critical facilities technician in DH-2: CRAH-DH2-01 drain pan overflowing onto the underfloor cable tray. Water confined to the plenum — not touching racks or power whips. Cold-aisle intake 24 °C, stable. Sub-valve ISV-DC-DH2 within reach.",
       "evidence_updates": {
-        "source_identified": { "value": "CRAH-DH2-01 condensate drain pan", "confirmed": false },
-        "water_near_it_equipment": { "value": false, "confirmed": true },
-        "cold_aisle_temp_stable": { "value": true, "confirmed": true }
+        "leak_alarm_confirmed": {
+          "value": true,
+          "confirmed": true
+        },
+        "location_confirmed": {
+          "value": true,
+          "confirmed": true
+        },
+        "active_water_release": {
+          "value": true,
+          "confirmed": true
+        },
+        "water_contacting_live_it": {
+          "value": false,
+          "confirmed": true
+        },
+        "sub_valve_accessible": {
+          "value": true,
+          "confirmed": true
+        },
+        "source_system": {
+          "value": "condensate_drain",
+          "confirmed": false
+        }
       },
       "sensitivity": "internal"
     },
@@ -60,53 +93,82 @@
       "at": "2026-10-11T09:21:30+08:00",
       "source": "technician",
       "type": "action",
-      "text": "Isolation sub-valve ISV-DC-DH2 closed (CHW branch isolation for CRAH-DH2-01 on DH-2 loop). CRAH-DH2-01 taken offline. CRAH-DH2-02 absorbing 95% of DH-2 cooling load. Cold aisle temp: 24.3°C (within tolerance). No IT power-down required.",
+      "text": "ISV-DC-DH2 closed; flow stopped. Overflow had wetted the CRAH-DH2-01 fan section, so the unit is switched off and isolated at its local isolator. CRAH-DH2-02 carrying 95% of the DH-2 cooling load; cold aisle 24.3 °C. No IT power-down.",
       "evidence_updates": {
-        "source_isolated": { "value": true, "confirmed": true },
-        "isolation_valve_id": { "value": "ISV-DC-DH2", "confirmed": true },
-        "crah_dh2_01_offline": { "value": true, "confirmed": true },
-        "it_power_down_required": { "value": false, "confirmed": true }
+        "isolation_complete": {
+          "value": true,
+          "confirmed": true
+        },
+        "active_water_release": {
+          "value": false,
+          "confirmed": true
+        },
+        "equipment_wetted_or_isolated": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     },
     {
       "id": "EV-1012-06",
       "at": "2026-10-11T09:23:00+08:00",
-      "source": "iBMS",
-      "type": "gate",
-      "text": "MOSAIC engine evaluation (asset_overlay: data_centre): Rule TS-07 (v1.3) triggered — water in data hall, near electrical infrastructure. Action 'Re-energise affected CRAH / DB' blocked. Missing evidence: lew_signoff, insulation_resistance_ok. Escalate to: dc_critical_facilities_manager (Steven Wong) — DC asset override applies. Critical facilities manager co-signs. Provenance: ce-interview-2026-10-02#00:14:32.",
+      "source": "critical_facilities",
+      "type": "sla",
+      "text": "Critical Facilities Manager Steven Wong: the hyperscale client's hall DH-2 is affected (SLA event; N+1 maintained). Client SLA terms on file — 15-minute notification window from 09:15. CFM owns the SLA notice.",
       "evidence_updates": {
-        "gate_ts07_blocked": { "value": true, "confirmed": true },
-        "lew_signoff": { "value": false, "confirmed": true },
-        "insulation_resistance_ok": { "value": false, "confirmed": true },
-        "dc_asset_override": { "value": true, "confirmed": true }
-      },
-      "sensitivity": "internal"
-    },
-    {
-      "id": "EV-1012-07",
-      "at": "2026-10-11T09:25:00+08:00",
-      "source": "tenant",
-      "type": "sla_notification",
-      "text": "Client SLA notification gate (DC-SLA-01) triggered: hyperscale client SLA requires notification within 15 min of detection. Detection at 09:15, notification deadline 09:30. Client notified via SLA portal at 09:28 — within SLA window. No SLA credit triggered.",
-      "evidence_updates": {
-        "client_sla_notified": { "value": true, "confirmed": true },
-        "sla_notification_time": { "value": "2026-10-11T09:28:00+08:00", "confirmed": true },
-        "sla_credit_triggered": { "value": false, "confirmed": true }
+        "dc_client_affected": {
+          "value": true,
+          "confirmed": true
+        },
+        "sla_terms_on_file": {
+          "value": true,
+          "confirmed": true
+        },
+        "cfm_available": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "commercial"
     },
     {
-      "id": "EV-1012-08",
+      "id": "EV-1012-07",
       "at": "2026-10-11T09:35:00+08:00",
-      "source": "contractor",
-      "type": "pending",
-      "text": "Critical Facilities Manager Steven Wong on-site for co-sign inspection. LEW Rahul Menon dispatched for DB inspection (switchgear room B1-ER-01, no water in switchgear but perimeter moisture check required). Insulation resistance test pending CRAH-DH2-01 area dry-out. CRAH-DH2-02 maintaining cooling. Incident status: monitoring, no outage.",
+      "source": "critical_facilities",
+      "type": "dispatch",
+      "text": "Duty LEW Rahul Menon called out to inspect CRAH-DH2-01 before return to service.",
       "evidence_updates": {
-        "cfm_onsite": { "value": true, "confirmed": true },
-        "lew_dispatched": { "value": true, "confirmed": true },
-        "insulation_resistance_test_pending": { "value": true, "confirmed": true },
-        "no_outage": { "value": true, "confirmed": true }
+        "lew_dispatched": {
+          "value": true,
+          "confirmed": true
+        }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-1012-08",
+      "at": "2026-10-11T11:05:00+08:00",
+      "source": "lew",
+      "type": "signoff",
+      "text": "Rahul Menon: insulation resistance on the CRAH-DH2-01 supply passed, fan section and underfloor dry, written sign-off issued. Return to service needs the Critical Facilities Manager's co-signature (data-centre asset).",
+      "evidence_updates": {
+        "lew_on_site": {
+          "value": true,
+          "confirmed": true
+        },
+        "insulation_resistance_ok": {
+          "value": true,
+          "confirmed": true
+        },
+        "area_dry": {
+          "value": true,
+          "confirmed": true
+        },
+        "lew_signoff": {
+          "value": true,
+          "confirmed": true
+        }
       },
       "sensitivity": "internal"
     }

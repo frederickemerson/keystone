@@ -1,6 +1,7 @@
 // Inline governance test fixtures — no file reads.
 
 import type { Pill, Rule } from "@/lib/engine";
+import { personaFor } from "../store";
 
 export function rule(id: string, overrides: Partial<Rule> = {}): Rule {
   return {
@@ -38,17 +39,20 @@ export function pill(rules: Rule[] = [rule("TS-01"), rule("TS-02"), rule("TS-03"
       owner: "chief_engineer",
       steward: "asset_operations_manager",
       approver: "head_technical_services",
-      scope: "water_ingress",
-      access: "internal",
+      status: "approved",
+      scope: { incident_types: ["water_ingress"] },
+      access: { sensitivity_default: "internal" },
     },
     rules,
     provenance: {},
     evals: {},
+    evidenceCatalog: {},
   };
 }
 
 export const PILL_ID = "technical-services-chilled-water-leak";
-export const CE = { name: "Tan Wei Ming", role: "chief_engineer" };
-export const AOM = { name: "Priya Nair", role: "asset_operations_manager" };
-export const HTS = { name: "Goh Boon Kheng", role: "head_technical_services" };
-export const TECH = { name: "Duty Technician", role: "technician" };
+// Personas come from data/roles.json via the store — no names in code.
+export const CE = personaFor("chief_engineer");
+export const AOM = personaFor("asset_operations_manager");
+export const HTS = personaFor("head_technical_services");
+export const TECH = personaFor("technician");

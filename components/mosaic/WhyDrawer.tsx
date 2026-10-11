@@ -24,6 +24,7 @@ export function WhyDrawer({
   counterfactuals,
   riskIfIgnored,
   className,
+  children,
 }: {
   open: boolean;
   onClose: () => void;
@@ -37,6 +38,8 @@ export function WhyDrawer({
   counterfactuals: string[];
   riskIfIgnored: string;
   className?: string;
+  /** Screen-specific content rendered after the standard sections. */
+  children?: ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -211,6 +214,9 @@ export function WhyDrawer({
           >
             <p className="text-xs leading-relaxed text-ink">{riskIfIgnored}</p>
           </Section>
+
+          {/* Screen-specific content */}
+          {children}
         </div>
       </aside>
     </div>

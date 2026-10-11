@@ -43,6 +43,8 @@ export const roleSchema = z.object({
   role: z.string().min(1),
   label: z.string(),
   description: z.string(),
+  /** The named human who holds this role in the demo (one persona per role). */
+  person: z.string().min(1),
   sensitivity_levels_visible: z.array(sensitivityLevelSchema),
   sensitivity_levels_masked: z.array(sensitivityLevelSchema),
   can_see: visibilityListSchema,
@@ -77,7 +79,10 @@ const equipmentSchema = z.looseObject({
 
 const personSchema = z.looseObject({
   name: z.string(),
+  /** Job title as displayed (matches the roles.json label). */
   role: z.string(),
+  /** Role id in data/roles.json — the structured link, not the title string. */
+  role_id: z.string(),
   department: z.string(),
   employer: z.string(),
   experience_years: z.number(),
@@ -314,6 +319,8 @@ export const ruleCandidateSchema = z.looseObject({
   forbidden_actions: z.array(z.string()),
   exceptions: z.array(z.object({ when: z.array(conditionSchema), note: z.string() })),
   action_class: actionClassSchema,
+  /** The extracted gate semantics — carried through to the candidate rule as-is. */
+  forbidden_if_missing_evidence: z.boolean(),
   escalate_to: z.object({ role: z.string(), fallback: z.string().optional() }),
   owner: z.string(),
   deadline_minutes: z.number().nullable(),
@@ -417,3 +424,24 @@ export const incidentSummaryFixtureSchema = z.object({
   }),
 });
 export type IncidentSummaryFixture = z.infer<typeof incidentSummaryFixtureSchema>;
+
+/**
+ * The orchestrator LLM's proposed next action for an incident (recorded,
+ * offline). The deterministic gate named by `rule_id` decides whether it may
+ * proceed — the LLM cannot talk its way past it (SPEC §1 Wow 1).
+ */
+export const aiProposalFixtureSchema = z.object({
+  ...fixtureHeaderSchema,
+  source_incident: z.string(),
+  proposals: z.array(
+    z.object({
+      proposal_id: z.string(),
+      /** Rule that gates this proposal. */
+      rule_id: z.string(),
+      text: z.string(),
+      /** Timeline event after which the LLM made the proposal. */
+      proposed_after_event: z.string(),
+    }),
+  ),
+});
+export type AiProposalFixture = z.infer<typeof aiProposalFixtureSchema>;

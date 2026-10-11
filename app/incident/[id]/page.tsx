@@ -1,12 +1,109 @@
-import { PagePlaceholder } from '@/components/page-placeholder';
+import { notFound } from 'next/navigation';
+import { IncidentRoom } from '@/components/incident/IncidentRoom';
+import type { AiProposal, IncidentScenario, RoomPill } from '@/components/incident/types';
+import {
+  loadAiProposalFixture,
+  loadAssets,
+  loadIncidents,
+  loadTenantMessageFixture,
+  loadTimeline,
+  listTimelineIds,
+  type AssetRecord,
+  type IncidentRecord,
+  type Timeline,
+} from '@/lib/data';
+import { loadAllPills } from '@/lib/pills/load';
 
-export default async function IncidentPage({ params }: { params: Promise<{ id: string }> }) {
+export const dynamic = 'force-dynamic';
+
+/**
+ * Recorded LLM proposals for an incident, each resolved to the replay step of
+ * its `proposed_after_event`. A proposal naming an event that is not on the
+ * incident's timeline is a data error and fails loudly.
+ */
+function proposalsFor(incidentId: string, timeline: Timeline): AiProposal[] {
+  const fixture = loadAiProposalFixture(incidentId);
+  if (!fixture) return [];
+  return fixture.proposals.map((p) => {
+    const index = timeline.events.findIndex((e) => e.id === p.proposed_after_event);
+    if (index === -1) {
+      throw new Error(
+        `${fixture.fixture_id}: ${p.proposal_id} proposed_after_event ${p.proposed_after_event} is not on the ${incidentId} timeline`,
+      );
+    }
+    return { proposalId: p.proposal_id, ruleId: p.rule_id, text: p.text, model: fixture.model, afterStep: index + 1 };
+  });
+}
+
+function scenarioFor(incident: IncidentRecord, assets: AssetRecord[]): IncidentScenario | null {
+  const asset = assets.find((a) => a.id === incident.asset_id);
+  const timeline = loadTimeline(incident.id);
+  if (!asset || !timeline) return null;
+  return {
+    incident,
+    asset,
+    timeline,
+    tenantMessage: loadTenantMessageFixture(incident.id) ?? null,
+    aiProposals: proposalsFor(incident.id, timeline),
+  };
+}
+
+/**
+ * The same pills on a different asset profile (Wow 3): another open incident
+ * of the same type, with a timeline, on an asset of a different type —
+ * preferring one recorded with an `asset_overlay`.
+ */
+function overlayFor(primary: IncidentScenario, incidents: IncidentRecord[], assets: AssetRecord[]) {
+  const withTimeline = new Set(listTimelineIds());
+  const candidates = incidents.filter((i) => {
+    if (i.id === primary.incident.id || i.status === 'closed' || !withTimeline.has(i.id)) return false;
+    if (i.type !== primary.incident.type) return false;
+    const asset = assets.find((a) => a.id === i.asset_id);
+    return asset !== undefined && asset.type !== primary.asset.type;
+  });
+  const pick = candidates.find((i) => i.asset_overlay) ?? candidates[0];
+  return pick ? scenarioFor(pick, assets) : null;
+}
+
+function parseStep(raw: string | string[] | undefined): number | 'end' {
+  const v = Array.isArray(raw) ? raw[0] : raw;
+  if (v === 'end') return 'end';
+  const n = Number(v);
+  return Number.isInteger(n) && n > 0 ? n : 0;
+}
+
+export default async function IncidentPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  const { step } = await searchParams;
+
+  const incidents = loadIncidents();
+  const assets = loadAssets();
+  const incident = incidents.find((i) => i.id === id);
+  if (!incident) notFound();
+  const primary = scenarioFor(incident, assets);
+  if (!primary) notFound();
+
+  // Approved-version selection happens client-side against the governance
+  // store; the server ships every file pill as the seed baseline.
+  const pills: RoomPill[] = loadAllPills().map(({ id: pillId, domain, name, pill }) => ({
+    id: pillId,
+    domain,
+    name,
+    pill,
+  }));
 
   return (
-    <PagePlaceholder
-      title="Incident Room"
-      purpose={`Evidence timeline, deterministic gates and action chips for ${id}.`}
+    <IncidentRoom
+      primary={primary}
+      overlay={overlayFor(primary, incidents, assets)}
+      pills={pills}
+      initialStep={parseStep(step)}
     />
   );
 }

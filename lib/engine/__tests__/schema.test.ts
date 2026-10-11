@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parsePill, extractFrontmatter } from "../schema.js";
+import { parsePill, extractFrontmatter } from "../schema";
 
 // Inline SKILL.md with YAML frontmatter.
 const skillMd = `---
@@ -9,8 +9,11 @@ version: 1.0.0
 owner: chief_engineer
 steward: ts_steward
 approver: fm_director
-scope: water_ingress
-access: internal
+status: approved
+scope:
+  incident_types: [water_ingress]
+access:
+  sensitivity_default: internal
 ---
 
 # Technical Services Pill
@@ -54,38 +57,38 @@ const rulesYaml = `- id: TS-07
 `;
 
 const provenanceJson = JSON.stringify({
-  "TS-07": {
-    transcript_segment: "ce-interview-2026-10-02#00:14:32",
-    confirmation_status: "confirmed",
-    expert_role: "Chief Engineer",
+  pill: "technical-services",
+  version: "1.0.0",
+  source_interview: "ce-interview-2026-10-02",
+  expert: { name: "Tan Wei Ming", role: "Chief Engineer" },
+  rules: {
+    "TS-07": {
+      source: "ce-interview-2026-10-02",
+      start: "00:14:32",
+      end: "00:16:10",
+      quote: "never re-energise before the LEW signs off",
+      confirmation: "confirmed",
+      confirmed_by: "Tan Wei Ming",
+      confirmed_at: "2026-10-02T12:45:00+08:00",
+    },
   },
 });
 
 const evalsYaml = `id: case-1
-description: LEW sign-off missing
+title: LEW sign-off missing
+incident_date: "2026-01-01"
 asset:
-  id: asset-001
   name: Harbourfront One
-  type: office
-  attributes:
-    floors: 30
-incident:
-  id: INC-001
-  type: water_ingress
-  floor: L23
+  type: grade_a_office
+  floors: 30
 evidence:
-  water_near_electrical:
-    value: true
-    source: leak_detector
-    at: "2026-10-11T08:00:00Z"
-    confirmed: true
+  water_near_electrical: true
   lew_signoff:
     value: false
-    source: cmms
-    at: "2026-10-11T08:05:00Z"
-    confirmed: false
-expected:
-  TS-07: blocked
+    confirmed: true
+expected_decisions:
+  TS-07:
+    status: blocked
 `;
 
 describe("extractFrontmatter", () => {
@@ -119,10 +122,46 @@ describe("parsePill", () => {
     expect(pill.rules[0].action_class).toBe("must_escalate");
     expect(pill.rules[0].trigger.all).toHaveLength(1);
 
-    expect(pill.provenance["TS-07"].confirmation_status).toBe("confirmed");
+    expect(pill.provenance["TS-07"].confirmation).toBe("confirmed");
+    expect(pill.provenance["TS-07"].quote).toContain("LEW signs off");
 
     expect(pill.evals["case-1"].id).toBe("case-1");
-    expect(pill.evals["case-1"].expected).toEqual({ "TS-07": "blocked" });
+    expect(pill.evals["case-1"].expected).toEqual({ "TS-07": { status: "blocked" } });
+    expect(pill.evals["case-1"].asset.id).toBe("harbourfront-one");
+    expect(pill.evals["case-1"].asset.type).toBe("grade_a_office");
+    expect(pill.evals["case-1"].incident.type).toBe("water_ingress");
+    expect(pill.evals["case-1"].evidence.water_near_electrical).toEqual({
+      value: true,
+      source: "eval",
+      at: "2026-01-01",
+      confirmed: true,
+    });
+    expect(pill.evals["case-1"].evidence.lew_signoff).toEqual({
+      value: false,
+      source: "eval",
+      at: "2026-01-01",
+      confirmed: true,
+    });
+
+    // No evidence.yaml supplied → empty catalog.
+    expect(pill.evidenceCatalog).toEqual({});
+  });
+
+  it("parses an optional evidence.yaml catalog", () => {
+    const pill = parsePill({
+      skillMd,
+      rulesYaml,
+      provenanceJson,
+      evidenceYaml: `lew_signoff:
+  label: LEW sign-off
+  type: boolean
+  confirmable_by: [duty_lew]
+  description: Signed electrical safety certificate
+`,
+      evals: {},
+    });
+    expect(pill.evidenceCatalog.lew_signoff.label).toBe("LEW sign-off");
+    expect(pill.evidenceCatalog.lew_signoff.confirmable_by).toEqual(["duty_lew"]);
   });
 
   it("throws on invalid rules YAML", () => {
@@ -139,6 +178,19 @@ describe("parsePill", () => {
     expect(() =>
       parsePill({ skillMd, rulesYaml, provenanceJson: "{not json", evals: {} }),
     ).toThrow("JSON parse error");
+  });
+
+  it("parses an authored deadline_minutes expectation", () => {
+    const yamlText = evalsYaml.replace("    status: blocked", "    status: blocked\n    deadline_minutes: 10");
+    const pill = parsePill({ skillMd, rulesYaml, provenanceJson, evals: { "case-1": yamlText } });
+    expect(pill.evals["case-1"].expected).toEqual({ "TS-07": { status: "blocked", deadline_minutes: 10 } });
+  });
+
+  it("rejects an unknown expected-decision field instead of silently ignoring it", () => {
+    const yamlText = evalsYaml.replace("    status: blocked", "    status: blocked\n    deadline_minute: 10");
+    expect(() =>
+      parsePill({ skillMd, rulesYaml, provenanceJson, evals: { "case-1": yamlText } }),
+    ).toThrow(/deadline_minute/);
   });
 
   it("handles an empty evals map", () => {
