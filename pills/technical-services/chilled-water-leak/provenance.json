@@ -118,6 +118,16 @@
       "confirmation": "confirmed",
       "confirmed_by": "Tan Wei Ming",
       "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-13": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:28:30",
+      "end": "00:29:10",
+      "quote": "The only exception is immediate life safety — water on live equipment — where you isolate first and inform the FSM within five minutes and raise the permit after.",
+      "confirmation": "edited",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00",
+      "edit_note": "Pre-release content correction (v1.2.0): confirmed on the canvas as an exception note on TS-05. The engine never lets an exception relax a gate, so the emergency path is modelled as its own rule, triggered only by a confirmed immediate life-safety hazard. Same expert turn and wording as confirmed."
     }
   }
 }

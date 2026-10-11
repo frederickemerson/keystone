@@ -39,8 +39,8 @@ pills/<domain>/<name>/
 
 | Pill | Domain | Version | Rules | Evals | Status |
 |------|--------|---------|-------|-------|--------|
-| `technical-services/chilled-water-leak` | Technical Services | 1.2.0 | TS-01..TS-12 | 6 | approved |
-| `tenant-experience/incident-comms` | Tenant Experience | 1.0.0 | TE-01..TE-06 | 3 | approved |
+| `technical-services/chilled-water-leak` | Technical Services | 1.2.0 | TS-01..TS-13 | 6 | approved |
+| `tenant-experience/incident-comms` | Tenant Experience | 1.0.0 | TE-01..TE-07 | 3 | approved |
 
 ## Portability — install unchanged
 

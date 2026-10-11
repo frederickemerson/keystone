@@ -36,6 +36,7 @@ expected_decisions:
     reason: "anchor tenant affected — account manager phones within 30 min"
   TE-05: { status: not_applicable, reason: "message not visible to lower roles" }
   TE-06: { status: not_applicable, reason: "not a data centre" }
+  TE-07: { status: not_applicable, reason: "no life-safety instruction called by the FSM / FCC" }
 expert_decision: >-
   Condensate leak on L12. First notice: "There is a water leak on Level 12.
   Our technical team is on site. We will provide the next update at

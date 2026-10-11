@@ -39,10 +39,9 @@
     - "Stating cause or liability before investigation confirmed"
     - "Promising a completion time before source confirmed and isolation complete"
     - "Notifying tenants not affected by the incident"
-  exceptions:
-    - when:
-        - { path: evidence.life_safety_instruction, op: eq, value: true }
-      note: "Life-safety instruction (evacuate, stay put) issued immediately by FSM/FCC without comms approval; written notice follows"
+  # A life-safety instruction does not wait for this approval — that is its
+  # own rule, TE-07. An exception never relaxes this gate.
+  exceptions: []
   action_class: requires_approval
   forbidden_if_missing_evidence: true
   escalate_to:
@@ -255,3 +254,44 @@
   sensitivity: commercial
   provenance:
     - "te-interview-2026-10-03#00:14:10"
+
+# An explicit rule, not an exception on TE-01: the engine never lets an
+# exception relax a gate. Applies only once the FSM / FCC has confirmed the
+# instruction call (required evidence, gated) — an unconfirmed claim never
+# unlocks a message without approval. The written follow-up stays under TE-01.
+- id: TE-07
+  title: Life-safety announcement — issue immediately
+  trigger:
+    incident_type: water_ingress
+    all:
+      - { path: evidence.life_safety_instruction_called, op: eq, value: true }
+    any: []
+  required_evidence:
+    - life_safety_instruction_called
+  decision: >-
+    The FSM or FCC issues the life-safety instruction (evacuate, stay put,
+    do not use the lifts) immediately over PA and mass notification. It does
+    not wait for Tenant Experience approval — the FSM has the authority.
+    Tenant Experience logs the instruction and follows with a written notice,
+    which needs a named approver as usual (TE-01).
+  allowed_actions:
+    - "FSM / FCC broadcasts the instruction over PA and mass notification"
+    - "Log the instruction in the comms log with time and issuing role"
+    - "Draft the written follow-up notice for TE-01 approval"
+  forbidden_actions:
+    - "Holding a life-safety instruction for comms approval"
+    - "Tenant Experience issuing or rewording a life-safety instruction"
+    - "Sending the written follow-up notice without named approval (TE-01)"
+  exceptions: []
+  action_class: recommend
+  forbidden_if_missing_evidence: true
+  escalate_to:
+    role: fire_safety_manager
+    fallback: security_fcc_operator
+  owner: tenant_experience_manager
+  deadline_minutes: null
+  asset_refs:
+    - "brick:Floor"
+  sensitivity: internal
+  provenance:
+    - "te-interview-2026-10-03#00:15:00"

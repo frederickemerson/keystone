@@ -43,6 +43,7 @@ expected_decisions:
     status: allowed
     reason: "building-wide update visible to lower roles contains unit numbers — mask before sending"
   TE-06: { status: not_applicable, reason: "not a data centre" }
+  TE-07: { status: not_applicable, reason: "no life-safety instruction called by the FSM / FCC" }
 expert_decision: >-
   Riser leak on L23, water tracking toward the electrical room. Bank anchor
   tenant on L23 and L24. Account manager called the bank's facilities

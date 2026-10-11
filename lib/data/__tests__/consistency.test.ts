@@ -32,7 +32,12 @@ type Rule = {
   trigger: { incident_type: string; all: Cond[]; any: Cond[] };
   required_evidence: string[];
   forbidden_actions: string[];
-  exceptions: { when: Cond[]; note: string; escalate_to?: { role: string; fallback?: string } }[];
+  exceptions: {
+    when: Cond[];
+    note: string;
+    add_required_evidence?: string[];
+    escalate_to?: { role: string; fallback?: string };
+  }[];
   action_class: string;
   forbidden_if_missing_evidence: boolean;
   escalate_to: { role: string; fallback?: string };
@@ -111,6 +116,11 @@ function ruleConditions(r: Rule): Cond[] {
   return [...r.trigger.all, ...r.trigger.any, ...r.exceptions.flatMap((e) => e.when)];
 }
 
+/** Every key that can gate a rule: base required + every exception-added key. */
+function gatingKeys(r: Rule): string[] {
+  return [...r.required_evidence, ...r.exceptions.flatMap((e) => e.add_required_evidence ?? [])];
+}
+
 function valueMatchesType(value: unknown, type: EvidenceDecl["type"]): boolean {
   return typeof value === type;
 }
@@ -172,10 +182,10 @@ describe("1. evidence vocabulary (pills/*/*/evidence.yaml)", () => {
         }
   });
 
-  it("every required_evidence key is declared by the rule's own pill and is boolean (satisfied only by confirmed true)", () => {
+  it("every gating key (required_evidence + exception add_required_evidence) is declared by the rule's own pill and is boolean", () => {
     for (const p of PILLS)
       for (const r of p.rules)
-        for (const key of r.required_evidence) {
+        for (const key of gatingKeys(r)) {
           expect(p.catalogue[key], `${p.ref} ${r.id} requires undeclared ${key}`).toBeDefined();
           expect(p.catalogue[key].type, `${p.ref} ${r.id} ${key}`).toBe("boolean");
         }
@@ -192,7 +202,7 @@ describe("1. evidence vocabulary (pills/*/*/evidence.yaml)", () => {
   });
 
   it("no timeline pre-records a required sign-off as confirmed false (unknown = absent)", () => {
-    const required = new Set(ALL_RULES.flatMap((r) => r.required_evidence));
+    const required = new Set(ALL_RULES.flatMap(gatingKeys));
     for (const [id, tl] of Object.entries(TIMELINES))
       for (const ev of tl.events)
         for (const [key, upd] of Object.entries<any>(ev.evidence_updates))

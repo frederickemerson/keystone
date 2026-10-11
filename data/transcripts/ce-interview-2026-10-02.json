@@ -276,7 +276,7 @@
       "t": "00:28:30",
       "speaker": "Tan Wei Ming",
       "text": "Fire-protection systems — sprinkler, wet riser, hose reel, fire pump — never touch a valve without the FSM's authorisation. That's an impairment. You raise a red-tag permit, notify the insurer, post a fire watch every thirty minutes, and restore protection as the first priority after life safety. Isolate the smallest zone you can. The only exception is immediate life safety — water on live equipment — where you isolate first and inform the FSM within five minutes and raise the permit after.",
-      "extracted_rule_ids": ["TS-05"]
+      "extracted_rule_ids": ["TS-05", "TS-13"]
     },
     {
       "t": "00:29:10",
@@ -323,8 +323,8 @@
     {
       "t": "00:32:30",
       "speaker": "Tan Wei Ming",
-      "text": "Data centre is different. You don't send a tenant message to a DC client — the critical facilities manager handles the SLA notification. You isolate the CRAH condensate or chilled-water branch, deploy containment, but you do not touch IT power — that's the BCP owner's or the CFM's call. Any IT power-down is proposed only and executed by them. The client SLA notification goes through the CFM, not the tenant-experience comms flow.",
-      "extracted_rule_ids": ["TS-10"]
+      "text": "Data centre is different. You don't send a tenant message to a DC client — the critical facilities manager handles the SLA notification. You isolate the CRAH condensate or chilled-water branch, deploy containment, but you do not touch IT power — that's the BCP owner's or the CFM's call. Any IT power-down is proposed only and executed by them. The client SLA notification goes through the CFM, not the tenant-experience comms flow. And in the data hall, nothing that got wet goes back on with only the LEW's signature — the CFM co-signs with the LEW. The LEW says it's safe; the CFM says the hall can take it back.",
+      "extracted_rule_ids": ["TS-10", "TS-07"]
     },
     {
       "t": "00:33:10",
@@ -378,11 +378,12 @@
     "TS-04": "Distinguish condensate (drip, ambient) from active chilled-water leak (stream, 8-14C); when in doubt isolate",
     "TS-05": "Fire-protection valve isolation requires FSM authorisation + red-tag impairment permit",
     "TS-06": "Lift pit/shaft water — out of service via FCC, lift contractor, BCA within 6h if reportable",
-    "TS-07": "No re-energisation of wetted or isolated electrical equipment without LEW written sign-off, insulation resistance pass and area dry",
+    "TS-07": "No re-energisation of wetted or isolated electrical equipment without LEW written sign-off, insulation resistance pass and area dry; on a data-centre asset the CFM also co-signs",
     "TS-08": "Preserve evidence (photos, failed component) for insurer before cleanup",
     "TS-09": "Extraction within 24h, verify dry within 48h; dry equipment off LEW-cleared circuits",
     "TS-10": "DC CRAH/CHW leak — contain, escalate to CFM, SLA via CFM not TE comms",
     "TS-11": "Clear standing water within 24h; NEA vector-control liability",
-    "TS-12": "PUB flood alert — sump test, roof clearance, barriers at ramps within 30 min"
+    "TS-12": "PUB flood alert — sump test, roof clearance, barriers at ramps within 30 min",
+    "TS-13": "Immediate life-safety hazard only: emergency fire-protection isolation first, FSM informed within 5 min, red-tag permit raised after"
   }
 }

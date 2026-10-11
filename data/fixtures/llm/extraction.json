@@ -195,7 +195,8 @@
               "value": true
             }
           ],
-          "note": "Breaker already tripped — LEW to inspect before reset"
+          "note": "Breaker already tripped — the LEW inspects the tripped circuit before any reset or wider power-down (a reset is a re-energisation, TS-07)",
+          "add_required_evidence": ["lew_inspected_tripped_breaker"]
         }
       ],
       "action_class": "requires_approval",
@@ -286,18 +287,7 @@
       "decision": "FSM (or deputy) authorises the impairment. Raise a red-tag impairment permit. Notify property insurer. Post fire watch patrols every 30 minutes in the affected zone. Restore protection as the first priority after life safety. Isolate the smallest sprinkler zone possible.",
       "allowed_actions": ["Isolate smallest sprinkler zone possible", "Fire watch patrols every 30 minutes", "Insurer impairment notification", "Call fire-protection contractor"],
       "forbidden_actions": ["Technician closing a sprinkler control valve on own authority", "Leaving the system impaired overnight without fire watch and FSM sign-off", "Restoring protection without contractor functional test"],
-      "exceptions": [
-        {
-          "when": [
-            {
-              "path": "evidence.immediate_life_safety_hazard",
-              "op": "eq",
-              "value": true
-            }
-          ],
-          "note": "Immediate life-safety hazard (e.g. water on live equipment) permits emergency isolation first, with FSM informed within 5 min and permit raised retrospectively"
-        }
-      ],
+      "exceptions": [],
       "action_class": "requires_approval",
       "forbidden_if_missing_evidence": true,
       "escalate_to": {
@@ -378,7 +368,8 @@
               "value": "data_centre"
             }
           ],
-          "note": "Critical facilities manager co-signs; client SLA notification triggered"
+          "note": "Critical facilities manager co-signs the LEW sign-off before return to service; the client SLA notice goes via the CFM (TS-10, TE-06)",
+          "add_required_evidence": ["cfm_cosign"]
         }
       ],
       "action_class": "must_escalate",
@@ -396,7 +387,7 @@
           }
         }
       },
-      "provenance": ["ce-interview-2026-10-02#00:14:32"],
+      "provenance": ["ce-interview-2026-10-02#00:14:32", "ce-interview-2026-10-02#00:32:30"],
       "confirmation_status": "pending_expert_review",
       "confidence": 0.97,
       "threshold_note": "The 2 m proximity threshold (water_near_electrical) is the expert's professional judgement, not a code requirement (00:16:30, 00:25:00)."
@@ -619,6 +610,48 @@
       "provenance": ["ce-interview-2026-10-02#00:34:30"],
       "confirmation_status": "pending_expert_review",
       "confidence": 0.9
+    },
+    {
+      "rule_id": "TS-13",
+      "title": "Emergency isolation before fire-protection red-tag — immediate life safety only",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          {
+            "path": "evidence.immediate_life_safety_hazard",
+            "op": "eq",
+            "value": true
+          }
+        ],
+        "any": [
+          {
+            "path": "evidence.source_is_fire_protection",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.isolation_affects_fire_alarm",
+            "op": "eq",
+            "value": true
+          }
+        ]
+      },
+      "required_evidence": ["immediate_life_safety_hazard"],
+      "decision": "An immediate life-safety hazard (e.g. water on live equipment) is confirmed: isolate the fire-protection source first, inform the FSM within 5 minutes, and raise the red-tag impairment permit retrospectively. Fire watch, insurer notice and restoration then follow TS-05. This is the only path to a fire-protection isolation before FSM authorisation, and it holds only while the hazard is confirmed.",
+      "allowed_actions": ["Emergency isolation of the smallest zone that removes the hazard", "Inform the FSM within 5 minutes", "Raise the red-tag impairment permit retrospectively", "Post fire watch once the zone is isolated"],
+      "forbidden_actions": ["Emergency isolation on an unconfirmed life-safety hazard", "Isolating more than the zone needed to remove the hazard", "Leaving the FSM uninformed beyond 5 minutes", "Skipping the retrospective red-tag permit"],
+      "exceptions": [],
+      "action_class": "must_escalate",
+      "forbidden_if_missing_evidence": true,
+      "escalate_to": {
+        "role": "fire_safety_manager",
+        "fallback": "head_technical_services"
+      },
+      "owner": "fire_safety_manager",
+      "deadline_minutes": 5,
+      "provenance": ["ce-interview-2026-10-02#00:28:30"],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.93
     }
   ],
   "scribe_metadata": {

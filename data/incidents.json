@@ -124,11 +124,11 @@
         "decision": "Re-energise CRAH-DH2-01",
         "action_class": "must_escalate",
         "status": "blocked",
-        "missing_evidence": ["lew_signoff", "insulation_resistance_ok", "area_dry"],
+        "missing_evidence": ["lew_signoff", "insulation_resistance_ok", "area_dry", "cfm_cosign"],
         "escalate_to": {
           "role": "dc_critical_facilities_manager",
           "name": "Steven Wong",
-          "note": "Data-centre override: Critical Facilities Manager co-signs"
+          "note": "Data-centre override: escalation to the Critical Facilities Manager, whose co-signature (cfm_cosign) is required with the LEW sign-off"
         },
         "provenance": "ce-interview-2026-10-02#00:14:32"
       },
@@ -168,9 +168,9 @@
       }
     ],
     "evidence_coverage": {
-      "required": 3,
+      "required": 4,
       "confirmed": 0,
-      "pending": ["lew_signoff", "insulation_resistance_ok", "area_dry"]
+      "pending": ["lew_signoff", "insulation_resistance_ok", "area_dry", "cfm_cosign"]
     },
     "timeline_ref": "data/timelines/INC-2026-1012.json",
     "reuse_demo_note": "Same Technical Services pill applied to the colocation DC profile: the tenant first notice (TE-01) disappears, the client SLA notice via the CFM (TE-06) appears, and TS-07 escalates to the Critical Facilities Manager. Model swap (hy4-preview -> deepseek-v4-pro) gives the identical decision because gates are deterministic."

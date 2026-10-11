@@ -43,9 +43,38 @@
   approved promotion with the flagged eval documented and the v1.3.0
   correction scheduled.
 
+**Pre-release content correction (part of the authored 1.2.0 content, not a
+governed runtime change — version unchanged):**
+
+The engine never lets an exception relax a gate, and only
+`add_required_evidence` on an exception is enforced. Requirements written
+only in exception notes, and relaxations written as exceptions, were
+therefore not what the engine did. Corrected before release:
+
+- TS-07: the data-centre exception now adds `cfm_cosign` (declared in
+  `evidence.yaml`, boolean, confirmable by `dc_critical_facilities_manager`)
+  to the required evidence. On a data-centre asset, return to service stays
+  blocked until the LEW sign-off, insulation resistance, area dry AND the
+  CFM co-signature are confirmed. Provenance adds
+  `ce-interview-2026-10-02#00:32:30`.
+- TS-03: the breaker-tripped exception now adds
+  `lew_inspected_tripped_breaker` (new key, boolean, confirmable by
+  `duty_lew`) — no existing LEW key meant "LEW inspected the trip".
+- TS-13 (new rule) — "Emergency isolation before fire-protection red-tag":
+  the expert's one exception to TS-05 (00:28:30, "isolate first and inform
+  the FSM within five minutes and raise the permit after") is now its own
+  rule, `must_escalate` to `fire_safety_manager`, 5-minute deadline, gated
+  on a confirmed `immediate_life_safety_hazard`. Owner `fire_safety_manager`;
+  approved with the rest of 1.2.0 by the Head of Technical Services. The
+  misleading "permits emergency isolation" exception was removed from TS-05.
+- Evals: every eval states TS-13 (`not_applicable` in all six). The DC CRAH
+  eval's TS-07 rationale now names `cfm_cosign`. Still 5 pass, 1 flagged
+  (the TS-02 deadline).
+
 **Changes from 1.1.0:**
 
-- Added TS-03, TS-04, TS-08 (split), TS-11 (split), TS-12.
+- Added TS-03, TS-04, TS-08 (split), TS-11 (split), TS-12, TS-13 (split
+  out of the TS-05 exception note; see the correction above).
 - Added `asset_overrides` for `data_centre` on TS-07.
 - Added `sensitivity` and `forbidden_if_missing_evidence` to all rules.
 - Refined TS-02 to the branch-before-riser hierarchy (contradiction

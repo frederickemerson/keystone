@@ -51,6 +51,7 @@ expected_decisions:
     status: allowed
     reason: "standing water after isolation — clear within 24 h"
   TS-12: { status: not_applicable, reason: "water_ingress incident — not a PUB external alert" }
+  TS-13: { status: not_applicable, reason: "no immediate life-safety hazard — any fire-protection isolation stays under TS-05" }
 expert_decision: >-
   Sprinkler head failed on L5. FSM authorised isolation of the smallest
   sprinkler zone. Red-tag permit raised. Insurer notified. Fire watch posted

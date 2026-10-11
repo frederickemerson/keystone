@@ -63,6 +63,15 @@
       "confirmation": "confirmed",
       "confirmed_by": "Lim Hui Fen",
       "confirmed_at": "2026-10-03T14:20:00+08:00"
+    },
+    "TE-07": {
+      "source": "te-interview-2026-10-03",
+      "start": "00:15:00",
+      "end": "00:16:10",
+      "quote": "If the FSM or the FCC calls an evacuation or a stay-put, that goes out immediately over the PA and mass notification. It doesn't wait for me — the FSM has the authority, not Tenant Experience. What I do is log it and follow up with a written notice, and that written notice still goes through approval like any other.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Lim Hui Fen",
+      "confirmed_at": "2026-10-03T14:20:00+08:00"
     }
   }
 }

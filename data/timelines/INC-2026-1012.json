@@ -171,6 +171,20 @@
         }
       },
       "sensitivity": "internal"
+    },
+    {
+      "id": "EV-1012-09",
+      "at": "2026-10-11T11:12:00+08:00",
+      "source": "critical_facilities",
+      "type": "signoff",
+      "text": "Critical Facilities Manager Steven Wong reviews the LEW sign-off and the DH-2 load plan and co-signs the return to service of CRAH-DH2-01. Restoration in sequence with the LEW; DCIM to confirm N+1 restored.",
+      "evidence_updates": {
+        "cfm_cosign": {
+          "value": true,
+          "confirmed": true
+        }
+      },
+      "sensitivity": "internal"
     }
   ]
 }

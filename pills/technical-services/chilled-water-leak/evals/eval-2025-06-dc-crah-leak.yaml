@@ -37,7 +37,7 @@ expected_decisions:
   TS-06: { status: not_applicable, reason: "no lift water" }
   TS-07:
     status: blocked
-    reason: "CRAH isolated after wetting — return to service blocked until LEW sign-off, insulation resistance and area dry; data-centre override routes to the Critical Facilities Manager, who co-signs"
+    reason: "CRAH isolated after wetting — return to service blocked: LEW sign-off, insulation resistance, area dry and (data centre) the Critical Facilities Manager's co-signature all missing; escalation routes to the CFM"
   TS-08:
     status: needs_approval
     reason: "isolation complete + loss above threshold — photos and failed drain line retained; insurer notification approved by AOM"
@@ -47,6 +47,7 @@ expected_decisions:
     reason: "CRAH condensate + underfloor leak + humidity alarm in a data hall — escalate to the Critical Facilities Manager; no IT power-down by Technical Services"
   TS-11: { status: not_applicable, reason: "no standing water" }
   TS-12: { status: not_applicable, reason: "water_ingress incident — not a PUB external alert" }
+  TS-13: { status: not_applicable, reason: "no immediate life-safety hazard — any fire-protection isolation stays under TS-05" }
 expert_decision: >-
   CRAH condensate drain line cracked. Underfloor leak detection triggered.
   Isolated the CRAH chilled-water branch valve and switched the unit off.

@@ -1,7 +1,7 @@
 {
   "interview_id": "te-interview-2026-10-03",
   "date": "2026-10-03",
-  "duration": "00:15:00",
+  "duration": "00:16:30",
   "language": "Singapore English",
   "interviewer": "MOSAIC",
   "expert": {
@@ -109,6 +109,18 @@
       "speaker": "Lim Hui Fen",
       "text": "Data-centre clients are different. They don't get tenant-experience messages. The critical facilities manager handles the SLA notification — event reference, impact assessment, resolution window if you have one. The CFM approves it, not me. Different template, different channel, different approver. If you send a standard tenant notice to a hyperscale client, their legal team is on the phone before you've finished typing.",
       "extracted_rule_ids": ["TE-06"]
+    },
+    {
+      "t": "00:14:40",
+      "speaker": "MOSAIC",
+      "text": "Suppose the FSM orders an evacuation while your first notice is still waiting for approval. Does the evacuation message wait for you?",
+      "probe_id": "P13"
+    },
+    {
+      "t": "00:15:00",
+      "speaker": "Lim Hui Fen",
+      "text": "No — never. If the FSM or the FCC calls an evacuation or a stay-put, that goes out immediately over the PA and mass notification. It doesn't wait for me — the FSM has the authority, not Tenant Experience. What I do is log it and follow up with a written notice, and that written notice still goes through approval like any other. The approval rule is for our messages, not for life safety.",
+      "extracted_rule_ids": ["TE-07"]
     }
   ],
   "contradiction_detected": {
@@ -137,6 +149,7 @@
     "TE-03": "No unverified cause claims in outbound messages",
     "TE-04": "Bank anchor tenant gets account-manager phone call within 30 min",
     "TE-05": "PII masking on all outbound messages (PDPA)",
-    "TE-06": "DC clients get SLA notice via critical facilities manager, not TE comms"
+    "TE-06": "DC clients get SLA notice via critical facilities manager, not TE comms",
+    "TE-07": "Life-safety instruction from FSM/FCC goes out immediately without comms approval; written follow-up still approved"
   }
 }
