@@ -26,8 +26,8 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: 'MOSAIC — Intelligence Pills',
-  description: 'Turn expert judgement into governed, versioned Intelligence Pills.',
+  title: 'Keystone — expert judgement, governed',
+  description: 'Keystone turns expert judgement into governed, versioned Intelligence Pills.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

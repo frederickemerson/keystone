@@ -1,4 +1,4 @@
-# MOSAIC — Architecture
+# Keystone — Architecture
 
 Two views:
 

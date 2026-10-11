@@ -1,10 +1,12 @@
-# MOSAIC
+# Keystone
+
+*Expert judgement, governed.* The keystone is the stone that holds the arch — the expert judgement that holds operations together.
 
 > **Turn expert judgement into governed, versioned Intelligence Pills.**
 
 Keppel "AI HARVEST" track · Tencent Cloud AI CAN DO IT SG 2026 · Submission 16 Oct 2026.
 
-MOSAIC is an operating model and a working platform for turning a retiring expert's
+Keystone is an operating model and a working platform for turning a retiring expert's
 incident-response judgement into **Intelligence Pills** — plain-text, versioned,
 governed decision artefacts that a deterministic engine can execute, test, approve,
 roll back and re-apply across a portfolio.
@@ -31,7 +33,7 @@ judgement is not written down anywhere an organisation can reuse it:
 
 A retrieval chatbot answers questions. It cannot stop an unsafe action, cannot show
 where a rule came from, cannot be tested against past incidents, and cannot be rolled
-back. MOSAIC encodes judgement as a **compiled, executable, governed artefact** instead.
+back. Keystone encodes judgement as a **compiled, executable, governed artefact** instead.
 
 ---
 
@@ -138,11 +140,11 @@ Two pills ship in this repository:
 
 ### How it installs as a CodeBuddy / WorkBuddy skill
 
-The pill folder is a standard `SKILL.md` skill package. **Verified in CodeBuddy Code** (11 Oct 2026): copied unchanged into `.codebuddy/skills/`, CodeBuddy (model `hy4-preview`) discovered it, loaded it via its Skill tool, and reached the same TS-07 decision as the MOSAIC engine (blocked, escalate to duty LEW, with the Chief Engineer's provenance quote). WorkBuddy and ADP use the same `SKILL.md` convention per their documentation, but have **not yet been tested** by us:
+The pill folder is a standard `SKILL.md` skill package. **Verified in CodeBuddy Code** (11 Oct 2026): copied unchanged into `.codebuddy/skills/`, CodeBuddy (model `hy4-preview`) discovered it, loaded it via its Skill tool, and reached the same TS-07 decision as the Keystone engine (blocked, escalate to duty LEW, with the Chief Engineer's provenance quote). WorkBuddy and ADP use the same `SKILL.md` convention per their documentation, but have **not yet been tested** by us:
 
 - **CodeBuddy** — copy the folder to `.codebuddy/skills/<name>/`. The `SKILL.md`
   frontmatter (`name`, `description`, `version`) is read by the skill loader;
-  `rules.yaml` and `evals/` are consumed by the MOSAIC engine.
+  `rules.yaml` and `evals/` are consumed by the Keystone engine.
 - **WorkBuddy** *(designed for, untested)* — import via **Skills & Expert Center**. `SKILL.md` becomes a skill;
   rules and evals are available to the multi-expert collaboration layer. Skills are
   scanned for security risks before installation; the pill's `access` frontmatter maps
@@ -217,7 +219,7 @@ the **INC-2026-1011 first-notice snapshot at 08:20**, not current replay evidenc
 A fail-closed sentence bank rejects unverified cause claims (TE-03), completion
 promises (TE-02), and other unsupported prose, including claims in the subject.
 Recipients, sensitivity and approver are server-owned; each live draft gets a fresh
-id and needs **Lim Hui Fen's** named approval. Nothing is sent by MOSAIC. Unknown
+id and needs **Lim Hui Fen's** named approval. Nothing is sent by Keystone. Unknown
 incidents and DC clients do not receive the office fixture (DC uses the CFM SLA flow).
 
 The bundled CLI is externalized and its headless assets traced for Node deployment.

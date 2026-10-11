@@ -145,13 +145,18 @@ When `asset.type == data_centre`:
 - Life-safety instructions (evacuate, stay put, do not use lifts) are
   issued **immediately** by the FSM/FCC via the building PA system and
   mass-notification system. These do not require Tenant Experience comms
-  approval — the FSM has authority. The tenant-experience pill logs that
-  the instruction was issued and follows up with a written notice.
+  approval — the FSM has authority. This is its own rule, **TE-07**,
+  triggered once the FSM/FCC confirms `life_safety_instruction_called`; it
+  is not an exception on TE-01 (an exception can never relax a gate). The
+  tenant-experience pill logs that the instruction was issued and follows
+  up with a written notice, which still needs a named approver (TE-01).
 
 ## Boundaries
 
 ### May be recommended (action_class: recommend)
 
+- Issue a life-safety instruction from the FSM/FCC immediately, without
+  comms approval (TE-07)
 - Draft the first notice (what, where, what we are doing, next update, contact)
 - Draft update notices at the stated cadence
 - Compile the affected-tenant list from the incident log

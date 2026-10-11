@@ -1,4 +1,4 @@
-// Local presentational prop types for MOSAIC shared UI components.
+// Local presentational prop types for Keystone shared UI components.
 // Engine-contract types (ActionClass, ActionStatus, ActionDecision, Rule) are
 // imported directly from "@/lib/engine/types" where needed.
 

@@ -7,7 +7,7 @@ import { ScrollText } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
 import { RoleSwitcher } from '@/components/shell/RoleSwitcher';
 import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
-import { BrandMark } from '@/components/shell/BrandMark';
+import { BrandLogo } from '@/components/shell/BrandMark';
 
 export const NAV_ITEMS = [
   { href: '/pulse', label: 'Portfolio pulse', purpose: 'Portfolio-wide posture at a glance' },
@@ -46,22 +46,13 @@ function Wordmark({ compact = false }: { compact?: boolean }) {
     <Link
       href="/"
       className="group inline-flex items-center gap-2.5 rounded-lg focus-visible:outline-offset-4"
-      aria-label="MOSAIC home"
+      aria-label="Keystone home"
     >
-      <BrandMark size={compact ? 30 : 36} />
-      <span className="flex flex-col">
-        <span
-          className={cn(
-            'font-display-soft font-bold leading-none text-heading',
-            compact ? 'text-[22px]' : 'text-[27px]',
-          )}
-        >
-          mosaic
-        </span>
-        {compact ? null : (
-          <span className="mt-1 text-xs leading-none text-ink-muted">Intelligence Pills</span>
-        )}
-      </span>
+      <BrandLogo
+        markSize={compact ? 28 : 32}
+        textClassName={compact ? 'text-[21px]' : 'text-[25px]'}
+        subtitle={compact ? undefined : 'Intelligence Pills'}
+      />
     </Link>
   );
 }
@@ -120,7 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <br />
             governed.
           </p>
-          <p className="mt-2 font-mono text-[11px] font-medium text-cocoa-ink/80">MOSAIC v1</p>
+          <p className="mt-2 font-mono text-[11px] font-medium text-cocoa-ink/80">Keystone v1</p>
         </div>
       </aside>
 

@@ -122,7 +122,7 @@ function DraftCard({
           </p>
         ) : null}
         <p className="text-[11px] text-ink-muted">
-          Nothing is sent by MOSAIC — approval records a named human sign-off in the audit log.
+          Nothing is sent by Keystone — approval records a named human sign-off in the audit log.
         </p>
       </div>
     </article>

@@ -6,7 +6,7 @@ import styles from './landing.module.css';
 
 /**
  * "The whole product in one image": the expert's handwritten line on a page of
- * a paper notebook, an arrow, and the typeset rule MOSAIC compiled from it.
+ * a paper notebook, an arrow, and the typeset rule Keystone compiled from it.
  * All text comes from the real pill (TS-07 in the chilled-water pill).
  */
 export function HeroNotebook({ facts }: { facts: HeroFacts }) {
@@ -14,7 +14,7 @@ export function HeroNotebook({ facts }: { facts: HeroFacts }) {
     <figure aria-label={`The expert’s quote becomes safety gate ${facts.ruleId}`} className="relative mx-auto w-full max-w-[560px] pb-4 pt-14 lg:mx-0 lg:ml-auto">
       <figcaption className="sr-only">
         {facts.expert} said, at {facts.timestamp} of the onboarding interview: “{facts.quoteFragment}”.
-        MOSAIC compiled it into rule {facts.ruleId}, {facts.ruleTitle}, which stays blocked until{' '}
+        Keystone compiled it into rule {facts.ruleId}, {facts.ruleTitle}, which stays blocked until{' '}
         {facts.gateEvidence.join(', ')} are confirmed.
       </figcaption>
 

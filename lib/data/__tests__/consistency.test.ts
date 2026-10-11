@@ -307,10 +307,10 @@ describe("3. provenance resolves to the expert's own words", () => {
         expect(s, `${id} ${turn.t} out of order`).toBeGreaterThan(prev);
         expect(s, `${id} ${turn.t} past duration`).toBeLessThanOrEqual(toSeconds(tr.duration));
         prev = s;
-        expect(["MOSAIC", tr.expert.name], `${id} ${turn.t}`).toContain(turn.speaker);
+        expect(["Keystone", tr.expert.name], `${id} ${turn.t}`).toContain(turn.speaker);
         if (turn.probe_id) expect(PROBE_LIBRARY.has(turn.probe_id.split("-")[0]), `${id} ${turn.t} ${turn.probe_id}`).toBe(true);
         for (const rid of turn.extracted_rule_ids ?? []) expect(RULE_IDS.has(rid), `${id} ${turn.t} ${rid}`).toBe(true);
-        if (turn.speaker === "MOSAIC") expect(turn.extracted_rule_ids, `${id} ${turn.t}`).toBeUndefined();
+        if (turn.speaker === "Keystone") expect(turn.extracted_rule_ids, `${id} ${turn.t}`).toBeUndefined();
       }
       for (const rid of Object.keys(tr.extracted_rules_summary)) expect(RULE_IDS.has(rid), `${id} summary ${rid}`).toBe(true);
     }

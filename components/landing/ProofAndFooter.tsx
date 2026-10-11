@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Sticker } from '@/components/mosaic';
+import { BrandLogo } from '@/components/shell/BrandMark';
 
 // Verified by `npx vitest run`; update when the suite changes.
 const TEST_COUNT = 161;
@@ -43,6 +44,7 @@ export function BrandBand() {
       <Sticker kind="star" size={54} rotate={-10} className="absolute -top-6 right-[12%]" />
       <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-8 px-6 pb-12 pt-14 sm:px-10 md:flex-row md:items-end md:justify-between">
         <div>
+          <BrandLogo tone="onBrand" markSize={28} textClassName="text-[22px]" className="mb-6" />
           <p className="font-display text-[34px] font-bold leading-[1.05] tracking-[-0.02em] sm:text-[44px]">
             Built with CodeBuddy Code
           </p>

@@ -1,4 +1,4 @@
-// MOSAIC deterministic rule engine — type definitions.
+// Keystone deterministic rule engine — type definitions.
 // Mirrors SPEC §4 (rule schema) and §5 (engine contract).
 
 // ---------------------------------------------------------------------------

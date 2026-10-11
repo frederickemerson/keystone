@@ -1,4 +1,4 @@
-# MOSAIC — Project Submission
+# Keystone — Project Submission
 
 **Track:** The Real Estate Track — Keppel · **Challenge:** AI HARVEST — Turning Expert
 Know-How into Reusable Intelligence · **Event:** Tencent Cloud "AI CAN DO IT" Hackathon
@@ -13,7 +13,7 @@ its own sections below.
 
 ## 1. Project title
 
-**MOSAIC** — *Managed Operational Skills As Intelligence Capsules.*
+**Keystone** — *Expert judgement, governed.* The keystone is the stone that holds the arch; here it is the expert judgement that holds operations together.
 
 ## 2. Short blurb
 
@@ -109,7 +109,7 @@ contractor**, with the AOM at the manager layer and the Chief Engineer at the FM
 
 ### Core problems solved
 
-| Core problem | How MOSAIC addresses it |
+| Core problem | How Keystone addresses it |
 |---|---|
 | Knowledge concentrated in one expert | Structured CDM/ACTA interview extracts rules, each with a transcript span |
 | Undocumented tacit knowledge | Adaptive, incident-anchored probing + contradiction detection surface judgement that was never written down |
@@ -193,7 +193,7 @@ All screens default to recorded fixtures in `data/fixtures/llm/`:
 4. **Tenant-message drafting.** A prompt drafts the first notice under hard constraints
    expressed in the Tenant Experience pill: no cause before the source is confirmed
    (TE-03), no completion time before isolation (TE-02), PII masking (TE-05). The draft
-   is `needs_approval`; a named human signs off but MOSAIC never sends it. Live
+   is `needs_approval`; a named human signs off but Keystone never sends it. Live
    drafting selects and arranges reviewed first-notice sentences for INC-2026-1011
    as of 08:20. Unsupported prose, cause claims and completion promises fail closed
    to the recorded fixture. This is bounded composition, not unrestricted drafting.
@@ -267,7 +267,7 @@ research dossier as needing a primary-source check before they are shown on a sl
 
 ### 6.3 What the product measures (implemented, not asserted)
 
-MOSAIC's Portfolio Pulse and Registry report metrics derived from the deterministic
+Keystone's Portfolio Pulse and Registry report metrics derived from the deterministic
 engine, so they are auditable rather than invented:
 
 - **Avg time-to-isolate** (from incident open to the TS-02 completion event).
@@ -281,9 +281,9 @@ engine, so they are auditable rather than invented:
 ### 6.4 Keppel-anchored value
 
 - Keppel's own Technical Services KPI is to *"cut downtime and costs"* (Investor Day
-  2026). MOSAIC's downtime-avoided metric is the operational expression of that KPI.
+  2026). Keystone's downtime-avoided metric is the operational expression of that KPI.
 - Keppel DC REIT reports ~**12%** improvement in effective PUE on asset-enhanced
-  colocation assets; MOSAIC's DC overlay preserves the isolation and SLA logic that
+  colocation assets; Keystone's DC overlay preserves the isolation and SLA logic that
   protects those gains.
 
 **Pilot measurement plan (proposed):** instrument time-to-isolate, escalation latency,
@@ -390,23 +390,23 @@ and BMS/iBMS + CMMS for integration.
 
 ## 9. Responsible AI mapping
 
-MOSAIC's constructs map onto the IMDA Model AI Governance Framework (2020), the IMDA
+Keystone's constructs map onto the IMDA Model AI Governance Framework (2020), the IMDA
 **Model AI Governance Framework for Agentic AI** (2026), AI Verify, ISO/IEC 42001:2023,
-NIST AI RMF 1.0, and EU AI Act Article 14 (as design alignment only — MOSAIC is not an
+NIST AI RMF 1.0, and EU AI Act Article 14 (as design alignment only — Keystone is not an
 EU high-risk system). Full analysis: `research_domain.md` §3.
 
-| MOSAIC construct | IMDA MGF 2020 | MGF Agentic AI 2026 | ISO/IEC 42001 | NIST AI RMF | EU AI Act Art. 14 |
+| Keystone construct | IMDA MGF 2020 | MGF Agentic AI 2026 | ISO/IEC 42001 | NIST AI RMF | EU AI Act Art. 14 |
 |---|---|---|---|---|---|
 | **Recommend** (AI proposes; human acts) | Human-in-the-loop — "AI only providing recommendations" | Routine action: simple approve/reject | A.9.2 responsible use; A.8.2 info for users | MAP 3.5 oversight processes | 14(4)(c) interpret output |
 | **Approve** (named approver signs) | HITL with "affirmative action by the human" | Checkpoint for **irreversible** actions (sending comms) | A.6.2.8 event logs; A.3.2 roles | GOVERN 3.2 roles | 14(4)(d) override/reverse |
 | **Escalate** (gate blocks; route to role + deadline) | §3.18 safety-critical: person assumes control / safe shutdown | **Deny by default** when no policy covers the action | A.9.4 intended use → outside scope triggers A.5 impact assessment | MANAGE 2.4 disengage; MANAGE 1.3 planned responses | 14(4)(e) stop/interrupt |
 | **Portfolio Pulse / evidence monitoring** (no actions) | Human-over-the-loop for low-severity, reversible, monitoring-only | Real-time monitoring, alert thresholds | A.6.2.6 operation & monitoring | MANAGE 4.1 monitoring | 14(4)(a) monitor anomalies |
-| **Not used** — autonomous control of building systems | Explicitly human-out-of-the-loop, excluded by MOSAIC | — | — | — | — |
+| **Not used** — autonomous control of building systems | Explicitly human-out-of-the-loop, excluded by Keystone | — | — | — | — |
 | **Why drawer** | HITL requires factors, value and weighting be provided | Transparency to end users | A.8.2 | MAP/MEASURE transparency | 14(4)(a),(c) |
 | **Override capture + version diff** | Operations management / audit trail | **Human override rate** as health metric; audit approvals | A.6.2.8; A.8.4 | MANAGE 4.1 appeals/overrides; MANAGE 4.3 incidents | — |
 | **Role/sensitivity scoping of pills** | — | "Bound risks by design": limit tools, permissions, scope; least privilege | A.10.2 allocation of responsibilities | GOVERN 3.2 | 14(3) proportionality |
 
-**AI Verify alignment** (11 principles): MOSAIC demonstrates Human Agency & Oversight
+**AI Verify alignment** (11 principles): Keystone demonstrates Human Agency & Oversight
 (named-human approval, escalation), Accountability (RACI + audit log), Transparency and
 Explainability (Why drawer + provenance), Reproducibility (deterministic engine,
 identical decision on model swap), Safety (gates + deny-by-default) and Data Governance
@@ -419,7 +419,7 @@ for unknown actions; provenance per rule field; version history with rollback;
 role-based pill visibility; incident-report pipeline; an explicit **"no autonomous
 control of building systems"** statement; AI Verify process-check mapping.
 
-**Boundary statement.** MOSAIC never executes a physical action. It recommends,
+**Boundary statement.** Keystone never executes a physical action. It recommends,
 drafts and escalates. There is no actuator, no live BMS write path, and no autonomous
 control of building systems anywhere in the design.
 
@@ -432,12 +432,12 @@ extraction and bounded tenant drafting through the CodeBuddy Agent SDK. TokenHub
 is wired but blocked by pending account verification. Other integration points
 below are the proposed production path, not claims of completed integrations.
 
-| Layer | Tencent product | Role in MOSAIC |
+| Layer | Tencent product | Role in Keystone |
 |---|---|---|
 | **Models (live)** | **CodeBuddy Agent SDK → Hunyuan `hy4-preview`** | Opt-in extraction and tenant drafts; local CLI login or Pro API key. Recorded defaults and fallback. No autonomous approvals or tool use. |
 | **Models (pending verification)** | **TokenHub** (`https://tokenhub-intl.tencentcloudmaas.com/v1`) | OpenAI-compatible adapter ready once account KYC completes; not yet verified live. |
 | **Expert host** | **WorkBuddy** — Skills & Expert Center, Experts, Expert Teams | A pill becomes a Skill; a domain pill + persona becomes an Expert; the Asset Ops orchestrator becomes an Expert Team leader. Skills are security-scanned before install; `access` maps to RBAC. |
-| **Builder skills** | **CodeBuddy** — `.codebuddy/skills/<name>/SKILL.md` | The same pill loads as a CodeBuddy skill; `rules.yaml` and `evals/` are consumed by the MOSAIC engine. |
+| **Builder skills** | **CodeBuddy** — `.codebuddy/skills/<name>/SKILL.md` | The same pill loads as a CodeBuddy skill; `rules.yaml` and `evals/` are consumed by the Keystone engine. |
 | **Enterprise governance** | **ADP** (Agent Development Platform) — custom skills as a ZIP with `SKILL.md` at the root, YAML metadata, semantic versioning, sandbox security review, **Approval Center** for enterprise sharing | The governed distribution path for pills across business units. |
 | **Sandbox** | **Agent Runtime / CubeSandbox** | Isolated execution for deterministic rule checks (architecture reference; not built in 5 days). |
 | **Voice** | **TRTC Conversational AI** (STT + LLMConfig OpenAI-compatible + TTS; captions via custom messages) | The live Expert Onboarding Call: real-time captions and "rule extracted" chips. Today the demo uses a scripted transcript + recorded clips; TRTC is the production path. |
@@ -452,7 +452,7 @@ discrepancy, custom Expert creation UI) are treated as **proposed**, not impleme
 
 ## 11. Why more than a chatbot
 
-| RAG chatbot / retrieval tool | MOSAIC Intelligence Pill |
+| RAG chatbot / retrieval tool | Keystone Intelligence Pill |
 |---|---|
 | Retrieves text snippets | Evaluates structured rules against an evidence map |
 | No deterministic gates | Gates **block** unsafe actions; an LLM cannot override them |
@@ -520,7 +520,7 @@ Committed in `docs/proof/` (CodeBuddy build session):
 
 Replace each placeholder before submitting.
 
-- [ ] **Project title:** MOSAIC ✔
+- [ ] **Project title:** Keystone ✔
 - [ ] **Short blurb:** "Turn expert judgement into governed, versioned Intelligence Pills." ✔
 - [ ] **Project Description:** this document ✔
 - [ ] **CodeBuddy/WorkBuddy conversation history (≥3):** `docs/proof/*.png` ✔

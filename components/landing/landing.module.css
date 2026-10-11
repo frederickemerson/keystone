@@ -61,7 +61,7 @@
   background: var(--dew-drop);
 }
 
-.withMosaic {
+.withKeystone {
   margin-top: 20px;
   border-color: var(--charcoal);
   background: var(--cream-paper);

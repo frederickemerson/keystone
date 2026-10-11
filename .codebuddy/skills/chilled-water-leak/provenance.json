@@ -2,7 +2,7 @@
   "pill": "technical-services/chilled-water-leak",
   "version": "1.2.0",
   "source_interview": "ce-interview-2026-10-02",
-  "interviewer": "MOSAIC Expert Capture (CDM/ACTA probes)",
+  "interviewer": "Keystone Expert Capture (CDM/ACTA probes)",
   "expert": {
     "name": "Tan Wei Ming",
     "role": "Chief Engineer",
@@ -14,7 +14,7 @@
       "source": "ce-interview-2026-10-02",
       "start": "00:25:30",
       "end": "00:26:10",
-      "quote": "The first rule — water anywhere near switchgear, the LV room, the riser cupboard, any electrical room: nobody goes in. You cordon the threshold, you call the LEW, and you isolate the water from outside the room. You never enter before the LEW confirms it's de-energised and safe.",
+      "quote": "The first rule — water anywhere near switchgear, the LV room, the riser cupboard, any electrical room: nobody goes in. You cordon the threshold, you call the LEW, and you isolate the water from outside the room. You never enter before the LEW confirms it's de-energised and safe. That's non-negotiable — I've seen a technician get a shock trying a quick look. Same gate wherever the water is actually on the electrics — on the switchgear itself, dripping onto a tenant's IT or electrical kit, or touching live IT in a data hall: that's an electrical hazard first, whatever else is going on.",
       "confirmation": "confirmed",
       "confirmed_by": "Tan Wei Ming",
       "confirmed_at": "2026-10-02T12:45:00+08:00"
@@ -118,6 +118,16 @@
       "confirmation": "confirmed",
       "confirmed_by": "Tan Wei Ming",
       "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-13": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:28:30",
+      "end": "00:29:10",
+      "quote": "The only exception is immediate life safety — water on live equipment — where you isolate first and inform the FSM within five minutes and raise the permit after.",
+      "confirmation": "edited",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00",
+      "edit_note": "Pre-release content correction (v1.2.0): confirmed on the canvas as an exception note on TS-05. The engine never lets an exception relax a gate, so the emergency path is modelled as its own rule, triggered only by a confirmed immediate life-safety hazard. Same expert turn and wording as confirmed."
     }
   }
 }

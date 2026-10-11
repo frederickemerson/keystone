@@ -1,4 +1,4 @@
-# MOSAIC — Build Spec (v1, 2026-10-11)
+# Keystone — Build Spec (v1, 2026-10-11)
 
 Keppel "AI HARVEST" track · Tencent Cloud AI CAN DO IT SG 2026 · **Submission: 16 Oct 2026**
 Built with **CodeBuddy Code** (primary builder: scaffold, pills, engine, data, UI) and **Claude Code** (planning, code review, governance/data layers). Keep this attribution accurate in the submission write-up.
@@ -43,7 +43,7 @@ Next.js 15 (App Router, TS) + Tailwind + shadcn/ui
 ```
 
 Key decisions (and why):
-- **Own rule engine over `rules.yaml`, not GoRules ZEN / not LLM.** The deterministic engine is MOSAIC's core IP: ~200 lines, trace + counterfactual for free, deploys anywhere (no native binary), and an LLM cannot talk its way past it. ZEN JDM export is a stretch goal.
+- **Own rule engine over `rules.yaml`, not GoRules ZEN / not LLM.** The deterministic engine is Keystone's core IP: ~200 lines, trace + counterfactual for free, deploys anywhere (no native binary), and an LLM cannot talk its way past it. ZEN JDM export is a stretch goal.
 - **LLM via Tencent TokenHub** (`https://tokenhub-intl.tencentcloudmaas.com/v1`, models `hy4-preview`, `deepseek-v4-pro`). Env: `TOKENHUB_API_KEY`, `MOSAIC_MODEL`. **Every LLM path has a recorded fallback** (`data/fixtures/llm/*.json`) so the live demo never depends on network.
 - **State:** seed pills from files; runtime versions/audit in a client store (zustand + localStorage) with "Export pill (.zip)" and "Reset demo". Production path: Postgres `pill_version` table (diagram only).
 - **Graph UI:** `@xyflow/react` + `@dagrejs/dagre`. **Diff:** `jsondiffpatch`.

@@ -2,7 +2,7 @@
   "pill": "tenant-experience/incident-comms",
   "version": "1.0.0",
   "source_interview": "te-interview-2026-10-03",
-  "interviewer": "MOSAIC Expert Capture (CDM/ACTA probes)",
+  "interviewer": "Keystone Expert Capture (CDM/ACTA probes)",
   "expert": {
     "name": "Lim Hui Fen",
     "role": "Tenant Experience Manager",
@@ -60,6 +60,15 @@
       "start": "00:14:10",
       "end": "00:14:30",
       "quote": "Data-centre clients are different. They don't get tenant-experience messages. The critical facilities manager handles the SLA notification — event reference, impact assessment, resolution window if you have one. The CFM approves it, not me. Different template, different channel, different approver. If you send a standard tenant notice to a hyperscale client, their legal team is on the phone before you've finished typing.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Lim Hui Fen",
+      "confirmed_at": "2026-10-03T14:20:00+08:00"
+    },
+    "TE-07": {
+      "source": "te-interview-2026-10-03",
+      "start": "00:15:00",
+      "end": "00:16:10",
+      "quote": "If the FSM or the FCC calls an evacuation or a stay-put, that goes out immediately over the PA and mass notification. It doesn't wait for me — the FSM has the authority, not Tenant Experience. What I do is log it and follow up with a written notice, and that written notice still goes through approval like any other.",
       "confirmation": "confirmed",
       "confirmed_by": "Lim Hui Fen",
       "confirmed_at": "2026-10-03T14:20:00+08:00"

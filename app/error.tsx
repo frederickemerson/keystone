@@ -21,7 +21,7 @@ export default function Error({
     <div className="mx-auto max-w-xl space-y-4">
       <h1 className="text-xl font-semibold tracking-tight text-ink">This screen failed to load</h1>
       <p className="rounded-lg border border-dashed border-escalate/40 bg-escalate/5 px-4 py-6 text-sm leading-relaxed text-ink">
-        MOSAIC parses Intelligence Pills and demo data from disk when a screen is requested. A
+        Keystone parses Intelligence Pills and demo data from disk when a screen is requested. A
         malformed pill package or data file surfaces here instead of degrading into an empty view —
         fix the source data rather than hiding the failure.
       </p>

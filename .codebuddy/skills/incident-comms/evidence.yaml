@@ -1,4 +1,4 @@
-# MOSAIC Intelligence Pill — Evidence catalogue
+# Keystone Intelligence Pill — Evidence catalogue
 # Pill: tenant-experience/incident-comms
 # Version: 1.0.0
 #
@@ -30,11 +30,11 @@ affected_units_confirmed:
   confirmable_by: [asset_operations_manager, tenant_experience_manager]
   description: The list of affected tenants and units is confirmed from the incident log — only they get the first notice (00:02:50).
 
-life_safety_instruction:
-  label: Life-safety instruction issued
+life_safety_instruction_called:
+  label: Life-safety instruction called by FSM / FCC
   type: boolean
-  confirmable_by: [security_fcc_operator, fire_safety_manager]
-  description: The FSM / FCC has issued an evacuate or stay-put instruction over PA / mass notification.
+  confirmable_by: [fire_safety_manager, security_fcc_operator]
+  description: The FSM or FCC has called an evacuate, stay-put or do-not-use-lifts instruction for occupants. Confirmed, it triggers TE-07 — the instruction goes out immediately without comms approval; the written follow-up still needs it (00:15:00).
 
 source_confirmed:
   label: Source confirmed by Technical Services or LEW

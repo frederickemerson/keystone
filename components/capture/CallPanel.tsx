@@ -239,7 +239,7 @@ function ActiveView({
       <div className="flex flex-wrap items-center gap-2">
         <Waveform active={running} expert={isExpert} />
         <span className="text-[13px] font-medium text-ink">
-          {isExpert ? expert.name : 'MOSAIC'} {running ? 'is speaking…' : paused ? 'paused' : ''}
+          {isExpert ? expert.name : 'Keystone'} {running ? 'is speaking…' : paused ? 'paused' : ''}
         </span>
       </div>
 

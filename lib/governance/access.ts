@@ -1,4 +1,4 @@
-// MOSAIC governance — role / sensitivity policy, sourced from data/roles.json.
+// Keystone governance — role / sensitivity policy, sourced from data/roles.json.
 // Pure + client-safe (static JSON import, validated with the data schema).
 
 import rolesJson from "@/data/roles.json";

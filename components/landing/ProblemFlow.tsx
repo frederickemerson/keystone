@@ -35,7 +35,7 @@ const TODAY: FlowStep[] = [
   },
 ];
 
-const WITH_MOSAIC: FlowStep[] = [
+const WITH_KEYSTONE: FlowStep[] = [
   {
     title: 'One onboarding call',
     detail: 'Capture the expert’s cues.',
@@ -147,9 +147,9 @@ export function ProblemFlow() {
           </p>
         </div>
 
-        <div className={cn(styles.flowRow, styles.withMosaic)}>
-          <h3 className="mb-6 text-[20px] font-semibold text-heading">With MOSAIC</h3>
-          <FlowSteps steps={WITH_MOSAIC} play={play} />
+        <div className={cn(styles.flowRow, styles.withKeystone)}>
+          <h3 className="mb-6 text-[20px] font-semibold text-heading">With Keystone</h3>
+          <FlowSteps steps={WITH_KEYSTONE} play={play} />
           <p className={cn(styles.flowOutcome, 'border-recommend/20 bg-recommend-tint text-recommend')}>
             <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
             Same safe call, every site, every shift

@@ -1,4 +1,4 @@
-// MOSAIC governance — pill versions, proposals, diff and rollback.
+// Keystone governance — pill versions, proposals, diff and rollback.
 // Pure + client-safe. History is append-only: rollback creates a new version.
 
 import { create as createDiffPatcher, type ArrayDelta, type Delta, type ObjectDelta } from "jsondiffpatch";

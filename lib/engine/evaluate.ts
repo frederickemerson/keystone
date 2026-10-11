@@ -1,4 +1,4 @@
-// MOSAIC deterministic rule engine — evaluate() per SPEC §5.
+// Keystone deterministic rule engine — evaluate() per SPEC §5.
 
 import type {
   ActionClass,

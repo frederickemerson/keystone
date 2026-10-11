@@ -32,7 +32,7 @@ export function HowItWorks({ pillId }: { pillId: string }) {
             Follow one judgement from conversation to reuse.
           </p>
         </div>
-        <RomanList items={items} aria-label="How MOSAIC works, in five steps" className="[&_a]:py-5 [&_a]:sm:px-7" />
+        <RomanList items={items} aria-label="How Keystone works, in five steps" className="[&_a]:py-5 [&_a]:sm:px-7" />
       </div>
     </section>
   );

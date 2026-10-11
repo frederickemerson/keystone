@@ -1,4 +1,4 @@
-// MOSAIC governance — append-only audit log.
+// Keystone governance — append-only audit log.
 // Pure + client-safe. There is deliberately no update or delete API: the only
 // operation is appendAudit(), which returns a new log with one frozen event added.
 

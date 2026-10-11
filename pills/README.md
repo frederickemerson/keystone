@@ -1,4 +1,4 @@
-# MOSAIC Intelligence Pills
+# Keystone Intelligence Pills
 
 ## What is a pill?
 
@@ -49,7 +49,7 @@ agentskills-compatible host:
 
 - **CodeBuddy** — copy to `.codebuddy/skills/<name>/SKILL.md`. The
   frontmatter (`name`, `description`, `version`) is read by the skill
-  loader. `rules.yaml` and `evals/` are consumed by the MOSAIC engine.
+  loader. `rules.yaml` and `evals/` are consumed by the Keystone engine.
   [CodeBuddy skills docs](https://www.tencentcloud.com/document/product/1256/77295)
 
 - **WorkBuddy** — import via Skills & Expert Center. The pill's

@@ -1,4 +1,4 @@
-// MOSAIC deterministic rule engine — counterfactual analysis.
+// Keystone deterministic rule engine — counterfactual analysis.
 // "What minimal evidence changes would flip the status of rule X?"
 
 import type {

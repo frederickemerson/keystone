@@ -1,4 +1,4 @@
-// Shared inline test fixtures for the MOSAIC engine tests.
+// Shared inline test fixtures for the Keystone engine tests.
 // These are self-contained — no file reads from pills/.
 
 import type { Asset, Evidence, EvidenceItem, Incident, Pill, Rule } from "../index";

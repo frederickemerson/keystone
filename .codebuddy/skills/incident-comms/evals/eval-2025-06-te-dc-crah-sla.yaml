@@ -31,6 +31,7 @@ expected_decisions:
   TE-06:
     status: escalate
     reason: "DC client affected — SLA notice via the Critical Facilities Manager within the 15-min SLA window; CFM approves"
+  TE-07: { status: not_applicable, reason: "no life-safety instruction called by the FSM / FCC" }
 expert_decision: >-
   CRAH condensate leak in the data hall. CFM notified immediately. SLA
   notice drafted: "SLA Event Reference DC1-2025-06-19-001. Impact: CRAH

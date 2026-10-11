@@ -50,6 +50,7 @@ expected_decisions:
   TS-12:
     status: not_applicable
     reason: "this incident is water_ingress; the PUB pre-emptive checks belong to the external_alert incident raised 40 minutes earlier"
+  TS-13: { status: not_applicable, reason: "no immediate life-safety hazard — any fire-protection isolation stays under TS-05" }
 expert_decision: >-
   Monsoon rain caused basement seepage. Water entered lift pit B2. Lift taken
   out of service via FCC, parked at L1. Lift contractor called. Sump pumps

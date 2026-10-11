@@ -4,7 +4,7 @@
 //
 // Responsibilities:
 //  - drive turns in order (idle -> active -> ended)
-//  - speak each turn with window.speechSynthesis (MOSAIC vs expert voice via
+//  - speak each turn with window.speechSynthesis (Keystone vs expert voice via
 //    pitch + voice selection); fall back to timed captions when speech is
 //    unavailable or muted
 //  - derive captured rule ids as a pure function of the current turn index

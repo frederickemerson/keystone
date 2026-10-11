@@ -1,4 +1,4 @@
-# MOSAIC design brief — "the expert's field notebook"
+# Keystone design brief — "the expert's field notebook"
 
 Reference: superr.ai (screens: `ref-superr-hero.png`, `ref-superr-notes.png`) and the Superr style tokens below.
 Adapted for an operations product judged on professionalism, readability and responsible AI.
@@ -54,5 +54,5 @@ Radii: buttons/tags 20px (pill), cards 12px, inputs 8px, brand band 56px top cor
 
 ## Landing page (new route `/`; Portfolio Pulse moves to `/pulse`)
 Hero (two-column): Geist headline "the expert retires. his judgement stays." → one-sentence body with marker highlight on "governed" → pill CTA "open the incident room" + secondary "hear the onboarding call" → right: the paper notebook with one handwritten quote, a typeset attribution and PillLabel, and a typeset TS-07 rule card. Quote, attribution and evidence keys come from the real pill.
-Immediately after the hero: **the problem**, comparing today (20 years in one person → retirement and an empty drawer → a team guessing at 3am) with MOSAIC (call → compiled rules → non-overridable gates → versioned corrections → reuse). Paper Hairline figures carry the story, with blocked-red and safe-green outcome chips.
+Immediately after the hero: **the problem**, comparing today (20 years in one person → retirement and an empty drawer → a team guessing at 3am) with Keystone (call → compiled rules → non-overridable gates → versioned corrections → reuse). Paper Hairline figures carry the story, with blocked-red and safe-green outcome chips.
 Then: roman-numeral "how it works" (I capture → II compile → III apply → IV learn → V reuse), each linking to its screen; "safe and bounded" (recommend / requires approval / must escalate); proof strip (verified test count, CodeBuddy skill, real-pill provenance count); orange brand band footer "built with CodeBuddy Code · Tencent Cloud" with a fictional-demo-data note.

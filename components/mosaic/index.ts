@@ -1,4 +1,4 @@
-// MOSAIC shared UI components — pure, presentational, theme-token driven.
+// Keystone shared UI components — pure, presentational, theme-token driven.
 // Barrel re-export for `import { ... } from '@/components/mosaic'`.
 
 export { ActionClassChip } from './ActionClassChip';

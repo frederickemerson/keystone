@@ -1,4 +1,4 @@
-// MOSAIC pill loader — reads pills/<domain>/<name>/ from disk and parses it
+// Keystone pill loader — reads pills/<domain>/<name>/ from disk and parses it
 // with the engine's parsePill. Server-only (node:fs): server components load
 // bundles and pass the plain-data PillBundle to client components.
 

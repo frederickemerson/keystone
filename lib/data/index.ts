@@ -1,4 +1,4 @@
-// MOSAIC demo data — typed, zod-validated loaders for data/*.json.
+// Keystone demo data — typed, zod-validated loaders for data/*.json.
 // Server-only (node:fs). Client components receive the parsed values as props;
 // pure schemas/types live in ./schemas so client code can import them.
 

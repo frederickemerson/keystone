@@ -3,7 +3,7 @@
   "date": "2026-10-03",
   "duration": "00:16:30",
   "language": "Singapore English",
-  "interviewer": "MOSAIC",
+  "interviewer": "Keystone",
   "expert": {
     "name": "Lim Hui Fen",
     "role": "Tenant Experience Manager",
@@ -16,8 +16,8 @@
   "turns": [
     {
       "t": "00:00:12",
-      "speaker": "MOSAIC",
-      "text": "Good morning, Hui Fen. I'm MOSAIC, the AI interviewer for the Expert Onboarding Call. Today we'll capture your judgement on tenant communications during water-leak and related incidents. Ready?",
+      "speaker": "Keystone",
+      "text": "Good morning, Hui Fen. I'm Keystone, the AI interviewer for the Expert Onboarding Call. Today we'll capture your judgement on tenant communications during water-leak and related incidents. Ready?",
       "probe_id": null
     },
     {
@@ -28,7 +28,7 @@
     },
     {
       "t": "00:01:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Walk me through a recent incident where the comms really mattered — or where a wrong message would have caused a problem.",
       "probe_id": "P01"
     },
@@ -40,7 +40,7 @@
     },
     {
       "t": "00:02:30",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Let's put the comms in order. What goes out first, how many minutes in, to whom, and who signs it off?",
       "probe_id": "P02"
     },
@@ -52,7 +52,7 @@
     },
     {
       "t": "00:05:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What would someone new to tenant comms most likely get wrong when the tenant asks when it'll be fixed?",
       "probe_id": "P14"
     },
@@ -64,7 +64,7 @@
     },
     {
       "t": "00:07:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Is there anything you would never put in a message, no matter how much pressure you're under — the cause, for example?",
       "probe_id": "P08"
     },
@@ -76,7 +76,7 @@
     },
     {
       "t": "00:09:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Big picture — which tenants need to hear from you, and from whom? Is a bank anchor tenant different?",
       "probe_id": "P16"
     },
@@ -88,7 +88,7 @@
     },
     {
       "t": "00:11:30",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What must never go into a message, whoever approves it — personal data, for example?",
       "probe_id": "P29"
     },
@@ -100,7 +100,7 @@
     },
     {
       "t": "00:13:50",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Compare an office tenant, the bank, and a data-centre client. How is one different from the other two?",
       "probe_id": "P24"
     },
@@ -112,7 +112,7 @@
     },
     {
       "t": "00:14:40",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Suppose the FSM orders an evacuation while your first notice is still waiting for approval. Does the evacuation message wait for you?",
       "probe_id": "P13"
     },

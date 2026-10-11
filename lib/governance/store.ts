@@ -1,4 +1,4 @@
-// MOSAIC governance — client store (zustand + localStorage persistence).
+// Keystone governance — client store (zustand + localStorage persistence).
 // Composes versions, approval, shadow runs, incident action decisions and the
 // append-only audit log. Seeded from file pills (PillBundle) passed down from
 // server components; "Reset demo" restores the seed state.
@@ -199,7 +199,7 @@ function tolerantJSONStorage(storage: StateStorage): PersistStorage<unknown> {
         if (value !== null && typeof (value as { version?: unknown }).version !== "number") return null;
         return value;
       } catch {
-        if (typeof console !== "undefined") console.warn("[mosaic] stored governance state unreadable; starting fresh");
+        if (typeof console !== "undefined") console.warn("[keystone] stored governance state unreadable; starting fresh");
         try {
           json.removeItem(name); // don't re-read (and re-warn about) the same garbage every load
         } catch {
@@ -493,7 +493,7 @@ export function createGovernanceStore(
           if (persisted === undefined || persisted === null) return deepFreeze(fresh);
           const parsed = parseGovernanceSnapshot(persisted);
           if (!parsed.ok) {
-            if (typeof console !== "undefined") console.warn(`[mosaic] discarded stored governance state: ${parsed.reason}`);
+            if (typeof console !== "undefined") console.warn(`[keystone] discarded stored governance state: ${parsed.reason}`);
             return deepFreeze(fresh);
           }
           return deepFreeze({ ...current, ...parsed.data });

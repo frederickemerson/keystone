@@ -2,7 +2,7 @@
 
 // Coverage meter by rule field (SPEC §4 / research_domain §1.6). Shows how the
 // interviewer targets gaps instead of chit-chat: each field fills as rule tiles
-// arrive, and "open gaps" list what MOSAIC will ask next.
+// arrive, and "open gaps" list what Keystone will ask next.
 
 import { cn } from '@/lib/ui/cn';
 import type { Rule } from '@/lib/engine/types';
@@ -31,7 +31,7 @@ const FIELDS: FieldDef[] = [
 const NEXT_QUESTIONS: Record<string, string> = {
   trigger: 'Which incident type and conditions actually trigger this rule?',
   cue_evidence: 'What readings or alarms confirm the situation is real?',
-  decision: 'What decision should MOSAIC recommend at this point?',
+  decision: 'What decision should Keystone recommend at this point?',
   allowed: 'Which actions are explicitly permitted?',
   forbidden: 'What must never be done, even under pressure?',
   exception: 'When does this rule not apply — what is the boundary?',
@@ -122,7 +122,7 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
 
       {gaps.length > 0 ? (
         <div className="mt-3 border-t border-line pt-3">
-          <p className="text-[13px] font-semibold text-ink">Open gaps — what MOSAIC will ask next</p>
+          <p className="text-[13px] font-semibold text-ink">Open gaps — what Keystone will ask next</p>
           <ul className="mt-1.5 space-y-1">
             {gaps.map((g) => (
               <li key={g.key} className="flex gap-2 text-xs leading-snug text-ink-muted">

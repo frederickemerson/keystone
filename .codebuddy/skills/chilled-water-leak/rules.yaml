@@ -1,4 +1,4 @@
-# MOSAIC Intelligence Pill — Rules
+# Keystone Intelligence Pill — Rules
 # Pill: technical-services/chilled-water-leak
 # Version: 1.2.0
 # Owner: chief_engineer (Tan Wei Ming, Chief Engineer)
@@ -25,6 +25,9 @@
       - { path: evidence.water_in_electrical_room, op: eq, value: true }
       - { path: evidence.water_above_switchgear, op: eq, value: true }
       - { path: evidence.water_flowing_toward_electrical, op: eq, value: true }
+      - { path: evidence.water_on_switchgear, op: eq, value: true }
+      - { path: evidence.drip_onto_tenant_it, op: eq, value: true }
+      - { path: evidence.water_contacting_live_it, op: eq, value: true }
   required_evidence:
     - visual_or_alarm_confirmation
   decision: >-
@@ -150,13 +153,13 @@
     - "Shutting down a whole floor on tenant request alone"
     - "Shutting down a whole floor without LEW or confirmed evidence"
     - "De-energising circuits not in the water path"
+  # Water on switchgear is not an exception here: it triggers TS-01 itself.
   exceptions:
     - when:
-        - { path: evidence.water_on_switchgear, op: eq, value: true }
-      note: "Water confirmed on switchgear — TS-01 electrical gate applies"
-    - when:
         - { path: evidence.breaker_tripped, op: eq, value: true }
-      note: "Breaker already tripped — LEW to inspect before reset"
+      note: "Breaker already tripped — the LEW inspects the tripped circuit before any reset or wider power-down (a reset is a re-energisation, TS-07)"
+      add_required_evidence:
+        - lew_inspected_tripped_breaker
   action_class: requires_approval
   forbidden_if_missing_evidence: true
   escalate_to:
@@ -203,10 +206,8 @@
     - "Assuming condensate without visual inspection"
     - "Leaving FCU valves open overnight pending repair if active leak"
     - "Working above live tenant workstations without clearing the area"
-  exceptions:
-    - when:
-        - { path: evidence.drip_onto_tenant_it, op: eq, value: true }
-      note: "Drip onto tenant IT/electrical equipment — TS-01 electrical gate applies"
+  # A drip onto tenant IT/electrical equipment triggers TS-01 itself.
+  exceptions: []
   action_class: recommend
   forbidden_if_missing_evidence: false
   escalate_to:
@@ -246,10 +247,10 @@
     - "Technician closing a sprinkler control valve on own authority"
     - "Leaving the system impaired overnight without fire watch and FSM sign-off"
     - "Restoring protection without contractor functional test"
-  exceptions:
-    - when:
-        - { path: evidence.immediate_life_safety_hazard, op: eq, value: true }
-      note: "Immediate life-safety hazard (e.g. water on live equipment) permits emergency isolation first, with FSM informed within 5 min and permit raised retrospectively"
+  # The immediate-life-safety path (isolate first, FSM informed within 5 min,
+  # permit raised after) is its own rule, TS-13 — an exception never relaxes
+  # this gate.
+  exceptions: []
   action_class: requires_approval
   forbidden_if_missing_evidence: true
   escalate_to:
@@ -335,7 +336,9 @@
   exceptions:
     - when:
         - { path: asset.type, op: eq, value: data_centre }
-      note: "Critical facilities manager co-signs; client SLA notification triggered"
+      note: "Critical facilities manager co-signs the LEW sign-off before return to service; the client SLA notice goes via the CFM (TS-10, TE-06)"
+      add_required_evidence:
+        - cfm_cosign
   action_class: must_escalate
   forbidden_if_missing_evidence: true
   escalate_to:
@@ -355,6 +358,7 @@
   sensitivity: internal
   provenance:
     - "ce-interview-2026-10-02#00:14:32"
+    - "ce-interview-2026-10-02#00:32:30"
 
 - id: TS-08
   title: Preserve evidence and photos for insurer before cleanup
@@ -471,10 +475,8 @@
     - "Switching off IT racks or UPS output without BCP owner approval"
     - "Pumping water with equipment powered from in-room circuits"
     - "Sending tenant-experience comms to DC clients (use SLA channel)"
-  exceptions:
-    - when:
-        - { path: evidence.water_contacting_live_it, op: eq, value: true }
-      note: "Water contacting live IT equipment — TS-01 electrical gate applies"
+  # Water contacting live IT equipment triggers TS-01 itself.
+  exceptions: []
   action_class: must_escalate
   forbidden_if_missing_evidence: false
   escalate_to:
@@ -569,3 +571,52 @@
   sensitivity: internal
   provenance:
     - "ce-interview-2026-10-02#00:34:30"
+
+# An explicit rule, not an exception on TS-05: the engine never lets an
+# exception relax a gate, so the expert's one exception to "never touch a
+# fire-protection valve without the FSM" is modelled as its own trigger. It
+# applies only on a CONFIRMED immediate life-safety hazard (required evidence,
+# gated); with the hazard unconfirmed it is blocked and TS-05 governs alone.
+# Status is escalate: the FSM must be informed within 5 minutes.
+- id: TS-13
+  title: Emergency isolation before fire-protection red-tag — immediate life safety only
+  trigger:
+    incident_type: water_ingress
+    all:
+      - { path: evidence.immediate_life_safety_hazard, op: eq, value: true }
+    any:
+      - { path: evidence.source_is_fire_protection, op: eq, value: true }
+      - { path: evidence.isolation_affects_fire_alarm, op: eq, value: true }
+  required_evidence:
+    - immediate_life_safety_hazard
+  decision: >-
+    An immediate life-safety hazard (e.g. water on live equipment) is
+    confirmed: isolate the fire-protection source first, inform the FSM
+    within 5 minutes, and raise the red-tag impairment permit
+    retrospectively. Fire watch, insurer notice and restoration then follow
+    TS-05. This is the only path to a fire-protection isolation before FSM
+    authorisation, and it holds only while the hazard is confirmed.
+  allowed_actions:
+    - "Emergency isolation of the smallest zone that removes the hazard"
+    - "Inform the FSM within 5 minutes"
+    - "Raise the red-tag impairment permit retrospectively"
+    - "Post fire watch once the zone is isolated"
+  forbidden_actions:
+    - "Emergency isolation on an unconfirmed life-safety hazard"
+    - "Isolating more than the zone needed to remove the hazard"
+    - "Leaving the FSM uninformed beyond 5 minutes"
+    - "Skipping the retrospective red-tag permit"
+  exceptions: []
+  action_class: must_escalate
+  forbidden_if_missing_evidence: true
+  escalate_to:
+    role: fire_safety_manager
+    fallback: head_technical_services
+  owner: fire_safety_manager
+  deadline_minutes: 5
+  asset_refs:
+    - "brick:Fire_Safety_Equipment"
+    - "brick:Valve"
+  sensitivity: internal
+  provenance:
+    - "ce-interview-2026-10-02#00:28:30"

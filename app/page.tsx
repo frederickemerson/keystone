@@ -8,9 +8,9 @@ import { BrandBand, ProofStrip } from '@/components/landing/ProofAndFooter';
 import { loadLandingFacts } from '@/components/landing/data';
 
 export const metadata: Metadata = {
-  title: 'MOSAIC — expert judgement, governed',
+  title: 'Keystone — expert judgement, governed',
   description:
-    "MOSAIC turns an expert's spoken know-how into governed, versioned Intelligence Pills.",
+    "Keystone turns an expert's spoken know-how into governed, versioned Intelligence Pills.",
 };
 
 // Landing page. Rendered full-bleed (AppShell skips the sidebar on "/").

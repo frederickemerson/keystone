@@ -1,4 +1,4 @@
-// MOSAIC deterministic rule engine — public entry point.
+// Keystone deterministic rule engine — public entry point.
 
 export type {
   ActionClass,

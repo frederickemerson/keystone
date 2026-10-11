@@ -59,7 +59,7 @@ export function ContradictionCard({
         </div>
       ) : (
         <p className="mt-3 text-[13px] text-approval">
-          MOSAIC is resolving this with the expert via a distinguishing-condition probe…
+          Keystone is resolving this with the expert via a distinguishing-condition probe…
         </p>
       )}
     </div>

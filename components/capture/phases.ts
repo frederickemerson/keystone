@@ -54,7 +54,7 @@ const PROBE_PHASE: Record<string, PhaseLabel> = {
 
 /**
  * Returns one phase label per turn. The phase follows the interviewer's current
- * probe; expert turns inherit the phase of the most recent MOSAIC probe so the
+ * probe; expert turns inherit the phase of the most recent Keystone probe so the
  * call panel shows a clean sweep progression.
  */
 export function computePhaseByTurn(
@@ -63,7 +63,7 @@ export function computePhaseByTurn(
   const out: string[] = [];
   let current: PhaseLabel = 'Incident account';
   for (const t of turns) {
-    if (t.speaker === 'MOSAIC' && t.probe_id) {
+    if (t.speaker === 'Keystone' && t.probe_id) {
       const base = t.probe_id.replace(/-.*$/, ''); // strip "-follow_up"
       const mapped = PROBE_PHASE[base];
       if (mapped) current = mapped;

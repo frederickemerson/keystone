@@ -1,4 +1,4 @@
-// MOSAIC deterministic rule engine — condition resolution and evaluation.
+// Keystone deterministic rule engine — condition resolution and evaluation.
 
 import type {
   Asset,

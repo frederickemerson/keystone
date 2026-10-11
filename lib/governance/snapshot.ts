@@ -1,4 +1,4 @@
-// MOSAIC governance — validation of the persisted (localStorage) snapshot.
+// Keystone governance — validation of the persisted (localStorage) snapshot.
 //
 // The store persists to the browser, which the user fully controls: the JSON
 // can be corrupted, from an older build, or hand-edited (an injected Approved

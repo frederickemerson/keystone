@@ -3,7 +3,7 @@
   "date": "2026-10-02",
   "duration": "00:35:00",
   "language": "Singapore English",
-  "interviewer": "MOSAIC",
+  "interviewer": "Keystone",
   "expert": {
     "name": "Tan Wei Ming",
     "role": "Chief Engineer",
@@ -16,8 +16,8 @@
   "turns": [
     {
       "t": "00:00:12",
-      "speaker": "MOSAIC",
-      "text": "Good morning, Wei Ming. I'm MOSAIC, the AI interviewer for the Expert Onboarding Call. Today I'll walk you through your experience with water-leak and chilled-water incidents using a structured interview method. The goal is to capture your judgement so it can be turned into governed decision rules. Ready to start?",
+      "speaker": "Keystone",
+      "text": "Good morning, Wei Ming. I'm Keystone, the AI interviewer for the Expert Onboarding Call. Today I'll walk you through your experience with water-leak and chilled-water incidents using a structured interview method. The goal is to capture your judgement so it can be turned into governed decision rules. Ready to start?",
       "probe_id": null
     },
     {
@@ -28,7 +28,7 @@
     },
     {
       "t": "00:01:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Think of a water leak or flooding incident in the last few years where your experience really made the difference, or where things nearly went wrong. Walk me through it from the first moment you heard about it.",
       "probe_id": "P01"
     },
@@ -40,7 +40,7 @@
     },
     {
       "t": "00:03:15",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What made this one non-routine?",
       "probe_id": "P01-follow_up"
     },
@@ -52,7 +52,7 @@
     },
     {
       "t": "00:04:30",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Let's put that in order. What was the very first signal, who got it, and roughly how many minutes passed before each of the next things happened?",
       "probe_id": "P02"
     },
@@ -64,7 +64,7 @@
     },
     {
       "t": "00:06:15",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Where in that sequence did you make a real decision, as opposed to just following routine?",
       "probe_id": "P02-follow_up"
     },
@@ -76,7 +76,7 @@
     },
     {
       "t": "00:08:20",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "At that point, what were you actually seeing, hearing or smelling? What told you this was more than a drip?",
       "probe_id": "P03"
     },
@@ -88,7 +88,7 @@
     },
     {
       "t": "00:09:40",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What information did you use to make that call, and how did you get it? Who or what did you check?",
       "probe_id": "P04"
     },
@@ -100,7 +100,7 @@
     },
     {
       "t": "00:11:20",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What were you trying to achieve right then — in order of priority? Life safety, stopping the water, protecting equipment, keeping the tenant open?",
       "probe_id": "P06"
     },
@@ -112,7 +112,7 @@
     },
     {
       "t": "00:13:30",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What other things could you have done at that moment? Even ones you dismissed quickly.",
       "probe_id": "P07"
     },
@@ -124,7 +124,7 @@
     },
     {
       "t": "00:14:20",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Why does that matter — that nobody goes in until the LEW says so? And why does that matter?",
       "probe_id": "P26"
     },
@@ -136,7 +136,7 @@
     },
     {
       "t": "00:16:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "How did you choose that option and reject the others? Was there a rule you were following, written or unwritten? Is there anything you would never do in that situation, no matter how much pressure you were under? Why?",
       "probe_id": "P08"
     },
@@ -148,7 +148,7 @@
     },
     {
       "t": "00:18:00",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What training or experience did someone need to make that call safely? Who on your team could have made it, and who could not?",
       "probe_id": "P09"
     },
@@ -160,7 +160,7 @@
     },
     {
       "t": "00:19:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "How much time did you really have before the situation got worse? What would 'worse' have looked like?",
       "probe_id": "P11"
     },
@@ -172,7 +172,7 @@
     },
     {
       "t": "00:20:30",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Suppose one thing had been different — say the water was coming from the ceiling above the switchroom instead of the pantry. What changes?",
       "probe_id": "P13"
     },
@@ -184,7 +184,7 @@
     },
     {
       "t": "00:22:00",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What would a technician in their first month most likely have done wrong here? What is the classic mistake?",
       "probe_id": "P14"
     },
@@ -196,7 +196,7 @@
     },
     {
       "t": "00:23:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Earlier you said 'always isolate the whole riser — that's the default'. Just now you said for an AHU branch leak you isolate the sub-valve and leave the riser open. Which comes first, or does it depend on something?",
       "probe_id": "P28"
     },
@@ -208,7 +208,7 @@
     },
     {
       "t": "00:24:20",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "So the distinguishing condition is: is the leak on the riser pipe itself, or on a branch where the sub-valve is accessible and stops the flow?",
       "probe_id": "P28-follow_up"
     },
@@ -220,7 +220,7 @@
     },
     {
       "t": "00:24:45",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "I have written this up as: WHEN a chilled-water leak is detected near electrical equipment within 2 m, DO isolate the water source and block re-energisation; NEVER re-energise before LEW sign-off and insulation resistance test; EXCEPT when the LEW confirms the affected section is a spare or dead board; ESCALATE to duty LEW immediately; SUCCESS = no person enters until LEW declares safe and no re-energisation without certification. Is that right? What is wrong or missing?",
       "probe_id": "P31"
     },
@@ -232,7 +232,7 @@
     },
     {
       "t": "00:25:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Let's sweep the boundaries rule by rule. Which decisions should nobody make on the spot? Start with water near switchgear or an electrical room.",
       "probe_id": "P29"
     },
@@ -244,7 +244,7 @@
     },
     {
       "t": "00:26:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Suppose a tenant calls and demands you kill the whole floor's power. What changes?",
       "probe_id": "P13"
     },
@@ -256,7 +256,7 @@
     },
     {
       "t": "00:27:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "You said 'when in doubt'. How, specifically, do you tell a condensate drip from an active chilled-water leak — something you could photograph or measure?",
       "probe_id": "P25"
     },
@@ -268,7 +268,7 @@
     },
     {
       "t": "00:28:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Big picture — when the source is a fire-protection system, who has to know, and who decides?",
       "probe_id": "P16"
     },
@@ -280,7 +280,7 @@
     },
     {
       "t": "00:29:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "What's a leak that doesn't behave like a normal leak — say, water turning up in a lift pit?",
       "probe_id": "P21"
     },
@@ -292,7 +292,7 @@
     },
     {
       "t": "00:30:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "How do you know the response worked — and what has to be preserved before cleanup for the insurer?",
       "probe_id": "P30"
     },
@@ -304,7 +304,7 @@
     },
     {
       "t": "00:31:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Looking ahead from isolation — what happens over the next day or two if the drying isn't done right?",
       "probe_id": "P15"
     },
@@ -316,7 +316,7 @@
     },
     {
       "t": "00:32:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Compare three leaks: the L28 office leak, the B1 switchroom leak, and a CRAH leak in the data centre. How is one different from the other two?",
       "probe_id": "P24"
     },
@@ -328,7 +328,7 @@
     },
     {
       "t": "00:33:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Is there something people miss after an incident is closed — something that comes back to bite you?",
       "probe_id": "P17"
     },
@@ -340,7 +340,7 @@
     },
     {
       "t": "00:34:10",
-      "speaker": "MOSAIC",
+      "speaker": "Keystone",
       "text": "Any tricks that aren't in the manual — for example when PUB issues a heavy-rain alert?",
       "probe_id": "P18"
     },

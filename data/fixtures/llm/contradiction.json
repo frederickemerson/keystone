@@ -32,6 +32,6 @@
       "confirmation_status": "confirmed",
       "transcript_segment_ref": "ce-interview-2026-10-02#00:23:10-00:24:30"
     },
-    "mosaic_summary": "MOSAIC detected that the expert stated 'always isolate the whole riser' (00:06:30) and later 'for an AHU branch leak, isolate the sub-valve and leave the riser open' (00:22:15). Asked at 00:23:10 (P28), he resolved it with a distinguishing condition (00:23:30): riser isolation for a riser-pipe leak, a seized or inaccessible sub-valve, or a source unconfirmed at 10 minutes; branch sub-valve only when it is accessible and stops the flow; condensate at AHU unit level. Encoded in TS-02 (trigger, decision, and exceptions on leak_on_riser_pipe and sub_valve_accessible)."
+    "mosaic_summary": "Keystone detected that the expert stated 'always isolate the whole riser' (00:06:30) and later 'for an AHU branch leak, isolate the sub-valve and leave the riser open' (00:22:15). Asked at 00:23:10 (P28), he resolved it with a distinguishing condition (00:23:30): riser isolation for a riser-pipe leak, a seized or inaccessible sub-valve, or a source unconfirmed at 10 minutes; branch sub-valve only when it is accessible and stops the flow; condensate at AHU unit level. Encoded in TS-02 (trigger, decision, and exceptions on leak_on_riser_pipe and sub_valve_accessible)."
   }
 }

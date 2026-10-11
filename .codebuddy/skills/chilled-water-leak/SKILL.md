@@ -120,6 +120,7 @@ the rules in `rules.yaml` are.
 - **Never close a fire-protection valve** (sprinkler, wet riser, hose reel,
   fire pump) without FSM authorisation. This is a red-tag impairment under
   FM Global DS 10-7. The FSM must be called, not informed after the fact.
+  The one exception is a confirmed immediate life-safety hazard (TS-13).
 
 - **Condensate vs active leak**: A condensate tray overflow or drain line
   blockage is a maintenance issue, not an emergency. An active chilled-water
@@ -142,6 +143,11 @@ the rules in `rules.yaml` are.
   bank anchor tenant's trading floor is a seven-figure incident in its own
   right.
 
+- A tripped breaker is evidence of risk, but nobody resets it — and nobody
+  widens the power-down on the strength of it — until the LEW has inspected
+  the tripped circuit (TS-03 adds `lew_inspected_tripped_breaker` as
+  required evidence). The reset itself is a re-energisation (TS-07).
+
 - Re-energisation after any wetting event requires: LEW sign-off,
   insulation resistance test passed, and the area confirmed dry. No
   exceptions. The gate in TS-07 blocks this unconditionally.
@@ -155,7 +161,10 @@ the rules in `rules.yaml` are.
 
 - Emergency isolation to protect life (e.g., water on live switchgear)
   may proceed first, but the FSM must be informed within 5 minutes and the
-  permit raised retrospectively.
+  permit raised retrospectively. This is its own rule, **TS-13**, and it
+  applies only once `immediate_life_safety_hazard` is confirmed; until then
+  TS-05's FSM-authorisation gate stands alone. It is not an exception on
+  TS-05 — an exception can never relax a gate.
 
 ### Lift shaft and pit
 
@@ -186,8 +195,11 @@ When `asset.type == data_centre`:
   Services. The IT/BCP owner or critical facilities manager makes that call.
 
 - The `asset_overrides` block in TS-07 reroutes escalation from
-  `duty_lew` to `dc_critical_facilities_manager`, who co-signs any return to
-  service. TS-10 escalates data-hall leaks to the same role.
+  `duty_lew` to `dc_critical_facilities_manager`, and TS-07's data-centre
+  exception adds `cfm_cosign` to the required evidence: the CFM co-signs
+  any return to service in addition to — never instead of — the LEW sign-off,
+  insulation resistance and area dry. TS-10 escalates data-hall leaks to the
+  same role.
 
 - CRAH unit condensate or chilled-water loop leaks follow the same isolation
   logic as office AHU/FCU leaks, but with higher urgency (PUE impact, thermal
@@ -241,8 +253,11 @@ When `asset.type == data_centre`:
 ### Must escalate (action_class: must_escalate)
 
 - **Re-energising any wetted or isolated electrical circuit** — LEW
-  sign-off, insulation resistance test, and area dry confirmation required.
+  sign-off, insulation resistance test, and area dry confirmation required
+  (plus the CFM co-signature on a data-centre asset).
   No LLM, no technician, and no Duty Manager can override this gate.
+- Emergency fire-protection isolation on a confirmed immediate life-safety
+  hazard (TS-13) — inform the FSM within 5 minutes, permit raised after
 - Water in/near switchgear or electrical room — evacuate electrical room,
   call LEW, isolate upstream water only
 - IT/DC power-down decision — escalate to critical facilities manager /

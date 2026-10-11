@@ -1,4 +1,4 @@
-// MOSAIC deterministic rule engine — eval replay + regression detection.
+// Keystone deterministic rule engine — eval replay + regression detection.
 
 import type {
   ActionDecision,

@@ -1,4 +1,4 @@
-// MOSAIC demo data — zod schemas + inferred types for data/*.json.
+// Keystone demo data — zod schemas + inferred types for data/*.json.
 // Pure (no fs) so client-safe modules (lib/governance/access.ts) can validate
 // statically imported JSON. Shapes are derived from the actual files in data/.
 

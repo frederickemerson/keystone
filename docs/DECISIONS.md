@@ -1,4 +1,4 @@
-# MOSAIC — Product decisions
+# Keystone — Product decisions
 
 Decisions taken on the demo's scope and governance behaviour, each with the
 reason behind it. Where a decision changes how the product should be

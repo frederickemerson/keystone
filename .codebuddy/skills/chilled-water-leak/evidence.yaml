@@ -1,4 +1,4 @@
-# MOSAIC Intelligence Pill — Evidence catalogue
+# Keystone Intelligence Pill — Evidence catalogue
 # Pill: technical-services/chilled-water-leak
 # Version: 1.2.0
 #
@@ -186,6 +186,12 @@ equipment_wetted_or_isolated:
   confirmable_by: [technician, technical_services_lead, duty_lew]
   description: An AHU, CRAH, DB or circuit has been wetted, or switched off / isolated because water reached it. Any return to service is a re-energisation (TS-07).
 
+lew_inspected_tripped_breaker:
+  label: LEW inspected the tripped breaker
+  type: boolean
+  confirmable_by: [duty_lew]
+  description: The LEW has inspected the tripped breaker and its circuit and established why it tripped. Required before any reset or wider power-down once a breaker has tripped (TS-03); the reset itself is a re-energisation under TS-07 (00:14:32).
+
 lew_signoff:
   label: LEW written sign-off
   type: boolean
@@ -203,6 +209,12 @@ area_dry:
   type: boolean
   confirmable_by: [duty_lew, technical_services_lead]
   description: Moisture readings around the equipment are back to baseline — no moisture in trunking or breakers.
+
+cfm_cosign:
+  label: Critical Facilities Manager co-signature
+  type: boolean
+  confirmable_by: [dc_critical_facilities_manager]
+  description: On a data-centre asset, the Critical Facilities Manager has co-signed the LEW's written sign-off for return to service. Required in addition to — never instead of — lew_signoff, insulation_resistance_ok and area_dry (TS-07, 00:32:30).
 
 lew_dispatched:
   label: LEW dispatched
@@ -248,7 +260,7 @@ drip_onto_tenant_it:
   label: Drip onto tenant IT / electrical equipment
   type: boolean
   confirmable_by: [technician]
-  description: Water is dripping onto tenant IT or electrical equipment — the electrical gate (TS-01) applies.
+  description: Water is dripping onto tenant IT or electrical equipment — triggers the electrical gate (TS-01).
 
 # ---------------------------------------------------------------------------
 # Fire protection
@@ -264,7 +276,7 @@ immediate_life_safety_hazard:
   label: Immediate life-safety hazard
   type: boolean
   confirmable_by: [fire_safety_manager, technical_services_lead]
-  description: An immediate life-safety hazard (e.g. water on live equipment) justifies emergency isolation before the permit (00:28:30).
+  description: An immediate life-safety hazard (e.g. water on live equipment). Confirmed, it triggers the emergency-isolation path (TS-13) — isolate first, FSM informed within 5 minutes, permit raised after (00:28:30).
 
 # ---------------------------------------------------------------------------
 # Lift

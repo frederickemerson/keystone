@@ -1,4 +1,4 @@
-// MOSAIC governance — version approval gate + shadow-mode records.
+// Keystone governance — version approval gate + shadow-mode records.
 // Pure + client-safe.
 
 import type { ActionDecision, ActionStatus, ComparisonResult } from "@/lib/engine";

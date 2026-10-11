@@ -1,4 +1,4 @@
-// MOSAIC deterministic rule engine — zod schemas + parsePill.
+// Keystone deterministic rule engine — zod schemas + parsePill.
 // Parses a pill's source files (SKILL.md, rules.yaml, provenance.json,
 // evidence.yaml, evals/*.yaml).
 //
