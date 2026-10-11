@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Regression } from "@/lib/engine";
-import { createGovernanceStore, GOVERNANCE_STORE_KEY, GOVERNANCE_STORE_VERSION, memoryStorage } from "../store";
+import { createGovernanceStore, GOVERNANCE_STORE_KEY, GOVERNANCE_STORE_VERSION, GovernanceError, memoryStorage } from "../store";
+import { ROLES, hasCapability } from "../access";
+import { shadowPromotionAuthority } from "../approval";
 import { PILL_ID, pill } from "./fixtures";
 
 const clock = () => "2026-10-11T08:00:00.000Z";
@@ -116,7 +118,7 @@ describe("governance store", () => {
   it("resetDemo restores seeded versions and clears runtime state, keeping the append-only audit", () => {
     const s = () => ctx.store.getState();
     s().setRole("chief_engineer");
-    s().proposeVersion(PILL_ID, "1.2.0", [], "x");
+    s().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], "x");
     s().setRole("asset_operations_manager");
     s().decideAction({ incidentId: "INC-1", ruleId: "TS-07", outcome: "approved" });
     const before = s().audit;
@@ -125,5 +127,64 @@ describe("governance store", () => {
     expect(s().decisions).toEqual({});
     expect(s().audit.slice(0, before.length)).toEqual(before);
     expect(s().audit.map((e) => e.action).at(-1)).toBe("demo_reset");
+  });
+
+  it("refuses an empty proposal with a clear message and audits the refusal", () => {
+    const s = () => ctx.store.getState();
+    s().setRole("chief_engineer");
+    const before = s().versions[PILL_ID];
+    const n = s().audit.length;
+    for (const changes of [[], [{ op: "update" as const, ruleId: "TS-03", patch: { deadline_minutes: 15 } }]]) {
+      expect(() => s().proposeVersion(PILL_ID, "1.2.0", changes, "no-op")).toThrow(GovernanceError);
+    }
+    expect(() => s().proposeVersion(PILL_ID, "1.2.0", [], "no-op")).toThrow(/Nothing to propose/);
+    expect(s().versions[PILL_ID]).toBe(before);
+    expect(s().audit).toHaveLength(n + 3);
+    expect(s().audit.at(-1)).toMatchObject({
+      action: "version_proposal_blocked",
+      actor: "Tan Wei Ming",
+      pillId: PILL_ID,
+      pillVersion: "1.2.0",
+    });
+    // Malformed input (no reason) still throws without touching state or the audit.
+    expect(() => s().proposeVersion(PILL_ID, "1.2.0", [], " ")).not.toThrow(GovernanceError);
+  });
+
+  it("shadow needs the pill-promotion grant: refused and audited otherwise, allowed for grant holders", () => {
+    const s = () => ctx.store.getState();
+    s().setRole("chief_engineer");
+    s().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], "fix");
+
+    // The pill owner (Chief Engineer) holds no promotion grant.
+    expect(() => s().promoteToShadow(PILL_ID, "1.3.0")).toThrow(GovernanceError);
+    expect(() => s().promoteToShadow(PILL_ID, "1.3.0")).toThrow(/pill-promotion grant/);
+    expect(s().audit.at(-1)).toMatchObject({ action: "version_shadow_blocked", pillVersion: "1.3.0", role: "chief_engineer" });
+    expect(s().versions[PILL_ID].find((v) => v.version === "1.3.0")?.status).toBe("Draft");
+
+    // The steward (Asset Operations Manager) holds the shadow-to-approved grant.
+    s().setRole("asset_operations_manager");
+    s().promoteToShadow(PILL_ID, "1.3.0");
+    expect(s().versions[PILL_ID].find((v) => v.version === "1.3.0")?.status).toBe("Shadow");
+    expect(s().audit.at(-1)).toMatchObject({ action: "version_shadowed", actor: "Priya Nair" });
+  });
+
+  it("the UI shadow policy matches the store for every role", () => {
+    for (const { role } of ROLES) {
+      const store = createGovernanceStore(memoryStorage(), clock);
+      store.getState().seedPills([{ id: PILL_ID, pill: pill() }]);
+      store.getState().setRole("chief_engineer");
+      const draft = store.getState().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], "fix");
+      store.getState().setRole(role);
+      const ui = shadowPromotionAuthority(draft, store.getState().currentActor).allowed;
+      let storeAllowed = true;
+      try {
+        store.getState().promoteToShadow(PILL_ID, "1.3.0");
+      } catch (err) {
+        expect(err).toBeInstanceOf(GovernanceError);
+        storeAllowed = false;
+      }
+      expect(storeAllowed).toBe(ui);
+      expect(ui).toBe(role === draft.approverRole || hasCapability(role, "promote_pill_version"));
+    }
   });
 });

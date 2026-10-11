@@ -11,8 +11,8 @@ import {
   type Actor,
   type PillVersion,
 } from "@/lib/governance/versions";
-import { canApprove } from "@/lib/governance/approval";
-import { hasCapability, roleLabel } from "@/lib/governance/access";
+import { canApprove, shadowPromotionAuthority } from "@/lib/governance/approval";
+import { roleLabel } from "@/lib/governance/access";
 import { compareVersions, runEvals } from "@/lib/engine";
 import { SectionHeader, DiffView, KpiStat } from "@/components/mosaic";
 import type { PillBundle } from "@/lib/pills/load";
@@ -50,10 +50,14 @@ export function PillApprovalCard({
   const check = canApprove(version, evalReport, currentActor, undefined, {
     liveApprovedVersion: approved?.version,
   });
-  const canPromote =
-    version.status === "Draft" &&
-    (hasCapability(currentActor.role, "promote_pill_version") ||
-      currentActor.role === version.approverRole);
+  // Same policy the store enforces (promoteToShadow refuses + audits otherwise).
+  const promotion = shadowPromotionAuthority(version, currentActor);
+  const canPromote = promotion.allowed;
+  const promoteBlockedReason = canPromote
+    ? undefined
+    : version.status !== "Draft"
+      ? promotion.reason
+      : `${roleLabel(currentActor.role)} has no pill-promotion grant — switch to a role that holds it (e.g. ${roleLabel(version.approverRole)}) to start Shadow.`;
 
   const overrideReady =
     comparison.regressions.length > 0 &&
@@ -81,8 +85,12 @@ export function PillApprovalCard({
   }
 
   function onPromote() {
-    promoteToShadow(bundle.id, version.version);
-    setMessage(`v${version.version} promoted to Shadow.`);
+    try {
+      promoteToShadow(bundle.id, version.version);
+      setMessage(`v${version.version} promoted to Shadow.`);
+    } catch (err) {
+      setMessage(`Blocked: ${(err as Error).message}`);
+    }
   }
 
   return (
@@ -161,13 +169,7 @@ export function PillApprovalCard({
           type="button"
           onClick={onPromote}
           disabled={!canPromote}
-          title={
-            canPromote
-              ? undefined
-              : version.status !== "Draft"
-                ? "Only Draft versions can enter Shadow"
-                : `Role ${roleLabel(currentActor.role)} cannot promote to Shadow`
-          }
+          title={promoteBlockedReason}
           className="btn-pill"
         >
           <ArrowRightCircle className="size-3.5" aria-hidden="true" /> Promote to Shadow
@@ -184,6 +186,10 @@ export function PillApprovalCard({
           <Ban className="size-3.5" aria-hidden="true" /> Reject
         </button>
       </div>
+
+      {version.status === "Draft" && promoteBlockedReason ? (
+        <p className="text-xs text-ink-muted">{promoteBlockedReason}</p>
+      ) : null}
 
       {comparison.regressions.length > 0 ? (
         <div className="rounded-lg border border-approval/30 bg-approval-tint p-3">

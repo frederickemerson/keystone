@@ -260,7 +260,7 @@ drip_onto_tenant_it:
   label: Drip onto tenant IT / electrical equipment
   type: boolean
   confirmable_by: [technician]
-  description: Water is dripping onto tenant IT or electrical equipment — the electrical gate (TS-01) applies.
+  description: Water is dripping onto tenant IT or electrical equipment — triggers the electrical gate (TS-01).
 
 # ---------------------------------------------------------------------------
 # Fire protection

@@ -135,6 +135,57 @@ describe("TE-01 / TE-07 — a life-safety instruction is its own rule; TE-01 app
   });
 });
 
+describe("TS-01 — water on the electrics fires the electrical gate itself (not an exception note elsewhere)", () => {
+  // The expert, 00:25:30: on the switchgear itself, dripping onto a tenant's IT
+  // or electrical kit, or touching live IT in a data hall — electrical hazard first.
+  const ON_ELECTRICS = ["water_on_switchgear", "drip_onto_tenant_it", "water_contacting_live_it"];
+  const near = { water_near_electrical: true, visual_or_alarm_confirmation: true };
+
+  it("each of the three keys triggers TS-01 (escalate to the duty LEW)", () => {
+    for (const key of ON_ELECTRICS) {
+      expect(decide(TS, OFFICE, { ...near, [key]: true }, "TS-01"), key).toEqual({ status: "escalate", missing: [] });
+      expect(decide(TS, OFFICE, { ...near, [key]: false }, "TS-01").status, `${key} false`).toBe("not_applicable");
+    }
+  });
+
+  it("a drip onto tenant IT during a condensate check escalates via TS-01 while TS-04 still runs", () => {
+    const facts = { ...near, ceiling_stain_or_drip: true, tenant_report_drip: true, visual_inspection: true, drip_onto_tenant_it: true };
+    expect(decide(TS, OFFICE, facts, "TS-01").status).toBe("escalate");
+    expect(decide(TS, OFFICE, facts, "TS-04").status).toBe("allowed");
+  });
+
+  it("water contacting live IT in a data hall escalates via TS-01 as well as TS-10", () => {
+    const facts = { ...near, crah_condensate_alarm: true, leak_alarm_confirmed: true, water_contacting_live_it: true };
+    expect(decide(TS, DC, facts, "TS-01").status).toBe("escalate");
+    expect(decide(TS, DC, facts, "TS-10").status).toBe("escalate");
+  });
+
+  it("no exception anywhere merely annotates that the TS-01 gate applies", () => {
+    for (const r of TS.rules)
+      for (const ex of r.exceptions) expect(ex.note, `${r.id}`).not.toMatch(/TS-01 electrical gate applies/);
+  });
+
+  it("authored data never records water on the electrics without water_near_electrical (TS-01's gate covers it)", () => {
+    const ts01 = TS.rules.find((r) => r.id === "TS-01")!;
+    const anyKeys = ts01.trigger.any.map((c) => c.path.replace(/^evidence\./, ""));
+    expect(anyKeys).toEqual(expect.arrayContaining(ON_ELECTRICS));
+    const check = (where: string, facts: Record<string, unknown>) => {
+      for (const k of anyKeys) if (facts[k] === true) expect(facts.water_near_electrical, `${where}: ${k}`).toBe(true);
+    };
+    for (const id of ["INC-2026-1011", "INC-2026-1012"]) {
+      const facts: Record<string, unknown> = {};
+      for (const e of loadTimeline(id)!.events) {
+        for (const [k, u] of Object.entries(e.evidence_updates)) facts[k] = u.value;
+        check(`${id} ${e.id}`, facts);
+      }
+    }
+    for (const [caseId, c] of Object.entries(TS.evals)) {
+      const facts = Object.fromEntries(Object.entries(c.evidence).map(([k, v]) => [k, v.value]));
+      check(caseId, facts);
+    }
+  });
+});
+
 // ---------------------------------------------------------------------------
 // The demo stories, stepped through the timelines as the Incident Room does
 // ---------------------------------------------------------------------------

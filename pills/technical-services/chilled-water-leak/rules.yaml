@@ -25,6 +25,9 @@
       - { path: evidence.water_in_electrical_room, op: eq, value: true }
       - { path: evidence.water_above_switchgear, op: eq, value: true }
       - { path: evidence.water_flowing_toward_electrical, op: eq, value: true }
+      - { path: evidence.water_on_switchgear, op: eq, value: true }
+      - { path: evidence.drip_onto_tenant_it, op: eq, value: true }
+      - { path: evidence.water_contacting_live_it, op: eq, value: true }
   required_evidence:
     - visual_or_alarm_confirmation
   decision: >-
@@ -150,10 +153,8 @@
     - "Shutting down a whole floor on tenant request alone"
     - "Shutting down a whole floor without LEW or confirmed evidence"
     - "De-energising circuits not in the water path"
+  # Water on switchgear is not an exception here: it triggers TS-01 itself.
   exceptions:
-    - when:
-        - { path: evidence.water_on_switchgear, op: eq, value: true }
-      note: "Water confirmed on switchgear — TS-01 electrical gate applies"
     - when:
         - { path: evidence.breaker_tripped, op: eq, value: true }
       note: "Breaker already tripped — the LEW inspects the tripped circuit before any reset or wider power-down (a reset is a re-energisation, TS-07)"
@@ -205,10 +206,8 @@
     - "Assuming condensate without visual inspection"
     - "Leaving FCU valves open overnight pending repair if active leak"
     - "Working above live tenant workstations without clearing the area"
-  exceptions:
-    - when:
-        - { path: evidence.drip_onto_tenant_it, op: eq, value: true }
-      note: "Drip onto tenant IT/electrical equipment — TS-01 electrical gate applies"
+  # A drip onto tenant IT/electrical equipment triggers TS-01 itself.
+  exceptions: []
   action_class: recommend
   forbidden_if_missing_evidence: false
   escalate_to:
@@ -476,10 +475,8 @@
     - "Switching off IT racks or UPS output without BCP owner approval"
     - "Pumping water with equipment powered from in-room circuits"
     - "Sending tenant-experience comms to DC clients (use SLA channel)"
-  exceptions:
-    - when:
-        - { path: evidence.water_contacting_live_it, op: eq, value: true }
-      note: "Water contacting live IT equipment — TS-01 electrical gate applies"
+  # Water contacting live IT equipment triggers TS-01 itself.
+  exceptions: []
   action_class: must_escalate
   forbidden_if_missing_evidence: false
   escalate_to:

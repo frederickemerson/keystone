@@ -101,6 +101,30 @@ export function canApprove(
 // Shadow mode
 // ---------------------------------------------------------------------------
 
+export interface ShadowPromotionAuthority {
+  allowed: boolean;
+  /** Why not, when not allowed. */
+  reason?: string;
+}
+
+/**
+ * May `actor` put `version` into Shadow? Shadow is the first step of pill
+ * promotion, so it needs the same authority as approval: the pill's approver
+ * role, or a role whose roles.json grants include pill version promotion
+ * (e.g. the steward's shadow-to-approved sign-off). The single policy both the
+ * UI buttons and the governance store enforce.
+ */
+export function shadowPromotionAuthority(version: PillVersion, actor: Actor): ShadowPromotionAuthority {
+  if (version.status !== "Draft") {
+    return { allowed: false, reason: `Only Draft versions enter Shadow (v${version.version} is ${version.status})` };
+  }
+  if (actor.role === version.approverRole || hasCapability(actor.role, "promote_pill_version")) return { allowed: true };
+  return {
+    allowed: false,
+    reason: `Role ${actor.role} has no pill-promotion grant and cannot put v${version.version} into Shadow (approver: ${version.approverRole})`,
+  };
+}
+
 /** One incident replayed through the approved and the shadow version side by side. */
 export interface ShadowRun {
   incidentId: string;

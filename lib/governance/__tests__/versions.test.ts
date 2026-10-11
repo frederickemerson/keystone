@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bumpMinor,
+  EmptyProposalError,
   currentApproved,
   diffVersions,
   liveVersion,
@@ -33,10 +34,34 @@ describe("proposeVersion", () => {
 
   it("never collides with an existing version", () => {
     const base = seeded();
-    const v13 = proposeVersion(base, [], CE, "a", [base], AT);
-    const v14 = proposeVersion(base, [], CE, "b", [base, v13], AT);
+    const v13 = proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT);
+    const v14 = proposeVersion(base, [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 11 } }], CE, "b", [base, v13], AT);
     expect(v14.version).toBe("1.4.0");
     expect(bumpMinor("1.2")).toBe("1.3.0");
+  });
+});
+
+describe("proposeVersion refuses empty proposals", () => {
+  it("no changes, a restated value, or changes that cancel out are refused", () => {
+    const base = seeded();
+    const noOps = [
+      [],
+      [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 15 } }],
+      [
+        { op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } },
+        { op: "update", ruleId: "TS-03", patch: { deadline_minutes: 15 } },
+      ],
+      [{ op: "remove", ruleId: "TS-03" }, { op: "add", rule: base.rules.find((r) => r.id === "TS-03")! }],
+    ] as const;
+    for (const changes of noOps) {
+      expect(() => proposeVersion(base, changes as never, CE, "noop", [base], AT)).toThrow(EmptyProposalError);
+      expect(() => proposeVersion(base, changes as never, CE, "noop", [base], AT)).toThrow(/Nothing to propose/);
+    }
+  });
+
+  it("a missing reason is still malformed input, not an empty-proposal refusal", () => {
+    const base = seeded();
+    expect(() => proposeVersion(base, [], CE, "  ", [base], AT)).toThrow(/needs a reason/);
   });
 });
 
@@ -85,8 +110,7 @@ describe("diffVersions", () => {
 
   it("identical versions have no changes", () => {
     const base = seeded();
-    const v = proposeVersion(base, [], CE, "noop", [base], AT);
-    expect(diffVersions(base, v).changes).toEqual([]);
+    expect(diffVersions(base, { ...base, version: "1.3.0" }).changes).toEqual([]);
   });
 });
 
@@ -147,7 +171,7 @@ describe("liveVersion", () => {
 
   it("falls back to the highest version when nothing is approved", () => {
     const base = { ...seeded(), status: "Retired" as const };
-    const v13 = proposeVersion(base, [], CE, "a", [base], AT);
+    const v13 = proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT);
     expect(liveVersion([base, v13])?.version).toBe("1.3.0");
     expect(liveVersion([])).toBeUndefined();
   });

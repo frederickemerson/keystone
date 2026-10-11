@@ -239,7 +239,7 @@
     {
       "t": "00:25:30",
       "speaker": "Tan Wei Ming",
-      "text": "The first rule — water anywhere near switchgear, the LV room, the riser cupboard, any electrical room: nobody goes in. You cordon the threshold, you call the LEW, and you isolate the water from outside the room. You never enter before the LEW confirms it's de-energised and safe. That's non-negotiable — I've seen a technician get a shock trying a quick look.",
+      "text": "The first rule — water anywhere near switchgear, the LV room, the riser cupboard, any electrical room: nobody goes in. You cordon the threshold, you call the LEW, and you isolate the water from outside the room. You never enter before the LEW confirms it's de-energised and safe. That's non-negotiable — I've seen a technician get a shock trying a quick look. Same gate wherever the water is actually on the electrics — on the switchgear itself, dripping onto a tenant's IT or electrical kit, or touching live IT in a data hall: that's an electrical hazard first, whatever else is going on.",
       "extracted_rule_ids": ["TS-01"]
     },
     {

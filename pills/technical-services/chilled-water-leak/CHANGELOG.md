@@ -67,6 +67,15 @@ therefore not what the engine did. Corrected before release:
   on a confirmed `immediate_life_safety_hazard`. Owner `fire_safety_manager`;
   approved with the rest of 1.2.0 by the Head of Technical Services. The
   misleading "permits emergency isolation" exception was removed from TS-05.
+- TS-01: the electrical-hazard trigger now also fires on
+  `water_on_switchgear`, `drip_onto_tenant_it` and `water_contacting_live_it`
+  (all three already declared in `evidence.yaml`), alongside the existing
+  room / above-switchgear / flowing-toward keys, still gated on
+  `water_near_electrical` (whose declared meaning covers all three). The
+  "TS-01 electrical gate applies" exceptions on TS-03, TS-04 and TS-10 were
+  note-only annotations the engine never enforced; they are removed because
+  the behaviour now lives in TS-01's trigger. Provenance: the expert's
+  00:25:30 turn (TS-01's primary ref) states it.
 - Evals: every eval states TS-13 (`not_applicable` in all six). The DC CRAH
   eval's TS-07 rationale now names `cfm_cosign`. Still 5 pass, 1 flagged
   (the TS-02 deadline).

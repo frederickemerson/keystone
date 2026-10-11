@@ -7,7 +7,13 @@ import { useStore } from "zustand";
 import { createJSONStorage, persist, type PersistStorage, type StateStorage } from "zustand/middleware";
 import { createStore, type Mutate, type StoreApi } from "zustand/vanilla";
 import type { ComparisonResult, Pill } from "@/lib/engine";
-import { canApprove, type ApprovalCheck, type ApprovalOverride, type ShadowRun } from "./approval";
+import {
+  canApprove,
+  shadowPromotionAuthority,
+  type ApprovalCheck,
+  type ApprovalOverride,
+  type ShadowRun,
+} from "./approval";
 import {
   DEFAULT_ROLE,
   decisionAuthority,
@@ -23,6 +29,7 @@ import { appendAudit, EMPTY_AUDIT_LOG, type AuditInput, type AuditLog } from "./
 import { parseGovernanceSnapshot } from "./snapshot";
 import {
   currentApproved,
+  EmptyProposalError,
   findVersion,
   markApproved,
   promoteToShadow,
@@ -93,7 +100,9 @@ export interface GovernanceActions {
   setRole: (role: string) => void;
   /** Seed any pill not already in the store (persisted edits survive reloads). */
   seedPills: (seeds: readonly PillSeed[]) => void;
+  /** Throws GovernanceError (after auditing the refusal) when the changes leave the rules identical. */
   proposeVersion: (pillId: string, baseVersion: string, changes: readonly RuleChange[], reason: string) => PillVersion;
+  /** Throws GovernanceError (after auditing the refusal) when the acting role lacks the pill-promotion grant. */
   promoteToShadow: (pillId: string, version: string) => void;
   recordShadowRun: (pillId: string, version: string, run: ShadowRun) => void;
   /** Runs canApprove(); approves only when allowed. Blocked attempts are audited too. */
@@ -300,7 +309,22 @@ export function createGovernanceStore(
             const h = history(pillId);
             const base = findVersion(h, baseVersion);
             if (!base) throw new Error(`Unknown version ${pillId}@${baseVersion}`);
-            const proposed = proposePure(base, changes, get().currentActor, reason, h, now());
+            let proposed: PillVersion;
+            try {
+              proposed = proposePure(base, changes, get().currentActor, reason, h, now());
+            } catch (err) {
+              // Malformed input (no reason, invalid rules) changes nothing; an
+              // empty proposal is a policy refusal and is audited.
+              if (!(err instanceof EmptyProposalError)) throw err;
+              log({
+                ...actorFields(),
+                action: "version_proposal_blocked",
+                pillId,
+                pillVersion: baseVersion,
+                detail: err.message,
+              });
+              throw new GovernanceError(err.message);
+            }
             set((s) => ({ versions: { ...s.versions, [pillId]: [...h, proposed] } }));
             log({
               ...actorFields(),
@@ -313,7 +337,16 @@ export function createGovernanceStore(
           },
 
           promoteToShadow: (pillId, version) => {
-            const next = promoteToShadow(history(pillId), version);
+            const h = history(pillId);
+            const target = findVersion(h, version);
+            if (!target) throw new Error(`Unknown version ${pillId}@${version}`);
+            const authority = shadowPromotionAuthority(target, get().currentActor);
+            if (!authority.allowed && target.status === "Draft") {
+              const why = authority.reason ?? "Not authorised";
+              log({ ...actorFields(), action: "version_shadow_blocked", pillId, pillVersion: version, detail: why });
+              throw new GovernanceError(why);
+            }
+            const next = promoteToShadow(h, version);
             set((s) => ({ versions: { ...s.versions, [pillId]: next } }));
             log({ ...actorFields(), action: "version_shadowed", pillId, pillVersion: version, detail: `v${version} entered Shadow mode` });
           },

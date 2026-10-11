@@ -211,7 +211,7 @@ describe("governance store under random action sequences", () => {
     for (const op of ["propose", "promote", "approve", "rollback", "decide", "reset", "setRole"]) {
       expect(seen.ok.has(op), `${op} never succeeded`).toBe(true);
     }
-    for (const op of ["approve", "rollback", "decide"]) {
+    for (const op of ["propose", "promote", "approve", "rollback", "decide"]) {
       expect(seen.refused.has(op), `${op} never refused`).toBe(true);
     }
   });
@@ -324,7 +324,7 @@ describe("separation of duties", () => {
           fc.assert(
             fc.property(variantArb(author), (alias) => {
               const draft: PillVersion = {
-                ...proposeVersion(base, [], { name: author, role: "chief_engineer" }, "x", [base], AT),
+                ...proposeVersion(base, [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], { name: author, role: "chief_engineer" }, "x", [base], AT),
                 status: shadow ? "Shadow" : "Draft",
               };
               const check = canApprove(draft, { regressions: [] }, { name: alias, role: approverRole }, { reason: "ok" });

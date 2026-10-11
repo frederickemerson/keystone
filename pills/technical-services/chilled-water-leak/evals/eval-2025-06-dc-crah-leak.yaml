@@ -29,7 +29,7 @@ evidence:
   pre_cleanup_photos: true
   failed_component_retained: true
 expected_decisions:
-  TS-01: { status: not_applicable, reason: "water not near electrical switchgear" }
+  TS-01: { status: not_applicable, reason: "water not recorded near electrical equipment and not contacting live IT (confined under the raised floor)" }
   TS-02: { status: not_applicable, reason: "flow stopped — isolation complete" }
   TS-03: { status: not_applicable, reason: "no power-down request" }
   TS-04: { status: not_applicable, reason: "no ceiling drip (raised-floor data hall)" }

@@ -11,8 +11,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { PageHeader, RomanList, SectionHeader, type RomanListItem } from '@/components/mosaic';
 import { compareVersions, type EvalCase } from '@/lib/engine';
-import { canApprove, type ApprovalCheck } from '@/lib/governance/approval';
-import { hasCapability } from '@/lib/governance/access';
+import { canApprove, shadowPromotionAuthority, type ApprovalCheck } from '@/lib/governance/approval';
+import { hasCapability, personaLabel } from '@/lib/governance/access';
 import {
   shadowKey,
   useGovernanceStore,
@@ -141,7 +141,8 @@ export function LearningFlow({
   const seeded = useRef(false);
 
   // Seed this pill into the governance store once; the demo opens as the
-  // Chief Engineer because step 2 is his correction.
+  // Chief Engineer because step 2 is his correction. Step 5 (Shadow) needs the
+  // pill-promotion grant he does not hold, so it offers a hand-off to the steward.
   useEffect(() => {
     const seed: PillSeed = { id: bundle.id, pill: bundle.pill };
     seedPills([seed]);
@@ -227,6 +228,17 @@ export function LearningFlow({
   const check: ApprovalCheck | null = target
     ? canApprove(target, evalReport, currentActor, undefined, { liveApprovedVersion: approved?.version })
     : null;
+  // Shadow is the first step of promotion: the store refuses (and audits) it
+  // for roles without the pill-promotion grant, so the button follows the same
+  // policy and offers the hand-off to the pill's steward (or its approver).
+  const promotion = target ? shadowPromotionAuthority(target, currentActor) : null;
+  const promoterRole = [bundle.pill.manifest.steward, bundle.pill.manifest.approver].find(
+    (r) => r === target?.approverRole || hasCapability(r, 'promote_pill_version'),
+  );
+  const promoteBlockedReason =
+    target && target.status === 'Draft' && promotion && !promotion.allowed
+      ? `${roleDisplayName(currentActor.role)} has no pill-promotion grant — Shadow is started by ${roleDisplayName(promoterRole ?? target.approverRole)}.`
+      : undefined;
   const canOverride = Boolean(
     target && check && check.regressions > 0 && currentActor.role === target.approverRole,
   );
@@ -428,6 +440,12 @@ export function LearningFlow({
               approvedVersion={approved?.version ?? null}
               canRun={target.status === 'Shadow'}
               blockedReason={`Promote v${target.version} to Shadow first — a Draft version has not run anywhere yet.`}
+              promoteBlockedReason={promoteBlockedReason}
+              switchRole={
+                promoteBlockedReason && promoterRole
+                  ? { label: personaLabel(promoterRole), onSwitch: () => setRole(promoterRole) }
+                  : undefined
+              }
               runs={runs}
               totalCases={cases.length}
               onPromote={handlePromote}

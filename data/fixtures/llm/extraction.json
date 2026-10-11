@@ -33,6 +33,21 @@
             "path": "evidence.water_flowing_toward_electrical",
             "op": "eq",
             "value": true
+          },
+          {
+            "path": "evidence.water_on_switchgear",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.drip_onto_tenant_it",
+            "op": "eq",
+            "value": true
+          },
+          {
+            "path": "evidence.water_contacting_live_it",
+            "op": "eq",
+            "value": true
           }
         ]
       },
@@ -180,16 +195,6 @@
         {
           "when": [
             {
-              "path": "evidence.water_on_switchgear",
-              "op": "eq",
-              "value": true
-            }
-          ],
-          "note": "Water confirmed on switchgear — TS-01 electrical gate applies"
-        },
-        {
-          "when": [
-            {
               "path": "evidence.breaker_tripped",
               "op": "eq",
               "value": true
@@ -240,18 +245,7 @@
       "decision": "Determine whether this is condensate (tray overflow, drain blockage) or an active chilled-water branch leak. Condensate is a drip, ambient temperature, from the condensate tray or drain line. Active chilled-water is a stream, cold (8-14 degrees C), from the branch pipe or riser. Condensate: clear tray, place drip protection, schedule repair. Active leak: isolate the FCU chilled-water isolation valves immediately (TS-02). When in doubt, treat as active and isolate.",
       "allowed_actions": ["Inspect condensate tray and drain line", "Clear blocked condensate drain", "Place drip tray and absorbent socks", "Close FCU chilled-water isolation valves if active leak suspected", "Check adjacent FCUs on same drain line", "Notify tenant", "Schedule repair work order"],
       "forbidden_actions": ["Assuming condensate without visual inspection", "Leaving FCU valves open overnight pending repair if active leak", "Working above live tenant workstations without clearing the area"],
-      "exceptions": [
-        {
-          "when": [
-            {
-              "path": "evidence.drip_onto_tenant_it",
-              "op": "eq",
-              "value": true
-            }
-          ],
-          "note": "Drip onto tenant IT/electrical equipment — TS-01 electrical gate applies"
-        }
-      ],
+      "exceptions": [],
       "action_class": "recommend",
       "forbidden_if_missing_evidence": false,
       "escalate_to": {
@@ -520,18 +514,7 @@
       "decision": "Notify DC operations and critical facilities manager immediately. Isolate the water source (CRAC/CRAH condensate, chilled-water branch). Deploy containment and drip diversion. Any IT power-down is proposed only and executed by the IT/BCP owner or critical facilities manager. Client SLA notification is triggered via the critical facilities manager, not via the tenant experience comms flow.",
       "allowed_actions": ["Isolate CRAH/chilled-water branch", "Containment and drip diversion", "Notify critical facilities manager with evidence pack", "Client SLA notification via critical facilities manager"],
       "forbidden_actions": ["Switching off IT racks or UPS output without BCP owner approval", "Pumping water with equipment powered from in-room circuits", "Sending tenant-experience comms to DC clients (use SLA channel)"],
-      "exceptions": [
-        {
-          "when": [
-            {
-              "path": "evidence.water_contacting_live_it",
-              "op": "eq",
-              "value": true
-            }
-          ],
-          "note": "Water contacting live IT equipment — TS-01 electrical gate applies"
-        }
-      ],
+      "exceptions": [],
       "action_class": "must_escalate",
       "forbidden_if_missing_evidence": false,
       "escalate_to": {

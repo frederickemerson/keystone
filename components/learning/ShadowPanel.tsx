@@ -3,7 +3,7 @@
 // Step 5 — Shadow mode. The new version runs silently alongside the approved
 // one over the closed incidents; nothing is applied until a human approves.
 
-import { CheckCircle2, Eye, Play, XCircle } from 'lucide-react';
+import { CheckCircle2, Eye, Play, UserCheck, XCircle } from 'lucide-react';
 import { KpiStat, SectionHeader } from '@/components/mosaic';
 import type { ActionStatus } from '@/lib/engine/types';
 import {
@@ -25,6 +25,8 @@ export function ShadowPanel({
   approvedVersion,
   canRun,
   blockedReason,
+  promoteBlockedReason,
+  switchRole,
   runs,
   totalCases,
   onPromote,
@@ -34,13 +36,17 @@ export function ShadowPanel({
   approvedVersion: string | null;
   canRun: boolean;
   blockedReason?: string;
+  /** Why the acting role may not promote to Shadow (store policy); undefined when it may. */
+  promoteBlockedReason?: string;
+  /** Hand-off to a role that holds the pill-promotion grant, offered when the acting role lacks it. */
+  switchRole?: { label: string; onSwitch: () => void };
   runs: readonly ShadowRun[];
   totalCases: number;
   onPromote: () => void;
   onRun: () => void;
 }) {
   const summary: ShadowSummary = shadowSummary(runs);
-  const promotable = version.status === 'Draft';
+  const promotable = version.status === 'Draft' && !promoteBlockedReason;
   const isShadow = version.status === 'Shadow';
 
   return (
@@ -57,7 +63,13 @@ export function ShadowPanel({
           type="button"
           onClick={onPromote}
           disabled={!promotable}
-          title={promotable ? undefined : `v${version.version} is already ${version.status}`}
+          title={
+            promotable
+              ? undefined
+              : version.status !== 'Draft'
+                ? `v${version.version} is already ${version.status}`
+                : promoteBlockedReason
+          }
           className="btn-pill btn-pill-primary"
         >
           <Eye className="size-3.5" aria-hidden="true" /> Promote to Shadow
@@ -71,8 +83,21 @@ export function ShadowPanel({
         >
           <Play className="size-3.5" aria-hidden="true" /> Replay {totalCases} closed incidents
         </button>
-        {!canRun && blockedReason ? <span className="text-xs text-ink-muted">{blockedReason}</span> : null}
+        {!canRun && blockedReason && !(version.status === 'Draft' && promoteBlockedReason) ? (
+          <span className="text-xs text-ink-muted">{blockedReason}</span>
+        ) : null}
       </div>
+
+      {version.status === 'Draft' && promoteBlockedReason ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-line bg-surface/50 px-3 py-2">
+          <p className="text-xs text-ink-muted">{promoteBlockedReason}</p>
+          {switchRole ? (
+            <button type="button" onClick={switchRole.onSwitch} className="btn-pill">
+              <UserCheck className="size-3.5" aria-hidden="true" /> Switch to {switchRole.label}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {runs.length === 0 ? (
         <p className="mt-3 text-xs text-ink-muted">

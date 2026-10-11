@@ -175,8 +175,18 @@ function applyRuleChangesUnchecked(rules: readonly Rule[], changes: readonly Rul
 }
 
 /**
+ * Thrown when a proposal would not change any rule: an empty change list, or
+ * changes that cancel out / restate the base's values. A version that carries
+ * its parent's rules unchanged has nothing to evaluate, shadow or approve.
+ */
+export class EmptyProposalError extends Error {
+  override name = "EmptyProposalError";
+}
+
+/**
  * Propose a new Draft version derived from `base`. Bumps the minor version —
  * from the highest version in `history` when given, so proposals never collide.
+ * Refused (EmptyProposalError) when the changes leave the rules identical.
  */
 export function proposeVersion(
   base: PillVersion,
@@ -187,11 +197,17 @@ export function proposeVersion(
   at: string = new Date().toISOString(),
 ): PillVersion {
   if (!reason.trim()) throw new Error("A proposal needs a reason");
+  const rules = applyRuleChanges(base.rules, changes);
+  if (diffRules(base.rules, rules).delta === undefined) {
+    throw new EmptyProposalError(
+      `Nothing to propose: the changes leave v${base.version}'s rules identical — edit at least one rule value`,
+    );
+  }
   return {
     pillId: base.pillId,
     version: nextMinorVersion(history.length ? history : [base]),
     status: "Draft",
-    rules: applyRuleChanges(base.rules, changes),
+    rules,
     createdBy: author,
     createdAt: at,
     reason,
