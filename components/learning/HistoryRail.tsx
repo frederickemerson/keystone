@@ -26,11 +26,6 @@ function VersionEntry({ version, isLive }: { version: PillVersion; isLive: boole
             live
           </span>
         ) : null}
-        {version.rollbackOf ? (
-          <span className="rounded-full border border-line bg-surface-raised px-2 py-0.5 text-[10px] text-ink-muted">
-            restores v{version.rollbackOf}
-          </span>
-        ) : null}
       </div>
       <p className="mt-1.5 text-[11px] text-ink">{version.reason}</p>
       <p className="mt-1 text-[11px] text-ink-muted">
@@ -41,7 +36,12 @@ function VersionEntry({ version, isLive }: { version: PillVersion; isLive: boole
           Approved by {version.approvedBy.name} · {when(version.approvedAt ?? version.createdAt)}
         </p>
       ) : null}
-      {version.parentVersion ? (
+      {version.rollbackOf ? (
+        <p className="text-[11px] text-ink-muted">
+          Rollback of v{version.parentVersion ?? version.rollbackOf} · restores v{version.rollbackOf}{' '}
+          rules
+        </p>
+      ) : version.parentVersion ? (
         <p className="text-[11px] text-ink-muted">from v{version.parentVersion}</p>
       ) : (
         <p className="text-[11px] text-ink-muted">seeded from pill files</p>

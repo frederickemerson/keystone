@@ -1,6 +1,7 @@
 import { KpiStat, SectionHeader } from '@/components/mosaic';
 import { loadAssets, loadIncidents } from '@/lib/data';
 import { loadAllPills } from '@/lib/pills/load';
+import { runEvals } from '@/lib/engine';
 import { AssetGrid } from '@/components/pulse/AssetGrid';
 import { ActiveIncidentsTable } from '@/components/pulse/ActiveIncidentsTable';
 import { ClosedIncidentsList } from '@/components/pulse/ClosedIncidentsList';
@@ -41,17 +42,21 @@ function downtimeAvoidedHours(incidents: IncidentRecord[]): number {
   }, 0);
 }
 
-function expertAgreementPct(pills: ReturnType<typeof loadAllPills>): number {
+// Replay agreement = the engine's own eval pass rate across approved pills.
+// Every asserted field (status and deadline) in every eval case is replayed
+// through the pill; the count is "x of y" assertions, not an invented score.
+function replayAgreement(
+  pills: ReturnType<typeof loadAllPills>,
+): { passed: number; total: number } {
+  let passed = 0;
   let total = 0;
-  let rejected = 0;
-  for (const p of pills) {
-    for (const entry of Object.values(p.pill.provenance)) {
-      total += 1;
-      if (entry.confirmation_status === 'rejected') rejected += 1;
-    }
+  for (const { pill } of pills) {
+    if (pill.manifest.status !== 'approved') continue;
+    const summary = runEvals(pill, Object.values(pill.evals));
+    passed += summary.passed;
+    total += summary.passed + summary.failed;
   }
-  if (total === 0) return 0;
-  return Math.round(((total - rejected) / total) * 100);
+  return { passed, total };
 }
 
 export default function PortfolioPulsePage() {
@@ -70,7 +75,7 @@ export default function PortfolioPulsePage() {
   const pillsApproved = pills.filter(
     (p) => p.pill.manifest.status === 'approved',
   ).length;
-  const agreement = expertAgreementPct(pills);
+  const agreement = replayAgreement(pills);
   const downtimeAvoided = downtimeAvoidedHours(incidents);
 
   // The Technical Services pill is the one whose judgement is on display.
@@ -93,7 +98,7 @@ export default function PortfolioPulsePage() {
           <KpiStat label="Avg time-to-isolate" value={avgIsolate} unit="min" />
           <KpiStat label="Decisions awaiting approval" value={awaitingApproval} />
           <KpiStat label="Pills approved" value={pillsApproved} />
-          <KpiStat label="Expert agreement" value={agreement} unit="%" />
+          <KpiStat label="Replay agreement" value={`${agreement.passed} of ${agreement.total}`} />
           <KpiStat label="Downtime avoided" value={downtimeAvoided} unit="hrs" />
         </div>
       </section>

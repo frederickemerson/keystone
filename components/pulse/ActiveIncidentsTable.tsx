@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { cn } from '@/lib/ui/cn';
 import type { IncidentRecord } from '@/lib/data';
-import { personaFor } from '@/lib/governance/access';
+import { personaFor, roleLabel } from '@/lib/governance/access';
+import { humanizeKey } from '@/components/incident/labels';
 
 // Stable demo clock so "time since detection" is deterministic across renders.
 const DEMO_NOW = new Date('2026-10-11T11:30:00+08:00');
@@ -24,7 +25,7 @@ const ACTION_RANK: Record<string, number> = {
   recommend: 2,
 };
 
-function unresolvedOwner(incident: IncidentRecord): string | null {
+function unresolvedOwner(incident: IncidentRecord): { name: string; role: string } | null {
   const unresolved = (incident.actions ?? []).filter(
     (a) => a.status === 'blocked' || a.status === 'needs_approval',
   );
@@ -33,8 +34,10 @@ function unresolvedOwner(incident: IncidentRecord): string | null {
     (a, b) => (ACTION_RANK[a.action_class] ?? 9) - (ACTION_RANK[b.action_class] ?? 9),
   )[0];
   // The named human an unresolved action routes to: its escalation target's
-  // persona from roles.json (one source of truth for names).
-  return top.escalate_to ? personaFor(top.escalate_to.role).name : null;
+  // persona from roles.json (one source of truth for names), shown with the
+  // role label the human acts in.
+  if (!top.escalate_to) return null;
+  return { name: personaFor(top.escalate_to.role).name, role: roleLabel(top.escalate_to.role) };
 }
 
 const SEVERITY_TONE: Record<string, string> = {
@@ -72,6 +75,7 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
         <tbody>
           {active.map((incident) => {
             const cov = incident.evidence_coverage;
+            const owner = unresolvedOwner(incident);
             return (
               <tr
                 key={incident.id}
@@ -91,7 +95,7 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
                   <span className="font-medium text-ink">{incident.asset_name}</span>
                 </td>
                 <td className="max-w-xs px-4 py-3">
-                  <p className="font-medium text-ink">{incident.subtype.replace(/_/g, ' ')}</p>
+                  <p className="font-medium text-ink">{humanizeKey(incident.subtype)}</p>
                   <p className="mt-0.5 line-clamp-2 text-xs text-ink-muted">
                     {incident.description}
                   </p>
@@ -99,13 +103,20 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
                 <td className="whitespace-nowrap px-4 py-3 text-xs tabular-nums text-ink">
                   {formatDuration(minutesSince(incident.opened_at))}
                 </td>
-                <td className="px-4 py-3 text-xs text-ink">
-                  {unresolvedOwner(incident) ?? '—'}
+                <td className="px-4 py-3 text-xs">
+                  {owner ? (
+                    <span className="whitespace-nowrap">
+                      <span className="font-medium text-ink">{owner.name}</span>
+                      <span className="text-ink-muted"> · {owner.role}</span>
+                    </span>
+                  ) : (
+                    <span className="text-ink-muted">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   {cov ? (
                     <span
-                      className="rounded border border-line bg-surface-raised px-2 py-1 font-mono text-xs tabular-nums text-ink"
+                      className="inline-block whitespace-nowrap rounded border border-line bg-surface-raised px-2 py-1 font-mono text-xs tabular-nums text-ink"
                       title={`${cov.confirmed} of ${cov.required} required evidence confirmed`}
                     >
                       {cov.confirmed} of {cov.required}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import type { IncidentRecord } from '@/lib/data';
+import { humanizeKey } from '@/components/incident/labels';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-SG', {
@@ -34,7 +35,7 @@ export function ClosedIncidentsList({
         >
           <span className="font-mono text-[11px] text-ink-muted">{incident.id}</span>
           <span className="text-sm font-medium text-ink">
-            {incident.subtype.replace(/_/g, ' ')}
+            {humanizeKey(incident.subtype)}
           </span>
           <span className="text-xs text-ink-muted">· {incident.asset_name}</span>
           <span className="text-xs text-ink-muted">· {formatDate(incident.closed_at ?? '')}</span>

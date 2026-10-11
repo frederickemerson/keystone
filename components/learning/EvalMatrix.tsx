@@ -7,7 +7,7 @@
 import { CheckCircle2, FlaskConical, XCircle } from 'lucide-react';
 import { KpiStat, SectionHeader } from '@/components/mosaic';
 import type { ComparisonResult, EvalCase } from '@/lib/engine';
-import type { DeadlineAssertion, EvalMatrixRow } from './learning-utils';
+import type { EvalMatrixRow, FieldAssertion } from './learning-utils';
 
 function PassCell({ pass, failed, total }: { pass: boolean; failed: number; total: number }) {
   return (
@@ -46,7 +46,7 @@ export function EvalMatrix({
   baseVersion: string;
   nextVersion: string;
   correctionCaseId?: string;
-  assertion: DeadlineAssertion | null;
+  assertion: FieldAssertion | null;
 }) {
   const oldTotal = comparison.oldSummary.passed + comparison.oldSummary.failed;
   const newTotal = comparison.newSummary.passed + comparison.newSummary.failed;
@@ -129,11 +129,14 @@ export function EvalMatrix({
           </p>
           <p className="mt-1.5 text-xs text-ink">
             <span className="font-mono">{correctionCaseId}</span> failed on v{baseVersion} and passes
-            on v{nextVersion} — the replay now reproduces the expert&apos;s decision.
+            on v{nextVersion} — the engine now reproduces the expert&apos;s decision.
             {assertion ? (
               <>
                 {' '}
-                The corrected field: <span className="font-mono">{assertion.ruleId} {assertion.field}</span>{' '}
+                The corrected field:{' '}
+                <span className="font-mono">
+                  {assertion.ruleId} {assertion.field}
+                </span>{' '}
                 {assertion.before ?? '—'} → {assertion.after ?? '—'} minutes.
               </>
             ) : null}
@@ -146,16 +149,21 @@ export function EvalMatrix({
             <span className="font-mono">
               {assertion.ruleId} {assertion.field}
             </span>{' '}
-            must be {assertion.expected} minutes: v{baseVersion} carried {assertion.before ?? '—'}{' '}
-            <span className="font-medium text-escalate">— fail</span>; v{nextVersion} carries{' '}
-            {assertion.after ?? '—'} <span className="font-medium text-recommend">— pass</span>.
+            must be {assertion.expected} minutes: v{baseVersion} carries {assertion.before ?? '—'}{' '}
+            <span className={assertion.oldPass ? 'font-medium text-recommend' : 'font-medium text-escalate'}>
+              — {assertion.oldPass ? 'pass' : 'fail'}
+            </span>
+            ; v{nextVersion} carries {assertion.after ?? '—'}{' '}
+            <span className={assertion.newPass ? 'font-medium text-recommend' : 'font-medium text-escalate'}>
+              — {assertion.newPass ? 'pass' : 'fail'}
+            </span>
+            .
           </p>
           <p className="mt-1.5 text-[11px] text-ink-muted">
-            The eval specifies an expected deadline, so the corrected value is asserted on the rule
-            itself. Until the engine compares that field in runEvals, the matrix above reports
-            statuses only.
+            The engine replays every field each eval asserts — status and deadline_minutes — so this
+            value is checked in the matrix above, not separately.
             {correctionRow && !correctionRow.newPass
-              ? ' Other assertions in this case still fail; they are listed above and are not part of this correction.'
+              ? ' Other assertions in this case may still fail; they are listed above and are not part of this correction.'
               : ''}
           </p>
         </div>

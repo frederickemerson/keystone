@@ -3,7 +3,7 @@
 // screen's numbers can be reasoned about (and probed) without rendering.
 
 import { evaluate, type EvalCase, type EvalSummary, type Pill } from "@/lib/engine";
-import type { ComparisonResult } from "@/lib/engine";
+import type { ComparisonResult, EvalCaseResult, EvalField, EvalValue } from "@/lib/engine";
 import { makeShadowRun, type ShadowRun } from "@/lib/governance/approval";
 import { roleLabel } from "@/lib/governance/access";
 import type { IncidentRecord } from "@/lib/data/schemas";
@@ -212,39 +212,45 @@ export function findCorrectionCaseId(cases: readonly EvalCase[]): string | undef
   return cases.find((c) => /tenant-area-isolation/.test(c.id))?.id;
 }
 
-export interface DeadlineAssertion {
+export interface FieldAssertion {
   ruleId: string;
-  field: string;
-  expected: number;
-  before: number | null;
-  after: number | null;
+  field: EvalField;
+  /** The value the eval expects for this field. */
+  expected: EvalValue;
+  /** Actual value under the base version (from the engine). */
+  before: EvalValue;
+  /** Actual value under the next version (from the engine). */
+  after: EvalValue;
   oldPass: boolean;
   newPass: boolean;
 }
 
 /**
- * Field-level check for the correction itself (TS-02 deadline_minutes 15 → 10).
- *
- * Where the eval specifies an expected deadline, `runEvals` compares it and the
- * matrix row flips on its own; this assertion keeps the corrected field visible
- * either way, so the screen is correct whether or not the engine compares it yet.
+ * The engine's own field-level result for one rule in one eval case, read
+ * straight from `compareVersions`. The engine asserts every field the eval
+ * specifies (status and deadline_minutes), so this is the single source of
+ * truth for the correction — there is no separate, hand-rolled deadline check.
  */
-export function deadlineAssertion(
-  baseRules: readonly { id: string; deadline_minutes: number | null }[],
-  nextRules: readonly { id: string; deadline_minutes: number | null }[],
+export function fieldAssertion(
+  comparison: ComparisonResult,
+  caseId: string,
   ruleId: string,
-  expected: number,
-): DeadlineAssertion {
-  const before = baseRules.find((r) => r.id === ruleId)?.deadline_minutes ?? null;
-  const after = nextRules.find((r) => r.id === ruleId)?.deadline_minutes ?? null;
+  field: EvalField,
+): FieldAssertion | null {
+  const find = (results: readonly EvalCaseResult[]): EvalCaseResult | undefined =>
+    results.find((r) => r.caseId === caseId && r.ruleId === ruleId && r.field === field);
+  const before = find(comparison.oldSummary.results);
+  const after = find(comparison.newSummary.results);
+  const sample = after ?? before;
+  if (!sample) return null;
   return {
     ruleId,
-    field: CORRECTION_FIELD,
-    expected,
-    before,
-    after,
-    oldPass: before === expected,
-    newPass: after === expected,
+    field,
+    expected: sample.expected,
+    before: before?.actual ?? null,
+    after: after?.actual ?? null,
+    oldPass: before?.pass ?? false,
+    newPass: after?.pass ?? false,
   };
 }
 

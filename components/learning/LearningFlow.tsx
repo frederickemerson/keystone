@@ -41,11 +41,11 @@ import { StepRail, goToStep, type StepState } from './StepRail';
 import { VersionChip } from './VersionChip';
 import {
   buildEvalMatrix,
+  CORRECTION_FIELD,
   correctionReason,
-  deadlineAssertion,
   defaultOutcome,
+  fieldAssertion,
   findCorrectionCaseId,
-  GOVERNANCE_ROLES,
   roleDisplayName,
   simulateShadowRuns,
   type CorrectionDraft,
@@ -155,18 +155,29 @@ export function LearningFlow({
   );
 
   const correctionCaseId = useMemo(() => findCorrectionCaseId(cases), [cases]);
+  // The correction's field-level result comes straight from the engine
+  // (compareVersions asserts status *and* deadline_minutes per case).
   const assertion = useMemo(
     () =>
-      base && target && correction.after !== null
-        ? deadlineAssertion(base.rules, target.rules, correction.ruleId, correction.after)
+      comparison && correctionCaseId
+        ? fieldAssertion(comparison, correctionCaseId, correction.ruleId, CORRECTION_FIELD)
         : null,
-    [base, target, correction.after, correction.ruleId],
+    [comparison, correctionCaseId, correction.ruleId],
   );
 
   const runs = target ? shadowRuns[shadowKey(bundle.id, target.version)] ?? [] : [];
   const nextVersion = versions.length
     ? nextMinorVersion(versions)
     : bumpMinor(bundle.pill.manifest.version);
+
+  // A Draft or Shadow version is already in flight; proposing another would
+  // fork the history, so the propose button is disabled with an explanation.
+  const pending = versions.find((v) => v.status === 'Draft' || v.status === 'Shadow');
+  const proposeDisabledReason = pending
+    ? pending.status === 'Draft'
+      ? `Draft v${pending.version} is already awaiting promotion — run it through Shadow and approve it before proposing another version.`
+      : `Shadow v${pending.version} is already awaiting approval — approve it in step 6 before proposing another version.`
+    : undefined;
 
   const canRollback =
     hasCapability(currentActor.role, 'rollback_pill') || currentActor.role === base?.approverRole;
@@ -304,22 +315,14 @@ export function LearningFlow({
           </p>
         </div>
 
-        <label className="flex items-center gap-2 text-xs text-ink-muted">
+        {/* Read-only: the app-shell RoleSwitcher is the single place to change
+            role, so this screen only reflects who is acting. */}
+        <p className="flex items-center gap-2 text-xs text-ink-muted">
           <span className="uppercase tracking-widest">Acting as</span>
-          <select
-            value={currentActor.role}
-            onChange={(e) => setRole(e.target.value)}
-            aria-label="Current role"
-            className="rounded-md border border-line bg-surface-raised px-2 py-1 text-xs text-ink"
-          >
-            {GOVERNANCE_ROLES.map((role) => (
-              <option key={role} value={role}>
-                {roleDisplayName(role)}
-              </option>
-            ))}
-          </select>
           <span className="text-ink">{currentActor.name}</span>
-        </label>
+          <span aria-hidden="true">·</span>
+          <span className="text-ink">{roleDisplayName(currentActor.role)}</span>
+        </p>
       </header>
 
       {error ? (
@@ -354,7 +357,11 @@ export function LearningFlow({
             before={
               liveRules.find((r) => r.id === correction.ruleId)?.deadline_minutes ?? null
             }
-            disabledReason={outcomeSaved ? undefined : 'Confirm the outcome in step 1 first.'}
+            disabledReason={
+              outcomeSaved
+                ? proposeDisabledReason
+                : 'Confirm the outcome in step 1 first.'
+            }
             onChange={setCorrection}
             onPropose={handlePropose}
           />
