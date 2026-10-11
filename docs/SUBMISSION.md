@@ -52,7 +52,7 @@ Two primary users, per the challenge's own roles. Everyone else is a name in the
    supervises and verifies AI recommendations, approves `requires_approval` actions,
    stewards the pill through shadow → approved, and escalates.
 
-Supporting roles (implemented in `data/roles.json`, 13 in total): Head of Technical
+Supporting roles (implemented in `data/roles.json`, 14 in total): Head of Technical
 Services (approver of record), Duty Licensed Electrical Worker (electrical-safety
 sign-off), Fire Safety Manager, Tenant Experience Manager, Duty Facilities Manager,
 DC Critical Facilities Manager, Technician, Executive, and others.

@@ -124,7 +124,7 @@ pills/technical-services/chilled-water-leak/
   SKILL.md          # frontmatter: name, description, version, owner, steward,
                     # approver, status, scope, access, review_cadence
                     # body: prose heuristics + an explicit Boundaries section
-  rules.yaml        # TS-01..TS-12 — structured triggers, required_evidence,
+  rules.yaml        # TS-01..TS-13 — structured triggers, required_evidence,
                     # action_class (recommend|requires_approval|must_escalate),
                     # escalate_to, owner, deadline, asset_overrides, provenance
   evidence.yaml     # evidence key → { label, type, confirmable_by, description }
@@ -137,8 +137,8 @@ Two pills ship in this repository:
 
 | Pill | Domain | Version | Rules | Evals | Status |
 |------|--------|---------|-------|-------|--------|
-| `technical-services/chilled-water-leak` | Technical Services | 1.2.0 | TS-01..TS-12 | 6 | approved |
-| `tenant-experience/incident-comms` | Tenant Experience | 1.0.0 | TE-01..TE-06 | 3 | approved |
+| `technical-services/chilled-water-leak` | Technical Services | 1.2.0 | TS-01..TS-13 | 6 | approved |
+| `tenant-experience/incident-comms` | Tenant Experience | 1.0.0 | TE-01..TE-07 | 3 | approved |
 
 ### How it installs as a CodeBuddy / WorkBuddy skill
 
