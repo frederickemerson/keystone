@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Keystone solution diagram</title>
+<meta name="viewport" content="width=1920">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #fdfbf9; --dew: #f7efe9; --charcoal: #171717; --cocoa: #2b1a07; --muted: #5f5a55; --line: #d9d3cd;
+    --marker: #ff6f1e;
+    --blocked: #b42318; --blocked-bg: #fdecea; --escalate: #ce500a; --escalate-bg: #fdf0e6;
+    --approve: #a15c07; --approve-bg: #fdf6e3; --ok: #2f7d32; --ok-bg: #eef7ee;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--cream); }
+  body { font-family: 'Geist', system-ui, sans-serif; color: var(--charcoal); -webkit-font-smoothing: antialiased; padding: 30px 56px 0; position: relative; }
+  .mono { font-family: 'Geist Mono', monospace; }
+
+  header { display: flex; align-items: center; justify-content: space-between; }
+  .hl { display: flex; align-items: center; gap: 28px; }
+  .hl h1 { margin: 0; padding-left: 28px; border-left: 1.5px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand svg { width: 44px; height: 44px; }
+  .brand b { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; }
+  h1 { font-size: 38px; font-weight: 700; letter-spacing: -0.025em; color: var(--cocoa); line-height: 1.05; margin-top: 10px; }
+  .sub { font-size: 19px; color: var(--muted); margin-top: 6px; }
+  .track { text-align: right; font-size: 17px; color: var(--muted); line-height: 1.45; }
+  .track b { color: var(--charcoal); font-weight: 600; }
+
+  .card { position: relative; background: #fff; border: 1.5px solid var(--charcoal); border-radius: 14px; padding: 18px 20px 18px; box-shadow: rgba(0,0,0,.05) 0 2px 16px; }
+  .card h2 { font-size: 25px; font-weight: 650; font-weight: 600; letter-spacing: -0.015em; line-height: 1.15; padding-left: 44px; min-height: 32px; display: flex; align-items: center; }
+  .badge { position: absolute; left: 16px; top: 16px; width: 34px; height: 34px; border-radius: 50%; background: var(--marker); color: var(--charcoal);
+    font-weight: 700; font-size: 19px; display: grid; place-items: center; }
+  .card p, .card li { font-size: 19px; line-height: 1.36; color: #2a2724; }
+  .card p { margin-top: 10px; }
+  .card ul { margin-top: 8px; list-style: none; display: grid; gap: 5px; }
+  .card li { padding-left: 18px; position: relative; }
+  .card li::before { content: ''; position: absolute; left: 2px; top: 10px; width: 7px; height: 7px; border-radius: 50%; background: var(--charcoal); }
+  .who { font-size: 15px; color: var(--muted); margin-top: 10px; }
+  b.k { font-weight: 600; }
+
+  .problem { margin-top: 20px; display: grid; grid-template-columns: 1fr; }
+  .problem .card { background: var(--dew); display: flex; align-items: center; gap: 22px; padding: 16px 20px; }
+  .problem .card h2 { flex: 0 0 auto; padding-right: 8px; }
+  .problem .card p { margin: 0; font-size: 20px; }
+
+  .flow { margin-top: 20px; display: grid; grid-template-columns: 1fr 44px 1fr 44px 1.08fr 22px 0.8fr; align-items: stretch; }
+  .arrow { display: grid; place-items: center; }
+  .arrow svg { width: 44px; height: 30px; }
+  .stack { display: grid; }
+
+  .files { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .file { font-family: 'Geist Mono', monospace; font-size: 16px; border: 1px solid var(--charcoal); border-radius: 6px; padding: 2px 8px; background: var(--cream); }
+
+  .chips { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 16px; font-weight: 600; border-radius: 999px; padding: 3px 11px; border: 1.2px solid; white-space: nowrap; }
+  .c-ok { color: var(--ok); background: var(--ok-bg); border-color: var(--ok); }
+  .c-ap { color: var(--approve); background: var(--approve-bg); border-color: var(--approve); }
+  .c-es { color: var(--escalate); background: var(--escalate-bg); border-color: var(--escalate); }
+  .c-bl { color: var(--blocked); background: var(--blocked-bg); border-color: var(--blocked); }
+
+  .loop { margin-top: 16px; display: grid; grid-template-columns: 1fr 0.42fr; gap: 22px; }
+  .flow .card, .loop .card { }
+  .loop .card { padding: 16px 20px 18px; }
+  .steps { margin-top: 12px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; align-items: stretch; }
+  .step { position: relative; border: 1.2px solid var(--charcoal); background: var(--cream); border-radius: 10px; padding: 9px 12px; margin-right: 26px; }
+  .step:last-child { margin-right: 0; }
+  .step:not(:last-child)::after { content: ''; position: absolute; right: -21px; top: 50%; width: 14px; height: 14px; border-top: 2px solid var(--charcoal); border-right: 2px solid var(--charcoal); transform: translateY(-50%) rotate(45deg); }
+  .step b { display: block; font-size: 19px; font-weight: 600; }
+  .step span { display: block; font-size: 16px; line-height: 1.32; color: #3d3935; margin-top: 3px; }
+  .step.gate { border-color: var(--approve); background: var(--approve-bg); }
+  .loop-head { display: flex; align-items: center; justify-content: space-between; }
+  .loop-head .note { font-size: 17px; color: var(--muted); }
+
+  .impl { position: absolute; left: 0; right: 0; bottom: 0; height: 150px; background: var(--marker); border-radius: 44px 44px 0 0; padding: 18px 56px 0; }
+  .impl-head { display: flex; align-items: center; gap: 12px; }
+  .impl-head .badge { position: static; background: var(--charcoal); color: var(--marker); }
+  .impl-head h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; }
+  .impl-head .note { font-size: 16.5px; margin-left: auto; }
+  .layers { margin-top: 12px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .layer { background: var(--cream); border: 1.2px solid var(--charcoal); border-radius: 10px; padding: 7px 12px; }
+  .layer b { display: block; font-size: 17px; font-weight: 600; }
+  .layer span { display: block; font-size: 15px; color: #3d3935; line-height: 1.3; }
+  .live { color: var(--ok); font-weight: 600; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="hl">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#171717"/><path d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#171717"/><path d="M13 24 L10 6 L22 6 L19 24Z" fill="#ff6f1e"/></svg>
+        <b>Keystone</b>
+      </div>
+      <h1>Spoken judgement becomes a governed Intelligence Pill</h1>
+    </div>
+    <div class="track"><b>Solution diagram · Keppel AI HARVEST</b><br>Pill in focus: Technical Services, chilled-water leak · fictional data</div>
+  </header>
+
+  <section class="problem">
+    <div class="card">
+      <span class="badge">1</span>
+      <h2>Business problem</h2>
+      <p>Incident-response judgement sits with a few senior engineers, is applied inconsistently and leaves when they retire. A wrong call on a leak means unsafe re-energisation, tenant/SLA exposure and downtime. A chatbot can't be trusted to act.</p>
+    </div>
+  </section>
+
+  <section class="flow">
+    <div class="card">
+      <span class="badge">2</span>
+      <h2>Capture what was never written</h2>
+      <p><b class="k">Whose:</b> Tan Wei Ming, retiring Chief Engineer, 18 years of M&amp;E.</p>
+      <ul>
+        <li>AI onboarding call with <b class="k">CDM + ACTA probes</b>: "walk me through the last time…"</li>
+        <li><b class="k">Contradiction resolution:</b> "always isolate the riser" vs "isolate the sub-valve" becomes one condition (TS-02)</li>
+        <li><b class="k">Expert confirms, edits or rejects</b> every rule on the Decision Canvas</li>
+      </ul>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 44 30"><path d="M2 15h34M26 5l12 10-12 10" fill="none" stroke="#171717" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+    <div class="card">
+      <span class="badge">3</span>
+      <h2>Compile into a reusable pill</h2>
+      <p>A plain-text package the organisation owns:</p>
+      <div class="files"><span class="file">SKILL.md</span><span class="file">rules.yaml</span><span class="file">evidence.yaml</span><span class="file">provenance.json</span><span class="file">evals/</span><span class="file">CHANGELOG.md</span></div>
+      <ul>
+        <li>13 rules, each with action class, owner, deadline and expert quote + timestamp</li>
+        <li>Owner, steward and approver named per pill</li>
+        <li>Runs as a <b class="k">native CodeBuddy skill</b>: same TS-07 decision</li>
+      </ul>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 44 30"><path d="M2 15h34M26 5l12 10-12 10" fill="none" stroke="#171717" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+    <div class="card">
+      <span class="badge">4</span>
+      <h2>Asset Operations Manager supervises</h2>
+      <p><b class="k">Incident Room:</b> a deterministic engine applies the pill to evidence.</p>
+      <div class="chips"><span class="chip c-ok">Recommend</span><span class="chip c-ap">Requires approval</span><span class="chip c-es">Must escalate</span><span class="chip c-bl">Blocked</span></div>
+      <ul>
+        <li><b class="k">Verify:</b> Why drawer shows rule, version, missing evidence and the expert's clip</li>
+        <li><b class="k">Escalate:</b> TS-07 blocks re-energisation and routes to the duty LEW by name</li>
+        <li><b class="k">Approve:</b> named humans only; role-based redaction</li>
+      </ul>
+    </div>
+    <div></div>
+
+    <div class="stack">
+      <div class="card">
+        <span class="badge">5</span>
+        <h2>More than a chatbot</h2>
+        <ul>
+          <li><b class="k">Deterministic gates</b> an LLM cannot talk past</li>
+          <li><b class="k">Provenance</b> to the spoken sentence</li>
+          <li><b class="k">Evals</b> replay past incidents</li>
+          <li><b class="k">Governance:</b> versions, owners, audit, rollback</li>
+          <li>Same decision on a model swap</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="loop">
+    <div class="card six">
+      <span class="badge">6</span>
+      <div class="loop-head">
+        <h2>Governed learning after deployment</h2>
+        <span class="note">Evals pass + a separate approver signs. History is append-only.</span>
+      </div>
+      <div class="steps">
+        <div class="step"><b>Feedback</b><span>Outcome captured: isolated in 7 min</span></div>
+        <div class="step"><b>Review</b><span>Expert corrects TS-02 deadline 15 → 10 min</span></div>
+        <div class="step"><b>Diff</b><span>v1.2.0 → v1.3.0 draft, reason recorded</span></div>
+        <div class="step gate"><b>Validate</b><span>Replay evals on past incidents; regressions block</span></div>
+        <div class="step"><b>Shadow</b><span>Runs silently beside the approved version</span></div>
+        <div class="step gate"><b>Approve</b><span>Head of Technical Services; author can't approve</span></div>
+        <div class="step"><b>Release</b><span>New semver version; one-click rollback</span></div>
+      </div>
+    </div>
+    <div class="card">
+        <span class="badge">7</span>
+        <h2>Extend across assets and units</h2>
+        <ul>
+          <li><b class="k">Asset overrides:</b> on Harbourfront DC1 the same pill escalates to the Critical Facilities Manager</li>
+          <li><b class="k">Coordinate:</b> Tenant Experience pill runs beside Technical Services</li>
+          <li><b class="k">Registry:</b> coverage and gaps by asset type and domain</li>
+        </ul>
+      </div>
+  </section>
+
+  <section class="impl">
+    <div class="impl-head">
+      <span class="badge">8</span>
+      <h2>Credible implementation path on Tencent Cloud</h2>
+      <span class="note"><span style="font-weight:600">Running today:</span> Next.js app on Vercel, deterministic engine, CodeBuddy skill, opt-in Hunyuan via CodeBuddy SDK</span>
+    </div>
+    <div class="layers">
+      <div class="layer"><b>CodeBuddy / WorkBuddy</b><span>Pill as SKILL.md skill; WorkBuddy Experts next</span></div>
+      <div class="layer"><b>Hunyuan models</b><span>hy4-preview via CodeBuddy SDK; TokenHub adapter ready</span></div>
+      <div class="layer"><b>ADP</b><span>Governed skill distribution, Approval Center</span></div>
+      <div class="layer"><b>iBMS · CMMS</b><span>Leak, alarm and work-order evidence feeds (Brick 1.5)</span></div>
+      <div class="layer"><b>TRTC voice</b><span>Live expert onboarding call with captions</span></div>
+      <div class="layer"><b>EdgeOne · Vercel</b><span>Hosting; enterprise SSO for roles</span></div>
+    </div>
+  </section>
+</body>
+</html>

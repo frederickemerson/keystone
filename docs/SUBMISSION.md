@@ -513,28 +513,31 @@ Committed in `docs/proof/` (CodeBuddy build session):
 - `docs/proof/02b-codebuddy-scaffold-tasks-smoke-test.png`
 - `docs/proof/02c-codebuddy-scaffold-build-pass-7-routes.png`
 - `docs/proof/03a-codebuddy-hy4-learning-screen-build.png`
+- `docs/proof/04a-codebuddy-skill-invoked.png`
+- `docs/proof/04b-codebuddy-skill-ts07-answer.png`
 
 ---
 
 ## 13. Submission checklist (TODO placeholders)
 
-Replace each placeholder before submitting.
+Replace each placeholder before submitting. Copy-paste-ready answers for every form field: `docs/submission/form-answers.md`.
 
 - [ ] **Project title:** Keystone ✔
 - [ ] **Short blurb:** "Turn expert judgement into governed, versioned Intelligence Pills." ✔
 - [ ] **Project Description:** this document ✔
 - [ ] **CodeBuddy/WorkBuddy conversation history (≥3):** `docs/proof/*.png` ✔
-- [ ] **Cover image (16:9, 380×216 recommended):** TODO — add and link here
-- [ ] **Demo video (5–8 min):** TODO — `[VIDEO LINK]`
-- [ ] **Live URL / demo link (optional, bonus):** https://mosaic-psi-rouge.vercel.app (demo: /incident/INC-2026-1011?step=10)
+- [x] **Cover image (16:9, 380×216 recommended):** `docs/submission/cover-small.png` (380×216); 4× master `docs/submission/cover.png` (1520×864); source `docs/submission/cover.html`
+- [ ] **Demo video (5–8 min):** TODO — `[VIDEO LINK]`; script, shot list and 60-second backup cut in `docs/submission/video-script.md`
+- [x] **Solution diagram (8 required points):** `docs/submission/solution-diagram.png` (1920×1080); source `docs/submission/solution-diagram.html`
+- [x] **Live URL / demo link (optional, bonus):** https://mosaic-psi-rouge.vercel.app (demo passcode `keystone`, shown on the sign-in page; demo: /incident/INC-2026-1011?step=10)
 - [ ] **Source code (GitHub repository):** https://github.com/frederickemerson/mosaic (private — grant judges access)
 
 ### Open TODOs to resolve before submission
 
-- [ ] Add the live deployment URL (EdgeOne Pages) and verify the demo path end-to-end.
+- [ ] Verify the demo path end-to-end on the live Vercel URL (EdgeOne Pages remains the proposed Tencent Cloud host).
 - [ ] Publish the GitHub repository and paste the URL.
-- [ ] Record the 5–8 min video (overview → core agent features → CodeBuddy reflection)
-      and paste the link.
-- [ ] Export the 16:9 cover image and paste it into the submission.
+- [ ] Record the 5–8 min video from `docs/submission/video-script.md` (overview → core agent
+      features → CodeBuddy reflection) and paste the link.
+- [x] Export the 16:9 cover image (`docs/submission/cover-small.png`).
 - [ ] Re-check the **[verify before slide]** figures in §6 against primary sources
       before quoting them on a slide.

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Keystone cover</title>
+<meta name="viewport" content="width=1520">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #fdfbf9; --dew: #f7efe9; --charcoal: #171717; --cocoa: #2b1a07;
+    --marker: #ff6f1e; --marker-ink: #c4470c; --muted: #5f5a55; --line: #d9d3cd;
+    --blocked: #b42318; --blocked-bg: #fdecea; --escalate: #ce500a; --escalate-bg: #fdf0e6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1520px; height: 864px; overflow: hidden; background: var(--cream); }
+  body { font-family: 'Geist', system-ui, sans-serif; color: var(--charcoal); -webkit-font-smoothing: antialiased; position: relative; }
+
+  .grid-bg { position: absolute; inset: 0;
+    background-image: linear-gradient(var(--dew) 1px, transparent 1px), linear-gradient(90deg, var(--dew) 1px, transparent 1px);
+    background-size: 48px 48px; opacity: .55; }
+
+  .left { position: absolute; left: 88px; top: 76px; width: 760px; }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .brand svg { width: 76px; height: 76px; }
+  .brand span { font-size: 64px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+
+  h1 { margin-top: 70px; font-size: 104px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.0; color: var(--cocoa); }
+  h1 .hl { position: relative; white-space: nowrap; }
+  h1 .hl svg { position: absolute; left: -4px; right: -4px; bottom: -4px; width: calc(100% + 8px); height: 20px; }
+
+  .right { position: absolute; right: 80px; top: 70px; width: 560px; }
+  .quote { background: #fff; border: 2px solid var(--charcoal); border-radius: 18px; padding: 30px 34px 26px; transform: rotate(-1.6deg);
+    box-shadow: rgba(0,0,0,.07) 0 4px 26px; }
+  .quote p { font-family: 'Caveat', cursive; font-size: 56px; line-height: 1.02; color: var(--marker-ink); }
+  .quote .who { margin-top: 14px; font-size: 22px; color: var(--muted); font-weight: 500; }
+  .quote .who b { font-family: 'Geist Mono', monospace; font-weight: 600; color: var(--charcoal); }
+
+  .arrow { display: block; margin: 6px 0 4px 120px; width: 120px; height: 84px; }
+
+  .rule { background: #fff; border: 2px solid var(--charcoal); border-radius: 18px; padding: 24px 32px 26px;
+    box-shadow: rgba(0,0,0,.07) 0 4px 26px; }
+  .rule .top { display: flex; align-items: center; gap: 16px; }
+  .rid { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 26px; border: 2px solid var(--charcoal); border-radius: 8px; padding: 3px 10px; }
+  .ver { font-family: 'Geist Mono', monospace; font-size: 22px; color: var(--muted); }
+  .rule h2 { margin-top: 16px; font-size: 36px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+  .chips { margin-top: 20px; display: flex; align-items: center; gap: 14px; }
+  .gate { display: inline-flex; align-items: center; gap: 12px; font-size: 34px; font-weight: 700;
+    color: var(--blocked); background: var(--blocked-bg); border: 2px solid var(--blocked); border-radius: 999px; padding: 8px 24px 8px 16px; }
+  .gate svg { width: 34px; height: 34px; }
+  .esc { white-space: nowrap; display: inline-flex; align-items: center; font-size: 24px; font-weight: 600; color: var(--escalate);
+    background: var(--escalate-bg); border: 1.5px solid var(--escalate); border-radius: 999px; padding: 8px 18px; }
+
+  .band { position: absolute; left: 0; right: 0; bottom: 0; height: 104px; background: var(--marker); border-radius: 56px 56px 0 0;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 88px; color: var(--charcoal); }
+  .band .event { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
+  .band .event i { font-style: normal; opacity: .55; padding: 0 12px; }
+  .band .tag { font-size: 26px; font-weight: 500; }
+</style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <div class="left">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#171717"/>
+        <path d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#171717"/>
+        <path d="M13 24 L10 6 L22 6 L19 24Z" fill="#ff6f1e"/>
+      </svg>
+      <span>Keystone</span>
+    </div>
+    <h1>The expert retires.<br>His <span class="hl">judgement<svg viewBox="0 0 120 10" preserveAspectRatio="none"><path d="M2 6.4C20 3.6 38 3.1 58 4.6c18 1.4 35 2.6 60-.8" fill="none" stroke="#ff6f1e" stroke-width="7" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></span> stays.</h1>
+  </div>
+
+  <div class="right">
+    <div class="quote">
+      <p>“Never re-energise before the LEW signs off.”</p>
+      <div class="who">Tan Wei Ming, Chief Engineer · <b>00:14:32</b></div>
+    </div>
+    <svg class="arrow" viewBox="0 0 120 84" aria-hidden="true">
+      <path d="M20 4 C 10 40, 40 66, 92 70" fill="none" stroke="#ff6f1e" stroke-width="5" stroke-linecap="round"/>
+      <path d="M78 54 L95 70 L76 82" fill="none" stroke="#ff6f1e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="rule">
+      <div class="top"><span class="rid">TS-07</span><span class="ver">rule · v1.2.0</span></div>
+      <h2>No re-energisation without LEW sign-off</h2>
+      <div class="chips">
+        <span class="gate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M5.5 5.5l13 13"/></svg>Blocked</span>
+        <span class="esc">Escalate to LEW</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="band">
+    <div class="event">Keppel AI HARVEST<i>·</i>Tencent Cloud AI CAN DO IT 2026</div>
+    <div class="tag">Expert judgement, governed.</div>
+  </div>
+</body>
+</html>
