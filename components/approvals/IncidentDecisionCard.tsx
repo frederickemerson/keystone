@@ -33,6 +33,7 @@ export function IncidentDecisionCard({
   const canApproveAction = isNeedsApproval && decisionAuthority(currentActor.role, "approved").allowed;
   const canEscalateAction = isEscalate && decisionAuthority(currentActor.role, "escalated").allowed;
 
+  const missingCount = (action.missing_evidence ?? []).length;
   const missingEvidence = (action.missing_evidence ?? []).join(", ") || "—";
 
   function decide(outcome: "approved" | "rejected" | "escalated", note?: string) {
@@ -54,41 +55,50 @@ export function IncidentDecisionCard({
   }
 
   return (
-    <article className="card-paper space-y-3 p-6" aria-label={`Decision: ${incident.id} ${action.rule_id}`}>
+    <article className="card-paper space-y-3 p-5" aria-label={`Decision: ${incident.id} ${action.rule_id}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
+        <p className="flex min-w-0 items-center gap-2 text-[13px]">
           <Link
             href={`/incident/${incident.id}`}
-            className="inline-flex items-center gap-1 text-sm font-semibold text-ink hover:text-accent"
+            className="inline-flex items-center gap-1 font-mono font-medium text-ink hover:text-accent"
           >
             {incident.id} <ExternalLink className="size-3.5" aria-hidden="true" />
           </Link>
-          <p className="truncate text-[13px] text-ink-muted">{incident.asset_name}</p>
-        </div>
+          <span className="truncate text-ink-muted">· {incident.asset_name}</span>
+        </p>
         <StatusBadge status={status} />
       </div>
 
-      <div className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-xs">
-        <dt className="text-ink-muted">Rule</dt>
-        <dd className="font-mono text-ink">{action.rule_id}</dd>
-        <dt className="text-ink-muted">Decision</dt>
-        <dd className="text-ink">{action.decision}</dd>
-        <dt className="text-ink-muted">Class</dt>
-        <dd>
-          <ActionClassChip actionClass={action.action_class} />
-        </dd>
-        <dt className="text-ink-muted">Missing evidence</dt>
-        <dd className="text-ink">{missingEvidence}</dd>
-        {action.escalate_to ? (
-          <>
-            <dt className="text-ink-muted">Escalate to</dt>
-            <dd className="text-ink">
-              {roleLabel(action.escalate_to.role)}
-              {action.escalate_to.fallback ? ` (fallback: ${roleLabel(action.escalate_to.fallback)})` : ""}
-            </dd>
-          </>
-        ) : null}
+      <h3 className="text-pretty text-[15px] font-medium leading-snug text-ink">{action.decision}</h3>
+
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-mono text-[11px] text-ink">
+          <span className="sr-only">Rule </span>
+          {action.rule_id}
+        </span>
+        <ActionClassChip actionClass={action.action_class} />
+        {missingCount > 0 ? (
+          <span
+            className="inline-flex items-center gap-1 rounded-full border border-blocked/40 bg-blocked-tint px-2 py-0.5 text-[11px] font-medium text-blocked"
+            title={missingEvidence}
+          >
+            <span className="tabular-nums">{missingCount}</span> missing:
+            <span className="font-mono font-normal">{missingEvidence}</span>
+          </span>
+        ) : (
+          <span className="text-[11px] text-ink-muted">No missing evidence</span>
+        )}
       </div>
+
+      {action.escalate_to ? (
+        <p className="text-[13px] text-ink">
+          <span className="text-ink-muted">Escalate to </span>
+          <span className="font-medium">{roleLabel(action.escalate_to.role)}</span>
+          {action.escalate_to.fallback ? (
+            <span className="text-ink-muted"> · fallback {roleLabel(action.escalate_to.fallback)}</span>
+          ) : null}
+        </p>
+      ) : null}
 
       {recorded ? (
         <p className="rounded-lg bg-dew-drop px-3 py-1.5 text-xs text-ink">

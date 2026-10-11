@@ -49,3 +49,4 @@ export type {
 // consumers can import everything from one place. (ActionClass / ActionStatus /
 // Rule are already re-exported via './types' above.)
 export type { ActionDecision } from '@/lib/engine/types';
+export { Disclosure, ClampText, firstSentence, hasMoreThanFirstSentence } from './Disclosure';

@@ -68,11 +68,15 @@ const STEP_TITLES = [
 function LockedStep({ n, title, reason }: { n: number; title: string; reason: string }) {
   return (
     <section aria-labelledby={`learn-step-${n}-title`} id={`learn-step-${n}`} tabIndex={-1} className="scroll-mt-4">
-      <SectionHeader title={`${n}. ${title}`} />
-      <p className="mt-3 flex items-start gap-1.5 rounded-lg border border-dashed border-line bg-surface/50 px-3 py-3 text-xs text-ink-muted">
-        <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-        {reason}
-      </p>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line pb-2.5">
+        <h2 id={`learn-step-${n}-title`} className="text-[19px] font-semibold leading-tight text-ink-muted">
+          {n}. {title}
+        </h2>
+        <p className="flex items-center gap-1.5 text-xs text-ink-muted">
+          <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+          {reason}
+        </p>
+      </div>
     </section>
   );
 }
@@ -114,7 +118,7 @@ function LearningStepsNav({ steps }: { steps: StepState[] }) {
           />
         </div>
       </div>
-      <RomanList items={items} aria-label="Learning flow steps" />
+      <RomanList items={items} layout="row" aria-label="Learning flow steps" />
     </nav>
   );
 }
@@ -350,9 +354,9 @@ export function LearningFlow({
         title="Outcome & learning"
         subtitle={
           <>
-            {incident ? `${incident.id} · ${incident.location}. ` : ''}
-            Capture the outcome, correct the rule, replay every past incident, run it in shadow,
-            then approve — or roll back.
+            {incident
+              ? `${incident.id} · ${incident.location}`
+              : 'Capture the outcome, correct the rule, validate, shadow, approve — or roll back.'}
           </>
         }
         meta={

@@ -53,7 +53,7 @@ export function CorrectionForm({
     <section aria-labelledby="learn-step-2-title" id="learn-step-2" tabIndex={-1} className="scroll-mt-4">
       <SectionHeader
         title="2. Expert correction"
-        description={`${actor.name} (${roleDisplayName(actor.role)}) marks the rule that got this wrong and corrects the field. Proposing creates Draft v${nextVersion} — approved v${baseVersion} stays live.`}
+        description={`Creates Draft v${nextVersion} · v${baseVersion} stays live · by ${actor.name}`}
       />
 
       <form

@@ -8,7 +8,7 @@ import { SectionHeader, EmptyState } from "@/components/mosaic";
 import type { PillBundle } from "@/lib/pills/load";
 import type { PillVersion, VersionStatus } from "@/lib/governance/versions";
 import { roleLabel } from "@/lib/governance/access";
-import { maxSensitivity, skillFrontmatter } from "./registry-utils";
+import { assetRefsFor, maxSensitivity, skillFrontmatter } from "./registry-utils";
 
 function plainList(items: readonly string[] | undefined): string {
   return items && items.length > 0 ? items.join(", ") : "—";
@@ -120,6 +120,10 @@ export function PillDetailPanel({
           <dd className="text-ink">{roleList(manifest.access.denied)}</dd>
           <dt className="text-ink-muted">Asset types</dt>
           <dd className="text-ink">{plainList(manifest.scope.asset_types)}</dd>
+          <dt className="text-ink-muted">Assets covered</dt>
+          <dd className="font-mono text-[11px] text-ink [overflow-wrap:anywhere]">
+            {focus ? plainList(assetRefsFor(focus)) : "—"}
+          </dd>
           <dt className="text-ink-muted">Incident types</dt>
           <dd className="text-ink">{plainList(manifest.scope.incident_types)}</dd>
           <dt className="text-ink-muted">Systems</dt>

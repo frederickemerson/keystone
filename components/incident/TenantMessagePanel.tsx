@@ -122,7 +122,7 @@ function DraftCard({
           </p>
         ) : null}
         <p className="text-[11px] text-ink-muted">
-          Nothing is sent by Keystone — approval records a named human sign-off in the audit log.
+          Nothing is sent by Keystone; approval is logged.
         </p>
       </div>
     </article>
@@ -178,7 +178,10 @@ export function TenantMessagePanel({
         </button>
         {generation ? <button type="button" className="btn-pill text-xs" onClick={() => setGeneration(null)}>Use recorded draft</button> : null}
       </div>
-      <p className="text-[11px] text-ink-muted">First-notice snapshot at {formatClock(fixture.generated_at)}, not the current replay step. Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.</p>
+      <p className="text-[11px] text-ink-muted" title="Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.">
+        Snapshot at <span className="font-mono tabular-nums">{formatClock(fixture.generated_at)}</span> · reviewed sentences only
+        <span className="sr-only">. Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.</span>
+      </p>
       <span className="sr-only" role="status">{loading ? 'Drafting live…' : generation ? `${generation.source === 'live' ? 'Live' : 'Recorded'} draft ready for human review` : 'Recorded output'}</span>
       {(generation ? [generation.data.draft] : fixture.drafts).map((d) => (
         <DraftCard

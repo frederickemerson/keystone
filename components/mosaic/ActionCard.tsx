@@ -7,6 +7,7 @@ import type { ActionClass, ActionDecision, ActionStatus } from '@/lib/engine/typ
 import { ActionClassChip } from './ActionClassChip';
 import { StatusBadge } from './StatusBadge';
 import { PersonaName } from './PersonaName';
+import { Disclosure, firstSentence } from './Disclosure';
 
 /**
  * The status an action class yields on its own, when no evidence gate
@@ -50,11 +51,23 @@ function formatCountdown(ms: number): string {
 
 export function ActionCard({
   action,
+  title,
+  ownerLabel,
+  escalateLabel,
+  details,
   children,
   onWhy,
   className,
 }: {
   action: ActionDecision;
+  /** Short title (e.g. the rule title). Defaults to the decision's first sentence. */
+  title?: ReactNode;
+  /** Named human for the owner, when the caller resolves it per asset. Defaults to the role persona. */
+  ownerLabel?: ReactNode;
+  /** Named human for escalation, when the caller resolves it per asset. Defaults to the role persona. */
+  escalateLabel?: ReactNode;
+  /** Extra secondary content shown inside the "Details" disclosure. */
+  details?: ReactNode;
   /** Buttons slot (e.g. Approve / Escalate). */
   children?: ReactNode;
   /** Called when the "Why?" button is pressed. */
@@ -68,7 +81,7 @@ export function ActionCard({
   return (
     <article
       className={cn(
-        'flex flex-col gap-3.5 rounded-xl border border-line-strong bg-surface p-5 shadow-card',
+        'flex flex-col gap-3 rounded-xl border border-line-strong bg-surface p-5 shadow-card',
         className,
       )}
       aria-labelledby={`action-${action.ruleId}-title`}
@@ -87,7 +100,7 @@ export function ActionCard({
         id={`action-${action.ruleId}-title`}
         className="text-[15px] font-medium leading-snug text-ink"
       >
-        {action.decision}
+        {title ?? firstSentence(action.decision)}
       </h3>
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 border-y border-line py-2.5 text-[13px]">
@@ -95,22 +108,16 @@ export function ActionCard({
           <User className="size-3.5" aria-hidden="true" /> Owner
         </dt>
         <dd className="text-ink">
-          <PersonaName role={action.owner} />
+          {ownerLabel ?? <PersonaName role={action.owner} />}
         </dd>
 
-        {action.escalateTo ? (
+        {action.escalateTo || escalateLabel ? (
           <>
             <dt className="flex items-center gap-1.5 text-ink-muted">
               <ArrowUpRight className="size-3.5" aria-hidden="true" /> Escalate to
             </dt>
             <dd className="text-ink">
-              <PersonaName role={action.escalateTo.role} />
-              {action.escalateTo.fallback ? (
-                <span className="text-ink-muted">
-                  {' '}
-                  (fallback: <PersonaName role={action.escalateTo.fallback} />)
-                </span>
-              ) : null}
+              {escalateLabel ?? (action.escalateTo ? <PersonaName role={action.escalateTo.role} /> : null)}
             </dd>
           </>
         ) : null}
@@ -134,33 +141,67 @@ export function ActionCard({
       </dl>
 
       {missing.length > 0 ? (
-        <div className="rounded-lg border border-blocked/35 bg-blocked-tint px-3 py-2.5">
+        <div className="rounded-lg border border-blocked/35 bg-blocked-tint px-3 py-2">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-blocked">
-            <FileX className="size-3.5" aria-hidden="true" /> Missing evidence
+            <FileX className="size-3.5" aria-hidden="true" />
+            Missing evidence <span className="tabular-nums">({missing.length})</span>
           </p>
-          <ul className="mt-1.5 space-y-1">
+          <ul className="mt-1.5 flex flex-wrap gap-1" aria-label="Missing evidence keys">
             {missing.map((key) => (
-              <li key={key} className="flex items-center gap-1.5 text-xs text-blocked">
+              <li
+                key={key}
+                className="inline-flex items-center gap-1 rounded-full border border-blocked/30 bg-surface/60 px-2 py-0.5 font-mono text-[11px] text-blocked"
+              >
                 <AlertCircle className="size-3 shrink-0" aria-hidden="true" />
-                <span className="font-mono">{key}</span>
+                {key}
               </li>
             ))}
           </ul>
         </div>
       ) : null}
 
-      {action.allowedActions?.length ? (
-        <p className="text-[13px] leading-relaxed text-ink-muted">
-          <span className="font-medium text-recommend">Allowed:</span>{' '}
-          {action.allowedActions.join('; ')}
-        </p>
-      ) : null}
-      {action.forbiddenActions?.length ? (
-        <p className="text-[13px] leading-relaxed text-ink-muted">
-          <span className="font-medium text-blocked">Forbidden:</span>{' '}
-          {action.forbiddenActions.join('; ')}
-        </p>
-      ) : null}
+      <Disclosure
+        label="Details"
+        summary={[
+          action.allowedActions?.length ? `${action.allowedActions.length} allowed` : null,
+          action.forbiddenActions?.length ? `${action.forbiddenActions.length} forbidden` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      >
+        <div className="space-y-2.5 rounded-lg bg-dew-drop/60 px-3 py-2.5 text-[13px] leading-relaxed">
+          <p className="text-pretty text-ink">
+            <span className="font-medium">Decision:</span> {action.decision}
+          </p>
+          {action.allowedActions?.length ? (
+            <div>
+              <p className="font-medium text-recommend">Allowed</p>
+              <ul className="mt-0.5 list-disc space-y-0.5 pl-4 text-ink">
+                {action.allowedActions.map((a) => (
+                  <li key={a}>{a}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {action.forbiddenActions?.length ? (
+            <div>
+              <p className="font-medium text-blocked">Forbidden</p>
+              <ul className="mt-0.5 list-disc space-y-0.5 pl-4 text-blocked">
+                {action.forbiddenActions.map((a) => (
+                  <li key={a}>{a}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {action.escalateTo?.fallback ? (
+            <p className="text-ink">
+              <span className="font-medium">Escalation fallback:</span>{' '}
+              <PersonaName role={action.escalateTo.fallback} />
+            </p>
+          ) : null}
+          {details}
+        </div>
+      </Disclosure>
 
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
         {children}
@@ -175,8 +216,7 @@ export function ActionCard({
       <p className="flex items-center gap-1.5 text-[11px] text-ink-muted">
         <Stamp className="size-3" aria-hidden="true" />
         <span>
-          Rule <span className="font-mono text-ink">{action.ruleId}</span> · nothing executes
-          without a named human.
+          Rule <span className="font-mono text-ink">{action.ruleId}</span> · named human required
         </span>
       </p>
     </article>

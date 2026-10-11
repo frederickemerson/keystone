@@ -501,22 +501,24 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
         ) : null}
         <ActionCard
           action={item.action}
+          title={item.rule.title}
+          escalateLabel={target ? personLabel(target.role, people) : undefined}
+          details={
+            item.trace.exceptionApplied && item.trace.exceptionNote ? (
+              <p className="text-ink">
+                <span className="font-medium">Exception:</span> {item.trace.exceptionNote}
+              </p>
+            ) : undefined
+          }
           onWhy={() => setDrawer({ pillId: item.entry.bundle.id, ruleId: item.rule.id })}
           className={cn(blocked && 'rounded-t-none border-blocked/45')}
         >
           <div className="flex w-full flex-col gap-2">
-            <p className="text-[11px] text-ink-muted">
-              {item.rule.title}
-              {target ? ` · escalation: ${personLabel(target.role, people)}` : ''}
-            </p>
             {override?.escalate_to ? (
               <p className="rounded-lg border border-line bg-dew-drop px-2.5 py-1.5 text-[12px] font-medium text-ink">
                 {assetTypeLabel(asset.type)} override: escalate to {personLabel(override.escalate_to.role, people)}{' '}
                 (base: {personLabel(item.rule.escalate_to.role, people)})
               </p>
-            ) : null}
-            {item.trace.exceptionApplied && item.trace.exceptionNote ? (
-              <p className="text-[11px] text-ink-muted">Exception: {item.trace.exceptionNote}</p>
             ) : null}
             {record ? <DecisionStamp record={record} /> : null}
             {showPanel ? (
@@ -555,23 +557,27 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
         subtitle={
           <>
             <p className="text-ink">{scenario.incident.location}</p>
-            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[14px]">
-              {asset.type === 'data_centre' ? (
-                <Server className="size-4" aria-hidden="true" />
-              ) : (
-                <Building2 className="size-4" aria-hidden="true" />
-              )}
-              <span className="font-medium text-ink">{asset.name}</span>
-              <span>· {assetTypeLabel(asset.type)}</span>
-            </p>
-            {affectedParty ? <p className="mt-1 text-[14px]">{affectedParty.charAt(0).toUpperCase() + affectedParty.slice(1)}</p> : null}
-            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[14px]">
-              <Clock className="size-4" aria-hidden="true" />
-              <span className="font-medium tabular-nums text-ink">
-                {formatElapsed(scenario.incident.opened_at, clockAt)}
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+              <span className="inline-flex items-center gap-1.5">
+                {asset.type === 'data_centre' ? (
+                  <Server className="size-3.5" aria-hidden="true" />
+                ) : (
+                  <Building2 className="size-3.5" aria-hidden="true" />
+                )}
+                <span className="font-medium text-ink">{asset.name}</span>
+                <span>· {assetTypeLabel(asset.type)}</span>
               </span>
-              since detection
-              <span className="font-mono text-[12px] tabular-nums">· replay clock {formatClock(clockAt)}</span>
+              {affectedParty ? (
+                <span>{affectedParty.charAt(0).toUpperCase() + affectedParty.slice(1)}</span>
+              ) : null}
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="size-3.5" aria-hidden="true" />
+                <span className="font-medium tabular-nums text-ink">
+                  {formatElapsed(scenario.incident.opened_at, clockAt)}
+                </span>
+                since detection
+                <span className="font-mono text-[12px] tabular-nums">· {formatClock(clockAt)}</span>
+              </span>
             </p>
           </>
         }
@@ -737,7 +743,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
                   <span className="rounded-full border border-line bg-dew-drop px-2 py-px font-sans text-xs font-medium tabular-nums text-ink-muted">
                     {groupItems.length}
                   </span>
-                  <span className="font-sans text-[13px] font-normal text-ink-muted">{g.hint}</span>
+                  <span className="sr-only">{g.hint}</span>
                 </h2>
                 <div className="grid gap-3 xl:grid-cols-2">{groupItems.map(renderCard)}</div>
               </div>

@@ -55,7 +55,7 @@ export function CapturedPanel({
               style={{ animationDelay: `${Math.min(i, 6) * 80}ms` }}
             >
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <span className={cn(CHIP_BASE, TONE_CHIP.approval)}>Draft · awaiting your confirmation</span>
+                <span className={cn(CHIP_BASE, TONE_CHIP.approval)}>Draft</span>
                 <ActionClassChip actionClass={rule.action_class} />
               </div>
               <RuleTile

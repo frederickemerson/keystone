@@ -43,9 +43,7 @@ export function ConfidenceMeter({
         )}
       </div>
 
-      <p className="mt-2.5 text-xs leading-snug text-ink-muted">
-        Evidence coverage from confirmed sources — not a probability or confidence percentage.
-      </p>
+      <p className="mt-2 text-[11px] leading-snug text-ink-muted">Count of confirmed sources, not a probability.</p>
     </div>
   );
 }

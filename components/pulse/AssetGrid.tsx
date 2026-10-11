@@ -61,7 +61,7 @@ export function AssetGrid({
         return (
           <article
             key={asset.id}
-            className="card-paper flex flex-col gap-3 p-6"
+            className="card-paper flex flex-col gap-3 p-5"
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex min-w-0 items-center gap-2">
@@ -70,12 +70,12 @@ export function AssetGrid({
                 </span>
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-ink">{asset.name}</h3>
-                  <p className="text-[13px] text-ink-muted">{meta.label}</p>
+                  <p className="text-[13px] text-ink-muted">
+                    {meta.label} · {asset.location}
+                  </p>
                 </div>
               </div>
             </div>
-
-            <p className="text-[13px] text-ink-muted">{asset.location}</p>
 
             <div className="flex flex-wrap gap-1.5">
               {attributeChips(asset).map((chip) => (

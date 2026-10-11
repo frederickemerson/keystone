@@ -94,8 +94,7 @@ export default async function PortfolioPulsePage() {
       <header className="space-y-1.5">
         <h1>Portfolio pulse</h1>
         <p className="text-sm text-ink-muted">
-          Where judgement is applied, what awaits a human, and where pills do not yet cover an asset
-          type.
+          Where judgement is applied, what awaits a human, and where coverage is missing.
         </p>
       </header>
 
@@ -115,7 +114,6 @@ export default async function PortfolioPulsePage() {
       <section className="space-y-3">
         <SectionHeader
           title="Assets"
-          description="Four portfolio assets with their Keppel-native efficiency attributes and live incident state."
         />
         <AssetGrid assets={visibleAssets} incidents={visibleIncidents} />
       </section>
@@ -124,7 +122,6 @@ export default async function PortfolioPulsePage() {
       <section className="space-y-3">
         <SectionHeader
           title="Active incidents"
-          description="Severity, detection age, the unresolved owner, evidence coverage (count, not a percentage) and the pill in use."
         />
         <ActiveIncidentsTable incidents={visibleIncidents} />
       </section>
@@ -133,7 +130,6 @@ export default async function PortfolioPulsePage() {
       <section className="space-y-3">
         <SectionHeader
           title="Recently closed"
-          description="Outcome-captured incidents feeding the Learning loop."
         />
         <ClosedIncidentsList incidents={visibleIncidents} pillId={tsPillId} />
       </section>
@@ -142,7 +138,6 @@ export default async function PortfolioPulsePage() {
       <section className="space-y-3">
         <SectionHeader
           title="Pill coverage by asset type"
-          description="Which Intelligence Pills declare coverage of each asset type. Gaps are where a new pill or asset overlay is needed."
         />
         <PillCoverageStrip pills={pills} assets={visibleAssets} />
       </section>

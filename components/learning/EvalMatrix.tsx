@@ -58,7 +58,7 @@ export function EvalMatrix({
     <section aria-labelledby="learn-step-4-title" id="learn-step-4" tabIndex={-1} className="scroll-mt-4">
       <SectionHeader
         title="4. Validate against every past incident"
-        description="The engine replays all six closed incidents through both versions. Gates are deterministic — the same evidence gives the same decision every time."
+        description="Every closed incident, replayed through both versions."
         icon={<FlaskConical className="size-4" />}
       />
 

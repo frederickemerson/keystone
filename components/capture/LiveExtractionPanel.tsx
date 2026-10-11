@@ -27,15 +27,15 @@ export function LiveExtractionPanel({ transcript, rules }: Pick<CaptureProps, 't
     }
   }
   return (
-    <section className="space-y-3 rounded-xl border border-line bg-surface p-4" aria-label="Optional live extraction" aria-busy={loading}>
+    <section className="space-y-3 rounded-xl border border-line bg-surface px-4 py-3" aria-label="Optional live extraction" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn-pill text-xs" disabled={loading} onClick={extract}>
           {loading ? 'Drafting live…' : 'Re-extract live'}
         </button>
         <span role="status"><LlmBadge result={result} /></span>
         {result ? <button type="button" className="btn-pill text-xs" onClick={() => setResult(null)}>Dismiss preview</button> : null}
+        <p className="text-xs text-ink-muted">Optional · up to four live candidates · the recorded call below is unchanged</p>
       </div>
-      <p className="text-xs text-ink-muted">Optional preview from the full recorded transcript (up to four live candidates). The offline call below stays unchanged.</p>
       {result ? (
         <div className="space-y-3">
           <p className="text-xs font-medium text-approval">Draft — requires {transcript.expert.name}’s review and named human approval. Not applied to a pill or copied to the Decision Canvas.</p>

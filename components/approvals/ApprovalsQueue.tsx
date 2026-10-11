@@ -62,14 +62,13 @@ export function ApprovalsQueue({
     <div className="mx-auto w-full max-w-[1200px] space-y-8">
       <PageHeader
         title="Approvals"
-        subtitle="Every decision that must be approved or escalated by a named human — nothing executes without one."
+        subtitle="Nothing executes without a named human."
       />
 
       {/* (1) Pill version approvals */}
       <section className="space-y-3">
         <SectionHeader
           title="Pill versions awaiting approval"
-          description="Draft/Shadow versions with their human-readable diff, eval report and the approval gate."
           icon={<Layers className="size-4" aria-hidden="true" />}
         />
         {candidates.length === 0 ? (
@@ -96,7 +95,6 @@ export function ApprovalsQueue({
       <section className="space-y-3">
         <SectionHeader
           title="Incident action decisions pending"
-          description="Actions requiring a human sign-off or escalation, linked to their incident room."
           icon={<Siren className="size-4" aria-hidden="true" />}
         />
         {pendingDecisions.length === 0 ? (
@@ -115,9 +113,6 @@ export function ApprovalsQueue({
         )}
       </section>
 
-      <p className="text-[13px] text-ink-muted">
-        Buttons explain why they are disabled when your role lacks authority.
-      </p>
     </div>
   );
 }

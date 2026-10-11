@@ -30,7 +30,7 @@ export function RollbackPanel({
     <section aria-labelledby="learn-step-7-title" id="learn-step-7" tabIndex={-1} className="scroll-mt-4">
       <SectionHeader
         title="7. Roll back"
-        description="One click, with a reason. Nothing is ever deleted — the rolled-back version is marked Retired and a new version carries the restored rules."
+        description="Nothing is deleted — rollback adds a new version."
         icon={<History className="size-4" />}
       />
 
@@ -72,11 +72,13 @@ export function RollbackPanel({
               <Undo2 className="size-4" aria-hidden="true" /> Roll back to v{baseVersion}
             </button>
 
+            {disabledReason ? null : (
             <p className="text-[11px] text-ink-muted">
               {approvedVersion
                 ? `v${approvedVersion} is live now. Rolling back retires it and restores v${baseVersion}'s rules as a new version.`
                 : `Restores v${baseVersion}'s rules as a new version.`}
             </p>
+            )}
           </>
         )}
       </div>

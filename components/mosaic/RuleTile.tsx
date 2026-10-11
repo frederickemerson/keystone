@@ -6,6 +6,7 @@ import { cn } from '@/lib/ui/cn';
 import type { Rule } from '@/lib/engine/types';
 import { PersonaName } from './PersonaName';
 import { ExpertQuote } from './ExpertQuote';
+import { Disclosure } from './Disclosure';
 
 export function RuleTile({
   rule,
@@ -56,7 +57,7 @@ export function RuleTile({
 
   return (
     <article
-      className={cn('flex flex-col gap-3.5 rounded-xl border bg-surface p-4 shadow-card', ring, className)}
+      className={cn('flex flex-col gap-3 rounded-xl border bg-surface p-4 shadow-card', ring, className)}
       aria-labelledby={`rule-${rule.id}-title`}
     >
       <div className="flex items-start justify-between gap-2">
@@ -99,77 +100,116 @@ export function RuleTile({
         </div>
       ) : null}
 
-      <Field label="Trigger">
+      <div className="flex flex-wrap items-center gap-1.5">
         <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-mono text-xs text-ink">
           {rule.trigger.incident_type}
         </span>
-        {conditionPaths.length > 0 ? (
-          <span className="text-[13px] text-ink-muted"> · {conditionPaths.length} condition(s)</span>
-        ) : null}
-      </Field>
+        <span className="text-xs tabular-nums text-ink-muted">
+          {[
+            conditionPaths.length > 0 ? `${conditionPaths.length} condition(s)` : null,
+            rule.required_evidence.length > 0
+              ? `${rule.required_evidence.length} evidence key${rule.required_evidence.length === 1 ? '' : 's'}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        </span>
+      </div>
 
-      <Field label="Evidence">
-        <div className="flex flex-wrap gap-1">
-          {rule.required_evidence.map((key) => (
-            <span
-              key={key}
-              className="rounded-full border border-line bg-surface px-2 py-0.5 font-mono text-[11px] text-ink"
-            >
-              {key}
-            </span>
-          ))}
+      <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1 text-[13px]">
+        <dt className="flex items-center gap-1.5 text-ink-muted">
+          <ShieldAlert className="size-3.5" aria-hidden="true" /> Owner
+        </dt>
+        <dd className="min-w-0 text-ink">
+          <PersonaName role={rule.owner} nameOnly />
+        </dd>
+        <dt className="flex items-center gap-1.5 text-ink-muted">
+          <ArrowUpRight className="size-3.5 text-escalate-mark" aria-hidden="true" /> Escalate
+        </dt>
+        <dd className="min-w-0 text-ink">
+          <PersonaName role={rule.escalate_to.role} nameOnly />
+        </dd>
+      </dl>
+
+      <Disclosure
+        label="Details"
+        summary={[
+          rule.allowed_actions.length ? `${rule.allowed_actions.length} allowed` : null,
+          rule.forbidden_actions.length ? `${rule.forbidden_actions.length} forbidden` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      >
+        <div className="flex flex-col gap-3">
+          <Field label="Decision">
+            <p className="text-pretty text-[14px] leading-relaxed text-ink">{rule.decision}</p>
+          </Field>
+
+          {rule.required_evidence.length > 0 ? (
+            <Field label="Evidence">
+              <div className="flex flex-wrap gap-1">
+                {rule.required_evidence.map((key) => (
+                  <span
+                    key={key}
+                    className="rounded-full border border-line bg-surface px-2 py-0.5 font-mono text-[11px] text-ink"
+                  >
+                    {key}
+                  </span>
+                ))}
+              </div>
+            </Field>
+          ) : null}
+
+          {rule.allowed_actions.length > 0 ? (
+            <Field label="Allowed">
+              <ul className="space-y-0.5">
+                {rule.allowed_actions.map((a) => (
+                  <li key={a} className="flex items-start gap-1.5 text-[13px] text-ink">
+                    <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-recommend" aria-hidden="true" /> {a}
+                  </li>
+                ))}
+              </ul>
+            </Field>
+          ) : null}
+
+          {rule.forbidden_actions.length > 0 ? (
+            <Field label="Forbidden">
+              <ul className="space-y-0.5">
+                {rule.forbidden_actions.map((a) => (
+                  <li key={a} className="flex items-start gap-1.5 text-[13px] text-blocked">
+                    <Ban className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /> {a}
+                  </li>
+                ))}
+              </ul>
+            </Field>
+          ) : null}
+
+          <Field label="People">
+            <dl className="space-y-0.5 text-[13px] text-ink">
+              <div>
+                <dt className="inline text-ink-muted">Owner: </dt>
+                <dd className="inline">
+                  <PersonaName role={rule.owner} />
+                </dd>
+              </div>
+              <div>
+                <dt className="inline text-ink-muted">Escalate to: </dt>
+                <dd className="inline">
+                  <PersonaName role={rule.escalate_to.role} />
+                </dd>
+              </div>
+              {rule.escalate_to.fallback ? (
+                <div>
+                  <dt className="inline text-ink-muted">Fallback: </dt>
+                  <dd className="inline">
+                    <PersonaName role={rule.escalate_to.fallback} />
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          </Field>
         </div>
-      </Field>
-
-      <Field label="Decision">
-        <p className="text-[14px] leading-relaxed text-ink">{rule.decision}</p>
-      </Field>
-
-      {rule.allowed_actions.length > 0 ? (
-        <Field label="Allowed">
-          <ul className="space-y-0.5">
-            {rule.allowed_actions.map((a) => (
-              <li key={a} className="flex items-start gap-1.5 text-[13px] text-ink">
-                <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-recommend" aria-hidden="true" /> {a}
-              </li>
-            ))}
-          </ul>
-        </Field>
-      ) : null}
-
-      {rule.forbidden_actions.length > 0 ? (
-        <Field label="Forbidden">
-          <ul className="space-y-0.5">
-            {rule.forbidden_actions.map((a) => (
-              <li key={a} className="flex items-start gap-1.5 text-[13px] text-blocked">
-                <Ban className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /> {a}
-              </li>
-            ))}
-          </ul>
-        </Field>
-      ) : null}
-
-      <Field label="Escalation">
-        <p className="flex items-center gap-1.5 text-[13px] text-ink">
-          <ArrowUpRight className="size-3.5 shrink-0 text-escalate-mark" aria-hidden="true" />
-          <span>
-            <PersonaName role={rule.escalate_to.role} />
-            {rule.escalate_to.fallback ? (
-              <span className="text-ink-muted">
-                {' '}
-                → fallback: <PersonaName role={rule.escalate_to.fallback} />
-              </span>
-            ) : null}
-          </span>
-        </p>
-      </Field>
-
-      <Field label="Owner">
-        <p className="flex items-center gap-1.5 text-[13px] text-ink">
-          <ShieldAlert className="size-3.5 text-ink-muted" aria-hidden="true" />
-          <PersonaName role={rule.owner} />
-        </p>
-      </Field>
+      </Disclosure>
 
       <div className="mt-auto flex flex-wrap gap-2 border-t border-line pt-3">
         <button

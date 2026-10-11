@@ -73,7 +73,7 @@ export function ExpertCallClient(props: CaptureProps) {
           </>
         }
         title="Expert onboarding call"
-        subtitle="A simulated, fully offline voice interview. Keystone extracts rule candidates as the expert speaks, each linked to the exact transcript span."
+        subtitle="Rule candidates appear as the expert speaks, each linked to its transcript span."
       />
       <LiveExtractionPanel transcript={transcript} rules={rules} />
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">

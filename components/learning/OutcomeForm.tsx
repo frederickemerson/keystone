@@ -36,7 +36,7 @@ export function OutcomeForm({
     <section aria-labelledby="learn-step-1-title" id="learn-step-1" tabIndex={-1} className="scroll-mt-4">
       <SectionHeader
         title="1. Capture the outcome"
-        description="INC-2026-1011 has closed. Record what actually happened — this is the evidence any rule change must answer to."
+        description="Record what actually happened."
       />
 
       {saved ? (

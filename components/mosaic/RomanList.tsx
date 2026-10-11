@@ -53,13 +53,80 @@ export function RomanList({
   items,
   start = 1,
   className,
+  layout = 'column',
   'aria-label': ariaLabel,
 }: {
   items: RomanListItem[];
   start?: number;
   className?: string;
+  /** `row`: one compact strip (numeral above title); descriptions are kept for assistive tech only. */
+  layout?: 'column' | 'row';
   'aria-label'?: string;
 }) {
+  if (layout === 'row') {
+    return (
+      <ol
+        aria-label={ariaLabel}
+        className={cn(
+          'grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line-strong bg-line shadow-card sm:grid-cols-4 lg:grid-flow-col lg:auto-cols-fr lg:grid-cols-none',
+          className,
+        )}
+      >
+        {items.map((item, i) => {
+          const body = (
+            <>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'block font-display-soft text-[13px] font-semibold tabular-nums',
+                  item.done ? 'text-recommend' : item.current ? 'text-marker-ink' : 'text-ink-muted',
+                )}
+              >
+                {toRoman(start + i)}
+              </span>
+              <span
+                className={cn(
+                  'mt-0.5 block text-[13px] font-medium leading-snug',
+                  item.done ? 'text-recommend' : item.current ? 'text-ink' : 'text-ink-muted',
+                )}
+              >
+                {item.title}
+                {item.done ? <span className="sr-only"> (done)</span> : null}
+              </span>
+              {item.description ? <span className="sr-only">: {item.description}</span> : null}
+            </>
+          );
+          const cellClass = cn(
+            'relative block h-full px-3.5 py-2.5',
+            item.current ? 'bg-dew-drop' : 'bg-surface',
+          );
+          return (
+            <li
+              key={item.id ?? i}
+              className="relative"
+              aria-current={item.current ? 'step' : undefined}
+              title={typeof item.description === 'string' ? item.description : undefined}
+            >
+              {item.current ? (
+                <span aria-hidden="true" className="absolute inset-x-2 bottom-0 z-[1] h-[3px] rounded-t-full bg-marker" />
+              ) : null}
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  className={cn(cellClass, 'transition-colors duration-150 hover:bg-dew-drop focus-visible:-outline-offset-2')}
+                >
+                  {body}
+                </Link>
+              ) : (
+                <div className={cellClass}>{body}</div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    );
+  }
+
   return (
     <ol
       aria-label={ariaLabel}

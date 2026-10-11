@@ -20,7 +20,7 @@ export function DiffPanel({
     <section aria-labelledby="learn-step-3-title" id="learn-step-3" tabIndex={-1} className="scroll-mt-4">
       <SectionHeader
         title="3. What changed"
-        description={`Diff v${from} → v${to} — one rule field, stated the way the expert said it.`}
+        description={`v${from} → v${to}`}
         icon={<FileDiff className="size-4" />}
       />
 

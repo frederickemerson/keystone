@@ -39,7 +39,7 @@ export default async function CanvasPage({
       <CanvasHeader
         pill={pill}
         title={pillTitle(pill)}
-        description="Confirm, edit or reject each rule the extractor drafted from the expert interview. Every tile carries its provenance; decide every tile to enable publishing."
+        description="Confirm, edit or reject each drafted rule. Decide every tile to publish."
       />
 
       {showContradiction ? (

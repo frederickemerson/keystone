@@ -32,7 +32,7 @@ export function PillCard({ data, className }: { data: PillCardData; className?: 
   return (
     <article
       className={cn(
-        'flex flex-col gap-4 rounded-xl border border-line-strong bg-surface p-4 shadow-card',
+        'flex flex-col gap-3 rounded-xl border border-line-strong bg-surface p-4 shadow-card',
         className,
       )}
       aria-label={`Pill ${data.domain}/${data.name}`}
@@ -64,8 +64,7 @@ export function PillCard({ data, className }: { data: PillCardData; className?: 
         </span>
       </div>
 
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line text-xs">
-        <Metric label="Assets covered" value={assets} wide />
+      <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line text-xs">
         <Metric
           label="Eval pass"
           value={`${data.evalPass.pass}/${data.evalPass.total}`}
@@ -75,14 +74,24 @@ export function PillCard({ data, className }: { data: PillCardData; className?: 
         <Metric
           label="Pending corrections"
           value={String(data.pendingCorrections)}
-          span
           tone={data.pendingCorrections > 0 ? 'text-approval' : undefined}
         />
       </dl>
 
-      <p className="flex items-center gap-1.5 text-xs text-ink-muted">
-        <CalendarClock className="size-3.5" aria-hidden="true" />
-        Next review <span className="font-mono tabular-nums text-ink">{data.nextReviewDate}</span>
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+        <span>
+          Covers{' '}
+          <span className="font-medium tabular-nums text-ink" title={typeof data.assetsCovered === 'number' ? undefined : assets}>
+            {typeof data.assetsCovered === 'number'
+              ? assets
+              : `${data.assetsCovered.length} asset class${data.assetsCovered.length === 1 ? '' : 'es'}`}
+          </span>
+          {typeof data.assetsCovered === 'number' ? null : <span className="sr-only">: {assets}</span>}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <CalendarClock className="size-3.5" aria-hidden="true" />
+          Next review <span className="font-mono tabular-nums text-ink">{data.nextReviewDate}</span>
+        </span>
       </p>
     </article>
   );
@@ -93,30 +102,16 @@ function Metric({
   value,
   hint,
   tone,
-  wide = false,
-  span = false,
 }: {
   label: string;
   value: string;
   hint?: string;
   tone?: string;
-  /** Spans both columns, mono, clamped to two lines with the full value in `title` (long asset lists). */
-  wide?: boolean;
-  /** Spans both columns without changing type (keeps the grid rectangular). */
-  span?: boolean;
 }) {
   return (
-    <div className={cn('bg-surface px-3 py-2', (wide || span) && 'col-span-2')}>
+    <div className="bg-surface px-3 py-2">
       <dt className="text-[11px] text-ink-muted">{label}</dt>
-      <dd
-        title={wide ? value : undefined}
-        className={cn(
-          wide
-            ? 'mt-0.5 line-clamp-2 font-mono text-xs font-medium leading-snug text-ink [overflow-wrap:anywhere]'
-            : 'mt-0.5 flex items-baseline gap-1.5 text-sm font-semibold tabular-nums text-ink',
-          tone,
-        )}
-      >
+      <dd className={cn('mt-0.5 flex items-baseline gap-1.5 text-sm font-semibold tabular-nums text-ink', tone)}>
         {value}
         {hint ? <span className="text-[11px] font-normal text-ink-muted">{hint}</span> : null}
       </dd>

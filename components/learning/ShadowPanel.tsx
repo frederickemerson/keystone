@@ -53,7 +53,7 @@ export function ShadowPanel({
     <section aria-labelledby="learn-step-5-title" id="learn-step-5" tabIndex={-1} className="scroll-mt-4">
       <SectionHeader
         title="5. Run it in shadow"
-        description="Shadow replays the closed incidents through both versions. The approved version stays live — the shadow only records what it would have decided."
+        description="The approved version stays live; shadow only records."
         icon={<Eye className="size-4" />}
         actions={<VersionChip status={version.status} version={version.version} />}
       />

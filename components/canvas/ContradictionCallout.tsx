@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowLeftRight } from 'lucide-react';
 import type { ContradictionFixture } from '@/lib/data';
 import { describeCondition } from './conditionProse';
+import { Disclosure } from '@/components/mosaic/Disclosure';
 
 // Static callout for the contradiction the extractor surfaced and resolved.
 // Rendered server-side; the distinguishing condition is the key teaching point.
@@ -24,31 +25,11 @@ export function ContradictionCallout({
         <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border border-approval/40 bg-surface text-approval">
           <AlertTriangle className="size-4" aria-hidden="true" />
         </span>
-        <div className="min-w-0 space-y-3">
+        <div className="min-w-0 flex-1 space-y-3">
           <div>
             <h2 className="text-[19px] font-semibold leading-tight">
               Contradiction resolved <span className="font-sans text-[13px] font-medium text-approval">· rule <span className="font-mono">{rule_id}</span></span>
             </h2>
-            <p className="mt-1 text-sm text-ink">
-              The extractor flagged two conflicting statements from the expert interview and
-              resolved them with a <strong>distinguishing condition</strong> rather than dropping
-              either.
-            </p>
-          </div>
-
-          <div className="grid gap-2 md:grid-cols-2">
-            <Statement
-              label="Statement A"
-              t={statement_a.t}
-              text={statement_a.text_fragment}
-              tone="border-line"
-            />
-            <Statement
-              label="Statement B"
-              t={statement_b.t}
-              text={statement_b.text_fragment}
-              tone="border-line"
-            />
           </div>
 
           <div className="rounded-lg border border-line-strong bg-surface p-3.5">
@@ -77,9 +58,17 @@ export function ContradictionCallout({
               </p>
             </details>
             <p className="mt-1.5 text-xs text-ink-muted">
-              Resolved at {resolution.resolved_at} · confirmation: {resolution.confirmation_status}
+              Resolved at <span className="font-mono tabular-nums">{resolution.resolved_at}</span> · confirmation:{' '}
+              {resolution.confirmation_status}
             </p>
           </div>
+
+          <Disclosure label="Both expert statements" openLabel="Hide statements">
+            <div className="grid gap-2 md:grid-cols-2">
+              <Statement label="Statement A" t={statement_a.t} text={statement_a.text_fragment} tone="border-line" />
+              <Statement label="Statement B" t={statement_b.t} text={statement_b.text_fragment} tone="border-line" />
+            </div>
+          </Disclosure>
         </div>
       </div>
     </section>

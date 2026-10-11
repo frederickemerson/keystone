@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/ui/cn';
 import type { TimelineEvent, TimelineSource } from './types';
 import { humanizeKey } from '@/components/incident/labels';
+import { ClampText } from './Disclosure';
 
 const SOURCE_MAP: Record<string, { icon: LucideIcon; label: string }> = {
   iBMS: { icon: Activity, label: 'iBMS' },
@@ -125,7 +126,9 @@ export function EvidenceTimeline({
                 ) : null}
               </div>
 
-              <p className="mt-1.5 text-[14px] leading-normal text-ink">{event.text}</p>
+              <ClampText lines={2} className="mt-1.5 text-[14px] leading-normal text-ink">
+                {event.text}
+              </ClampText>
 
               {Object.keys(updates).length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Evidence updates">
