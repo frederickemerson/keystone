@@ -11,6 +11,7 @@
     "skills:sync": "rm -rf .codebuddy/skills && mkdir -p .codebuddy/skills && cp -R pills/technical-services/chilled-water-leak .codebuddy/skills/chilled-water-leak && cp -R pills/tenant-experience/incident-comms .codebuddy/skills/incident-comms"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.125",
     "@ai-sdk/openai-compatible": "^3.0.67",
     "@dagrejs/dagre": "^3.1.1",
     "@lucasmarkes/hairline": "^0.5.0",
@@ -20,9 +21,11 @@
     "ai": "^7.0.137",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "jose": "^6.2.12",
     "js-yaml": "^4.1.0",
     "jsondiffpatch": "^0.7.6",
     "lucide-react": "^1.55.0",
+    "motion": "^12.43.0",
     "next": "15.5.27",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
