@@ -29,7 +29,7 @@ export default function LandingPage() {
       <main id="main" className="flex-1">
         <Hero facts={facts.hero} />
         <ProblemFlow />
-        <HowItWorks pillId={facts.hero.pillId} />
+        <HowItWorks hero={facts.hero} story={facts.story} />
         <SafeBounded classes={facts.classes} />
         <ProofStrip rulesTraced={facts.rulesTraced} rulesTotal={facts.rulesTotal} />
       </main>

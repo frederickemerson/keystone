@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { MotionConfig, motion, useInView, type Variants } from 'motion/react';
 import { Branches, Drawer, Hub, Padlock, Phone, Query, Relay, Settle } from '@lucasmarkes/hairline/react';
 import { Ban, CheckCircle2, Pause, Play } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
@@ -69,11 +70,44 @@ const WITH_KEYSTONE: FlowStep[] = [
   },
 ];
 
+const EASE = [0.2, 0, 0, 1] as const;
+
+const listVariants: Variants = {
+  hidden: {},
+  shown: { transition: { staggerChildren: 0.11, delayChildren: 0.05 } },
+};
+
+const stepVariants: Variants = {
+  hidden: { opacity: 0, y: 18 },
+  shown: { opacity: 1, y: 0, transition: { duration: 0.45, ease: EASE } },
+};
+
+/** The connecting arrow draws itself once the step before it has landed. */
+const arrowVariants: Variants = {
+  hidden: { pathLength: 0, opacity: 0 },
+  shown: {
+    pathLength: 1,
+    opacity: 1,
+    transition: { delay: 0.3, duration: 0.4, ease: EASE },
+  },
+};
+
+const outcomeVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  shown: { opacity: 1, y: 0, transition: { duration: 0.4, ease: EASE } },
+};
+
 function FlowSteps({ steps, play }: { steps: FlowStep[]; play: boolean }) {
   return (
-    <ol className={cn(styles.flowSteps, steps.length === 3 ? styles.threeSteps : styles.fiveSteps)}>
+    <motion.ol
+      className={cn(styles.flowSteps, steps.length === 3 ? styles.threeSteps : styles.fiveSteps)}
+      variants={listVariants}
+      initial="hidden"
+      whileInView="shown"
+      viewport={{ once: true, amount: 0.35 }}
+    >
       {steps.map(({ title, detail, figure: Figure, label, locked }, index) => (
-        <li key={title} className={styles.flowStep}>
+        <motion.li key={title} className={styles.flowStep} variants={stepVariants}>
           <div className={cn('card-paper', styles.flowTile)}>
             <Figure
               theme="light"
@@ -86,7 +120,10 @@ function FlowSteps({ steps, play }: { steps: FlowStep[]; play: boolean }) {
           </div>
           <div className={styles.flowCopy}>
             <h4 className="text-[18px] font-semibold leading-tight text-heading">
-              <span className="mr-2 inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-current font-mono text-[11px] align-[2px]" aria-hidden="true">
+              <span
+                className="mr-2 inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-current font-mono text-[11px] align-[2px]"
+                aria-hidden="true"
+              >
                 {index + 1}
               </span>
               {title}
@@ -95,12 +132,32 @@ function FlowSteps({ steps, play }: { steps: FlowStep[]; play: boolean }) {
           </div>
           {index < steps.length - 1 ? (
             <svg className={styles.flowArrow} viewBox="0 0 32 16" fill="none" aria-hidden="true">
-              <path d="M1 8h29m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+              <motion.path
+                d="M1 8h29m-6-6 6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="1"
+                vectorEffect="non-scaling-stroke"
+                variants={arrowVariants}
+              />
             </svg>
           ) : null}
-        </li>
+        </motion.li>
       ))}
-    </ol>
+    </motion.ol>
+  );
+}
+
+function Outcome({ className, children }: { className: string; children: React.ReactNode }) {
+  return (
+    <motion.p
+      className={cn(styles.flowOutcome, className)}
+      variants={outcomeVariants}
+      initial="hidden"
+      whileInView="shown"
+      viewport={{ once: true, amount: 0.8 }}
+    >
+      {children}
+    </motion.p>
   );
 }
 
@@ -116,46 +173,62 @@ export function ProblemFlow() {
     return () => preference.removeEventListener('change', syncMotion);
   }, []);
 
-  const play = motionAllowed && !paused;
+  // Figures only play while the section is on screen.
+  const sectionRef = useRef<HTMLElement>(null);
+  const onScreen = useInView(sectionRef, { amount: 0.15 });
+  const play = motionAllowed && !paused && onScreen;
 
   return (
-    <section aria-labelledby="problem-title" className={cn('border-t border-pencil', styles.problemFlow)}>
-      <div className="mx-auto w-full max-w-[1240px] px-4 py-16 sm:px-8 lg:py-20">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 id="problem-title" className="font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[52px]">
-              The problem
-            </h2>
-            <p className="mt-4 text-[19px] text-ink-muted">When the expert leaves, what stays?</p>
+    <MotionConfig reducedMotion="user">
+      <section
+        ref={sectionRef}
+        aria-labelledby="problem-title"
+        className={cn('border-t border-line', styles.problemFlow)}
+      >
+        <div className="mx-auto w-full max-w-[1240px] px-4 py-16 sm:px-8 lg:py-20">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2
+                id="problem-title"
+                className="font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[52px]"
+              >
+                The problem
+              </h2>
+              <p className="mt-4 text-[19px] text-ink-muted">When the expert leaves, what stays?</p>
+            </div>
+            <div className="min-h-9">
+              {motionAllowed ? (
+                <button type="button" className="btn-pill gap-2 shadow-none" onClick={() => setPaused(!paused)}>
+                  {paused ? (
+                    <Play className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Pause className="size-3.5" aria-hidden="true" />
+                  )}
+                  {paused ? 'Play figures' : 'Pause figures'}
+                </button>
+              ) : null}
+            </div>
           </div>
-          <div className="min-h-9">
-            {motionAllowed ? (
-              <button type="button" className="btn-pill gap-2 shadow-none" onClick={() => setPaused(!paused)}>
-                {paused ? <Play className="size-3.5" aria-hidden="true" /> : <Pause className="size-3.5" aria-hidden="true" />}
-                {paused ? 'Play figures' : 'Pause figures'}
-              </button>
-            ) : null}
+
+          <div className={cn(styles.flowRow, styles.today)}>
+            <h3 className="mb-6 text-[20px] font-semibold text-ink-muted">Today</h3>
+            <FlowSteps steps={TODAY} play={play} />
+            <Outcome className="border-blocked/20 bg-blocked-tint text-blocked">
+              <Ban className="size-4 shrink-0" aria-hidden="true" />
+              Unsafe re-energisation, inconsistent calls, lost tenant trust
+            </Outcome>
+          </div>
+
+          <div className={cn(styles.flowRow, styles.withKeystone)}>
+            <h3 className="mb-6 text-[20px] font-semibold text-heading">With Keystone</h3>
+            <FlowSteps steps={WITH_KEYSTONE} play={play} />
+            <Outcome className="border-recommend/20 bg-recommend-tint text-recommend">
+              <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+              Same safe call, every site, every shift
+            </Outcome>
           </div>
         </div>
-
-        <div className={cn(styles.flowRow, styles.today)}>
-          <h3 className="mb-6 text-[20px] font-semibold text-ink-muted">Today</h3>
-          <FlowSteps steps={TODAY} play={play} />
-          <p className={cn(styles.flowOutcome, 'border-blocked/20 bg-blocked-tint text-blocked')}>
-            <Ban className="size-4 shrink-0" aria-hidden="true" />
-            Unsafe re-energisation, inconsistent calls, lost tenant trust
-          </p>
-        </div>
-
-        <div className={cn(styles.flowRow, styles.withKeystone)}>
-          <h3 className="mb-6 text-[20px] font-semibold text-heading">With Keystone</h3>
-          <FlowSteps steps={WITH_KEYSTONE} play={play} />
-          <p className={cn(styles.flowOutcome, 'border-recommend/20 bg-recommend-tint text-recommend')}>
-            <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
-            Same safe call, every site, every shift
-          </p>
-        </div>
-      </div>
-    </section>
+      </section>
+    </MotionConfig>
   );
 }

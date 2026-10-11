@@ -2,21 +2,36 @@ import Link from 'next/link';
 import { Sticker } from '@/components/mosaic';
 import { BrandLogo } from '@/components/shell/BrandMark';
 
-// Verified by `npx vitest run`; update when the suite changes.
-const TEST_COUNT = 161;
+import type { ReactNode } from 'react';
+import { CountUp } from './story/CountUp';
+
+// A floor, not an exact figure: `npx vitest run` reported 434 tests when this
+// was last checked. Raise it when the suite grows past the next hundred.
+const TEST_COUNT_FLOOR = 400;
 
 export function ProofStrip({ rulesTraced, rulesTotal }: { rulesTraced: number; rulesTotal: number }) {
-  const facts = [
+  const facts: { key: string; lead: ReactNode; rest: string }[] = [
     {
-      lead: `${TEST_COUNT} automated tests`,
+      key: 'tests',
+      lead: (
+        <>
+          <CountUp value={TEST_COUNT_FLOOR} suffix="+" duration={1.3} /> automated tests
+        </>
+      ),
       rest: 'Safety gates and governance, checked.',
     },
     {
+      key: 'skill',
       lead: 'Native CodeBuddy skill',
       rest: 'Verified against the engine’s TS-07 decision.',
     },
     {
-      lead: `${rulesTraced} of ${rulesTotal} rules traced`,
+      key: 'traced',
+      lead: (
+        <>
+          <CountUp value={rulesTraced} delay={0.2} /> of {rulesTotal} rules traced
+        </>
+      ),
       rest: 'Each traced rule cites the expert’s timestamped words.',
     },
   ];
@@ -26,10 +41,12 @@ export function ProofStrip({ rulesTraced, rulesTotal }: { rulesTraced: number; r
       <h2 id="proof-title" className="sr-only">
         What stands behind it
       </h2>
-      <ul className="grid divide-y divide-pencil border-y border-charcoal md:grid-cols-3 md:divide-x md:divide-y-0">
+      <ul className="grid divide-y divide-line border-y border-charcoal md:grid-cols-3 md:divide-x md:divide-y-0">
         {facts.map((f) => (
-          <li key={f.lead} className="px-1 py-7 md:px-8 md:first:pl-0 md:last:pr-0">
-            <p className="font-display text-[24px] font-semibold leading-[1.15] tracking-[-0.02em] text-heading">{f.lead}</p>
+          <li key={f.key} className="px-1 py-7 md:px-8 md:first:pl-0 md:last:pr-0">
+            <p className="font-display text-[24px] font-semibold leading-[1.15] tracking-[-0.02em] text-heading">
+              {f.lead}
+            </p>
             <p className="mt-2 text-[16px] leading-[1.5] text-ink-muted">{f.rest}</p>
           </li>
         ))}
