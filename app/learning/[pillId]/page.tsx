@@ -2,7 +2,7 @@
 // closed incident from data/, then hands plain serialisable props to the
 // client flow. No client-side data fetching.
 
-import { EmptyState } from '@/components/mosaic';
+import { EmptyState, PageHeader } from '@/components/mosaic';
 import { LearningFlow } from '@/components/learning/LearningFlow';
 import { loadIncident } from '@/lib/data';
 import { loadPill, type PillBundle } from '@/lib/pills/load';
@@ -23,7 +23,7 @@ export default async function LearningPage({ params }: { params: Promise<{ pillI
   if (!bundle) {
     return (
       <div className="mx-auto w-full max-w-[1200px] space-y-3">
-        <h1>outcome &amp; learning</h1>
+        <PageHeader title="outcome & learning" />
         <EmptyState
           title={`Pill “${pillId}” could not be loaded`}
           description="It may not exist in pills/, or its package is not yet parseable by the engine."

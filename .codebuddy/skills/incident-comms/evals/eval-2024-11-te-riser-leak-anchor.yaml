@@ -1,0 +1,55 @@
+# Eval: 2024-11 riser leak near DB — anchor tenant comms
+# Pill: tenant-experience/incident-comms v1.0.0
+#
+# Expert ground truth for the CURRENT rules. Evidence values are bare
+# (confirmed: true). Keys come from ../evidence.yaml. Absent key = not known.
+# Snapshot: the first AI draft named a cause ("a pipe burst") and unit
+# numbers in a building-wide update; the source was not yet confirmed.
+
+id: eval-2024-11-te-riser-leak-anchor
+title: "L23 riser leak near DB — bank anchor tenant comms"
+incident_date: "2024-11-06"
+incident_type: water_ingress
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 23
+  anchor_tenant: true
+evidence:
+  tenant_premises_affected: true
+  affected_units_confirmed: true
+  anchor_tenant_affected: true
+  account_manager_available: true
+  tenant_request_completion_time: true
+  source_confirmed: false
+  draft_message_contains_cause: true
+  message_visible_to_lower_role: true
+  message_contains_unit_number: true
+  pii_audit_pass: false
+expected_decisions:
+  TE-01:
+    status: needs_approval
+    reason: "tenant premises affected, units confirmed — first notice needs a named approver"
+  TE-02:
+    status: allowed
+    reason: "tenant asks for a fix time, source not confirmed — no completion promise (next update time not yet set)"
+  TE-03:
+    status: blocked
+    reason: "draft names a cause before Technical Services or the LEW confirmed the source — cause language must come out"
+  TE-04:
+    status: escalate
+    reason: "anchor tenant affected — account manager phones within 30 min"
+  TE-05:
+    status: allowed
+    reason: "building-wide update visible to lower roles contains unit numbers — mask before sending"
+  TE-06: { status: not_applicable, reason: "not a data centre" }
+expert_decision: >-
+  Riser leak on L23, water tracking toward the electrical room. Bank anchor
+  tenant on L23 and L24. Account manager called the bank's facilities
+  director at 2:15 PM. The first draft said "a pipe burst" — struck out.
+  First notice sent at 2:20 PM after sign-off: "There is a water leak on
+  Level 23. Our technical team is on site isolating the source. We will
+  provide the next update at 2:45 PM." Unit numbers masked in the
+  building-wide update. Source confirmed at 3:10 PM — riser joint failure.
+  Cause shared at the 3:15 PM update.
+outcome: "Bank facilities director satisfied with the call. No liability claim. No PDPA issue."

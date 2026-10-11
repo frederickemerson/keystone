@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "skills:sync": "rm -rf .codebuddy/skills && mkdir -p .codebuddy/skills && cp -R pills/technical-services/chilled-water-leak .codebuddy/skills/chilled-water-leak && cp -R pills/tenant-experience/incident-comms .codebuddy/skills/incident-comms"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.67",

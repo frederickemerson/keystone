@@ -1,0 +1,73 @@
+# Eval: 2025-09 tenant-area isolation deadline
+# Pill: technical-services/chilled-water-leak v1.2.0
+#
+# =========================================================================
+# INTENTIONAL FAILURE ON v1.2.0 — THIS IS THE CORRECTION THE LEARNING
+# SCREEN APPLIES. Do not "fix" this file to match the rule.
+#
+#   TS-02 deadline_minutes   expected 10   (expert ground truth)
+#                            v1.2.0 has 15 (captured from the interview,
+#                            ce-interview-2026-10-02#00:11:35)
+#
+# Every status expectation below passes on v1.2.0; the deadline does not.
+# The Chief Engineer's outcome review: tenant-area isolation must be
+# complete within 10 minutes — if access to the sub-valve cannot be
+# arranged in 10, go to the riser. v1.3.0 corrects TS-02 15 -> 10, which
+# makes this case pass. It is the ONLY intentional failure in v1.2.0.
+# =========================================================================
+#
+# Expert ground truth for the CURRENT rules. Evidence values are bare
+# (confirmed: true). Keys come from ../evidence.yaml. Absent key = not known.
+
+id: eval-2025-09-tenant-area-isolation-deadline
+title: "Chilled-water branch leak in locked tenant fit-out — isolation deadline"
+incident_date: "2025-09-03"
+incident_type: water_ingress
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 18
+  anchor_tenant: false
+evidence:
+  active_water_release: true
+  water_near_electrical: false
+  isolation_complete: false
+  source_behind_locked_tenancy: true
+  sub_valve_accessible: true
+  location_confirmed: true
+  shutoff_map_available: true
+  ceiling_stain_or_drip: true
+  tenant_report_drip: true
+  visual_inspection: true
+  tenant_property_damage: true
+  wet_building_fabric: true
+expected_decisions:
+  TS-01: { status: not_applicable, reason: "water not near electrical" }
+  TS-02:
+    status: allowed
+    deadline_minutes: 10   # INTENTIONAL FAILURE on v1.2.0 (rule says 15)
+    reason: "active branch leak in a tenant area — arrange tenant access and isolate at the sub-valve within 10 minutes, else go to the riser"
+  TS-03: { status: not_applicable, reason: "no power-down request" }
+  TS-04:
+    status: allowed
+    reason: "ceiling drip + tenant report — inspected: active chilled-water leak, isolate"
+  TS-05: { status: not_applicable, reason: "no fire-protection source" }
+  TS-06: { status: not_applicable, reason: "no lift water" }
+  TS-07: { status: not_applicable, reason: "no electrical equipment wetted or isolated" }
+  TS-08: { status: not_applicable, reason: "isolation not yet complete" }
+  TS-09: { status: not_applicable, reason: "isolation not yet complete" }
+  TS-10: { status: not_applicable, reason: "not a data centre" }
+  TS-11: { status: not_applicable, reason: "no standing water" }
+  TS-12: { status: not_applicable, reason: "water_ingress incident — not a PUB external alert" }
+expert_decision: >-
+  Chilled-water branch leak above the L18 tenant ceiling; the branch
+  isolation sub-valve is inside the locked tenant fit-out. Tenant
+  Experience arranged tenant access and the branch was isolated locally.
+  The technician was tempted to close the riser valve (L17-L19 affected),
+  but the correct call was tenant access and local isolation — within 10
+  minutes, not 15. If access cannot be arranged in 10 minutes, go to the
+  riser.
+outcome: >-
+  Tenant access arranged in 8 minutes. Local isolation sub-valve closed.
+  Branch repaired. No riser shutdown needed. Expert correction recorded:
+  tenant-area isolation deadline is 10 minutes, not 15.

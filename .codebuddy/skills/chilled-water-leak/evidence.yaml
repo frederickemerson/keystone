@@ -1,0 +1,415 @@
+# MOSAIC Intelligence Pill — Evidence catalogue
+# Pill: technical-services/chilled-water-leak
+# Version: 1.2.0
+#
+# The canonical evidence vocabulary for this pill. Every `evidence.<key>`
+# path in rules.yaml (trigger all/any and exception `when`) and every
+# `required_evidence` key MUST be declared here. Timelines (data/timelines)
+# and eval cases (evals/*.yaml) may only emit declared keys.
+#
+#   <key>:
+#     label:          human label for the Why drawer / evidence timeline
+#     type:           boolean | number | string
+#     confirmable_by: roles (data/roles.json) who may mark the item confirmed
+#     description:    what the fact means, in the expert's terms
+#
+# Required evidence is satisfied ONLY when the item is confirmed AND its
+# value is `true`, so every key listed under a rule's `required_evidence`
+# is a boolean. An absent key means "not yet known" — never pre-record a
+# sign-off as {value: false, confirmed: true}.
+
+# ---------------------------------------------------------------------------
+# Detection and source
+# ---------------------------------------------------------------------------
+
+leak_alarm_active:
+  label: Leak detector alarm active
+  type: boolean
+  confirmable_by: [technician, security_fcc_operator]
+  description: An iBMS / DCIM leak detector (brick:Leak_Alarm) is in alarm. Detection only — the source is not yet located.
+
+chw_flow_anomaly:
+  label: Chilled-water ΔT / flow anomaly
+  type: boolean
+  confirmable_by: [technician, technical_services_lead]
+  description: BMS shows a chilled-water supply/return ΔT or flow anomaly consistent with water leaving the loop before the coil (expert cue, 00:08:35).
+
+active_water_release:
+  label: Active water release
+  type: boolean
+  confirmable_by: [technician, technical_services_lead]
+  description: Water is still escaping — a stream, not a drip. False once the flow has stopped.
+
+location_confirmed:
+  label: Leak location confirmed
+  type: boolean
+  confirmable_by: [technician, technical_services_lead]
+  description: Someone on site has physically located where the water is coming from.
+
+shutoff_map_available:
+  label: Shut-off valve map available
+  type: boolean
+  confirmable_by: [technician, technical_services_lead]
+  description: The isolation-valve diagram for the affected system is in hand (CMMS / COBie register). Without it you are wandering the riser shaft (00:09:55).
+
+source_system:
+  label: Suspected source system
+  type: string
+  confirmable_by: [technical_services_lead, chief_engineer]
+  description: >-
+    Informational. Free-form system name the source appears to be
+    (chilled_water_branch, chilled_water_riser, condensate_drain, sprinkler,
+    wet_riser, hose_reel, fire_pump, domestic_water, external_ingress). Gates
+    use the boolean facts below, not this string.
+
+leak_on_riser_pipe:
+  label: Leak is on the riser pipe itself
+  type: boolean
+  confirmable_by: [technical_services_lead, chief_engineer]
+  description: The leak is on the chilled-water riser pipe, not on a floor branch — riser isolation is required (contradiction resolution, 00:23:30).
+
+sub_valve_accessible:
+  label: Branch sub-valve accessible and stops the flow
+  type: boolean
+  confirmable_by: [technician, technical_services_lead]
+  description: The branch isolation sub-valve is within reach, not seized, and actually stops the flow. False means go to the riser (00:23:30).
+
+source_behind_locked_tenancy:
+  label: Source behind locked tenancy
+  type: boolean
+  confirmable_by: [technical_services_lead, property_manager]
+  description: The source or its isolation valve is inside a locked tenant fit-out — tenant access must be arranged.
+
+source_is_fire_protection:
+  label: Source is a fire-protection system
+  type: boolean
+  confirmable_by: [technical_services_lead, fire_safety_manager]
+  description: The water is coming from a sprinkler, wet riser, hose reel or fire pump — any isolation is an impairment (TS-05).
+
+isolation_affects_fire_alarm:
+  label: Isolation affects fire alarm / interlocks
+  type: boolean
+  confirmable_by: [fire_safety_manager, technical_services_lead]
+  description: The proposed or completed isolation takes a fire alarm, flow switch or fire-pump interlock out of service.
+
+isolation_complete:
+  label: Isolation complete
+  type: boolean
+  confirmable_by: [technician, technical_services_lead]
+  description: The source has been isolated (valve closed, tagged, time logged) and the flow has stopped.
+
+water_category:
+  label: IICRC water category
+  type: string
+  confirmable_by: [technical_services_lead, chief_engineer]
+  description: IICRC S500 category of the water — category_1 (clean, e.g. chilled water), category_2 or category_3.
+
+# ---------------------------------------------------------------------------
+# Electrical safety
+# ---------------------------------------------------------------------------
+
+water_near_electrical:
+  label: Water near electrical equipment
+  type: boolean
+  confirmable_by: [technician, technical_services_lead, duty_lew]
+  description: Water within 2 m of, dripping onto, or tracking toward energised electrical equipment (switchgear, DB, breaker panel, riser cupboard). The 2 m threshold is the Chief Engineer's judgement (00:16:30).
+
+distance_to_electrical_m:
+  label: Distance from water to nearest electrical equipment (m)
+  type: number
+  confirmable_by: [technician, duty_lew]
+  description: Informational. Measured or estimated distance; the gate uses water_near_electrical.
+
+water_in_electrical_room:
+  label: Water inside electrical room
+  type: boolean
+  confirmable_by: [technician, duty_lew]
+  description: Water is inside a switchroom, LV room or electrical riser cupboard.
+
+water_above_switchgear:
+  label: Water above switchgear
+  type: boolean
+  confirmable_by: [technician, duty_lew]
+  description: Water is above switchgear or a distribution board with a drip path onto it.
+
+water_flowing_toward_electrical:
+  label: Water tracking toward electrical equipment
+  type: boolean
+  confirmable_by: [technician, duty_lew]
+  description: Water is travelling along a conduit, cable tray or slab toward electrical equipment (00:16:30).
+
+visual_or_alarm_confirmation:
+  label: Visual or alarm confirmation of the electrical hazard
+  type: boolean
+  confirmable_by: [technician, technical_services_lead, duty_lew]
+  description: The water-near-electrical situation has been seen by a person on site or confirmed by a zoned alarm — not inferred.
+
+lew_confirms_dead_section:
+  label: LEW confirms dead / spare section
+  type: boolean
+  confirmable_by: [duty_lew]
+  description: The LEW has documented that the affected board section is spare or dead.
+
+water_confined_sealed_trench:
+  label: Water confined to sealed trench
+  type: boolean
+  confirmable_by: [duty_lew]
+  description: Water is confined to a sealed trench with no contact path to live equipment (LEW judgement).
+
+tenant_request_power_down:
+  label: Tenant requests floor power-down
+  type: boolean
+  confirmable_by: [asset_operations_manager, technical_services_lead]
+  description: A tenant has asked for the whole floor's power to be shut down.
+
+lew_or_evidence_confirms_risk:
+  label: Electrical risk confirmed (LEW or clear evidence)
+  type: boolean
+  confirmable_by: [duty_lew]
+  description: The LEW confirms a real electrical risk, or there is clear evidence — water on switchgear, a tripped breaker, insulation resistance below threshold (00:26:30).
+
+water_on_switchgear:
+  label: Water on switchgear
+  type: boolean
+  confirmable_by: [technician, duty_lew]
+  description: Water is confirmed on switchgear or a distribution board.
+
+breaker_tripped:
+  label: Breaker tripped
+  type: boolean
+  confirmable_by: [technician, duty_lew]
+  description: A breaker on the affected board has already tripped.
+
+equipment_wetted_or_isolated:
+  label: Electrical equipment wetted or de-energised because of water
+  type: boolean
+  confirmable_by: [technician, technical_services_lead, duty_lew]
+  description: An AHU, CRAH, DB or circuit has been wetted, or switched off / isolated because water reached it. Any return to service is a re-energisation (TS-07).
+
+lew_signoff:
+  label: LEW written sign-off
+  type: boolean
+  confirmable_by: [duty_lew]
+  description: A Licensed Electrical Worker has physically inspected the equipment and signed off in writing that it is fit to re-energise (00:14:32).
+
+insulation_resistance_ok:
+  label: Insulation resistance test passed
+  type: boolean
+  confirmable_by: [duty_lew]
+  description: The LEW's insulation resistance test on the affected circuit passed.
+
+area_dry:
+  label: Area confirmed dry
+  type: boolean
+  confirmable_by: [duty_lew, technical_services_lead]
+  description: Moisture readings around the equipment are back to baseline — no moisture in trunking or breakers.
+
+lew_dispatched:
+  label: LEW dispatched
+  type: boolean
+  confirmable_by: [technical_services_lead, duty_lew]
+  description: Informational. The duty LEW has been called out.
+
+lew_on_site:
+  label: LEW on site
+  type: boolean
+  confirmable_by: [duty_lew]
+  description: Informational. The duty LEW has arrived and started the inspection.
+
+# ---------------------------------------------------------------------------
+# Condensate vs active leak
+# ---------------------------------------------------------------------------
+
+ceiling_stain_or_drip:
+  label: Ceiling stain or drip
+  type: boolean
+  confirmable_by: [technician]
+  description: Water staining or dripping from the ceiling grid.
+
+condensate_leak_alarm:
+  label: Condensate leak alarm
+  type: boolean
+  confirmable_by: [technician]
+  description: A brick:Condensate_Leak_Alarm (drain pan / tray) is in alarm.
+
+tenant_report_drip:
+  label: Tenant reports a drip
+  type: boolean
+  confirmable_by: [asset_operations_manager, technician]
+  description: A tenant has reported water dripping in their premises.
+
+visual_inspection:
+  label: Condensate vs active leak inspected
+  type: boolean
+  confirmable_by: [technician]
+  description: A technician has looked at the source and distinguished condensate (drip, ambient) from an active chilled-water leak (stream, 8–14 °C) (00:27:30).
+
+drip_onto_tenant_it:
+  label: Drip onto tenant IT / electrical equipment
+  type: boolean
+  confirmable_by: [technician]
+  description: Water is dripping onto tenant IT or electrical equipment — the electrical gate (TS-01) applies.
+
+# ---------------------------------------------------------------------------
+# Fire protection
+# ---------------------------------------------------------------------------
+
+fsm_authorisation:
+  label: FSM authorisation for impairment
+  type: boolean
+  confirmable_by: [fire_safety_manager]
+  description: The Fire Safety Manager (or deputy) has authorised the fire-protection impairment and a red-tag permit is raised.
+
+immediate_life_safety_hazard:
+  label: Immediate life-safety hazard
+  type: boolean
+  confirmable_by: [fire_safety_manager, technical_services_lead]
+  description: An immediate life-safety hazard (e.g. water on live equipment) justifies emergency isolation before the permit (00:28:30).
+
+# ---------------------------------------------------------------------------
+# Lift
+# ---------------------------------------------------------------------------
+
+lift_pit_water:
+  label: Water in lift pit
+  type: boolean
+  confirmable_by: [technician, security_fcc_operator]
+  description: Water present in a lift pit.
+
+water_in_lift_shaft:
+  label: Water in lift shaft
+  type: boolean
+  confirmable_by: [technician, security_fcc_operator]
+  description: Water entering or running down a lift shaft.
+
+water_in_lift_car:
+  label: Water in lift car
+  type: boolean
+  confirmable_by: [technician, security_fcc_operator]
+  description: Water inside a lift car.
+
+lift_out_of_service_confirmed:
+  label: Lift out of service confirmed
+  type: boolean
+  confirmable_by: [security_fcc_operator, technician]
+  description: The FCC has parked the lift at an upper landing and taken it out of service.
+
+# ---------------------------------------------------------------------------
+# Insurer, drying, vector control
+# ---------------------------------------------------------------------------
+
+estimated_loss_above_threshold:
+  label: Estimated loss above insurer threshold
+  type: boolean
+  confirmable_by: [asset_operations_manager]
+  description: The estimated loss is above the policy notification threshold.
+
+fire_protection_impaired:
+  label: Fire protection impaired
+  type: boolean
+  confirmable_by: [fire_safety_manager]
+  description: A fire-protection system is impaired as a result of the incident.
+
+tenant_property_damage:
+  label: Tenant property damaged
+  type: boolean
+  confirmable_by: [asset_operations_manager, technician]
+  description: Tenant fit-out, furniture or equipment has been damaged by water.
+
+pre_cleanup_photos:
+  label: Pre-cleanup photos taken
+  type: boolean
+  confirmable_by: [technician, technical_services_lead]
+  description: Time-stamped photos / video of the damage taken before any cleanup (00:30:30).
+
+failed_component_retained:
+  label: Failed component retained and tagged
+  type: boolean
+  confirmable_by: [technical_services_lead]
+  description: The failed valve, gasket, coupling or pipe section has been retained and tagged for the loss adjuster.
+
+wet_building_fabric:
+  label: Wet building fabric
+  type: boolean
+  confirmable_by: [technician]
+  description: Ceiling tiles, insulation, carpet, slab or walls are wet.
+
+moisture_meter_readings:
+  label: Moisture map recorded
+  type: boolean
+  confirmable_by: [technician, technical_services_lead]
+  description: Moisture-meter readings of the affected area have been logged.
+
+moisture_reading_pct:
+  label: Moisture reading (%)
+  type: number
+  confirmable_by: [technician, duty_lew]
+  description: Informational. Latest moisture-meter reading at the point of concern (baseline about 12%).
+
+affected_materials_inventory:
+  label: Affected materials inventory
+  type: boolean
+  confirmable_by: [technical_services_lead]
+  description: Wet porous materials to discard (ceiling tiles, fibreglass insulation) have been listed.
+
+standing_water_present:
+  label: Standing water present
+  type: boolean
+  confirmable_by: [technician]
+  description: Pooled water remains after the incident (plant deck, planter, basement).
+
+standing_water_location_photos:
+  label: Standing-water locations photographed
+  type: boolean
+  confirmable_by: [technician]
+  description: Each standing-water location has been photographed for the vector-control log.
+
+# ---------------------------------------------------------------------------
+# Data centre
+# ---------------------------------------------------------------------------
+
+crah_condensate_alarm:
+  label: CRAH condensate alarm
+  type: boolean
+  confirmable_by: [technician, dc_critical_facilities_manager]
+  description: A CRAH/CRAC drain-pan or condensate alarm is active.
+
+underfloor_leak_detection:
+  label: Underfloor leak detection
+  type: boolean
+  confirmable_by: [technician, dc_critical_facilities_manager]
+  description: The underfloor leak-detection cable in a data hall is in alarm.
+
+high_humidity_alarm_server_room:
+  label: High humidity alarm in data hall
+  type: boolean
+  confirmable_by: [technician, dc_critical_facilities_manager]
+  description: A data-hall humidity sensor is above its alarm limit.
+
+leak_alarm_confirmed:
+  label: Data-hall leak alarm confirmed on site
+  type: boolean
+  confirmable_by: [technician, dc_critical_facilities_manager]
+  description: Someone on site has confirmed the data-hall leak alarm is real (not a sensor fault).
+
+water_contacting_live_it:
+  label: Water contacting live IT equipment
+  type: boolean
+  confirmable_by: [dc_critical_facilities_manager, duty_lew]
+  description: Water is touching racks, PDUs, power whips or other live IT equipment.
+
+# ---------------------------------------------------------------------------
+# External alerts
+# ---------------------------------------------------------------------------
+
+pub_heavy_rain_or_flood_alert:
+  label: PUB heavy-rain / flood alert
+  type: boolean
+  confirmable_by: [security_fcc_operator, technical_services_lead]
+  description: PUB has issued a heavy-rain or canal-level alert.
+
+pub_alert_station_near_asset:
+  label: PUB alert station near the asset
+  type: boolean
+  confirmable_by: [security_fcc_operator, technical_services_lead]
+  description: The alert is for a PUB monitoring station in the asset's catchment.

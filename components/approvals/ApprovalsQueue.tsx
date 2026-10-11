@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Layers, Siren, Inbox } from "lucide-react";
 import { useGovernanceStore } from "@/lib/governance/store";
-import { roleLabel } from "@/lib/governance/access";
-import { SectionHeader, EmptyState } from "@/components/mosaic";
+import { SectionHeader, EmptyState, PageHeader } from "@/components/mosaic";
 import type { PillVersion } from "@/lib/governance/versions";
 import type { PillBundle } from "@/lib/pills/load";
 import type { IncidentRecord, IncidentActionRecord } from "@/lib/data/schemas";
@@ -61,15 +60,10 @@ export function ApprovalsQueue({
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1>approvals</h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            Every decision that must be approved or escalated by a named human — nothing executes
-            without one.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="approvals"
+        subtitle="Every decision that must be approved or escalated by a named human — nothing executes without one."
+      />
 
       {/* (1) Pill version approvals */}
       <section className="space-y-3">
@@ -122,8 +116,7 @@ export function ApprovalsQueue({
       </section>
 
       <p className="text-[13px] text-ink-muted">
-        Acting as {currentActor.name} ({roleLabel(currentActor.role)}). Buttons
-        explain why they are disabled when your role lacks authority.
+        Buttons explain why they are disabled when your role lacks authority.
       </p>
     </div>
   );

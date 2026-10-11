@@ -66,7 +66,7 @@ export function HistoryRail({
   return (
     <div className="space-y-4">
       <section aria-labelledby="learn-history-title">
-        <h2 id="learn-history-title" className="text-sm font-semibold tracking-tight text-ink">
+        <h2 id="learn-history-title" className="text-sm font-semibold text-ink">
           Version history
         </h2>
         <p className="mt-0.5 text-[11px] text-ink-muted">
@@ -82,7 +82,7 @@ export function HistoryRail({
       <section aria-labelledby="learn-audit-title">
         <h2
           id="learn-audit-title"
-          className="flex items-center gap-1.5 text-sm font-semibold tracking-tight text-ink"
+          className="flex items-center gap-1.5 text-sm font-semibold text-ink"
         >
           <ScrollText className="size-4" aria-hidden="true" /> Audit events
         </h2>

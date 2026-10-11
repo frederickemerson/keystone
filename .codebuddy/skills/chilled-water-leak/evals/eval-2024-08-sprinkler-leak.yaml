@@ -1,0 +1,59 @@
+# Eval: 2024-08 fire-protection sprinkler leak
+# Pill: technical-services/chilled-water-leak v1.2.0
+#
+# Expert ground truth for the CURRENT rules. Evidence values are bare
+# (confirmed: true). Keys come from ../evidence.yaml. Absent key = not known.
+# Snapshot: after the FSM authorised isolating the smallest sprinkler zone.
+
+id: eval-2024-08-sprinkler-leak
+title: "Sprinkler head failure on L5 — fire-protection impairment"
+incident_date: "2024-08-22"
+incident_type: water_ingress
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 5
+  anchor_tenant: false
+evidence:
+  source_is_fire_protection: true
+  source_system: sprinkler
+  isolation_affects_fire_alarm: true
+  fsm_authorisation: true
+  fire_protection_impaired: true
+  active_water_release: false
+  isolation_complete: true
+  water_near_electrical: false
+  location_confirmed: true
+  estimated_loss_above_threshold: true
+  tenant_property_damage: true
+  wet_building_fabric: true
+  standing_water_present: true
+  pre_cleanup_photos: true
+  failed_component_retained: true
+expected_decisions:
+  TS-01: { status: not_applicable, reason: "water not near electrical" }
+  TS-02: { status: not_applicable, reason: "source is fire protection (TS-05 governs) and isolation is complete" }
+  TS-03: { status: not_applicable, reason: "no tenant power-down request" }
+  TS-04: { status: not_applicable, reason: "no ceiling drip report" }
+  TS-05:
+    status: needs_approval
+    reason: "sprinkler source + alarm interlock affected — FSM authorised, red-tag, insurer notice, fire watch; a named human approves the impairment plan"
+  TS-06: { status: not_applicable, reason: "no lift water" }
+  TS-07: { status: not_applicable, reason: "no electrical equipment wetted or isolated" }
+  TS-08:
+    status: needs_approval
+    reason: "isolation complete + impairment, loss and tenant damage — photos and failed head retained, insurer notification approved by AOM"
+  TS-09:
+    status: allowed
+    reason: "isolation complete + wet fabric — start extraction and drying"
+  TS-10: { status: not_applicable, reason: "not a data centre" }
+  TS-11:
+    status: allowed
+    reason: "standing water after isolation — clear within 24 h"
+  TS-12: { status: not_applicable, reason: "water_ingress incident — not a PUB external alert" }
+expert_decision: >-
+  Sprinkler head failed on L5. FSM authorised isolation of the smallest
+  sprinkler zone. Red-tag permit raised. Insurer notified. Fire watch posted
+  every 30 minutes. Fire-protection contractor replaced the head. Photos
+  taken before cleanup. Failed sprinkler head retained for the adjuster.
+outcome: "Protection restored in 4 hours. Insurer claim accepted. No fire-watch gap."

@@ -1,0 +1,57 @@
+# Eval: 2025-06 DC CRAH leak
+# Pill: technical-services/chilled-water-leak v1.2.0
+#
+# Expert ground truth for the CURRENT rules. Evidence values are bare
+# (confirmed: true). Keys come from ../evidence.yaml. Absent key = not known.
+# Snapshot: CRAH isolated after wetting, LEW not yet on site.
+
+id: eval-2025-06-dc-crah-leak
+title: "Harbourfront DC1 — CRAH condensate leak in data hall"
+incident_date: "2025-06-19"
+incident_type: water_ingress
+asset:
+  name: "Harbourfront DC1"
+  type: data_centre
+  pue: 1.32
+  colocation: true
+evidence:
+  crah_condensate_alarm: true
+  underfloor_leak_detection: true
+  high_humidity_alarm_server_room: true
+  leak_alarm_confirmed: true
+  water_contacting_live_it: false
+  source_system: condensate_drain
+  active_water_release: false
+  isolation_complete: true
+  equipment_wetted_or_isolated: true
+  location_confirmed: true
+  estimated_loss_above_threshold: true
+  pre_cleanup_photos: true
+  failed_component_retained: true
+expected_decisions:
+  TS-01: { status: not_applicable, reason: "water not near electrical switchgear" }
+  TS-02: { status: not_applicable, reason: "flow stopped — isolation complete" }
+  TS-03: { status: not_applicable, reason: "no power-down request" }
+  TS-04: { status: not_applicable, reason: "no ceiling drip (raised-floor data hall)" }
+  TS-05: { status: not_applicable, reason: "no fire-protection source" }
+  TS-06: { status: not_applicable, reason: "no lift water" }
+  TS-07:
+    status: blocked
+    reason: "CRAH isolated after wetting — return to service blocked until LEW sign-off, insulation resistance and area dry; data-centre override routes to the Critical Facilities Manager, who co-signs"
+  TS-08:
+    status: needs_approval
+    reason: "isolation complete + loss above threshold — photos and failed drain line retained; insurer notification approved by AOM"
+  TS-09: { status: not_applicable, reason: "no wet building fabric (raised floor)" }
+  TS-10:
+    status: escalate
+    reason: "CRAH condensate + underfloor leak + humidity alarm in a data hall — escalate to the Critical Facilities Manager; no IT power-down by Technical Services"
+  TS-11: { status: not_applicable, reason: "no standing water" }
+  TS-12: { status: not_applicable, reason: "water_ingress incident — not a PUB external alert" }
+expert_decision: >-
+  CRAH condensate drain line cracked. Underfloor leak detection triggered.
+  Isolated the CRAH chilled-water branch valve and switched the unit off.
+  Deployed containment under the raised floor. Notified the Critical
+  Facilities Manager, who issued the client SLA notice. No IT power-down —
+  thermal ride-through was sufficient. LEW inspected before the CRAH was
+  returned to service, CFM co-signed.
+outcome: "No outage. Client SLA credit avoided. CRAH returned to service after 4 hours."

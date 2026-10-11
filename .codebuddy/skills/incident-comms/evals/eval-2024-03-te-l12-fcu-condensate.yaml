@@ -1,0 +1,45 @@
+# Eval: 2024-03 L12 FCU condensate — tenant comms
+# Pill: tenant-experience/incident-comms v1.0.0
+#
+# Expert ground truth for the CURRENT rules. Evidence values are bare
+# (confirmed: true). Keys come from ../evidence.yaml. Absent key = not known.
+
+id: eval-2024-03-te-l12-fcu-condensate
+title: "L12 FCU condensate — tenant first notice"
+incident_date: "2024-03-14"
+incident_type: water_ingress
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 12
+  anchor_tenant: true
+evidence:
+  tenant_premises_affected: true
+  affected_units_confirmed: true
+  anchor_tenant_affected: true
+  account_manager_available: true
+  tenant_request_completion_time: true
+  source_confirmed: false
+  next_update_time_set: true
+  draft_message_contains_cause: false
+  message_visible_to_lower_role: false
+expected_decisions:
+  TE-01:
+    status: needs_approval
+    reason: "tenant premises affected, units confirmed — first notice within 30 min, named approver before send"
+  TE-02:
+    status: allowed
+    reason: "tenant asks for a fix time, source not confirmed — give the next update time, no completion promise"
+  TE-03: { status: not_applicable, reason: "draft states no cause" }
+  TE-04:
+    status: escalate
+    reason: "anchor tenant affected — account manager phones within 30 min"
+  TE-05: { status: not_applicable, reason: "message not visible to lower roles" }
+  TE-06: { status: not_applicable, reason: "not a data centre" }
+expert_decision: >-
+  Condensate leak on L12. First notice: "There is a water leak on Level 12.
+  Our technical team is on site. We will provide the next update at
+  10:45 AM." No cause stated. Account manager called the bank's facilities
+  director at 10:15 AM. Notice sent at 10:20 AM after sign-off. Source
+  confirmed as condensate at 10:40 AM — cause shared at the next update.
+outcome: "Tenant satisfied. No PDPA complaint. No liability claim."

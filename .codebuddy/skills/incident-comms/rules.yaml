@@ -1,0 +1,257 @@
+# MOSAIC Intelligence Pill — Rules
+# Pill: tenant-experience/incident-comms
+# Version: 1.0.0
+# Owner: tenant_experience_manager
+# Schema: docs/SPEC.md §4
+# Structured conditions only. op: eq | neq | gt | gte | lt | lte | in | exists
+# Evidence vocabulary: every evidence.<key> and required_evidence key is
+# declared in evidence.yaml (same folder).
+#
+# Status precedence (engine): not triggered -> not_applicable;
+# forbidden_if_missing_evidence && missing evidence -> blocked;
+# must_escalate -> escalate; requires_approval -> needs_approval; else allowed.
+# Approval of an outbound message is the action class (requires_approval),
+# never a required-evidence key. An escalation is never blocked.
+
+- id: TE-01
+  title: Notify affected tenant within 30 minutes with named approval
+  trigger:
+    incident_type: water_ingress
+    all:
+      - { path: evidence.tenant_premises_affected, op: eq, value: true }
+      - { path: asset.type, op: neq, value: data_centre }
+    any: []
+  required_evidence:
+    - affected_units_confirmed
+  decision: >-
+    Send a first notice to the affected tenants only, within 30 minutes.
+    The notice states: what happened, where, what we are doing, the next
+    update time, and a contact. No cause, no liability, no completion
+    promise. The notice requires a named human approver (Tenant Experience
+    Manager or delegate) before sending. Data-centre clients are handled by
+    TE-06 instead.
+  allowed_actions:
+    - "Draft first notice (what, where, action, next update, contact)"
+    - "Send after named approver sign-off"
+    - "Log notice in comms log with timestamp and approver"
+  forbidden_actions:
+    - "Sending any message without named human approval"
+    - "Stating cause or liability before investigation confirmed"
+    - "Promising a completion time before source confirmed and isolation complete"
+    - "Notifying tenants not affected by the incident"
+  exceptions:
+    - when:
+        - { path: evidence.life_safety_instruction, op: eq, value: true }
+      note: "Life-safety instruction (evacuate, stay put) issued immediately by FSM/FCC without comms approval; written notice follows"
+  action_class: requires_approval
+  forbidden_if_missing_evidence: true
+  escalate_to:
+    role: tenant_experience_manager
+    fallback: asset_operations_manager
+  owner: tenant_experience_manager
+  deadline_minutes: 30
+  asset_refs:
+    - "brick:Floor"
+    - "brick:Room"
+  sensitivity: tenant_pii
+  provenance:
+    - "te-interview-2026-10-03#00:02:50"
+
+- id: TE-02
+  title: Never promise completion time before source confirmed
+  trigger:
+    incident_type: water_ingress
+    all:
+      - { path: evidence.tenant_request_completion_time, op: eq, value: true }
+      - { path: evidence.source_confirmed, op: neq, value: true }
+    any: []
+  required_evidence:
+    - next_update_time_set
+  decision: >-
+    Do not promise a completion or resolution time. The source is not yet
+    confirmed and isolation is not complete. The correct response is:
+    "Our team is on site working to isolate the source. We will provide
+    an update on the repair timeline at [next update time]."
+  allowed_actions:
+    - "Draft response without completion promise"
+    - "State next update time instead of completion time"
+  forbidden_actions:
+    - "Stating or implying a completion time before source confirmed"
+    - "Stating 'we expect to resolve this by [time]' before isolation complete"
+  exceptions: []
+  action_class: recommend
+  forbidden_if_missing_evidence: false
+  escalate_to:
+    role: tenant_experience_manager
+    fallback: property_manager
+  owner: tenant_experience_manager
+  deadline_minutes: 30
+  asset_refs:
+    - "brick:Floor"
+  sensitivity: tenant_pii
+  provenance:
+    - "te-interview-2026-10-03#00:05:30"
+
+- id: TE-03
+  title: No cause in any outbound message until the source is confirmed
+  trigger:
+    incident_type: water_ingress
+    all:
+      - { path: evidence.draft_message_contains_cause, op: eq, value: true }
+    any: []
+  required_evidence:
+    - source_confirmed
+  decision: >-
+    State the cause in an outbound message only after Technical Services or
+    the LEW has confirmed it. Until then, remove all cause language from the
+    draft and replace it with: "We are investigating the source and will
+    share confirmed information at the next update."
+  allowed_actions:
+    - "Remove cause language from draft"
+    - "State that investigation is ongoing"
+    - "Share confirmed cause only after Technical Services or LEW confirmation"
+  forbidden_actions:
+    - "Stating 'the cause appears to be' or 'we believe the cause is' before confirmation"
+    - "Naming a specific component or system as the cause before confirmed"
+    - "Accepting a tenant's suggested cause without verification"
+  exceptions: []
+  action_class: requires_approval
+  forbidden_if_missing_evidence: true
+  escalate_to:
+    role: tenant_experience_manager
+    fallback: property_manager
+  owner: tenant_experience_manager
+  deadline_minutes: null
+  asset_refs:
+    - "brick:Floor"
+  sensitivity: tenant_pii
+  provenance:
+    - "te-interview-2026-10-03#00:07:30"
+
+- id: TE-04
+  title: Bank anchor tenant gets account-manager phone call
+  trigger:
+    incident_type: water_ingress
+    all:
+      - { path: evidence.anchor_tenant_affected, op: eq, value: true }
+    any: []
+  required_evidence:
+    - account_manager_available
+  decision: >-
+    The bank anchor tenant receives an account-manager phone call within
+    30 minutes of incident declaration, in addition to the written notice.
+    The account manager — not the technician, not the Duty Manager —
+    makes this call. The written notice follows. The call covers: what
+    happened, what we are doing, whether their premises or services are
+    affected, and the next update time.
+  allowed_actions:
+    - "Account-manager phone call to anchor tenant contact"
+    - "Written notice follows the call"
+    - "Log call in comms log with time and account manager name"
+  forbidden_actions:
+    - "Technician or Duty Manager making the anchor-tenant call"
+    - "Sending only a written notice to an anchor tenant without a call"
+    - "Delegating the call to a junior without account-manager oversight"
+  exceptions: []
+  action_class: must_escalate
+  forbidden_if_missing_evidence: false
+  escalate_to:
+    role: account_manager
+    fallback: asset_operations_manager
+  owner: tenant_experience_manager
+  deadline_minutes: 30
+  asset_overrides:
+    data_centre:
+      escalate_to:
+        role: dc_critical_facilities_manager
+      note: "DC clients receive SLA notice via CFM, not an account-manager call — see TE-06"
+  asset_refs:
+    - "brick:Floor"
+  sensitivity: commercial
+  provenance:
+    - "te-interview-2026-10-03#00:09:30"
+
+- id: TE-05
+  title: PII masking on all outbound messages
+  trigger:
+    incident_type: water_ingress
+    all:
+      - { path: evidence.message_visible_to_lower_role, op: eq, value: true }
+    any:
+      - { path: evidence.message_contains_tenant_name, op: eq, value: true }
+      - { path: evidence.message_contains_unit_number, op: eq, value: true }
+      - { path: evidence.message_contains_lease_terms, op: eq, value: true }
+      - { path: evidence.message_contains_other_tenant_pii, op: eq, value: true }
+  required_evidence:
+    - pii_audit_pass
+  decision: >-
+    Mask all tenant PII in outbound messages visible to roles below
+    property_manager. Tenant A's notice must not name Tenant B. Unit
+    numbers, individual names, contact details, and lease terms are
+    masked. Each affected tenant receives their own notice that does
+    not disclose other tenants' information.
+  allowed_actions:
+    - "Mask tenant names (replace with 'affected tenant on L23')"
+    - "Mask unit numbers in shared-role views"
+    - "Mask lease terms and commercial information"
+    - "Generate per-tenant notices that do not cross-reference"
+  forbidden_actions:
+    - "Including Tenant B's name in Tenant A's notice"
+    - "Including individual contact details in building-wide notices"
+    - "Including lease terms or rental rates in any message"
+    - "CC-ing multiple tenants on the same message"
+  exceptions: []
+  action_class: recommend
+  forbidden_if_missing_evidence: false
+  escalate_to:
+    role: property_manager
+    fallback: asset_operations_manager
+  owner: tenant_experience_manager
+  deadline_minutes: null
+  asset_refs: []
+  sensitivity: tenant_pii
+  provenance:
+    - "te-interview-2026-10-03#00:11:50"
+
+- id: TE-06
+  title: DC clients get SLA notice via critical facilities manager
+  trigger:
+    incident_type: water_ingress
+    all:
+      - { path: asset.type, op: eq, value: data_centre }
+      - { path: evidence.dc_client_affected, op: eq, value: true }
+    any: []
+  required_evidence:
+    - sla_terms_on_file
+    - cfm_available
+  decision: >-
+    DC clients receive an SLA notice via the critical facilities manager,
+    not a tenant-experience comms message. The SLA notice includes: SLA
+    event reference, impact assessment, estimated resolution window if
+    known, and the CFM as the point of contact. The approver is the CFM,
+    not Tenant Experience. The standard first-notice flow (TE-01) does not
+    apply to DC assets. Deadline follows the strictest client SLA on file
+    (15 minutes for the Harbourfront DC1 hyperscale client).
+  allowed_actions:
+    - "Draft SLA notice with event reference and impact assessment"
+    - "Send after CFM sign-off"
+    - "Log in SLA comms log with CFM name and timestamp"
+  forbidden_actions:
+    - "Sending tenant-experience comms to DC clients"
+    - "Using the same notice template as office tenants"
+    - "Tenant Experience approving DC client comms (CFM approves)"
+    - "Promising SLA credit before CFM and Asset Manager review"
+  exceptions: []
+  action_class: must_escalate
+  forbidden_if_missing_evidence: false
+  escalate_to:
+    role: dc_critical_facilities_manager
+    fallback: head_technical_services
+  owner: tenant_experience_manager
+  deadline_minutes: 15
+  asset_refs:
+    - "brick:Server_Room"
+    - "brick:CRAC"
+  sensitivity: commercial
+  provenance:
+    - "te-interview-2026-10-03#00:14:10"

@@ -1,0 +1,123 @@
+{
+  "pill": "technical-services/chilled-water-leak",
+  "version": "1.2.0",
+  "source_interview": "ce-interview-2026-10-02",
+  "interviewer": "MOSAIC Expert Capture (CDM/ACTA probes)",
+  "expert": {
+    "name": "Tan Wei Ming",
+    "role": "Chief Engineer",
+    "years_experience": 18,
+    "employer_context": "FM contractor at a Keppel REIT Singapore Grade A office portfolio"
+  },
+  "rules": {
+    "TS-01": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:25:30",
+      "end": "00:26:10",
+      "quote": "The first rule — water anywhere near switchgear, the LV room, the riser cupboard, any electrical room: nobody goes in. You cordon the threshold, you call the LEW, and you isolate the water from outside the room. You never enter before the LEW confirms it's de-energised and safe.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-02": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:23:30",
+      "end": "00:24:20",
+      "quote": "For a chilled-water leak from the AHU supply branch coupling, where the sub-valve is accessible and stops the flow, you isolate the sub-valve only. You do not need to isolate the riser. For condensate — from the AHU drain pan — you also don't isolate the riser, because condensate is not on the chilled-water loop at all; you isolate at the AHU unit level or fix the drain. The riser isolation is for when the leak is on the riser pipe itself, or when the branch sub-valve is seized or inaccessible, or when the source can't be confirmed within ten minutes.",
+      "confirmation": "edited",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00",
+      "edit_note": "Contradiction caught on the call (P28, 00:23:10): 'always isolate the whole riser' (00:06:30) vs 'isolate the sub-valve and leave the riser open' (00:22:15). Resolved with a distinguishing condition: branch sub-valve first; riser only for a riser-pipe leak, a seized or inaccessible sub-valve, or a source unconfirmed at 10 minutes. Deadline 15 min taken from 00:11:35 (tenant-occupied area)."
+    },
+    "TS-03": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:26:30",
+      "end": "00:27:10",
+      "quote": "a tenant calls, says there's water near their server, they want you to kill the whole floor's power. You do not do that on a tenant request alone. Power down only when the LEW confirms a real electrical risk, or you can see water on the switchgear, or a breaker has already tripped. A false power-down on a bank's trading floor is a seven-figure incident — that's a very uncomfortable conversation with the Asset Manager.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-04": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:27:30",
+      "end": "00:28:10",
+      "quote": "You must tell condensate apart from an active chilled-water leak. Condensate is a drip from the tray or drain line, ambient temperature. An active leak from the chilled-water branch is a stream, cold, eight to fourteen degrees, from the branch pipe or riser. Condensate you clear the tray and schedule a repair; an active leak you isolate the FCU chilled-water valves immediately. When in doubt, treat it as active and isolate.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-05": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:28:30",
+      "end": "00:29:10",
+      "quote": "Fire-protection systems — sprinkler, wet riser, hose reel, fire pump — never touch a valve without the FSM's authorisation. That's an impairment. You raise a red-tag permit, notify the insurer, post a fire watch every thirty minutes, and restore protection as the first priority after life safety. Isolate the smallest zone you can.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-06": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:29:30",
+      "end": "00:30:10",
+      "quote": "Water in the lift pit or shaft — take the lift out of service straight away via the FCC. Park it at an upper floor, cordon the landing doors, and call the lift contractor. Don't run it to 'test'. If it's a reportable safety incident, BCA must be called within six hours under the Reportable Matters Regulations. Return to service only after the contractor inspects and clears it — not us.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-07": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:14:32",
+      "end": "00:16:10",
+      "quote": "never re-energise before the LEW signs off. If there is water anywhere near the switchgear, the distribution board, the riser cupboard — any electrical equipment — you do not re-energise that circuit until a Licensed Electrical Worker has physically inspected it, tested the insulation resistance, and signed off in writing. I don't care if the tenant is screaming, I don't care if the bank's trading floor is down — you do not put power back on a circuit that has been near water until the LEW certifies it.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-08": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:30:30",
+      "end": "00:31:10",
+      "quote": "Before any cleanup, preserve the evidence. Photos and video with timestamps, the failed component retained and tagged — the valve, the gasket, the pipe section. Notify the insurer within the policy window. Separate landlord damage from tenant damage. Do not commit to repairs beyond emergency mitigation before the loss adjuster has been on site",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-09": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:31:30",
+      "end": "00:32:10",
+      "quote": "Start extraction and drying within twenty-four hours, and verify the area is dry within forty-eight. Mobilise dehumidifiers and air movers, moisture-map the affected area, discard porous materials like ceiling tiles and fibreglass insulation. Re-check moisture at twenty-four and forty-eight hours. And the drying equipment runs off circuits the LEW has cleared, never off the affected board.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-10": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:32:30",
+      "end": "00:33:10",
+      "quote": "Data centre is different. You don't send a tenant message to a DC client — the critical facilities manager handles the SLA notification. You isolate the CRAH condensate or chilled-water branch, deploy containment, but you do not touch IT power — that's the BCP owner's or the CFM's call. Any IT power-down is proposed only and executed by them. The client SLA notification goes through the CFM, not the tenant-experience comms flow.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-11": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:33:30",
+      "end": "00:34:10",
+      "quote": "After the incident, clear any standing water within twenty-four hours. Plant deck, planter box, basement — NEA holds owners and occupiers liable for mosquito breeding and they do inspect. If you can't pump it out, treat it with larvicide via a pest-control contractor and inspect daily until it's dry, and log it in the vector-control record. That's the law.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    },
+    "TS-12": {
+      "source": "ce-interview-2026-10-02",
+      "start": "00:34:30",
+      "end": "00:35:00",
+      "quote": "On a PUB heavy-rain or flood alert, within thirty minutes test the basement sump pumps and float switches, clear the roof outlets and rainwater downpipes, and stage flood barriers at the carpark ramps and known low points. Brief security on patrol points. Do not deploy barriers that block egress routes — that's a life-safety violation.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Tan Wei Ming",
+      "confirmed_at": "2026-10-02T12:45:00+08:00"
+    }
+  }
+}

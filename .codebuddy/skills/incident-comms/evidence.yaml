@@ -1,0 +1,127 @@
+# MOSAIC Intelligence Pill — Evidence catalogue
+# Pill: tenant-experience/incident-comms
+# Version: 1.0.0
+#
+# The canonical evidence vocabulary for this pill. Every `evidence.<key>`
+# path in rules.yaml and every `required_evidence` key MUST be declared here.
+# Timelines (data/timelines) and eval cases (evals/*.yaml) may only emit
+# declared keys.
+#
+#   <key>:
+#     label:          human label for the Why drawer / evidence timeline
+#     type:           boolean | number | string
+#     confirmable_by: roles (data/roles.json) who may mark the item confirmed
+#     description:    what the fact means, in the expert's terms
+#
+# Required evidence is satisfied ONLY when the item is confirmed AND its
+# value is `true`. Approval of an outbound message is NOT evidence — it is
+# what `action_class: requires_approval` means, and a named human gives it
+# in the approval panel.
+
+tenant_premises_affected:
+  label: Tenant premises affected
+  type: boolean
+  confirmable_by: [asset_operations_manager, tenant_experience_manager]
+  description: The incident affects a tenant's premises, access, services or safety.
+
+affected_units_confirmed:
+  label: Affected tenants / units confirmed
+  type: boolean
+  confirmable_by: [asset_operations_manager, tenant_experience_manager]
+  description: The list of affected tenants and units is confirmed from the incident log — only they get the first notice (00:02:50).
+
+life_safety_instruction:
+  label: Life-safety instruction issued
+  type: boolean
+  confirmable_by: [security_fcc_operator, fire_safety_manager]
+  description: The FSM / FCC has issued an evacuate or stay-put instruction over PA / mass notification.
+
+source_confirmed:
+  label: Source confirmed by Technical Services or LEW
+  type: boolean
+  confirmable_by: [technical_services_lead, duty_lew, chief_engineer]
+  description: Technical Services or the LEW has confirmed what caused the incident. Until then, no cause and no completion time goes to a tenant (00:05:30, 00:07:30).
+
+tenant_request_completion_time:
+  label: Tenant asks when it will be fixed
+  type: boolean
+  confirmable_by: [asset_operations_manager, tenant_experience_manager]
+  description: A tenant has asked for a completion or resolution time.
+
+next_update_time_set:
+  label: Next update time set
+  type: boolean
+  confirmable_by: [tenant_experience_manager, asset_operations_manager]
+  description: A next-update time has been fixed and can be given to the tenant instead of a completion time.
+
+draft_message_contains_cause:
+  label: Draft message states a cause
+  type: boolean
+  confirmable_by: [tenant_experience_manager, property_manager]
+  description: A draft outbound message states or implies the cause ("appears to be", "we believe", "a pipe burst").
+
+anchor_tenant_affected:
+  label: Anchor tenant affected
+  type: boolean
+  confirmable_by: [asset_operations_manager, tenant_experience_manager]
+  description: The bank anchor tenant (or a tenant with a lease notification SLA) is affected.
+
+account_manager_available:
+  label: Account manager reachable
+  type: boolean
+  confirmable_by: [tenant_experience_manager, account_manager]
+  description: The tenant's account manager has been reached and can place the call.
+
+message_visible_to_lower_role:
+  label: Message visible to roles below Property Manager
+  type: boolean
+  confirmable_by: [tenant_experience_manager, property_manager]
+  description: The message will be visible to roles below property_manager (e.g. a shared building notice).
+
+message_contains_tenant_name:
+  label: Message names a tenant
+  type: boolean
+  confirmable_by: [tenant_experience_manager, property_manager]
+  description: The message contains a tenant or individual name.
+
+message_contains_unit_number:
+  label: Message contains unit numbers
+  type: boolean
+  confirmable_by: [tenant_experience_manager, property_manager]
+  description: The message contains unit numbers.
+
+message_contains_lease_terms:
+  label: Message contains lease terms
+  type: boolean
+  confirmable_by: [tenant_experience_manager, property_manager]
+  description: The message contains lease terms, rental rates or other commercial information.
+
+message_contains_other_tenant_pii:
+  label: Message contains another tenant's PII
+  type: boolean
+  confirmable_by: [tenant_experience_manager, property_manager]
+  description: The message to one tenant contains another tenant's personal or company information.
+
+pii_audit_pass:
+  label: PII check passed
+  type: boolean
+  confirmable_by: [tenant_experience_manager, property_manager]
+  description: The draft has been checked and contains no PII beyond what the recipient may see (PDPA).
+
+dc_client_affected:
+  label: Data-centre client affected
+  type: boolean
+  confirmable_by: [dc_critical_facilities_manager]
+  description: A colocation client's hall, cage or service is affected — the SLA notice process applies, not tenant comms.
+
+sla_terms_on_file:
+  label: Client SLA terms on file
+  type: boolean
+  confirmable_by: [dc_critical_facilities_manager]
+  description: The client's SLA notification terms (window, event reference format) are on file.
+
+cfm_available:
+  label: Critical Facilities Manager reachable
+  type: boolean
+  confirmable_by: [dc_critical_facilities_manager]
+  description: The Critical Facilities Manager has been reached and owns the SLA notice.

@@ -10,7 +10,7 @@ import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { BrandMark } from '@/components/shell/BrandMark';
 
 export const NAV_ITEMS = [
-  { href: '/', label: 'Portfolio Pulse', purpose: 'Portfolio-wide posture at a glance' },
+  { href: '/pulse', label: 'Portfolio Pulse', purpose: 'Portfolio-wide posture at a glance' },
   {
     href: '/capture',
     label: 'Expert Call',
@@ -37,7 +37,6 @@ export const NAV_ITEMS = [
 
 /** A nav item is active for any route in its section (e.g. every /canvas/*). */
 function isActive(pathname: string, href: string): boolean {
-  if (href === '/') return pathname === '/';
   const section = `/${href.split('/')[1]}`;
   return pathname === section || pathname.startsWith(`${section}/`);
 }
@@ -70,6 +69,10 @@ function Wordmark({ compact = false }: { compact?: boolean }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [auditOpen, setAuditOpen] = useState(false);
+
+  // The landing page (/) is full-bleed with its own minimal header; every app
+  // screen gets the sidebar shell. The brand mark links back to it.
+  if (pathname === '/') return <>{children}</>;
 
   return (
     <div className="flex min-h-dvh bg-canvas text-ink">

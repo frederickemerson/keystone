@@ -1,0 +1,55 @@
+# Eval: 2024-11 riser leak near distribution board
+# Pill: technical-services/chilled-water-leak v1.2.0
+#
+# Expert ground truth for the CURRENT rules. Evidence values are bare
+# (confirmed: true). Keys come from ../evidence.yaml. Absent key = not known.
+# Snapshot: water tracking toward the electrical room, circuit isolated, LEW
+# not yet on site — so lew_signoff / insulation_resistance_ok / area_dry are
+# ABSENT (not recorded as false).
+
+id: eval-2024-11-riser-leak-near-db
+title: "Chilled-water riser joint failure on L23 — water tracking toward electrical room"
+incident_date: "2024-11-06"
+incident_type: water_ingress
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 23
+  anchor_tenant: true
+evidence:
+  active_water_release: true
+  leak_on_riser_pipe: true
+  water_near_electrical: true
+  water_flowing_toward_electrical: true
+  water_in_electrical_room: false
+  visual_or_alarm_confirmation: true
+  equipment_wetted_or_isolated: true
+  isolation_complete: false
+  location_confirmed: true
+  shutoff_map_available: true
+  estimated_loss_above_threshold: true
+  tenant_property_damage: true
+  wet_building_fabric: true
+expected_decisions:
+  TS-01:
+    status: escalate
+    reason: "water flowing toward electrical — nobody enters, cordon, call the duty LEW, isolate upstream from outside"
+  TS-02: { status: not_applicable, reason: "water near electrical — TS-01 governs isolation from outside the room" }
+  TS-03: { status: not_applicable, reason: "water is near electrical and no power-down request" }
+  TS-04: { status: not_applicable, reason: "no ceiling drip report" }
+  TS-05: { status: not_applicable, reason: "source is the chilled-water riser, not fire protection" }
+  TS-06: { status: not_applicable, reason: "no lift water" }
+  TS-07:
+    status: blocked
+    reason: "circuit isolated after wetting — re-energisation blocked: LEW sign-off, insulation resistance and area dry all missing"
+  TS-08: { status: not_applicable, reason: "isolation not yet complete" }
+  TS-09: { status: not_applicable, reason: "isolation not yet complete" }
+  TS-10: { status: not_applicable, reason: "not a data centre" }
+  TS-11: { status: not_applicable, reason: "no standing water" }
+  TS-12: { status: not_applicable, reason: "water_ingress incident — not a PUB external alert" }
+expert_decision: >-
+  Riser joint failed on L23. Water tracking along the cable tray toward the
+  electrical room. Evacuated the electrical room, called the LEW. Isolated
+  the riser within 8 minutes. No one entered the electrical room until the
+  LEW certified it. Insurer notified. Failed joint retained for the adjuster.
+outcome: "No injury. LEW certified re-energisation after 3 hours. Insurer claim accepted without dispute."

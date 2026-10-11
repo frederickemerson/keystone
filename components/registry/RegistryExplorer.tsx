@@ -6,7 +6,7 @@ import { useGovernanceStore, shadowKey, personaFor } from "@/lib/governance/stor
 import { currentApproved, type PillVersion } from "@/lib/governance/versions";
 import { shadowSummary } from "@/lib/governance/approval";
 import { runEvals } from "@/lib/engine";
-import { PillCard, SectionHeader, EmptyState, KpiStat } from "@/components/mosaic";
+import { PillCard, SectionHeader, EmptyState, KpiStat, PageHeader } from "@/components/mosaic";
 import type { PillCardData, PillStatus } from "@/components/mosaic/types";
 import type { PillBundle } from "@/lib/pills/load";
 import { PillDetailPanel } from "./PillDetailPanel";
@@ -100,14 +100,10 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
   return (
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 lg:flex-row">
       <div className="min-w-0 flex-1 space-y-5">
-        <header className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1>pill registry</h1>
-            <p className="mt-1 text-sm text-ink-muted">
-              Every Intelligence Pill, its lifecycle state and health at a glance.
-            </p>
-          </div>
-        </header>
+        <PageHeader
+          title="pill registry"
+          subtitle="Every Intelligence Pill, its lifecycle state and health at a glance."
+        />
 
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Registry summary">
           <KpiStat label="Pills" value={prepared.length} />
@@ -128,7 +124,7 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
         <section className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 text-[13px] text-ink-muted">
             <Filter className="size-3.5" aria-hidden="true" />
-            <span>Filter</span>
+            <span>Filter by</span>
           </div>
           <select
             value={domainFilter}

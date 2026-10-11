@@ -8,13 +8,12 @@ import { useState } from 'react';
 import { Ban, CheckCircle2, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { SectionHeader } from '@/components/mosaic';
 import type { ApprovalCheck } from '@/lib/governance/approval';
-import type { Actor, PillVersion } from '@/lib/governance/versions';
+import type { PillVersion } from '@/lib/governance/versions';
 import { explainBlocker, roleDisplayName } from './learning-utils';
 import { VersionChip } from './VersionChip';
 
 export function ApprovalPanel({
   version,
-  actor,
   check,
   canOverride,
   disabledReason,
@@ -22,7 +21,6 @@ export function ApprovalPanel({
   onOverride,
 }: {
   version: PillVersion;
-  actor: Actor;
   check: ApprovalCheck;
   canOverride: boolean;
   disabledReason?: string;
@@ -37,7 +35,7 @@ export function ApprovalPanel({
     <section aria-labelledby="learn-step-6-title" id="learn-step-6" tabIndex={-1} className="scroll-mt-4">
       <SectionHeader
         title="6. Steward approval"
-        description={`Approver for this pill: ${roleDisplayName(version.approverRole)}. Acting as ${actor.name} (${roleDisplayName(actor.role)}).`}
+        description={`Approver for this pill: ${roleDisplayName(version.approverRole)}.`}
         icon={<ShieldCheck className="size-4" />}
         actions={<VersionChip status={version.status} version={version.version} />}
       />

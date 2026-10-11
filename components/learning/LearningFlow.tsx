@@ -8,8 +8,8 @@
 //   → 5 shadow → 6 approve → 7 rollback
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, GraduationCap, Lock } from 'lucide-react';
-import { RomanList, SectionHeader, type RomanListItem } from '@/components/mosaic';
+import { AlertTriangle, Lock } from 'lucide-react';
+import { PageHeader, RomanList, SectionHeader, type RomanListItem } from '@/components/mosaic';
 import { compareVersions, type EvalCase } from '@/lib/engine';
 import { canApprove, type ApprovalCheck } from '@/lib/governance/approval';
 import { hasCapability } from '@/lib/governance/access';
@@ -331,21 +331,22 @@ export function LearningFlow({
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-5">
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2">
-            <GraduationCap className="size-5 text-ink-muted" aria-hidden="true" />
-            outcome &amp; learning
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-ink-muted">
+      <PageHeader
+        eyebrow={
+          <span className="font-mono text-[12px]">
+            {bundle.domain}/{bundle.name}
+          </span>
+        }
+        title="outcome & learning"
+        subtitle={
+          <>
             {incident ? `${incident.id} · ${incident.location}. ` : ''}
             Capture the outcome, correct the rule, replay every past incident, run it in shadow,
             then approve — or roll back.
-          </p>
-          <p className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-            <span className="font-medium text-ink">
-              {bundle.domain}/{bundle.name}
-            </span>
+          </>
+        }
+        meta={
+          <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
             {approved ? (
               <VersionChip status={approved.status} version={approved.version} />
             ) : (
@@ -355,17 +356,8 @@ export function LearningFlow({
             <span>·</span>
             <span>{cases.length} eval cases</span>
           </p>
-        </div>
-
-        {/* Read-only: the app-shell RoleSwitcher is the single place to change
-            role, so this screen only reflects who is acting. */}
-        <p className="flex items-center gap-2 text-[13px] text-ink-muted">
-          <span>Acting as</span>
-          <span className="text-ink">{currentActor.name}</span>
-          <span aria-hidden="true">·</span>
-          <span className="text-ink">{roleDisplayName(currentActor.role)}</span>
-        </p>
-      </header>
+        }
+      />
 
       {error ? (
         <p
@@ -446,7 +438,6 @@ export function LearningFlow({
           {target && check ? (
             <ApprovalPanel
               version={target}
-              actor={currentActor}
               check={check}
               canOverride={canOverride}
               disabledReason={
