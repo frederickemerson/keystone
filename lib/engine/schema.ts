@@ -45,6 +45,8 @@ const escalateTargetSchema = z.object({
 const ruleExceptionSchema: z.ZodType<RuleException> = z.object({
   when: z.array(conditionSchema),
   note: z.string(),
+  add_required_evidence: z.array(z.string()).optional(),
+  escalate_to: escalateTargetSchema.optional(),
 });
 
 const actionClassSchema = z.enum([
@@ -68,6 +70,7 @@ const assetOverridesSchema: z.ZodType<AssetOverrides> = z.record(
     deadline_minutes: z.number().nullable().optional(),
     allowed_actions: z.array(z.string()).optional(),
     forbidden_actions: z.array(z.string()).optional(),
+    forbidden_if_missing_evidence: z.boolean().optional(),
   }),
 );
 
@@ -131,6 +134,7 @@ const actionStatusSchema = z.enum([
   "blocked",
   "needs_approval",
   "escalate",
+  "not_applicable",
 ]);
 
 const evidenceItemSchema = z.object({

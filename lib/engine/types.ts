@@ -50,12 +50,16 @@ export interface EscalateTarget {
 export interface RuleException {
   when: Condition[];
   note: string;
+  /** Additional evidence keys this exception requires (may never relax a gate). */
+  add_required_evidence?: string[];
+  /** Override or add an escalation target when this exception applies. */
+  escalate_to?: EscalateTarget;
 }
 
 /** Per-asset-type overrides keyed by asset type, e.g. { data_centre: { escalate_to: {...} } } */
 export type AssetOverrides = Record<
   string,
-  Partial<Pick<Rule, "escalate_to" | "action_class" | "deadline_minutes" | "allowed_actions" | "forbidden_actions">>
+  Partial<Pick<Rule, "escalate_to" | "action_class" | "deadline_minutes" | "allowed_actions" | "forbidden_actions" | "forbidden_if_missing_evidence">>
 >;
 
 export interface Rule {
@@ -138,7 +142,7 @@ export interface Incident {
 // Engine output (SPEC §5)
 // ---------------------------------------------------------------------------
 
-export type ActionStatus = "allowed" | "blocked" | "needs_approval" | "escalate";
+export type ActionStatus = "allowed" | "blocked" | "needs_approval" | "escalate" | "not_applicable";
 
 export interface ActionDecision {
   ruleId: string;
