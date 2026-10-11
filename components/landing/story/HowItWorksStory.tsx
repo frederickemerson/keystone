@@ -9,9 +9,8 @@
 // when they enter the viewport; reduced motion shows each final state.
 
 import Link from 'next/link';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  animate,
   motion,
   useInView,
   useMotionValue,
@@ -34,8 +33,11 @@ import {
   type FlyOffset,
 } from './primitives';
 import { usePrefersReducedMotion } from './useMotionPreference';
+import { usePlayOnView } from './usePlayOnView';
 
-const NUMERALS = ['I', 'II', 'III', 'IV', 'V'] as const;
+export const NUMERALS = ['I', 'II', 'III', 'IV', 'V'] as const;
+/** The five steps' names. The promises above the story group them, so they live here once. */
+export const STEP_TITLES = ['Capture', 'Compile', 'Apply', 'Learn', 'Reuse'] as const;
 const PHASES = NUMERALS.length;
 
 interface StepCopy {
@@ -64,7 +66,7 @@ function stepCopy(hero: HeroFacts, story: StoryFacts): StepCopy[] {
   const learn = story.learn;
   return [
     {
-      title: 'Capture',
+      title: STEP_TITLES[0],
       body: (
         <>
           An AI interview surfaces the cues, exceptions and contradictions behind a call. {hero.expert} says it once, in
@@ -76,7 +78,7 @@ function stepCopy(hero: HeroFacts, story: StoryFacts): StepCopy[] {
       cta: 'Hear the onboarding call',
     },
     {
-      title: 'Compile',
+      title: STEP_TITLES[1],
       body: (
         <>
           Each candidate rule goes back to the expert to confirm or edit. One sentence becomes{' '}
@@ -87,7 +89,7 @@ function stepCopy(hero: HeroFacts, story: StoryFacts): StepCopy[] {
       cta: 'Open the rule canvas',
     },
     {
-      title: 'Apply',
+      title: STEP_TITLES[2],
       body: (
         <>
           During <span className="font-mono text-[0.9em]">{story.incidentId}</span> at {story.incidentAsset}, approved
@@ -99,7 +101,7 @@ function stepCopy(hero: HeroFacts, story: StoryFacts): StepCopy[] {
       cta: 'Open the incident room',
     },
     {
-      title: 'Learn',
+      title: STEP_TITLES[3],
       body: learn ? (
         <>
           A correction from the field becomes <span className="font-mono text-[0.9em]">v{learn.toVersion}</span>:{' '}
@@ -114,7 +116,7 @@ function stepCopy(hero: HeroFacts, story: StoryFacts): StepCopy[] {
       cta: 'Open the learning loop',
     },
     {
-      title: 'Reuse',
+      title: STEP_TITLES[4],
       body: (
         <>
           The approved pill carries the same rule to {story.reuse.toAsset}. Its data-centre override sends escalation to
@@ -500,22 +502,6 @@ function PinnedStory({ hero, story, steps }: { hero: HeroFacts; story: StoryFact
 // ---------------------------------------------------------------------------
 // Mobile and reduced motion: five states in sequence
 // ---------------------------------------------------------------------------
-
-/** 0 → 1 once the element is in view (or 1 at once when motion is reduced). */
-function usePlayOnView(ref: React.RefObject<HTMLElement | null>, reduced: boolean, duration = 1.8) {
-  const t = useMotionValue(reduced ? 1 : 0);
-  const inView = useInView(ref, { once: true, amount: 0.45 });
-  useEffect(() => {
-    if (reduced) {
-      t.set(1);
-      return;
-    }
-    if (!inView) return;
-    const controls = animate(t, 1, { duration, ease: 'linear' });
-    return () => controls.stop();
-  }, [inView, reduced, t, duration]);
-  return t;
-}
 
 function SequenceStep({
   index,

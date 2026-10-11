@@ -77,9 +77,70 @@
   border-top: 1px solid var(--pencil);
 }
 
+/* The turn: one full-screen beat after beat IV. The headline is the display
+   moment of the page's middle; its clock rewinds, so figures are tabular. */
+.turn {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: 56px 72px;
+}
+
+.turnHeadline {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 1.2rem + 4.4vw, 3.25rem);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  color: var(--heading);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The promises: three small figures in the same paper-and-ink theme. */
+.promises {
+  --hairline-plate: #fdfbf9;
+  --hairline-hi: #171717;
+  --hairline-edge: #2b1a07;
+  --hairline-mid: #6f6862;
+  --hairline-lo: #cdc2b7;
+  --hairline-stroke: 1.25;
+}
+
+.promiseBleed {
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  left: -10%;
+}
+
+/* The gate's padlock stays shut: it does not answer the pointer. */
+.lockedFigure {
+  pointer-events: none;
+}
+
+/* The replay's note of the expert's words: ruled like the notebook, no margin. */
+.noteRuled {
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 33px, #eadfd3 33px, #eadfd3 34px);
+  background-position: 0 12px;
+}
+
 @media (min-width: 1024px) {
   .problem {
     --hairline-stroke: 1.75;
+  }
+
+  /* The headline reaches past its column; the stage steps back to the right. */
+  .turn {
+    position: relative;
+    z-index: 1;
+    min-height: 70vh;
+    padding-block: 0;
+  }
+
+  .turnHeadline {
+    width: min(152%, 48rem);
+    font-size: clamp(3.5rem, 1.6rem + 3.6vw, 5.25rem);
   }
 
   /* One beat per screen: the copy sits where the sticky stage is centred. */

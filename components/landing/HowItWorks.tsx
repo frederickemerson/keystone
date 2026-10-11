@@ -4,7 +4,7 @@ import { HowItWorksStory } from './story/HowItWorksStory';
 /** Server shell: heading plus the client story, fed only serialisable facts. */
 export function HowItWorks({ hero, story }: { hero: HeroFacts; story: StoryFacts }) {
   return (
-    <section aria-labelledby="how-title" className="border-t border-line bg-dew-drop/60">
+    <section id="how-it-works" aria-labelledby="how-title" className="border-t border-line bg-dew-drop/60">
       <div className="mx-auto w-full max-w-[1240px] px-4 pb-10 pt-16 sm:px-8 lg:pb-0 lg:pt-24">
         <h2
           id="how-title"

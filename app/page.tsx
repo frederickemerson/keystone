@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { Hero } from '@/components/landing/Hero';
 import { ProblemStory } from '@/components/landing/ProblemStory';
+import { Replay } from '@/components/landing/Replay';
+import { Promises } from '@/components/landing/Promises';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { SafeBounded } from '@/components/landing/SafeBounded';
 import { DemoVideo } from '@/components/landing/DemoVideo';
@@ -14,9 +16,14 @@ export const metadata: Metadata = {
     "Keystone turns an expert's spoken know-how into governed, versioned Intelligence Pills.",
 };
 
+// Every quote, rule, name and timestamp on the page is read from the real
+// pills and demo data. The route renders per request (the shell reads the
+// session), so the facts are also loaded once when the module is evaluated:
+// `next build` evaluates it while collecting page data, and a fact that has
+// disappeared from the data fails the build instead of a visitor's request.
+loadLandingFacts();
+
 // Landing page. Rendered full-bleed (AppShell skips the sidebar on "/").
-// Every quote, rule, name and timestamp below is read from the real pills and
-// demo data at build time.
 export default function LandingPage() {
   const facts = loadLandingFacts();
   return (
@@ -31,6 +38,8 @@ export default function LandingPage() {
       <main id="main" className="flex-1">
         <Hero facts={facts.hero} />
         <ProblemStory facts={facts.problem} />
+        <Replay facts={facts.replay} />
+        <Promises />
         <HowItWorks hero={facts.hero} story={facts.story} />
         <SafeBounded classes={facts.classes} />
         <DemoVideo video={facts.video} />

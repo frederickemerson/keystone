@@ -3,11 +3,25 @@
 // copy of pill content: if the pill changes, the landing page changes with it.
 
 import { loadAllPills, loadPill, type PillBundle } from '@/lib/pills/load';
-import { loadAssets, loadRoles, loadTimeline, loadTranscript } from '@/lib/data';
-import type { Timeline } from '@/lib/data/schemas';
+import {
+  loadAiProposalFixture,
+  loadAsset,
+  loadAssets,
+  loadIncident,
+  loadRoles,
+  loadTimeline,
+  loadTranscript,
+} from '@/lib/data';
+import type { RoleDefinition, Timeline } from '@/lib/data/schemas';
 import { pillTitle } from '@/components/mosaic/pillTitle';
-import { runEvals } from '@/lib/engine';
-import type { ActionClass, EvalCase, Pill, Rule } from '@/lib/engine/types';
+import {
+  accumulateEvidence,
+  toEngineAsset,
+  toEngineEvidence,
+  toEngineIncident,
+} from '@/components/incident/engineInputs';
+import { evaluate, runEvals } from '@/lib/engine';
+import type { ActionClass, ActionDecision, EvalCase, Pill, Rule } from '@/lib/engine/types';
 import { parseDemoVideoUrl, type DemoVideo } from './video';
 
 /**
@@ -94,12 +108,54 @@ export interface ProblemFacts {
   insulationPassedAt: string;
   /** hh:mm the area was first confirmed dry (the gate check still open at the test). */
   areaDryAt: string;
+  /**
+   * The incident's clock, from its last event back to `electricsWetAt`,
+   * newest first: the times the turn rewinds through.
+   */
+  rewind: string[];
+}
+
+/** A required check the gate found unconfirmed, with its catalogue label. */
+export interface MissingCheck {
+  key: string;
+  label: string;
+}
+
+/**
+ * Facts for the replay: the same moment as beat IV with the pills in the
+ * room. The verdict is the engine's own, evaluated on the incident's evidence
+ * as it stood when the AI proposed re-energising.
+ */
+export interface ReplayFacts {
+  incidentId: string;
+  /** hh:mm of the proposal; the same moment the problem story narrates. */
+  at: string;
+  /** The orchestrator's recorded proposal, verbatim. */
+  proposal: string;
+  gate: {
+    ruleId: string;
+    ruleTitle: string;
+    version: string;
+    missing: MissingCheck[];
+  };
+  /** The expert's sentence the rule was compiled from. */
+  quote: {
+    text: string;
+    expert: string;
+    role: string;
+    timestamp: string;
+  };
+  /** Who the blocked gate escalates to, from data/roles.json. */
+  escalateTo: { person: string; role: string };
+  /** The tenant first-notice rule's deadline at this moment, in minutes. */
+  tenantNoticeMinutes: number;
 }
 
 export interface LandingFacts {
   hero: HeroFacts;
   story: StoryFacts;
   problem: ProblemFacts;
+  replay: ReplayFacts;
   classes: ClassExample[];
   video: DemoVideo | null;
 }
@@ -244,13 +300,18 @@ function storyFacts(bundle: PillBundle): StoryFacts {
   };
 }
 
-/** hh:mm of the first event that confirms `key` as true. */
-function firstConfirmedAt(timeline: Timeline, key: string): string {
-  const event = timeline.events.find(
+/** Index of the first event that confirms `key` as true. */
+function firstConfirmedIndex(timeline: Timeline, key: string): number {
+  const index = timeline.events.findIndex(
     (e) => e.evidence_updates[key]?.value === true && e.evidence_updates[key]?.confirmed,
   );
-  if (!event) throw new Error(`landing: ${timeline.incident_id} never confirms ${key}`);
-  return hhmm(event.at);
+  if (index < 0) throw new Error(`landing: ${timeline.incident_id} never confirms ${key}`);
+  return index;
+}
+
+/** hh:mm of the first event that confirms `key` as true. */
+function firstConfirmedAt(timeline: Timeline, key: string): string {
+  return hhmm(timeline.events[firstConfirmedIndex(timeline, key)].at);
 }
 
 /** Gate evidence the problem story narrates, from the hero rule's required evidence. */
@@ -277,14 +338,126 @@ function problemFacts(bundle: PillBundle, story: StoryFacts): ProblemFacts {
   const timeline = loadTimeline(story.incidentId);
   if (!timeline) throw new Error(`landing: timeline ${story.incidentId} not found`);
 
+  const triggerIndex = firstConfirmedIndex(timeline, triggerKey);
+  const electricsWetAt = hhmm(timeline.events[triggerIndex].at);
+  const rewind = [...new Set(timeline.events.slice(triggerIndex).map((e) => hhmm(e.at)))].reverse();
+
   return {
     expert: transcript.expert.name,
     expertRole: story.expertRole,
     experienceYears: transcript.expert.experience_years,
     incidentAsset: timeline.asset_name,
-    electricsWetAt: firstConfirmedAt(timeline, triggerKey),
+    electricsWetAt,
     insulationPassedAt: firstConfirmedAt(timeline, INSULATION_TEST),
     areaDryAt: firstConfirmedAt(timeline, AREA_DRY),
+    rewind,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// The replay: the same moment, evaluated by the engine
+// ---------------------------------------------------------------------------
+
+/** The evidence the replay's outcome waits for. */
+const LEW_SIGNOFF = 'lew_signoff';
+/** The tenant pill's first-notice rule, quoted in the replay's outcome. */
+const TENANT_PILL_ID = 'tenant-experience-incident-comms';
+const TENANT_NOTICE_RULE_ID = 'TE-01';
+
+function capitalise(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function personFor(roles: RoleDefinition[], role: string): { person: string; role: string } {
+  const def = roles.find((r) => r.role === role);
+  if (!def?.person) throw new Error(`landing: role ${role} has no named person in data/roles.json`);
+  return { person: def.person, role: def.label };
+}
+
+function replayFacts(heroBundle: PillBundle, problem: ProblemFacts): ReplayFacts {
+  const { pill } = heroBundle;
+  const rule = pill.rules.find((r) => r.id === HERO_RULE_ID)!;
+
+  const timeline = loadTimeline(STORY_INCIDENT_ID);
+  const incident = loadIncident(STORY_INCIDENT_ID);
+  const asset = timeline ? loadAsset(timeline.asset_id) : undefined;
+  if (!timeline || !incident || !asset) {
+    throw new Error(`landing: ${STORY_INCIDENT_ID} needs its timeline, incident record and asset`);
+  }
+
+  // The request: the orchestrator's recorded proposal that this gate decides.
+  const proposal = loadAiProposalFixture(STORY_INCIDENT_ID)?.proposals.find((p) => p.rule_id === HERO_RULE_ID);
+  if (!proposal) throw new Error(`landing: no recorded AI proposal for ${HERO_RULE_ID} in ${STORY_INCIDENT_ID}`);
+  const step = timeline.events.findIndex((e) => e.id === proposal.proposed_after_event) + 1;
+  if (step === 0) throw new Error(`landing: proposal ${proposal.proposal_id} follows an unknown event`);
+  const at = hhmm(timeline.events[step - 1].at);
+  if (at !== problem.electricsWetAt) {
+    throw new Error(
+      `landing: the proposal (${at}) is no longer the moment the problem story replays (${problem.electricsWetAt})`,
+    );
+  }
+
+  // The verdict, from the engine, on the evidence as it stood at that step.
+  const engineAsset = toEngineAsset(asset);
+  const engineIncident = toEngineIncident(incident);
+  const decide = (target: Pill, ruleId: string, upTo: number): ActionDecision | undefined =>
+    evaluate(target, engineAsset, engineIncident, toEngineEvidence(accumulateEvidence(timeline.events, upTo))).actions.find(
+      (a) => a.ruleId === ruleId,
+    );
+
+  const gate = decide(pill, HERO_RULE_ID, step);
+  if (gate?.status !== 'blocked' || gate.missingEvidence.length === 0 || !gate.escalateTo) {
+    throw new Error(`landing: ${HERO_RULE_ID} no longer blocks the ${at} proposal; rewrite the replay`);
+  }
+  const missing = gate.missingEvidence.map((key) => {
+    const label = pill.evidenceCatalog[key]?.label;
+    if (!label) throw new Error(`landing: evidence ${key} has no label in ${heroBundle.path}/evidence.yaml`);
+    return { key, label };
+  });
+
+  // "Power stays off until the LEW signs off": the engine, step by step, must
+  // keep the gate shut until the very event that confirms the LEW's sign-off.
+  const signOff = firstConfirmedIndex(timeline, LEW_SIGNOFF);
+  for (let upTo = step + 1; upTo <= timeline.events.length; upTo++) {
+    const open = decide(pill, HERO_RULE_ID, upTo)?.status !== 'blocked';
+    if (open !== upTo > signOff) {
+      throw new Error(`landing: ${HERO_RULE_ID} no longer opens exactly at the LEW sign-off; rewrite the replay`);
+    }
+  }
+
+  // The tenant is told: the first-notice rule, live at the same moment.
+  const tenantPill = loadPill(TENANT_PILL_ID);
+  if (!tenantPill) throw new Error(`landing: pill ${TENANT_PILL_ID} not found`);
+  const notice = decide(tenantPill.pill, TENANT_NOTICE_RULE_ID, step);
+  if (!notice || typeof notice.deadline !== 'number') {
+    throw new Error(`landing: ${TENANT_NOTICE_RULE_ID} has no live deadline at ${at} in ${STORY_INCIDENT_ID}`);
+  }
+
+  // His words: the provenance the rule was compiled from.
+  const prov = pill.provenance[HERO_RULE_ID];
+  if (!prov) throw new Error(`landing: ${HERO_RULE_ID} has no provenance`);
+  const roles = loadRoles();
+  const expertRole = roles.find((r) => r.person === prov.confirmed_by)?.label;
+  if (!expertRole) throw new Error(`landing: ${prov.confirmed_by} has no role in data/roles.json`);
+
+  return {
+    incidentId: STORY_INCIDENT_ID,
+    at,
+    proposal: proposal.text,
+    gate: {
+      ruleId: rule.id,
+      ruleTitle: rule.title,
+      version: gate.pillVersion,
+      missing,
+    },
+    quote: {
+      text: capitalise(firstSentence(prov.quote)),
+      expert: prov.confirmed_by,
+      role: expertRole,
+      timestamp: prov.start,
+    },
+    escalateTo: personFor(roles, gate.escalateTo.role),
+    tenantNoticeMinutes: notice.deadline,
   };
 }
 
@@ -313,10 +486,12 @@ export function loadLandingFacts(): LandingFacts {
   }).filter((c): c is ClassExample => c !== null);
 
   const story = storyFacts(heroBundle);
+  const problem = problemFacts(heroBundle, story);
   return {
     hero: heroFacts(heroBundle),
     story,
-    problem: problemFacts(heroBundle, story),
+    problem,
+    replay: replayFacts(heroBundle, problem),
     classes,
     video: parseDemoVideoUrl(process.env.NEXT_PUBLIC_DEMO_VIDEO_URL || DEMO_VIDEO_URL),
   };
