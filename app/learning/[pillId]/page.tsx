@@ -22,8 +22,8 @@ export default async function LearningPage({ params }: { params: Promise<{ pillI
 
   if (!bundle) {
     return (
-      <div className="space-y-3">
-        <h1 className="text-xl font-semibold tracking-tight text-ink">Outcome &amp; Learning</h1>
+      <div className="mx-auto w-full max-w-[1200px] space-y-3">
+        <h1>outcome &amp; learning</h1>
         <EmptyState
           title={`Pill “${pillId}” could not be loaded`}
           description="It may not exist in pills/, or its package is not yet parseable by the engine."

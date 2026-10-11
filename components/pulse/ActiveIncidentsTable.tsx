@@ -40,8 +40,10 @@ function unresolvedOwner(incident: IncidentRecord): { name: string; role: string
   return { name: personaFor(top.escalate_to.role).name, role: roleLabel(top.escalate_to.role) };
 }
 
+// Severity is a danger axis, not an escalation: high = blocked ink (brick red),
+// medium = requires-approval ochre, low = recommend green.
 const SEVERITY_TONE: Record<string, string> = {
-  high: 'text-escalate',
+  high: 'text-blocked',
   medium: 'text-approval',
   low: 'text-recommend',
 };
@@ -58,18 +60,18 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+    <div className="card-paper overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-muted">
-            <th className="px-4 py-2.5 font-medium">Severity</th>
-            <th className="px-4 py-2.5 font-medium">Asset</th>
-            <th className="px-4 py-2.5 font-medium">Title</th>
-            <th className="px-4 py-2.5 font-medium">Detected</th>
-            <th className="px-4 py-2.5 font-medium">Unresolved owner</th>
-            <th className="px-4 py-2.5 font-medium">Evidence</th>
-            <th className="px-4 py-2.5 font-medium">Pill @ version</th>
-            <th className="px-4 py-2.5 font-medium" aria-label="Open" />
+          <tr className="border-b border-line text-[13px] text-ink-muted">
+            <th className="px-4 py-3 font-normal">Severity</th>
+            <th className="px-4 py-3 font-normal">Asset</th>
+            <th className="px-4 py-3 font-normal">Title</th>
+            <th className="px-4 py-3 font-normal">Detected</th>
+            <th className="px-4 py-3 font-normal">Unresolved owner</th>
+            <th className="px-4 py-3 font-normal">Evidence</th>
+            <th className="px-4 py-3 font-normal">Pill @ version</th>
+            <th className="px-4 py-3 font-normal" aria-label="Open" />
           </tr>
         </thead>
         <tbody>
@@ -84,7 +86,7 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
                 <td className="px-4 py-3">
                   <span
                     className={cn(
-                      'text-xs font-semibold uppercase tracking-wide',
+                      'text-[13px] font-medium',
                       SEVERITY_TONE[incident.severity] ?? 'text-ink-muted',
                     )}
                   >
@@ -116,7 +118,7 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
                 <td className="px-4 py-3">
                   {cov ? (
                     <span
-                      className="inline-block whitespace-nowrap rounded border border-line bg-surface-raised px-2 py-1 font-mono text-xs tabular-nums text-ink"
+                      className="inline-block whitespace-nowrap rounded-full border border-line bg-dew-drop px-2.5 py-1 font-mono text-xs tabular-nums text-ink"
                       title={`${cov.confirmed} of ${cov.required} required evidence confirmed`}
                     >
                       {cov.confirmed} of {cov.required}
@@ -125,14 +127,11 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
                     <span className="text-xs text-ink-muted">—</span>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 font-mono text-[11px] text-ink-muted">
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-[11px] tabular-nums text-ink-muted">
                   {incident.pill_applied}@{incident.pill_version}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/incident/${incident.id}`}
-                    className="rounded-md border border-line bg-surface-raised px-2.5 py-1 text-xs font-medium text-ink hover:border-accent"
-                  >
+                  <Link href={`/incident/${incident.id}`} className="btn-pill text-xs">
                     Open
                   </Link>
                 </td>

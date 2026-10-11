@@ -15,7 +15,7 @@ function PassCell({ pass, failed, total }: { pass: boolean; failed: number; tota
       className={
         pass
           ? 'inline-flex items-center gap-1 text-xs font-medium text-recommend'
-          : 'inline-flex items-center gap-1 text-xs font-medium text-escalate'
+          : 'inline-flex items-center gap-1 text-xs font-medium text-blocked'
       }
     >
       {pass ? (
@@ -72,12 +72,12 @@ export function EvalMatrix({
       {cases.length === 0 ? (
         <p className="mt-3 text-xs text-ink-muted">This pill ships no eval cases.</p>
       ) : (
-        <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+        <div className="card-paper mt-3 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">
               Eval case result under v{baseVersion} and v{nextVersion}
             </caption>
-            <thead className="border-b border-line bg-surface-raised text-xs text-ink-muted">
+            <thead className="border-b border-line bg-dew-drop text-[13px] text-ink-muted">
               <tr>
                 <th scope="col" className="px-3 py-2 font-medium">
                   Eval case (past incident)
@@ -122,7 +122,7 @@ export function EvalMatrix({
       )}
 
       {engineFlip ? (
-        <div className="mt-3 rounded-xl border border-recommend/30 bg-recommend/5 p-3">
+        <div className="mt-3 rounded-card border border-recommend/40 bg-recommend-tint p-4">
           <p className="flex items-start gap-1.5 text-xs font-semibold text-recommend">
             <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             The correction eval now passes
@@ -143,18 +143,18 @@ export function EvalMatrix({
           </p>
         </div>
       ) : assertion ? (
-        <div className="mt-3 rounded-xl border border-accent/30 bg-accent/5 p-3">
+        <div className="mt-3 rounded-card border border-line-strong bg-dew-drop/50 p-4">
           <p className="text-xs font-semibold text-ink">Correction assertion</p>
           <p className="mt-1.5 text-xs text-ink">
             <span className="font-mono">
               {assertion.ruleId} {assertion.field}
             </span>{' '}
             must be {assertion.expected} minutes: v{baseVersion} carries {assertion.before ?? '—'}{' '}
-            <span className={assertion.oldPass ? 'font-medium text-recommend' : 'font-medium text-escalate'}>
+            <span className={assertion.oldPass ? 'font-medium text-recommend' : 'font-medium text-blocked'}>
               — {assertion.oldPass ? 'pass' : 'fail'}
             </span>
             ; v{nextVersion} carries {assertion.after ?? '—'}{' '}
-            <span className={assertion.newPass ? 'font-medium text-recommend' : 'font-medium text-escalate'}>
+            <span className={assertion.newPass ? 'font-medium text-recommend' : 'font-medium text-blocked'}>
               — {assertion.newPass ? 'pass' : 'fail'}
             </span>
             .
@@ -170,7 +170,7 @@ export function EvalMatrix({
       ) : null}
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <div className="rounded-lg border border-line bg-surface p-3">
+        <div className="rounded-card border border-line bg-surface p-4">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-ink">
             <XCircle className="size-3.5" aria-hidden="true" /> Regressions
           </p>
@@ -188,7 +188,7 @@ export function EvalMatrix({
             </ul>
           )}
         </div>
-        <div className="rounded-lg border border-line bg-surface p-3">
+        <div className="rounded-card border border-line bg-surface p-4">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-ink">
             <CheckCircle2 className="size-3.5" aria-hidden="true" /> Improvements
           </p>

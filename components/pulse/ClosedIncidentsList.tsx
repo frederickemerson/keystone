@@ -31,26 +31,26 @@ export function ClosedIncidentsList({
       {closed.map((incident) => (
         <li
           key={incident.id}
-          className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-line bg-surface p-3"
+          className="card-paper flex flex-wrap items-center gap-x-3 gap-y-1 p-4"
         >
           <span className="font-mono text-[11px] text-ink-muted">{incident.id}</span>
           <span className="text-sm font-medium text-ink">
             {humanizeKey(incident.subtype)}
           </span>
-          <span className="text-xs text-ink-muted">· {incident.asset_name}</span>
-          <span className="text-xs text-ink-muted">· {formatDate(incident.closed_at ?? '')}</span>
+          <span className="text-[13px] text-ink-muted">· {incident.asset_name}</span>
+          <span className="text-[13px] text-ink-muted">· {formatDate(incident.closed_at ?? '')}</span>
 
           {typeof incident.eval_pass === 'boolean' ? (
             incident.eval_pass ? (
               <span
-                className="inline-flex items-center gap-1 rounded-full border border-recommend/30 bg-recommend/10 px-2 py-0.5 text-[11px] font-medium text-recommend"
+                className="inline-flex items-center gap-1 rounded-full border border-recommend/40 bg-recommend-tint px-2.5 py-0.5 text-[11px] font-medium text-recommend"
                 title="Eval expected matched actual"
               >
                 <CheckCircle2 className="size-3" aria-hidden="true" /> Eval pass
               </span>
             ) : (
               <span
-                className="inline-flex items-center gap-1 rounded-full border border-escalate/40 bg-escalate/15 px-2 py-0.5 text-[11px] font-medium text-escalate"
+                className="inline-flex items-center gap-1 rounded-full border border-blocked/45 bg-blocked-tint px-2.5 py-0.5 text-[11px] font-medium text-blocked"
                 title="Eval expected did not match actual"
               >
                 <XCircle className="size-3" aria-hidden="true" /> Eval flag
@@ -59,16 +59,16 @@ export function ClosedIncidentsList({
           ) : null}
 
           {incident.flagged_for_learning ? (
-            <span className="rounded-full border border-approval/30 bg-approval/10 px-2 py-0.5 text-[11px] font-medium text-approval">
+            <span className="rounded-full border border-approval/40 bg-approval-tint px-2.5 py-0.5 text-[11px] font-medium text-approval">
               Learning
             </span>
           ) : null}
 
-          <p className="w-full text-xs text-ink-muted">{incident.outcome}</p>
+          <p className="w-full text-[13px] text-ink-muted">{incident.outcome}</p>
 
           <Link
             href={`/learning/${pillId}`}
-            className="ml-auto text-xs font-medium text-accent hover:underline"
+            className="ml-auto text-[13px] font-medium text-accent hover:underline"
           >
             Outcome →
           </Link>

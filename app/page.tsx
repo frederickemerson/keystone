@@ -82,12 +82,12 @@ export default function PortfolioPulsePage() {
   const tsPillId = 'technical-services-chilled-water-leak';
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight text-ink">Portfolio Pulse</h1>
+    <div className="mx-auto w-full max-w-[1200px] space-y-8">
+      <header className="space-y-1.5">
+        <h1>portfolio pulse</h1>
         <p className="text-sm text-ink-muted">
-          Live posture across the Keppel-style portfolio — where judgement is applied, what is
-          awaiting a human, and where pills do not yet cover an asset type.
+          Where judgement is applied, what awaits a human, and where pills do not yet cover an asset
+          type.
         </p>
       </header>
 

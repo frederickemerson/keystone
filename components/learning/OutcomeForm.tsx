@@ -9,7 +9,7 @@ import type { IncidentRecord } from '@/lib/data/schemas';
 import { CAUSE_OPTIONS, defaultOutcome, type OutcomeDraft } from './learning-utils';
 
 const fieldClass =
-  'w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted';
+  'w-full rounded-input border border-line bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted';
 
 export function OutcomeForm({
   incident,
@@ -41,7 +41,7 @@ export function OutcomeForm({
 
       {saved ? (
         <div className="mt-3 space-y-3">
-          <dl className="grid gap-2 rounded-xl border border-recommend/30 bg-recommend/5 p-3 text-sm sm:grid-cols-2">
+          <dl className="grid gap-2 rounded-card border border-recommend/40 bg-recommend-tint p-4 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-xs text-ink-muted">Actual time-to-isolate</dt>
               <dd className="font-medium tabular-nums text-ink">{draft.timeToIsolateMinutes} minutes</dd>
@@ -68,7 +68,7 @@ export function OutcomeForm({
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-3 py-1.5 text-xs font-medium text-ink hover:border-accent"
+            className="btn-pill"
           >
             <Pencil className="size-3.5" aria-hidden="true" /> Edit outcome
           </button>
@@ -163,7 +163,7 @@ export function OutcomeForm({
           </div>
 
           {invalid ? (
-            <p role="alert" className="text-xs text-escalate">
+            <p role="alert" className="text-xs text-blocked">
               Time and cost cannot be negative.
             </p>
           ) : null}
@@ -171,7 +171,7 @@ export function OutcomeForm({
           <button
             type="submit"
             disabled={invalid}
-            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-pill btn-pill-primary"
           >
             <ClipboardCheck className="size-3.5" aria-hidden="true" /> Confirm outcome
           </button>

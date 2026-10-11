@@ -98,12 +98,12 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-6 lg:flex-row">
+    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 lg:flex-row">
       <div className="min-w-0 flex-1 space-y-5">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-ink">Pill Registry</h1>
-            <p className="text-sm text-ink-muted">
+            <h1>pill registry</h1>
+            <p className="mt-1 text-sm text-ink-muted">
               Every Intelligence Pill, its lifecycle state and health at a glance.
             </p>
           </div>
@@ -126,15 +126,15 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
         </section>
 
         <section className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-ink-muted">
+          <div className="flex items-center gap-2 text-[13px] text-ink-muted">
             <Filter className="size-3.5" aria-hidden="true" />
-            <span className="uppercase tracking-widest">Filter</span>
+            <span>Filter</span>
           </div>
           <select
             value={domainFilter}
             onChange={(e) => setDomainFilter(e.target.value)}
             aria-label="Filter by domain"
-            className="rounded-md border border-line bg-surface-raised px-2 py-1 text-xs text-ink"
+            className="rounded-pill border border-line-strong bg-surface px-3.5 py-1.5 text-[13px] text-ink"
           >
             <option value="all">All domains</option>
             {domains.map((d) => (
@@ -147,7 +147,7 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             aria-label="Filter by status"
-            className="rounded-md border border-line bg-surface-raised px-2 py-1 text-xs text-ink"
+            className="rounded-pill border border-line-strong bg-surface px-3.5 py-1.5 text-[13px] text-ink"
           >
             <option value="all">All statuses</option>
             {STATUSES.map((s) => (
@@ -165,13 +165,13 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
             description="Try clearing the domain or status filter."
           />
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))]">
             {filtered.map((p) => (
               <li key={p.bundle.id}>
                 <button
                   type="button"
                   onClick={() => setSelectedId(p.bundle.id)}
-                  className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-xl"
+                  className="block w-full rounded-card text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-marker-ink"
                   aria-pressed={selectedId === p.bundle.id}
                 >
                   <PillCard data={p.card} />

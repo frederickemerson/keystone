@@ -9,7 +9,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, GraduationCap, Lock } from 'lucide-react';
-import { SectionHeader } from '@/components/mosaic';
+import { RomanList, SectionHeader, type RomanListItem } from '@/components/mosaic';
 import { compareVersions, type EvalCase } from '@/lib/engine';
 import { canApprove, type ApprovalCheck } from '@/lib/governance/approval';
 import { hasCapability } from '@/lib/governance/access';
@@ -37,7 +37,7 @@ import { HistoryRail } from './HistoryRail';
 import { OutcomeForm } from './OutcomeForm';
 import { RollbackPanel } from './RollbackPanel';
 import { ShadowPanel } from './ShadowPanel';
-import { StepRail, goToStep, type StepState } from './StepRail';
+import { goToStep, type StepState } from './StepRail';
 import { VersionChip } from './VersionChip';
 import {
   buildEvalMatrix,
@@ -73,6 +73,48 @@ function LockedStep({ n, title, reason }: { n: number; title: string; reason: st
         {reason}
       </p>
     </section>
+  );
+}
+
+// The seven-step navigation: a notebook index (RomanList) plus the progress
+// summary. Steps link to their section anchors; the flow state is unchanged.
+function LearningStepsNav({ steps }: { steps: StepState[] }) {
+  const done = steps.filter((s) => s.status === 'done').length;
+  const current = Math.min(done + 1, steps.length);
+  const items: RomanListItem[] = steps.map((s) => ({
+    id: s.id,
+    title: s.title,
+    description: s.status === 'todo' ? s.blockedReason : undefined,
+    href: `#${s.id}`,
+    current: s.status === 'active',
+    done: s.status === 'done',
+  }));
+
+  return (
+    <nav aria-label="Learning flow progress" className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[13px] text-ink-muted">
+          <span className="font-medium text-ink">
+            Step {current} of {steps.length}
+          </span>{' '}
+          · {done} complete
+        </p>
+        <div
+          className="h-1.5 w-40 overflow-hidden rounded-full bg-dew-drop"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={steps.length}
+          aria-valuenow={done}
+          aria-label="Steps complete"
+        >
+          <div
+            className="h-full rounded-full bg-accent transition-[width]"
+            style={{ width: `${(done / steps.length) * 100}%` }}
+          />
+        </div>
+      </div>
+      <RomanList items={items} aria-label="Learning flow steps" />
+    </nav>
   );
 }
 
@@ -288,17 +330,17 @@ export function LearningFlow({
   const liveVersion = approved?.version ?? bundle.pill.manifest.version;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto w-full max-w-[1200px] space-y-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-ink">
+          <h1 className="flex items-center gap-2">
             <GraduationCap className="size-5 text-ink-muted" aria-hidden="true" />
-            Outcome &amp; Learning
+            outcome &amp; learning
           </h1>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
+          <p className="mt-1.5 max-w-2xl text-sm text-ink-muted">
             {incident ? `${incident.id} · ${incident.location}. ` : ''}
-            How the pill gets smarter after deployment: capture the outcome, correct the rule, replay
-            every past incident, run it in shadow, then approve — or roll back in one click.
+            Capture the outcome, correct the rule, replay every past incident, run it in shadow,
+            then approve — or roll back.
           </p>
           <p className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
             <span className="font-medium text-ink">
@@ -317,8 +359,8 @@ export function LearningFlow({
 
         {/* Read-only: the app-shell RoleSwitcher is the single place to change
             role, so this screen only reflects who is acting. */}
-        <p className="flex items-center gap-2 text-xs text-ink-muted">
-          <span className="uppercase tracking-widest">Acting as</span>
+        <p className="flex items-center gap-2 text-[13px] text-ink-muted">
+          <span>Acting as</span>
           <span className="text-ink">{currentActor.name}</span>
           <span aria-hidden="true">·</span>
           <span className="text-ink">{roleDisplayName(currentActor.role)}</span>
@@ -328,14 +370,14 @@ export function LearningFlow({
       {error ? (
         <p
           role="alert"
-          className="flex items-start gap-1.5 rounded-lg border border-escalate/30 bg-escalate/5 px-3 py-2 text-xs text-escalate"
+          className="flex items-start gap-1.5 rounded-lg border border-blocked/30 bg-blocked-tint px-3 py-2 text-xs text-blocked"
         >
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           {error}
         </p>
       ) : null}
 
-      <StepRail steps={steps} onGo={goToStep} />
+      <LearningStepsNav steps={steps} />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-8">

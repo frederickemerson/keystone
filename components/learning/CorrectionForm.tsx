@@ -72,7 +72,7 @@ export function CorrectionForm({
               id="correction-rule"
               value={draft.ruleId}
               onChange={(e) => onChange({ ...draft, ruleId: e.target.value })}
-              className="w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
+              className="w-full rounded-input border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
             >
               {rules.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -99,7 +99,7 @@ export function CorrectionForm({
                 readOnly
                 aria-label={`Current ${CORRECTION_FIELD}`}
                 value={before ?? '—'}
-                className="w-20 rounded-md border border-line bg-surface-raised px-2.5 py-1.5 text-sm text-ink-muted"
+                className="w-20 rounded-input border border-line bg-surface-raised px-2.5 py-1.5 text-sm text-ink-muted"
               />
               <span aria-hidden="true" className="text-ink-muted">
                 →
@@ -112,19 +112,19 @@ export function CorrectionForm({
                 onChange={(e) =>
                   onChange({ ...draft, after: e.target.value === '' ? null : Number(e.target.value) })
                 }
-                className="w-24 rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
+                className="w-24 rounded-input border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
               />
             </div>
           </div>
         </div>
 
-        <fieldset className="rounded-lg border border-line bg-surface p-3">
+        <fieldset className="rounded-card border border-line bg-surface p-4">
           <legend className="px-1 text-xs font-medium text-ink">What the expert found</legend>
           <div className="grid gap-1.5 sm:grid-cols-2">
             {VERDICTS.map((v) => (
               <label
                 key={v.value}
-                className="flex cursor-pointer items-start gap-2 rounded-md border border-line bg-surface px-2 py-1.5 text-xs hover:border-accent"
+                className="flex cursor-pointer items-start gap-2 rounded-input border border-line bg-surface px-2 py-1.5 text-xs hover:border-accent"
               >
                 <input
                   type="radio"
@@ -154,7 +154,7 @@ export function CorrectionForm({
             onChange={(e) => onChange({ ...draft, reason: e.target.value })}
             aria-describedby="correction-reason-hint"
             placeholder="Why this value is right for this asset…"
-            className="w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted"
+            className="w-full rounded-input border border-line bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted"
           />
           <p id="correction-reason-hint" className="mt-1 text-[11px] text-ink-muted">
             Becomes the permanent version record and appears in the audit log.
@@ -172,7 +172,7 @@ export function CorrectionForm({
           type="submit"
           disabled={blocked}
           title={blocked ? blockedWhy() : `Propose v${nextVersion}`}
-          className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink disabled:cursor-not-allowed disabled:opacity-40"
+          className="btn-pill btn-pill-primary"
         >
           <GitBranch className="size-3.5" aria-hidden="true" /> Propose v{nextVersion}
         </button>

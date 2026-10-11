@@ -20,14 +20,14 @@ export function PillCoverageStrip({
   }));
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+    <div className="card-paper overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-muted">
-            <th className="px-4 py-2.5 font-medium">Asset type</th>
+          <tr className="border-b border-line text-[13px] text-ink-muted">
+            <th className="px-4 py-3 font-normal">Asset type</th>
             {coverage.map((c) => (
-              <th key={c.id} className="px-4 py-2.5 font-medium">
-                <span className="font-mono text-[11px] normal-case text-ink">{c.id}</span>
+              <th key={c.id} className="px-4 py-3 font-normal">
+                <span className="font-mono text-[11px] text-ink">{c.id}</span>
               </th>
             ))}
           </tr>
@@ -48,13 +48,13 @@ export function PillCoverageStrip({
                   return (
                     <td key={c.id} className="px-4 py-3">
                       {covered ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-recommend/30 bg-recommend/10 px-2 py-0.5 text-[11px] font-medium text-recommend">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-recommend/40 bg-recommend-tint px-2.5 py-0.5 text-[11px] font-medium text-recommend">
                           <Check className="size-3" aria-hidden="true" /> Covered
                         </span>
                       ) : (
                         <span
                           className={cn(
-                            'inline-flex items-center gap-1 rounded-full border border-line bg-surface-raised px-2 py-0.5 text-[11px] text-ink-muted',
+                            'inline-flex items-center gap-1 rounded-full border border-na/35 bg-na-tint px-2.5 py-0.5 text-[11px] text-na',
                           )}
                         >
                           <Minus className="size-3" aria-hidden="true" /> Gap

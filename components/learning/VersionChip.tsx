@@ -6,10 +6,10 @@ import { cn } from '@/lib/ui/cn';
 import type { VersionStatus } from '@/lib/governance/versions';
 
 const TONE: Record<VersionStatus, string> = {
-  Draft: 'border-line bg-surface-raised text-ink-muted',
-  Shadow: 'border-approval/40 bg-approval/10 text-approval',
-  Approved: 'border-recommend/30 bg-recommend/10 text-recommend',
-  Retired: 'border-line bg-surface text-ink-muted',
+  Draft: 'border-na/35 bg-na-tint text-na',
+  Shadow: 'border-approval/40 bg-approval-tint text-approval',
+  Approved: 'border-recommend/40 bg-recommend-tint text-recommend',
+  Retired: 'border-na/35 bg-na-tint text-na',
 };
 
 export function VersionChip({

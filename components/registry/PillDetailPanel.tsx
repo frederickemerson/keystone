@@ -19,15 +19,15 @@ function roleList(roles: readonly string[] | undefined): string {
 }
 
 const VERSION_TONE: Record<VersionStatus, string> = {
-  Draft: "border-line bg-surface-raised text-ink-muted",
-  Shadow: "border-approval/30 bg-approval/10 text-approval",
-  Approved: "border-recommend/30 bg-recommend/10 text-recommend",
-  Retired: "border-line bg-surface-raised text-ink-muted line-through",
+  Draft: "border-na/35 bg-na-tint text-na",
+  Shadow: "border-approval/40 bg-approval-tint text-approval",
+  Approved: "border-recommend/40 bg-recommend-tint text-recommend",
+  Retired: "border-na/35 bg-na-tint text-na line-through",
 };
 
 function VersionBadge({ status }: { status: VersionStatus }) {
   return (
-    <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${VERSION_TONE[status]}`}>
+    <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${VERSION_TONE[status]}`}>
       {status}
     </span>
   );
@@ -83,18 +83,18 @@ export function PillDetailPanel({
   return (
     <aside
       aria-label={`Pill detail: ${bundle.domain}/${bundle.name}`}
-      className="flex h-full w-full flex-col gap-5 overflow-y-auto rounded-xl border border-line bg-surface p-5 lg:w-[28rem]"
+      className="card-paper flex h-full w-full flex-col gap-5 overflow-y-auto p-6 lg:w-[28rem]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wide text-ink-muted">{bundle.domain}</p>
+          <p className="text-[13px] text-ink-muted">{bundle.domain}</p>
           <h2 className="truncate text-lg font-semibold text-ink">{bundle.name}</h2>
-          <p className="font-mono text-xs text-ink-muted">v{focus?.version ?? manifest.version}</p>
+          <p className="font-mono text-xs tabular-nums text-ink-muted">v{focus?.version ?? manifest.version}</p>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-md border border-line px-2 py-1 text-xs text-ink-muted hover:border-accent"
+          className="btn-pill text-xs"
           aria-label="Close detail panel"
         >
           Close
@@ -150,9 +150,9 @@ export function PillDetailPanel({
               .map((v) => (
                 <li key={v.version} className="relative">
                   <span className="absolute -left-[1.30rem] top-1 size-2 rounded-full bg-accent" aria-hidden="true" />
-                  <div className="rounded-lg border border-line bg-surface-raised/40 p-3">
+                  <div className="rounded-lg border border-line bg-dew-drop/50 p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-xs font-semibold text-ink">v{v.version}</span>
+                      <span className="font-mono text-xs font-semibold tabular-nums text-ink">v{v.version}</span>
                       <VersionBadge status={v.status} />
                     </div>
                     <p className="mt-1 text-xs text-ink">{v.reason}</p>
@@ -185,7 +185,7 @@ export function PillDetailPanel({
         <button
           type="button"
           onClick={handleExport}
-          className="inline-flex items-center gap-2 rounded-md border border-line bg-surface-raised px-3 py-2 text-xs font-medium text-ink hover:border-accent"
+          className="btn-pill"
         >
           <Download className="size-3.5" aria-hidden="true" />
           Export pill (.json bundle)
@@ -193,7 +193,7 @@ export function PillDetailPanel({
         <p className="text-[11px] text-ink-muted">
           Downloads a portable JSON bundle of SKILL.md, rules, provenance, evals and CHANGELOG.
         </p>
-        <div className="rounded-lg border border-line bg-surface-raised/40 p-3">
+        <div className="rounded-lg border border-line bg-dew-drop/50 p-3">
           <p className="text-xs font-medium text-ink">Install as a CodeBuddy skill</p>
           <pre className="mt-1.5 overflow-x-auto rounded bg-canvas p-2 font-mono text-[11px] text-ink">
             {`mkdir -p .codebuddy/skills/${installName}\ncp -r ${installPath}/* .codebuddy/skills/${installName}/`}

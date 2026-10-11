@@ -34,7 +34,7 @@ export function RollbackPanel({
         icon={<History className="size-4" />}
       />
 
-      <div className="mt-3 space-y-3 rounded-xl border border-line bg-surface p-3">
+      <div className="card-paper mt-3 space-y-3 p-6">
         {rolledBackTo ? (
           <p role="status" className="flex items-center gap-1.5 text-xs text-recommend">
             <Undo2 className="size-3.5" aria-hidden="true" />
@@ -53,7 +53,7 @@ export function RollbackPanel({
                 onChange={(e) => setReason(e.target.value)}
                 aria-describedby="rollback-reason-hint"
                 placeholder="What the new version got wrong in production…"
-                className="mt-1.5 w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted"
+                className="mt-1.5 w-full rounded-input border border-line bg-surface px-2.5 py-1.5 text-sm text-ink placeholder:text-ink-muted"
               />
               <p id="rollback-reason-hint" className="mt-1 text-[11px] text-ink-muted">
                 Recorded on the restored version and in the audit log.
@@ -67,7 +67,7 @@ export function RollbackPanel({
               onClick={() => onRollback(reason)}
               disabled={!ready}
               title={ready ? undefined : disabledReason ?? 'Enter a reason to roll back'}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-escalate/40 bg-escalate/10 px-4 py-3 text-sm font-semibold text-escalate transition-colors hover:bg-escalate/15 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-pill border-[1.5px] border-blocked/50 bg-blocked-tint px-4 py-3 text-sm font-semibold text-blocked transition-colors hover:bg-blocked-tint/70 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
             >
               <Undo2 className="size-4" aria-hidden="true" /> Roll back to v{baseVersion}
             </button>

@@ -58,7 +58,7 @@ export function ShadowPanel({
           onClick={onPromote}
           disabled={!promotable}
           title={promotable ? undefined : `v${version.version} is already ${version.status}`}
-          className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink disabled:cursor-not-allowed disabled:opacity-40"
+          className="btn-pill btn-pill-primary"
         >
           <Eye className="size-3.5" aria-hidden="true" /> Promote to Shadow
         </button>
@@ -67,7 +67,7 @@ export function ShadowPanel({
           onClick={onRun}
           disabled={!canRun}
           title={canRun ? undefined : blockedReason}
-          className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-3 py-1.5 text-xs font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40"
+          className="btn-pill"
         >
           <Play className="size-3.5" aria-hidden="true" /> Replay {totalCases} closed incidents
         </button>
@@ -87,10 +87,10 @@ export function ShadowPanel({
             <KpiStat label="Compared against" value={approvedVersion ? `v${approvedVersion}` : '—'} />
           </div>
 
-          <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+          <div className="card-paper mt-3 overflow-x-auto">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Shadow run results per closed incident</caption>
-              <thead className="border-b border-line bg-surface-raised text-xs text-ink-muted">
+              <thead className="border-b border-line bg-dew-drop text-[13px] text-ink-muted">
                 <tr>
                   <th scope="col" className="px-3 py-2 font-medium">
                     Closed incident
@@ -123,7 +123,7 @@ export function ShadowPanel({
                         className={
                           run.agree
                             ? 'inline-flex items-center gap-1 text-xs font-medium text-recommend'
-                            : 'inline-flex items-center gap-1 text-xs font-medium text-escalate'
+                            : 'inline-flex items-center gap-1 text-xs font-medium text-blocked'
                         }
                       >
                         {run.agree ? (

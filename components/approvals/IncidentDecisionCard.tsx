@@ -45,7 +45,7 @@ export function IncidentDecisionCard({
   }
 
   return (
-    <article className="space-y-3 rounded-xl border border-line bg-surface p-4" aria-label={`Decision: ${incident.id} ${action.rule_id}`}>
+    <article className="card-paper space-y-3 p-6" aria-label={`Decision: ${incident.id} ${action.rule_id}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <Link
@@ -54,7 +54,7 @@ export function IncidentDecisionCard({
           >
             {incident.id} <ExternalLink className="size-3.5" aria-hidden="true" />
           </Link>
-          <p className="truncate text-[11px] text-ink-muted">{incident.asset_name}</p>
+          <p className="truncate text-[13px] text-ink-muted">{incident.asset_name}</p>
         </div>
         <StatusBadge status={status} />
       </div>
@@ -82,7 +82,7 @@ export function IncidentDecisionCard({
       </div>
 
       {recorded ? (
-        <p className="rounded-md bg-surface-raised px-3 py-1.5 text-xs text-ink">
+        <p className="rounded-lg bg-dew-drop px-3 py-1.5 text-xs text-ink">
           Recorded: <span className="font-medium">{recorded.outcome}</span> by {recorded.actor.name} ·{" "}
           {new Date(recorded.at).toLocaleString("en-GB")}
         </p>
@@ -96,7 +96,7 @@ export function IncidentDecisionCard({
               onClick={() => decide("approved")}
               disabled={!canApproveAction}
               title={canApproveAction ? undefined : `Role ${roleLabel(currentActor.role)} cannot approve requires_approval actions`}
-              className="inline-flex items-center gap-1.5 rounded-md bg-recommend px-3 py-1.5 text-xs font-medium text-recommend-ink disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-pill btn-pill-primary"
             >
               <CheckCircle2 className="size-3.5" aria-hidden="true" /> Approve
             </button>
@@ -105,7 +105,7 @@ export function IncidentDecisionCard({
               onClick={() => decide("rejected")}
               disabled={!canApproveAction}
               title={canApproveAction ? undefined : `Role ${roleLabel(currentActor.role)} cannot reject requires_approval actions`}
-              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-3 py-1.5 text-xs font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-pill"
             >
               <Ban className="size-3.5" aria-hidden="true" /> Reject
             </button>
@@ -118,7 +118,7 @@ export function IncidentDecisionCard({
             onClick={() => decide("escalated")}
             disabled={!canEscalateAction}
             title={canEscalateAction ? undefined : `Role ${roleLabel(currentActor.role)} cannot escalate`}
-            className="inline-flex items-center gap-1.5 rounded-md bg-escalate px-3 py-1.5 text-xs font-medium text-escalate-ink disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-pill border-escalate-mark bg-escalate-tint text-escalate"
           >
             <Siren className="size-3.5" aria-hidden="true" /> Escalate
           </button>

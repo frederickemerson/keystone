@@ -84,17 +84,17 @@ export function PillApprovalCard({
   }
 
   return (
-    <article className="space-y-4 rounded-xl border border-line bg-surface p-4" aria-label={`Approval: ${bundle.id} v${version.version}`}>
+    <article className="card-paper space-y-3 p-6" aria-label={`Approval: ${bundle.id} v${version.version}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold text-ink">
             {bundle.domain}/{bundle.name}
           </h3>
-          <p className="font-mono text-[11px] text-ink-muted">
+          <p className="font-mono text-[11px] tabular-nums text-ink-muted">
             v{version.version} · {version.status} · authored by {version.createdBy.name}
           </p>
         </div>
-        <span className="rounded-full border border-line bg-surface-raised px-2 py-0.5 text-[11px] text-ink-muted">
+        <span className="rounded-full border border-line bg-dew-drop px-2.5 py-0.5 text-[11px] text-ink-muted">
           {version.reason}
         </span>
       </div>
@@ -114,8 +114,8 @@ export function PillApprovalCard({
       )}
 
       {comparison.regressions.length > 0 ? (
-        <div className="rounded-lg border border-escalate/30 bg-escalate/5 p-3">
-          <p className="flex items-center gap-1.5 text-xs font-semibold text-escalate">
+        <div className="rounded-lg border border-blocked/30 bg-blocked-tint p-3">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-blocked">
             <AlertTriangle className="size-3.5" aria-hidden="true" /> Eval regressions
           </p>
           <ul className="mt-1.5 space-y-1 text-[11px] text-ink">
@@ -136,7 +136,7 @@ export function PillApprovalCard({
       ) : (
         <ul className="space-y-1">
           {check.blockers.map((b, i) => (
-            <li key={i} className="flex items-start gap-1.5 text-xs text-escalate">
+            <li key={i} className="flex items-start gap-1.5 text-xs text-blocked">
               <Ban className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
               <span>{b}</span>
             </li>
@@ -150,7 +150,7 @@ export function PillApprovalCard({
           onClick={onApprove}
           disabled={!check.allowed}
           title={check.allowed ? undefined : check.blockers.join(" | ")}
-          className="inline-flex items-center gap-1.5 rounded-md bg-recommend px-3 py-1.5 text-xs font-medium text-recommend-ink disabled:cursor-not-allowed disabled:opacity-40"
+          className="btn-pill btn-pill-primary"
         >
           <CheckCircle2 className="size-3.5" aria-hidden="true" /> Approve
         </button>
@@ -166,7 +166,7 @@ export function PillApprovalCard({
                 ? "Only Draft versions can enter Shadow"
                 : `Role ${roleLabel(currentActor.role)} cannot promote to Shadow`
           }
-          className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-3 py-1.5 text-xs font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40"
+          className="btn-pill"
         >
           <ArrowRightCircle className="size-3.5" aria-hidden="true" /> Promote to Shadow
         </button>
@@ -177,14 +177,14 @@ export function PillApprovalCard({
           type="button"
           disabled
           title="Governance store is append-only — reject by leaving the version in Draft or rolling back the approved version."
-          className="inline-flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-xs font-medium text-ink-muted opacity-40"
+          className="btn-pill text-ink-muted"
         >
           <Ban className="size-3.5" aria-hidden="true" /> Reject
         </button>
       </div>
 
       {comparison.regressions.length > 0 ? (
-        <div className="rounded-lg border border-approval/30 bg-approval/5 p-3">
+        <div className="rounded-lg border border-approval/30 bg-approval-tint p-3">
           <label className="flex items-center gap-1.5 text-xs font-medium text-approval">
             <ShieldAlert className="size-3.5" aria-hidden="true" /> Override with reason
             <span className="text-ink-muted">(only {roleLabel(version.approverRole)})</span>
@@ -194,7 +194,7 @@ export function PillApprovalCard({
             onChange={(e) => setOverrideReason(e.target.value)}
             rows={2}
             placeholder="Explain why the regression(s) are accepted…"
-            className="mt-1.5 w-full rounded-md border border-line bg-surface px-2 py-1 text-xs text-ink"
+            className="mt-1.5 w-full rounded-input border border-line bg-surface px-2.5 py-1.5 text-xs text-ink"
           />
           <button
             type="button"
@@ -207,7 +207,7 @@ export function PillApprovalCard({
                   ? `Only ${roleLabel(version.approverRole)} may override regressions`
                   : "Enter a reason to override"
             }
-            className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-approval px-3 py-1.5 text-xs font-medium text-approval-ink disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-pill mt-2 border-approval text-approval"
           >
             <ShieldAlert className="size-3.5" aria-hidden="true" /> Override &amp; Approve
           </button>
@@ -215,7 +215,7 @@ export function PillApprovalCard({
       ) : null}
 
       {message ? (
-        <p className="rounded-md bg-surface-raised px-3 py-1.5 text-xs text-ink" role="status">
+        <p className="rounded-lg bg-dew-drop px-3 py-1.5 text-xs text-ink" role="status">
           {message}
         </p>
       ) : null}

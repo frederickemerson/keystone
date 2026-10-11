@@ -60,11 +60,11 @@ export function ApprovalsQueue({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto w-full max-w-[1200px] space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-ink">Approvals</h1>
-          <p className="text-sm text-ink-muted">
+          <h1>approvals</h1>
+          <p className="mt-1 text-sm text-ink-muted">
             Every decision that must be approved or escalated by a named human — nothing executes
             without one.
           </p>
@@ -121,7 +121,7 @@ export function ApprovalsQueue({
         )}
       </section>
 
-      <p className="text-[11px] text-ink-muted">
+      <p className="text-[13px] text-ink-muted">
         Acting as {currentActor.name} ({roleLabel(currentActor.role)}). Buttons
         explain why they are disabled when your role lacks authority.
       </p>
