@@ -1,0 +1,110 @@
+# Eval: 2024-11 riser leak near distribution board
+# Pill: technical-services/chilled-water-leak v1.2.0
+# Expected: TS-01 escalates (evacuate + LEW), TS-02 blocked (do not enter),
+#           TS-05 may trigger if sprinkler involved, TS-07 blocks re-energisation
+
+id: eval-2024-11-riser-leak-near-db
+title: "Chilled-water riser joint failure on L23 — water tracking toward electrical room"
+incident_date: "2024-11-06"
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 23
+  anchor_tenant: true
+  green_mark: "Platinum SLE"
+evidence:
+  water_near_electrical: true
+  water_in_electrical_room: false
+  water_above_switchgear: false
+  water_flowing_toward_electrical: true
+  active_water_release: true
+  ceiling_stain_or_drip: false
+  condensate_leak_alarm: false
+  tenant_report_drip: false
+  source_is_sprinkler: false
+  source_is_wet_riser: false
+  source_is_hose_reel: false
+  source_is_fire_pump: false
+  isolation_affects_fire_alarm: false
+  lift_pit_water: false
+  water_in_lift_shaft: false
+  water_in_lift_car: false
+  equipment_wetted_or_isolated: true
+  isolation_complete: false
+  estimated_loss_above_threshold: true
+  fire_protection_impaired: false
+  tenant_property_damage: true
+  wet_building_fabric: true
+  standing_water_present: false
+  pub_heavy_rain_or_flood_alert: false
+  crah_condensate_alarm: false
+  underfloor_leak_detection: false
+  high_humidity_alarm_server_room: false
+  lew_signoff: false
+  insulation_resistance_ok: false
+  area_dry: false
+  visual_or_alarm_confirmation: true
+  location_confirmed: true
+  shutoff_map_available: true
+  pre_cleanup_photos: false
+  failed_component_retained: false
+  moisture_meter_readings: false
+  affected_materials_inventory: false
+  standing_water_location_photos: false
+  pub_alert_received: false
+  visual_inspection: true
+  lew_or_evidence_confirms_risk: true
+  tenant_request_power_down: false
+  immediate_life_safety_hazard: false
+  drip_onto_tenant_it: false
+  water_on_switchgear: false
+  breaker_tripped: false
+  water_category: "category_1"
+  source_behind_locked_tenancy: false
+  lew_confirms_dead_section: false
+  water_confined_sealed_trench: false
+expected_decisions:
+  TS-01:
+    status: escalate
+    reason: "water flowing toward electrical — evacuate electrical room, call LEW, isolate upstream"
+  TS-02:
+    status: blocked
+    reason: "trigger all-conditions not fully met (water_near_electrical is true so the neq check fails) — isolation must be upstream of electrical room"
+  TS-03:
+    status: blocked
+    reason: "trigger not matched — no tenant power-down request"
+  TS-04:
+    status: blocked
+    reason: "trigger not matched — no ceiling stain/drip or condensate alarm"
+  TS-05:
+    status: blocked
+    reason: "trigger not matched — source is chilled-water riser, not fire protection"
+  TS-06:
+    status: blocked
+    reason: "trigger not matched — no lift water"
+  TS-07:
+    status: escalate
+    reason: "equipment wetted — LEW sign-off, insulation resistance, area dry all missing"
+  TS-08:
+    status: needs_approval
+    reason: "isolation not yet complete — photos and component retention required once isolation done"
+  TS-09:
+    status: blocked
+    reason: "trigger not matched — isolation not complete"
+  TS-10:
+    status: blocked
+    reason: "trigger not matched — not a data centre"
+  TS-11:
+    status: blocked
+    reason: "trigger not matched — no standing water"
+  TS-12:
+    status: blocked
+    reason: "trigger not matched — no PUB alert"
+expert_decision: >-
+  Riser joint failed on L23. Water tracking along the cable tray toward the
+  electrical room. Evacuated the electrical room, called LEW. Isolated the
+  riser at the floor isolation sub-valve within 8 minutes. No one entered
+  the electrical room until LEW certified. Insurer notified. Failed joint
+  retained for adjuster.
+outcome: "No injury. LEW certified re-energisation after 3 hours. Insurer claim accepted without dispute."
+pass: true

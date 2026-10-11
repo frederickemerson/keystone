@@ -1,0 +1,37 @@
+{
+  "fixture_id": "contradiction-ce-interview-2026-10-02",
+  "source_transcript": "data/transcripts/ce-interview-2026-10-02.json",
+  "model": "hy4-preview",
+  "generated_at": "2026-10-02T00:25:10+08:00",
+  "fixture_type": "llm_fallback",
+  "description": "Recorded LLM output for offline fallback. Contradiction detection between two transcript statements about riser isolation, resolved with a distinguishing condition.",
+  "contradiction": {
+    "detected": true,
+    "rule_id": "TS-02",
+    "statement_a": {
+      "t": "00:06:30",
+      "speaker": "Tan Wei Ming",
+      "text_fragment": "Always isolate the whole riser — that's the default",
+      "context": "Discussing the general isolation hierarchy: nearest local valve → floor valve → riser. Expert stated the default is to isolate the whole riser.",
+      "targets": ["decision", "allowed_action"]
+    },
+    "statement_b": {
+      "t": "00:23:30",
+      "speaker": "Tan Wei Ming",
+      "text_fragment": "for an AHU branch leak where the sub-valve is accessible and stops the flow, you isolate the sub-valve only. You do not need to isolate the riser.",
+      "context": "During contradiction-resolution probe (P28), expert clarified that branch sub-valve isolation is preferred over riser isolation for AHU branch leaks.",
+      "targets": ["decision", "allowed_action"]
+    },
+    "resolution": {
+      "method": "distinguishing_condition",
+      "resolved_at": "00:23:30",
+      "distinguishing_condition": "IF leak_source == 'riser_pipe' OR sub_valve_accessible == false OR source_unconfirmed_after_10_min THEN isolate riser. IF leak_source == 'branch' AND sub_valve_accessible == true AND sub_valve_stops_flow == true THEN isolate branch sub-valve only. IF leak_source == 'condensate' THEN isolate at AHU unit level (riser never isolated for condensate).",
+      "statement_a_generalised": "The 'always isolate the whole riser' statement was about the general principle of having a clear isolation hierarchy — the riser is the fallback when local isolation fails or the source is on the riser itself.",
+      "statement_b_specific": "The branch sub-valve isolation applies when the leak is on an AHU branch, the sub-valve is accessible, and it stops the flow.",
+      "both_correct_in_context": true,
+      "confirmation_status": "confirmed",
+      "transcript_segment_ref": "ce-interview-2026-10-02#00:23:30-00:24:30"
+    },
+    "mosaic_summary": "MOSAIC detected that the expert initially stated 'always isolate the whole riser' (00:06:30) but later stated 'for a branch leak you isolate the sub-valve only, not the riser' (00:23:30). The contradiction was resolved by eliciting a distinguishing condition: riser isolation is for riser-pipe leaks or inaccessible sub-valves; branch isolation is for branch leaks with working sub-valves; condensate is isolated at AHU unit level. This distinction has been encoded as an exception in Rule TS-02."
+  }
+}

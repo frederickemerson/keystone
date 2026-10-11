@@ -1,0 +1,100 @@
+[
+  {
+    "role": "technician",
+    "label": "Technician",
+    "description": "On-site M&E / FM technician responding to incidents. Sees operational evidence but not commercial or PII data.",
+    "sensitivity_levels_visible": ["public", "internal"],
+    "sensitivity_levels_masked": ["tenant_pii", "commercial"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "CMMS work orders", "technician photos", "sensor readings", "equipment IDs", "isolation valve status"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline", "evidence_feed", "actions_assigned"],
+      "pill_fields": ["rule_id", "title", "trigger", "allowed_actions", "forbidden_actions", "owner", "deadline"]
+    },
+    "cannot_see": {
+      "evidence": ["tenant caller name", "tenant phone number", "lease terms", "rent figures", "SLA credit amounts"],
+      "incident_fields": ["tenant_pii", "commercial_terms", "financial_exposure"],
+      "pill_fields": ["provenance.transcript_segment (if sensitivity = commercial)"]
+    },
+    "can_approve": [],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "masked_fields_placeholder": "[masked: tenant PII — visible to Tenant Experience and above]",
+      "action_class_colors": { "recommend": "green", "requires_approval": "amber", "must_escalate": "red" }
+    }
+  },
+  {
+    "role": "asset_operations_manager",
+    "label": "Asset Operations Manager",
+    "description": "REIT asset management layer — supervises property and facility managers. Primary incident-room user; supervises, verifies, and escalates.",
+    "sensitivity_levels_visible": ["public", "internal", "tenant_pii"],
+    "sensitivity_levels_masked": ["commercial"],
+    "can_see": {
+      "evidence": ["iBMS alarms", "CMMS work orders", "technician photos", "tenant call logs (name redacted to role)", "contractor reports", "LEW sign-off status", "moisture readings"],
+      "incident_fields": ["id", "asset_id", "status", "type", "severity", "timeline", "evidence_feed", "actions", "tenant_impact", "sla_breach_risk", "audit_trail"],
+      "pill_fields": ["all rule fields", "provenance", "version", "status", "eval_results", "owner", "steward", "approver"]
+    },
+    "cannot_see": {
+      "evidence": ["lease termination clauses (full text)", "rent abatement amounts (before approval)"],
+      "incident_fields": ["commercial_terms"]
+    },
+    "can_approve": ["requires_approval actions", "pill shadow-to-approved promotion (steward sign-off)", "tenant message draft before send"],
+    "can_escalate": true,
+    "can_draft_tenant_message": true,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "evidence_coverage_meter": true,
+      "why_drawer": true,
+      "counterfactual": true,
+      "audit_log": true
+    }
+  },
+  {
+    "role": "tenant_experience",
+    "label": "Tenant Experience",
+    "description": "Tenant relations lead responsible for tenant communications and satisfaction. Sees tenant PII; does not see commercial terms.",
+    "sensitivity_levels_visible": ["public", "internal", "tenant_pii"],
+    "sensitivity_levels_masked": ["commercial"],
+    "can_see": {
+      "evidence": ["tenant call logs (full)", "tenant contact details", "tenant complaint history", "timeline (tenant-facing subset)"],
+      "incident_fields": ["id", "asset_id", "status", "type", "tenant_impact", "tenant_message_log", "sla_first_notice_deadline"],
+      "pill_fields": ["tenant-experience pill rules", "trigger", "decision", "allowed_actions"]
+    },
+    "cannot_see": {
+      "evidence": ["LEW inspection details (operational)", "moisture readings (operational)", "contractor pricing"],
+      "pill_fields": ["technical-services rule internals (unless cross-referenced in tenant comms)"]
+    },
+    "can_approve": ["tenant message draft before send"],
+    "can_escalate": true,
+    "can_draft_tenant_message": true,
+    "can_publish_pill": false,
+    "ui_highlights": {
+      "tenant_message_editor": true,
+      "sla_timer": true
+    }
+  },
+  {
+    "role": "executive",
+    "label": "Executive",
+    "description": "REIT / portfolio executive view. Sees everything including commercial terms. Reviews pill health and portfolio pulse.",
+    "sensitivity_levels_visible": ["public", "internal", "tenant_pii", "commercial"],
+    "sensitivity_levels_masked": [],
+    "can_see": {
+      "evidence": ["all evidence with sensitivity labels", "financial exposure estimates", "SLA credit exposure"],
+      "incident_fields": ["all fields including commercial_terms", "portfolio_risk_aggregate"],
+      "pill_fields": ["all fields", "health_card", "eval_pass_pct", "expert_agreement_pct", "pending_corrections", "next_review_date", "assets_covered", "incidents_applied", "version_history"]
+    },
+    "cannot_see": {},
+    "can_approve": ["pill version promotion (final approver for commercial-sensitivity pills)", "rollback"],
+    "can_escalate": true,
+    "can_draft_tenant_message": false,
+    "can_publish_pill": true,
+    "ui_highlights": {
+      "portfolio_pulse": true,
+      "pill_health_cards": true,
+      "audit_log": true,
+      "raci_matrix": true
+    }
+  }
+]

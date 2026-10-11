@@ -1,0 +1,521 @@
+[
+  {
+    "id": "asset-hf1",
+    "name": "Harbourfront One",
+    "type": "grade_a_office",
+    "address": "1 Harbourfront Link, Singapore 098082",
+    "location": "Singapore",
+    "floors": 32,
+    "net_lettable_area_sqft": 720000,
+    "year_built": 2021,
+    "green_certification": {
+      "scheme": "BCA Green Mark",
+      "rating": "Platinum (Super Low Energy)",
+      "certificate_id": "GM-SLE-2021-0447",
+      "eui_kwh_per_sqm_per_year": 112,
+      "well_rating": "WELL Health-Safety Rating"
+    },
+    "lease_structure": "green_lease",
+    "anchor_tenant": {
+      "name": "Straits Meridian Bank",
+      "floors": "20-26",
+      "critical_period": "trading hours 08:00-17:00 SGT",
+      "sla_first_notice_min": 30,
+      "lease_termination_clause": "business interruption > 4h triggers abatement"
+    },
+    "systems": {
+      "cooling": {
+        "chiller_plant": "centrifugal, 4 x 800 RT",
+        "chw_supply_temp_c": 6.5,
+        "chw_return_temp_c": 12.5,
+        "ahu_count": 48,
+        "vav_boxes_per_floor": 12
+      },
+      "electrical": {
+        "incoming_kv": 22,
+        "transformers": 4,
+        "switchgear_rooms": ["B1-ER-01", "L32-ER-02"],
+        "main_switchboards": ["MSB-B1-01", "MSB-L32-01"]
+      },
+      "domestic_water": {
+        "risers": ["R1", "R2", "R3"],
+        "isolation_sub_valves_per_floor": true,
+        "leak_detector_type": "cable-type, zoned"
+      }
+    },
+    "equipment": [
+      {
+        "id": "AHU-23-01",
+        "brick_class": "brick:AHU",
+        "type": "Air_Handling_Unit",
+        "location": "L23 Mechanical Riser",
+        "serves_floors": "22-23",
+        "maintenance": "PPM quarterly",
+        "cmms_asset_code": "HF1-MEQ-AHU-2301"
+      },
+      {
+        "id": "CHW-R2",
+        "brick_class": "brick:Chilled_Water_Pipe",
+        "type": "Chilled_Water_Riser",
+        "location": "Riser Shaft R2, L1-L32",
+        "serves": "L1-L32 chilled water supply/return",
+        "isolation_valves": ["CHW-R2-V-L23", "CHW-R2-V-L22", "CHW-R2-V-L24"],
+        "cmms_asset_code": "HF1-MEQ-CHW-RISER-R2"
+      },
+      {
+        "id": "ISV-L23-CHW",
+        "brick_class": "brick:Valve",
+        "type": "Isolation_Sub_Valve",
+        "location": "L23 CHW branch, Riser R2",
+        "function": "isolation sub-valve for quicker identification and mitigation of water losses",
+        "cmms_asset_code": "HF1-MEQ-VAL-ISV-L23-CHW"
+      },
+      {
+        "id": "LD-23-04",
+        "brick_class": "brick:Water_Leak_Sensor",
+        "type": "Leak_Detector",
+        "location": "L23 ceiling void above L22 tenant ceiling",
+        "zone": "L23-Zone-04",
+        "connected_to": "iBMS",
+        "cmms_asset_code": "HF1-SEN-LD-2304"
+      },
+      {
+        "id": "DB-23A",
+        "brick_class": "brick:Breaker_Panel",
+        "type": "Distribution_Board",
+        "location": "L23 Electrical Riser Cupboard",
+        "serves": "L23 general power and lighting",
+        "cmms_asset_code": "HF1-ELE-DB-23A"
+      },
+      {
+        "id": "SWGR-B1-01",
+        "brick_class": "brick:Switchgear",
+        "type": "Main_Switchboard",
+        "location": "B1 Switchgear Room B1-ER-01",
+        "serves": "Building incoming supply",
+        "cmms_asset_code": "HF1-ELE-SWBD-B1-01"
+      }
+    ],
+    "people": [
+      {
+        "name": "Tan Wei Ming",
+        "role": "Chief Engineer",
+        "department": "Technical Services",
+        "employer": "Property/Facility Manager (RQAM-type entity)",
+        "reports_to": "Head of Technical Services",
+        "experience_years": 18,
+        "licensed_electrical_worker": false,
+        "bms_access": true,
+        "cmms_access": "admin"
+      },
+      {
+        "name": "Priya Nair",
+        "role": "Asset Operations Manager",
+        "department": "Asset Management",
+        "employer": "REIT Manager layer",
+        "reports_to": "Head of Real Estate Operations",
+        "experience_years": 12,
+        "bms_access": "read_only",
+        "cmms_access": "read_only"
+      },
+      {
+        "name": "Goh Boon Kheng",
+        "role": "Head of Technical Services",
+        "department": "Technical Services",
+        "employer": "Property Manager",
+        "reports_to": "General Manager, Property",
+        "experience_years": 22,
+        "pill_approver": true,
+        "bms_access": "read_only",
+        "cmms_access": "read_only"
+      },
+      {
+        "name": "Rahul Menon",
+        "role": "Duty Licensed Electrical Worker (LEW)",
+        "department": "Electrical Maintenance",
+        "employer": "M&E Contractor",
+        "experience_years": 15,
+        "licensed_electrical_worker": true,
+        "lew_license_no": "LEW-SG-2019-03471",
+        "on_call": true
+      },
+      {
+        "name": "Lim Hui Fen",
+        "role": "Tenant Experience Lead",
+        "department": "Leasing & Tenant Relations",
+        "employer": "Property Manager",
+        "experience_years": 9,
+        "tenant_comms_drafting": true,
+        "cmms_access": "read_only"
+      },
+      {
+        "name": "Steven Wong",
+        "role": "Critical Facilities Manager",
+        "department": "Critical Facilities",
+        "employer": "Facility Manager (DC subsidiary)",
+        "experience_years": 16,
+        "dc_certified": true,
+        "bms_access": true
+      }
+    ],
+    "facility_manager": "RQAM-type property manager (bizSAFE Star)",
+    "ppm_compliance_pct": 98.4,
+    "tenant_satisfaction_score": 4.2,
+    "ontology_refs": {
+      "brick_version": "1.5.0",
+      "haystack_phIoT_version": "4.0.0",
+      "cobie_facility_id": "HF1-2021"
+    }
+  },
+  {
+    "id": "asset-hfdc1",
+    "name": "Harbourfront DC1",
+    "type": "data_centre",
+    "address": "5 Harbourfront Place, Singapore 098804",
+    "location": "Singapore",
+    "floors": 4,
+    "white_space_sqft": 120000,
+    "year_built": 2023,
+    "green_certification": {
+      "scheme": "BCA Green Mark",
+      "rating": "Platinum (Super Low Energy)",
+      "certificate_id": "GM-SLE-DC-2023-0112",
+      "pue": 1.32,
+      "pue_improvement_pct": 12,
+      "wue_ml_per_mw_year": 0.78
+    },
+    "data_halls": 3,
+    "operating_model": "colocation",
+    "clients": [
+      {
+        "name": "hyperscale client (confidential)",
+        "halls": "DH-1, DH-2",
+        "sla_tier": "Tier III",
+        "sla_notification_min": 15,
+        "sla_credit_trigger": "unplanned outage > 15 min"
+      },
+      {
+        "name": "managed services client",
+        "halls": "DH-3",
+        "sla_tier": "Tier II",
+        "sla_notification_min": 30
+      }
+    ],
+    "systems": {
+      "cooling": {
+        "type": "chilled_water CRAH with hot/cold aisle containment",
+        "crah_units_per_hall": 4,
+        "chilled_water_loop": "primary-secondary",
+        "setpoint_cold_aisle": 24,
+        "redundancy": "N+1"
+      },
+      "electrical": {
+        "incoming_kv": 22,
+        "ups_system": "2N",
+        "generator_backup": true,
+        "switchgear_rooms": ["B1-ER-01", "B1-ER-02"]
+      }
+    },
+    "equipment": [
+      {
+        "id": "CRAH-DH2-01",
+        "brick_class": "brick:CRAC",
+        "type": "CRAH_Unit",
+        "location": "Data Hall 2",
+        "serves": "DH-2 cold aisle",
+        "cmms_asset_code": "HDC1-DC-CRAH-DH2-01"
+      },
+      {
+        "id": "CRAH-DH2-02",
+        "brick_class": "brick:CRAC",
+        "type": "CRAH_Unit",
+        "location": "Data Hall 2",
+        "serves": "DH-2 cold aisle",
+        "cmms_asset_code": "HDC1-DC-CRAH-DH2-02"
+      },
+      {
+        "id": "LD-DH2-01",
+        "brick_class": "brick:Water_Leak_Sensor",
+        "type": "Leak_Detector",
+        "location": "Data Hall 2 underfloor",
+        "connected_to": "iBMS / DCIM",
+        "cmms_asset_code": "HDC1-SEN-LD-DH2-01"
+      },
+      {
+        "id": "CHW-DC-LOOP-A",
+        "brick_class": "brick:Chilled_Water_Pipe",
+        "type": "Chilled_Water_Loop",
+        "location": "Secondary loop, DH-1/DH-2 branch",
+        "isolation_valves": ["CHW-DC-V-DH2-A", "CHW-DC-V-DH2-B"],
+        "cmms_asset_code": "HDC1-MEQ-CHW-LOOP-A"
+      },
+      {
+        "id": "ISV-DC-DH2",
+        "brick_class": "brick:Valve",
+        "type": "Isolation_Sub_Valve",
+        "location": "DH-2 CHW branch",
+        "function": "isolation sub-valve for CRAH branch",
+        "cmms_asset_code": "HDC1-MEQ-VAL-ISV-DH2"
+      },
+      {
+        "id": "SWGR-DC-B1-01",
+        "brick_class": "brick:Switchgear",
+        "type": "Main_Switchboard",
+        "location": "B1 Switchgear Room B1-ER-01",
+        "serves": "DC incoming supply + UPS feed",
+        "cmms_asset_code": "HDC1-ELE-SWBD-B1-01"
+      }
+    ],
+    "people": [
+      {
+        "name": "Steven Wong",
+        "role": "Critical Facilities Manager",
+        "department": "Critical Facilities",
+        "employer": "Facility Manager (DC subsidiary)",
+        "experience_years": 16,
+        "dc_certified": true,
+        "bms_access": true,
+        "dcim_access": "admin"
+      },
+      {
+        "name": "Tan Wei Ming",
+        "role": "Chief Engineer",
+        "department": "Technical Services",
+        "employer": "Shared Technical Services pool",
+        "experience_years": 18,
+        "bms_access": true,
+        "cmms_access": "admin"
+      },
+      {
+        "name": "Priya Nair",
+        "role": "Asset Operations Manager",
+        "department": "Asset Management",
+        "employer": "REIT Manager layer",
+        "experience_years": 12,
+        "bms_access": "read_only",
+        "cmms_access": "read_only"
+      },
+      {
+        "name": "Rahul Menon",
+        "role": "Duty Licensed Electrical Worker (LEW)",
+        "department": "Electrical Maintenance",
+        "employer": "M&E Contractor",
+        "experience_years": 15,
+        "licensed_electrical_worker": true,
+        "on_call": true
+      },
+      {
+        "name": "Lim Hui Fen",
+        "role": "Tenant Experience Lead",
+        "department": "Client Relations",
+        "employer": "Facility Manager (DC subsidiary)",
+        "experience_years": 9,
+        "tenant_comms_drafting": true
+      }
+    ],
+    "facility_manager": "Keppel DC subsidiary entity (facility management agreement)",
+    "ppm_compliance_pct": 99.1,
+    "iso_certifications": ["ISO 14001", "ISO 45001", "ISO 46001", "ISO 50001"],
+    "ontology_refs": {
+      "brick_version": "1.5.0",
+      "haystack_phIoT_version": "4.0.0",
+      "cobie_facility_id": "HDC1-2023"
+    }
+  },
+  {
+    "id": "asset-mllh",
+    "name": "Marina Link Logistics Hub",
+    "type": "logistics",
+    "address": "22 Marina Link Crescent, Singapore 619022",
+    "location": "Singapore",
+    "floors": 5,
+    "gross_floor_area_sqft": 480000,
+    "year_built": 2022,
+    "green_certification": {
+      "scheme": "BCA Green Mark",
+      "rating": "GoldPlus",
+      "certificate_id": "GM-GP-2022-0213"
+    },
+    "operating_model": "multi-tenant logistics",
+    "tenants": [
+      { "name": "Asean Cold Chain Pte Ltd", "floors": "B1-L1", "type": "cold storage" },
+      { "name": "Pacific Distribution Holdings", "floors": "L2-L4", "type": "ambient warehouse" }
+    ],
+    "systems": {
+      "cooling": {
+        "type": "cold storage + ambient warehouse",
+        "cold_storage_temp_c": 2,
+        "refrigeration": "ammonia, 2 x 400 kW"
+      },
+      "electrical": {
+        "incoming_kv": 22,
+        "switchgear_rooms": ["L5-ER-01"]
+      },
+      "fire_protection": {
+        "type": "ESFR sprinkler + in-rack",
+        "wet_riser": true
+      }
+    },
+    "equipment": [
+      {
+        "id": "AHU-L2-01",
+        "brick_class": "brick:AHU",
+        "type": "Air_Handling_Unit",
+        "location": "L2 Mechanical Room",
+        "serves": "L2 office and common area",
+        "cmms_asset_code": "MLLH-MEQ-AHU-L2-01"
+      },
+      {
+        "id": "CHW-L2-R1",
+        "brick_class": "brick:Chilled_Water_Pipe",
+        "type": "Chilled_Water_Branch",
+        "location": "L2 Riser Shaft R1",
+        "cmms_asset_code": "MLLH-MEQ-CHW-L2-R1"
+      },
+      {
+        "id": "LD-L2-01",
+        "brick_class": "brick:Water_Leak_Sensor",
+        "type": "Leak_Detector",
+        "location": "L2 underfloor",
+        "connected_to": "iBMS",
+        "cmms_asset_code": "MLLH-SEN-LD-L2-01"
+      },
+      {
+        "id": "SWGR-L5-01",
+        "brick_class": "brick:Switchgear",
+        "type": "Main_Switchboard",
+        "location": "L5 Switchgear Room L5-ER-01",
+        "cmms_asset_code": "MLLH-ELE-SWBD-L5-01"
+      }
+    ],
+    "people": [
+      {
+        "name": "Tan Wei Ming",
+        "role": "Chief Engineer",
+        "department": "Technical Services",
+        "employer": "Shared Technical Services pool",
+        "experience_years": 18,
+        "bms_access": true
+      },
+      {
+        "name": "Priya Nair",
+        "role": "Asset Operations Manager",
+        "department": "Asset Management",
+        "employer": "REIT Manager layer",
+        "experience_years": 12
+      },
+      {
+        "name": "Goh Boon Kheng",
+        "role": "Head of Technical Services",
+        "department": "Technical Services",
+        "employer": "Property Manager",
+        "experience_years": 22,
+        "pill_approver": true
+      }
+    ],
+    "facility_manager": "Third-party FM contractor",
+    "ppm_compliance_pct": 95.7,
+    "ontology_refs": {
+      "brick_version": "1.5.0",
+      "haystack_phIoT_version": "4.0.0",
+      "cobie_facility_id": "MLLH-2022"
+    }
+  },
+  {
+    "id": "asset-tr",
+    "name": "Tanjong Residences",
+    "type": "residential",
+    "address": "8 Tanjong Rhu Road, Singapore 436882",
+    "location": "Singapore",
+    "floors": 18,
+    "unit_count": 216,
+    "gross_floor_area_sqft": 320000,
+    "year_built": 2020,
+    "green_certification": {
+      "scheme": "BCA Green Mark",
+      "rating": "GoldPlus",
+      "certificate_id": "GM-GP-2020-0891"
+    },
+    "operating_model": "strata-titled residential",
+    "systems": {
+      "domestic_water": {
+        "risers": ["DW-R1", "DW-R2"],
+        "isolation_sub_valves_per_floor": true,
+        "leak_detector_type": "point-type, zoned"
+      },
+      "cooling": {
+        "type": "district cooling (chilled water from campus plant)",
+        "ahu_per_floor": 1,
+        "fan_coil_per_unit": true
+      },
+      "electrical": {
+        "incoming_kv": 22,
+        "switchgear_rooms": ["B1-ER-01"]
+      }
+    },
+    "equipment": [
+      {
+        "id": "AHU-L5-01",
+        "brick_class": "brick:AHU",
+        "type": "Air_Handling_Unit",
+        "location": "L5 Mechanical Riser",
+        "serves": "L5-L6 common corridor",
+        "cmms_asset_code": "TR-MEQ-AHU-L5-01"
+      },
+      {
+        "id": "DW-R1",
+        "brick_class": "brick:Domestic_Water_Pipe",
+        "type": "Domestic_Water_Riser",
+        "location": "Riser Shaft R1, B1-L18",
+        "cmms_asset_code": "TR-MEQ-DW-R1"
+      },
+      {
+        "id": "LD-B1-02",
+        "brick_class": "brick:Water_Leak_Sensor",
+        "type": "Leak_Detector",
+        "location": "B1 carpark",
+        "connected_to": "iBMS",
+        "cmms_asset_code": "TR-SEN-LD-B1-02"
+      },
+      {
+        "id": "SWGR-TR-B1-01",
+        "brick_class": "brick:Switchgear",
+        "type": "Main_Switchboard",
+        "location": "B1 Switchgear Room B1-ER-01",
+        "cmms_asset_code": "TR-ELE-SWBD-B1-01"
+      }
+    ],
+    "people": [
+      {
+        "name": "Tan Wei Ming",
+        "role": "Chief Engineer",
+        "department": "Technical Services",
+        "employer": "Shared Technical Services pool",
+        "experience_years": 18
+      },
+      {
+        "name": "Priya Nair",
+        "role": "Asset Operations Manager",
+        "department": "Asset Management",
+        "employer": "REIT Manager layer",
+        "experience_years": 12
+      },
+      {
+        "name": "Lim Hui Fen",
+        "role": "Tenant Experience Lead",
+        "department": "Property Management",
+        "employer": "Property Manager",
+        "experience_years": 9,
+        "tenant_comms_drafting": true
+      }
+    ],
+    "facility_manager": "Managing agent (FM contractor)",
+    "ppm_compliance_pct": 93.2,
+    "tenant_satisfaction_score": 3.9,
+    "ontology_refs": {
+      "brick_version": "1.5.0",
+      "haystack_phIoT_version": "4.0.0",
+      "cobie_facility_id": "TR-2020"
+    }
+  }
+]

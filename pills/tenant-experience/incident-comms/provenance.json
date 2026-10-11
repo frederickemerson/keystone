@@ -1,0 +1,68 @@
+{
+  "pill": "tenant-experience/incident-comms",
+  "version": "1.0.0",
+  "source_interview": "pm-interview-2026-10-02",
+  "interviewer": "MOSAIC Expert Capture (CDM/ACTA probes)",
+  "expert": {
+    "name": "Goh Mei Ling",
+    "role": "Property / Tenant Experience Manager",
+    "years_experience": 10,
+    "employer_context": "RQAM-type property manager at a Keppel REIT Singapore Grade A office portfolio"
+  },
+  "rules": {
+    "TE-01": {
+      "source": "pm-interview-2026-10-02",
+      "start": "00:06:15",
+      "end": "00:10:00",
+      "quote": "First notice — thirty minutes, full stop. Only to the tenants who are actually affected, not the whole building. What happened, where, what we're doing about it, when the next update is, and a contact number. No cause, no liability, no 'we'll fix it by three o'clock'. And it does not go out without a named person approving it — me or my delegate. I'm not having an AI send a message to a tenant on its own.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Goh Mei Ling",
+      "confirmed_at": "2026-10-02T14:20:00+08:00"
+    },
+    "TE-02": {
+      "source": "pm-interview-2026-10-02",
+      "start": "00:14:00",
+      "end": "00:16:30",
+      "quote": "Tenants always ask 'when will it be fixed?'. You cannot answer that until the source is confirmed and the isolation is done. I've seen a colleague promise two hours and then it took six because the riser joint was worse than they thought. So you say: 'Our team is on site working to isolate the source. We will provide an update on the repair timeline at the next update.' You give them the next update time, not a completion time.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Goh Mei Ling",
+      "confirmed_at": "2026-10-02T14:20:00+08:00"
+    },
+    "TE-03": {
+      "source": "pm-interview-2026-10-02",
+      "start": "00:14:00",
+      "end": "00:17:45",
+      "quote": "Do not tell the tenant what caused it until someone has actually confirmed it. Not 'appears to be', not 'we believe'. If the technician hasn't laid eyes on it and told you, you say investigation is ongoing. The moment you say 'a pipe burst' and it turns out to be the sprinkler line, you've given the tenant ammunition for a claim. Wait for Technical Services or the LEW to confirm.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Goh Mei Ling",
+      "confirmed_at": "2026-10-02T14:20:00+08:00"
+    },
+    "TE-04": {
+      "source": "pm-interview-2026-10-02",
+      "start": "00:22:30",
+      "end": "00:26:00",
+      "quote": "The bank anchor tenant — and any tenant with a notification SLA in their lease — gets a phone call from the account manager within thirty minutes. Not the technician, not the Duty Manager, not an email. The account manager picks up the phone. Then the written notice follows. The bank's facilities director needs to hear a human voice, not a template, when their trading floor is at risk.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Goh Mei Ling",
+      "confirmed_at": "2026-10-02T14:20:00+08:00"
+    },
+    "TE-05": {
+      "source": "pm-interview-2026-10-02",
+      "start": "00:30:00",
+      "end": "00:33:00",
+      "quote": "PII. PDPA. You cannot put Tenant B's name in Tenant A's notice. You cannot CC multiple tenants on the same email. Each tenant gets their own notice. Unit numbers, individual names, contact details — all masked in anything that goes to a lower role. Lease terms and rental rates — never in any message. I had a case where a junior put three tenants on one email chain and we got a PDPA complaint. Never again.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Goh Mei Ling",
+      "confirmed_at": "2026-10-02T14:20:00+08:00"
+    },
+    "TE-06": {
+      "source": "pm-interview-2026-10-02",
+      "start": "00:35:15",
+      "end": "00:38:00",
+      "quote": "Data centre clients are different. They don't get tenant-experience messages. The critical facilities manager handles the SLA notification — event reference, impact assessment, resolution window if you have one. The CFM approves it, not me. Different template, different channel, different approver. If you send a standard tenant notice to a hyperscale client, their legal team will be on the phone before you've finished typing.",
+      "confirmation": "confirmed",
+      "confirmed_by": "Goh Mei Ling",
+      "confirmed_at": "2026-10-02T14:20:00+08:00"
+    }
+  }
+}

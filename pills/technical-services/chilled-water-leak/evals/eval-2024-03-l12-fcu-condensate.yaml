@@ -1,0 +1,86 @@
+# Eval: 2024-03 L12 FCU condensate leak
+# Pill: technical-services/chilled-water-leak v1.2.0
+# Expected: all rules pass
+
+id: eval-2024-03-l12-fcu-condensate
+title: "L12 FCU condensate — ceiling drip in bank tenant area"
+incident_date: "2024-03-14"
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 12
+  anchor_tenant: true
+  green_mark: "Platinum SLE"
+evidence:
+  water_near_electrical: false
+  water_in_electrical_room: false
+  water_above_switchgear: false
+  water_flowing_toward_electrical: false
+  active_water_release: false
+  ceiling_stain_or_drip: true
+  condensate_leak_alarm: true
+  tenant_report_drip: true
+  source_is_sprinkler: false
+  source_is_wet_riser: false
+  source_is_hose_reel: false
+  source_is_fire_pump: false
+  isolation_affects_fire_alarm: false
+  lift_pit_water: false
+  water_in_lift_shaft: false
+  water_in_lift_car: false
+  equipment_wetted_or_isolated: false
+  isolation_complete: false
+  estimated_loss_above_threshold: false
+  fire_protection_impaired: false
+  tenant_property_damage: false
+  wet_building_fabric: false
+  standing_water_present: false
+  pub_heavy_rain_or_flood_alert: false
+  crah_condensate_alarm: false
+  underfloor_leak_detection: false
+  high_humidity_alarm_server_room: false
+  visual_inspection: true
+  shutoff_map_available: true
+  location_confirmed: true
+  visual_or_alarm_confirmation: true
+  pub_alert_received: false
+expected_decisions:
+  TS-01:
+    status: blocked
+    reason: "trigger not matched — water not near electrical"
+  TS-02:
+    status: blocked
+    reason: "trigger not matched — no active water release (condensate only)"
+  TS-03:
+    status: blocked
+    reason: "trigger not matched — no power-down request"
+  TS-04:
+    status: allowed
+    reason: "condensate leak alarm + ceiling drip — inspect tray, clear drain, schedule repair"
+  TS-05:
+    status: blocked
+    reason: "trigger not matched — no fire-protection source"
+  TS-06:
+    status: blocked
+    reason: "trigger not matched — no lift water"
+  TS-07:
+    status: blocked
+    reason: "trigger not matched — no equipment wetted or isolated"
+  TS-08:
+    status: blocked
+    reason: "trigger not matched — no fire-protection impairment or tenant damage"
+  TS-09:
+    status: blocked
+    reason: "trigger not matched — isolation not complete"
+  TS-10:
+    status: blocked
+    reason: "trigger not matched — not a data centre"
+  TS-11:
+    status: blocked
+    reason: "trigger not matched — no standing water"
+  TS-12:
+    status: blocked
+    reason: "trigger not matched — no PUB alert"
+expert_decision: "Condensate tray overflow, drain line blocked. Technician cleared tray, placed drip tray, scheduled drain line flush. No isolation needed. Tenant informed by Property Manager."
+outcome: "Drip stopped within 45 minutes. No damage. Drain line flushed the next day."
+pass: true

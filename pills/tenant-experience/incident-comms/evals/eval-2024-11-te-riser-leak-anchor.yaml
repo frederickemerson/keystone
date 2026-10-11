@@ -1,0 +1,65 @@
+# Eval: 2024-11 riser leak near DB — anchor tenant comms
+# Pill: tenant-experience/incident-comms v1.0.0
+# Expected: TE-01 needs_approval, TE-02 blocks completion promise,
+#           TE-03 blocks unverified cause, TE-04 escalates to account manager
+
+id: eval-2024-11-te-riser-leak-anchor
+title: "L23 riser leak near DB — bank anchor tenant comms"
+incident_date: "2024-11-06"
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 23
+  anchor_tenant: true
+  green_mark: "Platinum SLE"
+evidence:
+  incident_affects_tenant_premises: true
+  source_confirmed: false
+  tenant_request_completion_time: true
+  cause_unverified: true
+  draft_message_contains_cause: false
+  anchor_tenant_affected: true
+  message_visible_to_lower_role: true
+  message_contains_tenant_name: false
+  message_contains_unit_number: true
+  message_contains_lease_terms: false
+  message_contains_other_tenant_pii: false
+  client_affected: false
+  life_safety_instruction: false
+  incident_log_with_affected_units: true
+  named_approver_signoff: true
+  account_manager_available: true
+  sla_terms_on_file: false
+  cfm_available: false
+  source_confirmed_by_technical_services_or_lew: false
+  pii_audit_pass: false
+expected_decisions:
+  TE-01:
+    status: needs_approval
+    reason: "incident affects tenant premises — draft and send first notice, named approver required"
+  TE-02:
+    status: allowed
+    reason: "source not confirmed + tenant requesting time — do not promise completion"
+  TE-03:
+    status: blocked
+    reason: "cause unverified — no cause claims in outbound messages"
+  TE-04:
+    status: escalate
+    reason: "anchor tenant affected — account-manager call within 30 min"
+  TE-05:
+    status: allowed
+    reason: "message visible to lower role + contains unit number — mask PII before sending"
+  TE-06:
+    status: blocked
+    reason: "trigger not matched — not a data centre"
+expert_decision: >-
+  Riser leak on L23, water tracking toward electrical room. Bank anchor
+  tenant on L23 and L24. Account manager called the bank's facilities
+  director at 2:15 PM. First notice sent at 2:20 PM after PM sign-off:
+  "There is a water leak on Level 23. Our technical team is on site
+  isolating the source. The electrical room is being assessed. We will
+  provide the next update at 2:45 PM." No cause stated. Unit numbers
+  masked in the building-wide update. Source confirmed at 3:10 PM —
+  riser joint failure. Cause shared at 3:15 PM update.
+outcome: "Bank facilities director satisfied with the call. No liability claim. No PDPA issue."
+pass: true

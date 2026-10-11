@@ -1,0 +1,62 @@
+# Eval: 2024-03 L12 FCU condensate — tenant comms
+# Pill: tenant-experience/incident-comms v1.0.0
+# Expected: TE-01 requires_approval (first notice), TE-03 blocks cause claims
+
+id: eval-2024-03-te-l12-fcu-condensate
+title: "L12 FCU condensate — tenant first notice"
+incident_date: "2024-03-14"
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 12
+  anchor_tenant: true
+  green_mark: "Platinum SLE"
+evidence:
+  incident_affects_tenant_premises: true
+  source_confirmed: false
+  tenant_request_completion_time: true
+  cause_unverified: true
+  draft_message_contains_cause: false
+  anchor_tenant_affected: true
+  message_visible_to_lower_role: false
+  message_contains_tenant_name: false
+  message_contains_unit_number: false
+  message_contains_lease_terms: false
+  message_contains_other_tenant_pii: false
+  client_affected: false
+  life_safety_instruction: false
+  incident_log_with_affected_units: true
+  named_approver_signoff: true
+  account_manager_available: true
+  sla_terms_on_file: false
+  cfm_available: false
+  source_confirmed_by_technical_services_or_lew: false
+  pii_audit_pass: true
+expected_decisions:
+  TE-01:
+    status: needs_approval
+    reason: "incident affects tenant premises — draft and send first notice within 30 min, requires named approver"
+  TE-02:
+    status: allowed
+    reason: "source not confirmed + tenant requesting completion time — do not promise, state next update time"
+  TE-03:
+    status: blocked
+    reason: "cause unverified — remove any cause language; investigation ongoing"
+  TE-04:
+    status: escalate
+    reason: "anchor tenant affected — account-manager phone call within 30 min"
+  TE-05:
+    status: blocked
+    reason: "trigger not matched — no PII in message visible to lower role"
+  TE-06:
+    status: blocked
+    reason: "trigger not matched — not a data centre"
+expert_decision: >-
+  Condensate leak on L12. Drafted first notice: "There is a water leak on
+  Level 12. Our technical team is on site. We will provide the next update
+  at 10:45 AM." No cause stated. Account manager called the bank's
+  facilities director at 10:15 AM. Written notice sent at 10:20 AM after
+  Property Manager sign-off. Source confirmed as condensate at 10:40 AM —
+  cause shared at the next update.
+outcome: "Tenant satisfied. No PDPA complaint. No liability claim."
+pass: true

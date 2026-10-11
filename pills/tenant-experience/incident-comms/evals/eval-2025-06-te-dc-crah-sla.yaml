@@ -1,0 +1,63 @@
+# Eval: 2025-06 DC CRAH leak — SLA comms
+# Pill: tenant-experience/incident-comms v1.0.0
+# Expected: TE-06 escalates to CFM, TE-01 blocked (DC overlay suppresses
+#           standard tenant comms), TE-04 blocked (DC override)
+
+id: eval-2025-06-te-dc-crah-sla
+title: "DC SGP-X CRAH leak — hyperscale client SLA notice"
+incident_date: "2025-06-19"
+asset:
+  name: "Harbourfront DC1"
+  type: data_centre
+  pue: 1.32
+  colocation: true
+  client: "hyperscale client A"
+evidence:
+  incident_affects_tenant_premises: true
+  source_confirmed: false
+  tenant_request_completion_time: false
+  cause_unverified: true
+  draft_message_contains_cause: false
+  anchor_tenant_affected: false
+  message_visible_to_lower_role: false
+  message_contains_tenant_name: false
+  message_contains_unit_number: false
+  message_contains_lease_terms: false
+  message_contains_other_tenant_pii: false
+  client_affected: true
+  life_safety_instruction: false
+  incident_log_with_affected_units: true
+  named_approver_signoff: false
+  account_manager_available: false
+  sla_terms_on_file: true
+  cfm_available: true
+  source_confirmed_by_technical_services_or_lew: false
+  pii_audit_pass: true
+expected_decisions:
+  TE-01:
+    status: blocked
+    reason: "trigger conditions met but asset is data_centre — DC overlay suppresses standard tenant comms (TE-06 governs)"
+  TE-02:
+    status: blocked
+    reason: "trigger not matched — no tenant completion-time request (DC client)"
+  TE-03:
+    status: allowed
+    reason: "cause unverified — no cause in SLA notice until confirmed"
+  TE-04:
+    status: blocked
+    reason: "trigger not matched — no anchor tenant (DC asset override routes to CFM)"
+  TE-05:
+    status: blocked
+    reason: "trigger not matched — no message visible to lower role"
+  TE-06:
+    status: escalate
+    reason: "DC client affected — SLA notice via CFM within 30 min, CFM approves"
+expert_decision: >-
+  CRAH condensate leak in the data hall. CFM notified immediately. SLA
+  notice drafted: "SLA Event Reference DC1-2025-06-19-001. Impact: CRAH
+  unit 2-A condensate leak isolated, containment deployed, no IT impact.
+  Thermal ride-through sufficient. Next update at 15:30." CFM approved
+  and sent at 15:05. No tenant-experience comms sent. Cause confirmed
+  at 16:00 — condensate drain line crack. Updated SLA notice sent.
+outcome: "No SLA credit triggered. Client operations team acknowledged. No PDPA issue."
+pass: true

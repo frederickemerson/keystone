@@ -1,0 +1,106 @@
+{
+  "fixture_id": "extraction-ce-interview-2026-10-02",
+  "source_transcript": "data/transcripts/ce-interview-2026-10-02.json",
+  "model": "hy4-preview",
+  "generated_at": "2026-10-02T00:26:00+08:00",
+  "fixture_type": "llm_fallback",
+  "description": "Recorded LLM output for offline fallback. Extracts rule candidates from the Chief Engineer onboarding transcript using schema-constrained scribe.",
+  "rule_candidates": [
+    {
+      "rule_id": "TS-07",
+      "title": "No re-energisation without LEW sign-off",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          { "path": "evidence.water_near_electrical", "op": "eq", "value": true },
+          { "path": "evidence.water_near_db_23a", "op": "eq", "value": true }
+        ],
+        "any": []
+      },
+      "required_evidence": ["lew_signoff", "insulation_resistance_ok", "area_dry"],
+      "decision": "Re-energise affected AHU / DB",
+      "allowed_actions": ["Keep circuit isolated", "Request LEW inspection", "Deploy drip trays and cordon area"],
+      "forbidden_actions": ["Re-energise before LEW sign-off", "Entering electrical cupboard before LEW confirms safe", "Operating any wet breaker or switch"],
+      "exceptions": [
+        { "when": [{ "path": "asset.type", "op": "eq", "value": "data_centre" }], "note": "Critical facilities manager co-signs" },
+        { "when": [{ "path": "evidence.lew_confirms_dead_board", "op": "eq", "value": true }], "note": "LEW confirms affected section is spare/dead board" }
+      ],
+      "action_class": "must_escalate",
+      "escalate_to": { "role": "duty_lew", "fallback": "head_technical_services" },
+      "owner": "chief_engineer",
+      "deadline_minutes": null,
+      "asset_overrides": {
+        "data_centre": { "escalate_to": { "role": "dc_critical_facilities_manager" } }
+      },
+      "threshold_note": "2 m proximity threshold is expert professional judgement, not a code requirement. Code says 'near electrical equipment' without defining distance.",
+      "provenance": ["ce-interview-2026-10-02#00:14:32", "ce-interview-2026-10-02#00:16:30", "ce-interview-2026-10-02#00:22:15"],
+      "confirmation_status": "confirmed",
+      "confidence": 0.97
+    },
+    {
+      "rule_id": "TS-02",
+      "title": "Isolate chilled-water source at nearest accessible valve within 10 minutes",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          { "path": "evidence.leak_alarm_active", "op": "eq", "value": true }
+        ],
+        "any": [
+          { "path": "evidence.chw_leak_suspected", "op": "eq", "value": true },
+          { "path": "evidence.tenant_report", "op": "eq", "value": true }
+        ]
+      },
+      "required_evidence": ["shutoff_valve_map"],
+      "decision": "Isolate at nearest local sub-valve; if source is riser pipe or sub-valve inaccessible, isolate riser; if condensate, isolate at AHU unit level",
+      "allowed_actions": ["Close local/zone isolation sub-valve", "Close floor or riser valve if branch valve inaccessible", "Close domestic water main for stack (Duty Manager informed)"],
+      "forbidden_actions": ["Closing fire-protection valves without FSM authorisation", "Re-energising AHU circuit before LEW sign-off if water near electrical"],
+      "exceptions": [
+        { "when": [{ "path": "evidence.source_is_condensate", "op": "eq", "value": true }], "note": "Condensate — isolate at AHU unit level, do not isolate riser" },
+        { "when": [{ "path": "evidence.source_is_riser_pipe", "op": "eq", "value": true }], "note": "Riser pipe leak — isolate riser" }
+      ],
+      "action_class": "recommend",
+      "escalate_to": { "role": "duty_manager", "fallback": "head_technical_services" },
+      "owner": "technician",
+      "deadline_minutes": 10,
+      "distinguishing_condition": "Leak on branch with working sub-valve → isolate branch only. Leak on riser pipe or inaccessible sub-valve → isolate riser. Condensate → isolate at AHU unit, never riser.",
+      "provenance": ["ce-interview-2026-10-02#00:06:30", "ce-interview-2026-10-02#00:23:30", "ce-interview-2026-10-02#00:24:30"],
+      "confirmation_status": "confirmed",
+      "contradiction_resolved": true,
+      "confidence": 0.95
+    },
+    {
+      "rule_id": "TE-01",
+      "title": "Tenant-area isolation within 15 minutes; first-notice message within 30 min",
+      "trigger": {
+        "incident_type": "water_ingress",
+        "all": [
+          { "path": "evidence.tenant_affected", "op": "exists", "value": true },
+          { "path": "evidence.water_visible_to_tenant", "op": "eq", "value": true }
+        ]
+      },
+      "required_evidence": ["tenant_contact", "tenant_message_draft"],
+      "decision": "Draft first-notice tenant message within 30 min of tenant call; isolate source within 15 min to prevent business interruption",
+      "allowed_actions": ["Draft tenant message", "Notify tenant facilities coordinator", "Deploy containment in tenant area"],
+      "forbidden_actions": ["Delaying first-notice beyond 30 min", "Re-energising before LEW sign-off if water near electrical"],
+      "exceptions": [
+        { "when": [{ "path": "asset.type", "op": "eq", "value": "data_centre" }], "note": "DC overlay: tenant message replaced by client-SLA notification (15 min SLA)" }
+      ],
+      "action_class": "requires_approval",
+      "escalate_to": { "role": "tenant_experience" },
+      "owner": "asset_operationsManager",
+      "deadline_minutes": 30,
+      "tenant_isolation_window_min": 15,
+      "provenance": ["ce-interview-2026-10-02#00:11:35", "ce-interview-2026-10-02#00:19:25"],
+      "confirmation_status": "confirmed",
+      "confidence": 0.93
+    }
+  ],
+  "scribe_metadata": {
+    "model": "hy4-preview",
+    "temperature": 0.2,
+    "schema": "mosaic-rule-candidate-v1",
+    "content_requirements_met": true,
+    "transcript_spans_extracted": 8,
+    "probes_processed": ["P01", "P02", "P03", "P04", "P06", "P07", "P08", "P09", "P11", "P13", "P14", "P28", "P31"]
+  }
+}

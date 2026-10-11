@@ -1,0 +1,114 @@
+# Eval: 2025-06 DC CRAH leak
+# Pill: technical-services/chilled-water-leak v1.2.0
+# Expected: TS-10 escalates to critical facilities manager, TS-07 blocks
+#           re-energisation (data-centre overlay)
+
+id: eval-2025-06-dc-crah-leak
+title: "DC SGP-X colocation — CRAH unit condensate leak in data hall"
+incident_date: "2025-06-19"
+asset:
+  name: "Harbourfront DC1"
+  type: data_centre
+  pue: 1.32
+  colocation: true
+  floor: 2
+  client: "hyperscale client A"
+evidence:
+  water_near_electrical: false
+  water_in_electrical_room: false
+  water_above_switchgear: false
+  water_flowing_toward_electrical: false
+  active_water_release: true
+  ceiling_stain_or_drip: false
+  condensate_leak_alarm: false
+  tenant_report_drip: false
+  source_is_sprinkler: false
+  source_is_wet_riser: false
+  source_is_hose_reel: false
+  source_is_fire_pump: false
+  isolation_affects_fire_alarm: false
+  lift_pit_water: false
+  water_in_lift_shaft: false
+  water_in_lift_car: false
+  equipment_wetted_or_isolated: true
+  isolation_complete: false
+  estimated_loss_above_threshold: true
+  fire_protection_impaired: false
+  tenant_property_damage: false
+  wet_building_fabric: false
+  standing_water_present: false
+  pub_heavy_rain_or_flood_alert: false
+  crah_condensate_alarm: true
+  underfloor_leak_detection: true
+  high_humidity_alarm_server_room: true
+  lew_signoff: false
+  insulation_resistance_ok: false
+  area_dry: false
+  leak_alarm_confirmed: true
+  visual_or_alarm_confirmation: true
+  location_confirmed: true
+  shutoff_map_available: true
+  pre_cleanup_photos: true
+  failed_component_retained: true
+  moisture_meter_readings: false
+  affected_materials_inventory: false
+  standing_water_location_photos: false
+  pub_alert_received: false
+  visual_inspection: false
+  lew_or_evidence_confirms_risk: false
+  tenant_request_power_down: false
+  immediate_life_safety_hazard: false
+  drip_onto_tenant_it: false
+  water_on_switchgear: false
+  breaker_tripped: false
+  water_category: "category_1"
+  source_behind_locked_tenancy: false
+  lew_confirms_dead_section: false
+  water_confined_sealed_trench: false
+  water_contacting_live_it: false
+expected_decisions:
+  TS-01:
+    status: blocked
+    reason: "trigger not matched — water not near electrical"
+  TS-02:
+    status: allowed
+    reason: "active water release — isolate at nearest isolation sub-valve (CRAH branch)"
+  TS-03:
+    status: blocked
+    reason: "trigger not matched — no power-down request"
+  TS-04:
+    status: blocked
+    reason: "trigger not matched — no ceiling stain/drip (data hall)"
+  TS-05:
+    status: blocked
+    reason: "trigger not matched — no fire-protection source"
+  TS-06:
+    status: blocked
+    reason: "trigger not matched — no lift water"
+  TS-07:
+    status: escalate
+    reason: "equipment wetted — data-centre override: CFM co-signs, LEW sign-off still required, client SLA notification triggered"
+  TS-08:
+    status: needs_approval
+    reason: "estimated loss above threshold — insurer notification and evidence preservation required"
+  TS-09:
+    status: blocked
+    reason: "trigger not matched — no wet building fabric (raised floor data hall)"
+  TS-10:
+    status: escalate
+    reason: "CRAH condensate alarm + underfloor leak detection + high humidity in server room — notify CFM, isolate branch, no IT power-down"
+  TS-11:
+    status: blocked
+    reason: "trigger not matched — no standing water"
+  TS-12:
+    status: blocked
+    reason: "trigger not matched — no PUB alert"
+expert_decision: >-
+  CRAH unit condensate drain line cracked. Underfloor leak detection triggered.
+  Isolated the CRAH chilled-water branch valve. Deployed containment booms
+  under the raised floor. Notified the critical facilities manager. CFM
+  issued client SLA notification. No IT power-down — thermal ride-through was
+  sufficient. LEW inspected the affected electrical isolation before the
+  CRAH was returned to service.
+outcome: "No outage. Client SLA credit avoided. CRAH returned to service after 4 hours."
+pass: true

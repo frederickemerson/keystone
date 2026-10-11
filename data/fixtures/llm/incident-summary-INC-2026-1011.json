@@ -1,0 +1,49 @@
+{
+  "fixture_id": "incident-summary-INC-2026-1011",
+  "source_incident": "INC-2026-1011",
+  "model": "hy4-preview",
+  "generated_at": "2026-10-11T08:21:00+08:00",
+  "fixture_type": "llm_fallback",
+  "description": "Recorded LLM output for offline fallback. Auto-generated incident summary for the Harbourfront One L23 chilled-water leak incident room.",
+  "summary": {
+    "headline": "Chilled-water leak from AHU-23-01 supply branch above L22 bank tenant ceiling; water within 1.5 m of DB-23A; re-energisation blocked pending LEW sign-off.",
+    "incident_id": "INC-2026-1011",
+    "asset": "Harbourfront One",
+    "status": "Active",
+    "severity": "High",
+    "opened_at": "2026-10-11T08:02:18+08:00",
+    "type": "Water ingress — chilled-water leak",
+    "location": "L23 ceiling void / CHW riser R2 branch, above L22 tenant ceiling",
+    "affected_tenant": "Straits Meridian Bank (L20-26)",
+    "sensitivity": "tenant_pii",
+    "timeline_summary": "At 08:02 the iBMS leak detector LD-23-04 triggered, followed by an AHU-23-01 chilled-water delta-T anomaly and a tenant call from the bank facilities desk. A P1 CMMS work order was raised. The on-site technician identified the source as a CHW supply branch coupling at AHU-23-01 and observed water tracking toward Distribution Board DB-23A (within 1.5 m). The isolation sub-valve ISV-L23-CHW was closed at 08:09, stopping the flow. The MOSAIC engine triggered Rule TS-07 (v1.2), blocking re-energisation of the AHU/DB circuit. The Duty LEW was dispatched at 08:14 with ETA 08:39. An insulation resistance test is pending LEW arrival. The AOM is drafting the first-notice tenant message within the 30-minute SLA window.",
+    "key_decisions": [
+      {
+        "rule_id": "TS-07",
+        "action_class": "must_escalate",
+        "status": "blocked",
+        "text": "Re-energisation of AHU-23-01 / DB-23A circuit blocked. Missing evidence: LEW sign-off, insulation resistance test, area dry. LEW Rahul Menon dispatched."
+      },
+      {
+        "rule_id": "TS-02",
+        "action_class": "recommend",
+        "status": "completed",
+        "text": "Chilled-water source isolated at sub-valve ISV-L23-CHW at 08:09 (7 minutes from alarm). Branch isolation only — riser R2 left open."
+      },
+      {
+        "rule_id": "TE-01",
+        "action_class": "requires_approval",
+        "status": "needs_approval",
+        "text": "First-notice tenant message drafting. 30-min SLA clock started at 08:04 (tenant call). Deadline: 08:34."
+      }
+    ],
+    "evidence_coverage": {
+      "required": 3,
+      "confirmed": 0,
+      "pending": ["lew_signoff", "insulation_resistance_ok", "area_dry"]
+    },
+    "current_risk": "Water stopped but DB-23A area moisture elevated (18% vs 12% baseline). No water inside switchroom. Risk of escalation to building-wide power outage if moisture reaches switchgear before LEW inspects.",
+    "pill_applied": "technical-services/chilled-water-leak v1.2",
+    "provenance_ref": "ce-interview-2026-10-02#00:14:32"
+  }
+}

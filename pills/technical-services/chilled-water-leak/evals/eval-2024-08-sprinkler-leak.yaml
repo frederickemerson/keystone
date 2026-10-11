@@ -1,0 +1,108 @@
+# Eval: 2024-08 fire-protection sprinkler leak
+# Pill: technical-services/chilled-water-leak v1.2.0
+# Expected: TS-05 requires_approval (FSM authorisation, red-tag), TS-02 blocked
+#           (fire-protection source overrides standard isolation)
+
+id: eval-2024-08-sprinkler-leak
+title: "Sprinkler head failure on L5 — fire-protection impairment"
+incident_date: "2024-08-22"
+asset:
+  name: "Harbourfront One"
+  type: grade_a_office
+  floor: 5
+  anchor_tenant: false
+  green_mark: "Platinum SLE"
+evidence:
+  water_near_electrical: false
+  water_in_electrical_room: false
+  water_above_switchgear: false
+  water_flowing_toward_electrical: false
+  active_water_release: true
+  ceiling_stain_or_drip: false
+  condensate_leak_alarm: false
+  tenant_report_drip: false
+  source_is_sprinkler: true
+  source_is_wet_riser: false
+  source_is_hose_reel: false
+  source_is_fire_pump: false
+  isolation_affects_fire_alarm: true
+  lift_pit_water: false
+  water_in_lift_shaft: false
+  water_in_lift_car: false
+  equipment_wetted_or_isolated: false
+  isolation_complete: false
+  estimated_loss_above_threshold: true
+  fire_protection_impaired: true
+  tenant_property_damage: true
+  wet_building_fabric: true
+  standing_water_present: true
+  pub_heavy_rain_or_flood_alert: false
+  crah_condensate_alarm: false
+  underfloor_leak_detection: false
+  high_humidity_alarm_server_room: false
+  fsm_authorisation: true
+  visual_or_alarm_confirmation: true
+  location_confirmed: true
+  shutoff_map_available: true
+  pre_cleanup_photos: true
+  failed_component_retained: true
+  moisture_meter_readings: true
+  affected_materials_inventory: true
+  standing_water_location_photos: true
+  pub_alert_received: false
+  visual_inspection: true
+  lew_or_evidence_confirms_risk: false
+  tenant_request_power_down: false
+  immediate_life_safety_hazard: false
+  drip_onto_tenant_it: false
+  water_on_switchgear: false
+  breaker_tripped: false
+  water_category: "category_1"
+  source_behind_locked_tenancy: false
+  lew_confirms_dead_section: false
+  water_confined_sealed_trench: false
+expected_decisions:
+  TS-01:
+    status: blocked
+    reason: "trigger not matched — water not near electrical"
+  TS-02:
+    status: blocked
+    reason: "trigger exception fires — source is fire-protection, TS-05 governs"
+  TS-03:
+    status: blocked
+    reason: "trigger not matched — no power-down request"
+  TS-04:
+    status: blocked
+    reason: "trigger not matched — no ceiling stain/drip or condensate alarm"
+  TS-05:
+    status: needs_approval
+    reason: "sprinkler source + alarm interlock affected — FSM authorisation required, red-tag, insurer notice, fire watch"
+  TS-06:
+    status: blocked
+    reason: "trigger not matched — no lift water"
+  TS-07:
+    status: blocked
+    reason: "trigger not matched — no equipment wetted or isolated"
+  TS-08:
+    status: needs_approval
+    reason: "fire-protection impaired + tenant damage + loss above threshold — insurer notice and evidence"
+  TS-09:
+    status: blocked
+    reason: "trigger not matched — isolation not complete yet"
+  TS-10:
+    status: blocked
+    reason: "trigger not matched — not a data centre"
+  TS-11:
+    status: blocked
+    reason: "trigger not matched — isolation not complete (standing water check)"
+  TS-12:
+    status: blocked
+    reason: "trigger not matched — no PUB alert"
+expert_decision: >-
+  Sprinkler head failed on L5. FSM authorised isolation of the smallest
+  sprinkler zone. Red-tag permit raised. Insurer notified. Fire watch posted
+  every 30 minutes. Fire-protection contractor called to replace the head.
+  Protection restored within 4 hours. Photos taken before cleanup. Failed
+  sprinkler head retained for adjuster.
+outcome: "Protection restored in 4 hours. Insurer claim accepted. No fire watch gap."
+pass: true

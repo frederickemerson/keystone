@@ -1,0 +1,253 @@
+{
+  "interview_id": "ce-interview-2026-10-02",
+  "date": "2026-10-02",
+  "duration": "00:25:00",
+  "language": "Singapore English",
+  "interviewer": "MOSAIC",
+  "expert": {
+    "name": "Tan Wei Ming",
+    "role": "Chief Engineer",
+    "department": "Technical Services",
+    "experience_years": 18,
+    "assets_managed": ["Harbourfront One", "Harbourfront DC1", "Marina Link Logistics Hub", "Tanjong Residences"]
+  },
+  "method": "CDM (Critical Decision Method) + ACTA (Applied Cognitive Task Analysis)",
+  "phases": ["incident_selection", "timeline", "deepening", "what_if", "coverage_audit", "contrast_and_contradiction", "confirmation"],
+  "turns": [
+    {
+      "t": "00:00:12",
+      "speaker": "MOSAIC",
+      "text": "Good morning, Wei Ming. I'm MOSAIC, the AI interviewer for the Expert Onboarding Call. Today I'll walk you through your experience with water-leak and chilled-water incidents using a structured interview method. The goal is to capture your judgement so it can be turned into governed decision rules. Ready to start?",
+      "probe_id": null
+    },
+    {
+      "t": "00:00:35",
+      "speaker": "Tan Wei Ming",
+      "text": "Yes, ready. Just to set expectations — I've been doing M&E and technical services for about eighteen years now, mostly Grade A offices but also data centres and logistics. So I've seen my fair share of leaks, lah. Fire away.",
+      "extracted_rule_ids": []
+    },
+    {
+      "t": "00:01:10",
+      "speaker": "MOSAIC",
+      "text": "Think of a water leak or flooding incident in the last few years where your experience really made the difference, or where things nearly went wrong. Walk me through it from the first moment you heard about it.",
+      "probe_id": "P01"
+    },
+    {
+      "t": "00:01:30",
+      "speaker": "Tan Wei Ming",
+      "text": "Okay, the one that sticks in my mind — last year, around August, we had a chilled-water supply pipe coupling fail on Level 28 of Harbourfront One. The water was dripping down through the ceiling void onto Level 27, which is also a bank tenant floor. The thing that made this non-routine was that the water was tracking along a conduit toward the electrical riser cupboard on L27. There was a distribution board in that cupboard, DB-27B. So you had chilled water — Category 1, clean — but it was getting dangerously close to live electrical equipment. That's the one where my experience made the difference, because a less experienced technician might have just gone in to mop up without checking where the water was heading.",
+      "extracted_rule_ids": ["TS-07", "TS-02"]
+    },
+    {
+      "t": "00:03:15",
+      "speaker": "MOSAIC",
+      "text": "What made this one non-routine?",
+      "probe_id": "P01-follow_up"
+    },
+    {
+      "t": "00:03:25",
+      "speaker": "Tan Wei Ming",
+      "text": "Two things. First, the water source wasn't obvious — it was a coupling inside the ceiling void, not a visible pipe burst. The leak detector caught it, but you had to trace it. Second, and more importantly, the water was heading toward the electrical cupboard. That changes the whole game — it's not a janitorial issue anymore, it becomes an electrical safety issue. And when water meets switchgear, that's where people get hurt or killed.",
+      "extracted_rule_ids": ["TS-07"]
+    },
+    {
+      "t": "00:04:30",
+      "speaker": "MOSAIC",
+      "text": "Let's put that in order. What was the very first signal, who got it, and roughly how many minutes passed before each of the next things happened?",
+      "probe_id": "P02"
+    },
+    {
+      "t": "00:04:45",
+      "speaker": "Tan Wei Ming",
+      "text": "Right. So the timeline was: T-plus-zero, the iBMS leak detector in the L28 ceiling void triggered — that's a cable-type sensor, zoned. Maybe one minute later, the BMS showed the AHU supply/return delta-T anomaly — the return temp was dropping because the supply water was leaking out before reaching the AHU coils. Then about two minutes in, the bank tenant on L27 called the facilities desk saying water was dripping from their ceiling. So within three minutes we had three independent signals confirming the same event. The first real decision point was at about five minutes, when the technician arrived on site and I had to tell him what to do next. That's where the isolation decision comes in.",
+      "extracted_rule_ids": ["TS-02"]
+    },
+    {
+      "t": "00:06:15",
+      "speaker": "MOSAIC",
+      "text": "Where in that sequence did you make a real decision, as opposed to just following routine?",
+      "probe_id": "P02-follow_up"
+    },
+    {
+      "t": "00:06:30",
+      "speaker": "Tan Wei Ming",
+      "text": "The real decision was: do we isolate just the branch, or do we isolate the whole riser? The SOP says isolate the nearest local valve, then the floor valve, then the riser. But I always tell my team: for a chilled-water leak, if the source is at the AHU branch coupling, you isolate the branch sub-valve. You don't need to shut the whole riser. The riser serves multiple floors — if you shut it, you lose cooling to every floor on that stack, and in a Grade A office with a bank tenant, that's a massive impact. Always isolate the whole riser — that's the default — but for an AHU branch leak where the sub-valve is accessible, isolate the sub-valve first and leave the riser open. The key is the sub-valve must be within reach and it must actually stop the flow.",
+      "extracted_rule_ids": ["TS-02"]
+    },
+    {
+      "t": "00:08:20",
+      "speaker": "MOSAIC",
+      "text": "At that point, what were you actually seeing, hearing or smelling? What told you this was more than a drip?",
+      "probe_id": "P03"
+    },
+    {
+      "t": "00:08:35",
+      "speaker": "Tan Wei Ming",
+      "text": "The leak detector alarm was the first confirmation — that's instrumentable, it's in the iBMS. Then the delta-T on the AHU — supply 6.5, return 7.1, when normal delta-T should be about 6 degrees. A 0.6 degree delta-T means the chilled water is bypassing the coil, either leaking out or the control valve is stuck open. Combined with the tenant call, three signals pointing to the same thing — that's when you know it's real. One signal alone I might investigate, but three confirmed signals means you move.",
+      "extracted_rule_ids": ["TS-02"]
+    },
+    {
+      "t": "00:09:40",
+      "speaker": "MOSAIC",
+      "text": "What information did you use to make that call, and how did you get it? Who or what did you check?",
+      "probe_id": "P04"
+    },
+    {
+      "t": "00:09:55",
+      "speaker": "Tan Wei Ming",
+      "text": "I checked the iBMS for the leak detector zone map — that tells me exactly which cable segment triggered. Then I looked at the AHU telemetry — supply and return temps, valve position, fan status. Then I cross-referenced with the shutoff valve diagram, which is in the CMMS asset register, linked to the COBie component IDs. The shutoff map is critical — without it, you're wandering around the riser shaft looking for a valve. If the BMS had been down, I would have gone to the riser physically and followed the pipe, but that takes much longer.",
+      "extracted_rule_ids": ["TS-02"]
+    },
+    {
+      "t": "00:11:20",
+      "speaker": "MOSAIC",
+      "text": "What were you trying to achieve right then — in order of priority? Life safety, stopping the water, protecting equipment, keeping the tenant open?",
+      "probe_id": "P06"
+    },
+    {
+      "t": "00:11:35",
+      "speaker": "Tan Wei Ming",
+      "text": "Priority one, always: life safety. If the water is near electrical, nobody goes in until the LEW says safe. Priority two: stop the water at the source. Priority three: protect equipment — cordon, deploy drip trays, move what you can. Priority four: keep the tenant operational. But here's the thing — for the bank tenant, priority four is almost as important as priority three. If their trading floor goes down, that's millions of dollars in lost productivity and it triggers the lease abatement clause. So you're always thinking about tenant isolation time. In a tenant-occupied area, the isolation must happen within fifteen minutes. That's my rule. If you can't isolate within fifteen minutes, you escalate to the Duty Manager and consider riser isolation, even though it impacts more floors. Fifteen minutes is the window where the tenant can still tolerate a drip without it becoming a business interruption event.",
+      "extracted_rule_ids": ["TS-02", "TE-01"]
+    },
+    {
+      "t": "00:13:30",
+      "speaker": "MOSAIC",
+      "text": "What other things could you have done at that moment? Even ones you dismissed quickly.",
+      "probe_id": "P07"
+    },
+    {
+      "t": "00:13:45",
+      "speaker": "Tan Wei Ming",
+      "text": "I could have shut the whole chilled-water riser for that stack — that would have stopped the leak immediately but killed cooling to L20 through L32, which is the entire bank tenancy. That was the nuclear option. I dismissed it because the sub-valve was accessible and the branch isolation was sufficient. Another option was to let the AHU keep running and just deploy containment — bad idea, because the coupling failure would only get worse and the water would eventually reach the electrical cupboard. The third option, which a novice might suggest, is to go into the electrical cupboard to check if water has gotten in — absolutely not. Nobody enters until the LEW says so.",
+      "extracted_rule_ids": ["TS-07"]
+    },
+    {
+      "t": "00:14:32",
+      "speaker": "Tan Wei Ming",
+      "text": "This is the most important thing I'll tell you: never re-energise before the LEW signs off. Can write that down big. If there is water anywhere near the switchgear, the distribution board, the riser cupboard — any electrical equipment — you do not re-energise that circuit until a Licensed Electrical Worker has physically inspected it, tested the insulation resistance, and signed off in writing. I don't care if the tenant is screaming, I don't care if the bank's trading floor is down — you do not put power back on a circuit that has been near water until the LEW certifies it. That is non-negotiable. Because if you re-energise and there is moisture inside the trunking or the breaker, you can get a short, an arc flash, a fire — and someone can die. So the LEW sign-off is the gate. No sign-off, no power. Full stop.",
+      "extracted_rule_ids": ["TS-07"]
+    },
+    {
+      "t": "00:16:10",
+      "speaker": "MOSAIC",
+      "text": "How did you choose that option and reject the others? Was there a rule you were following, written or unwritten? Is there anything you would never do in that situation, no matter how much pressure you were under? Why?",
+      "probe_id": "P08"
+    },
+    {
+      "t": "00:16:30",
+      "speaker": "Tan Wei Ming",
+      "text": "The rule is the EMA Electrical Installations Regulations and SS 638 — those are the written rules. The LEW regime is a legal requirement, not a preference. The unwritten part is the judgement about when water is 'near enough' to electrical to trigger the gate. My rule is: if water is within two metres of any energised electrical equipment — switchgear, distribution board, breaker panel, riser cupboard — or if water is dripping onto or flowing toward that equipment, you treat it as an electrical hazard. That's my threshold. Two metres. Because water can track along conduits, cable trays, and even along the surface of insulation in a ceiling void. You think it's two metres away, but it's already travelling along the conduit and it's at the board. So two metres is the trigger, and the LEW is the gate.",
+      "extracted_rule_ids": ["TS-07"]
+    },
+    {
+      "t": "00:18:00",
+      "speaker": "MOSAIC",
+      "text": "What training or experience did someone need to make that call safely? Who on your team could have made it, and who could not?",
+      "probe_id": "P09"
+    },
+    {
+      "t": "00:18:15",
+      "speaker": "Tan Wei Ming",
+      "text": "The isolation decision — closing the sub-valve — any competent M&E technician can do that, with the shutoff map. But the decision about whether to enter the electrical cupboard, whether to re-energise, whether the area is safe — that requires a Licensed Electrical Worker. My duty technicians know: they do not make that call. They call me, I call the LEW. The LEW is the authority. On my team, I have two senior technicians who can isolate and contain, but the electrical safety call is always the LEW's. That's not delegation, that's a legal requirement.",
+      "extracted_rule_ids": ["TS-07"]
+    },
+    {
+      "t": "00:19:10",
+      "speaker": "MOSAIC",
+      "text": "How much time did you really have before the situation got worse? What would 'worse' have looked like?",
+      "probe_id": "P11"
+    },
+    {
+      "t": "00:19:25",
+      "speaker": "Tan Wei Ming",
+      "text": "From the first alarm to the water reaching the electrical cupboard, maybe twenty to thirty minutes if the coupling failure worsened. 'Worse' would be water entering the switchgear, making contact with the busbars or breakers. At that point you're looking at a potential short circuit, arc flash, fire — and the building might trip the main incomer, which takes out the whole tower, not just one floor. That's the escalation: from a leak to a building-wide power outage. So the fifteen-minute isolation window I mentioned is not arbitrary — it's the time you have to stop the water before it becomes an electrical event. Once water touches live electrical equipment, you're in a completely different incident class.",
+      "extracted_rule_ids": ["TS-07", "TE-01"]
+    },
+    {
+      "t": "00:20:30",
+      "speaker": "MOSAIC",
+      "text": "Suppose one thing had been different — say the water was coming from the ceiling above the switchroom instead of the pantry. What changes?",
+      "probe_id": "P13"
+    },
+    {
+      "t": "00:20:45",
+      "speaker": "Tan Wei Ming",
+      "text": "If the water is directly above the switchroom, or dripping into the switchroom — that's the worst case. The protocol changes: nobody enters the switchroom at all, not even to look. You isolate upstream of the switchroom from outside, and the LEW does the inspection from outside first, with the door closed. Only after the LEW confirms the area is de-energised and safe does anyone go in. The difference is proximity and contact path. Water near the switchroom — you watch it and prepare. Water in the switchroom — you treat it as an active electrical hazard with full lockout-tagout.",
+      "extracted_rule_ids": ["TS-07"]
+    },
+    {
+      "t": "00:22:00",
+      "speaker": "MOSAIC",
+      "text": "What would a technician in their first month most likely have done wrong here? What is the classic mistake?",
+      "probe_id": "P14"
+    },
+    {
+      "t": "00:22:15",
+      "speaker": "Tan Wei Ming",
+      "text": "The classic mistake — and I've seen it — is the technician goes into the electrical riser cupboard to 'check if it's wet inside'. They think they're being proactive. But if the water has reached the DB, and you open that cupboard and the breakers are wet, you could be standing in front of an energised wet panel. That's how people get electrocuted. The second mistake is re-energising the AHU circuit after isolating the water, without the LEW checking the DB first. They think 'I stopped the water, the DB looks dry from outside, let me turn the AHU back on so the tenant stops complaining.' No. The LEW must test insulation resistance before any re-energisation. Full stop. That's the gate.",
+      "extracted_rule_ids": ["TS-07"]
+    },
+    {
+      "t": "00:23:10",
+      "speaker": "MOSAIC",
+      "text": "Earlier you said you would always isolate the whole riser; just now you said for an AHU branch leak you isolate the sub-valve and leave the riser open. Which comes first, or does it depend on something?",
+      "probe_id": "P28"
+    },
+    {
+      "t": "00:23:30",
+      "speaker": "Tan Wei Ming",
+      "text": "Ah, okay, let me clarify — that's a good catch. For a chilled-water leak from the AHU supply branch coupling, where the sub-valve is accessible and stops the flow, you isolate the sub-valve only. You do not need to isolate the riser. For condensate — from the AHU drain pan — you also don't isolate the riser, because condensate is not on the chilled-water loop at all; you isolate at the AHU unit level or fix the drain. The riser isolation is for when the leak is on the riser pipe itself, or when the branch sub-valve is seized or inaccessible, or when the source can't be confirmed within ten minutes. So the distinguishing condition is: where is the leak, and can the sub-valve stop it? If yes — sub-valve only. If no, or if the source is the riser pipe — riser isolation. My earlier statement about always isolating the riser was about the general principle of having a clear isolation hierarchy. But in practice, for a branch leak where the sub-valve works, you isolate the branch.",
+      "extracted_rule_ids": ["TS-02"]
+    },
+    {
+      "t": "00:24:20",
+      "speaker": "MOSAIC",
+      "text": "So the distinguishing condition is: is the leak on the riser pipe itself, or on a branch where the sub-valve is accessible and stops the flow?",
+      "probe_id": "P28-follow_up"
+    },
+    {
+      "t": "00:24:30",
+      "speaker": "Tan Wei Ming",
+      "text": "Correct. Riser pipe leak or inaccessible sub-valve — isolate the riser. Branch leak with working sub-valve — isolate the branch only. And condensate — isolate at AHU unit level, not the riser at all. That's the clean distinction.",
+      "extracted_rule_ids": ["TS-02"]
+    },
+    {
+      "t": "00:24:45",
+      "speaker": "MOSAIC",
+      "text": "I have written this up as: WHEN a chilled-water leak is detected near electrical equipment within 2 m, DO isolate the water source and block re-energisation; NEVER re-energise before LEW sign-off and insulation resistance test; EXCEPT when the LEW confirms the affected section is a spare or dead board; ESCALATE to duty LEW immediately; SUCCESS = no person enters until LEW declares safe and no re-energisation without certification. Is that right? What is wrong or missing?",
+      "probe_id": "P31"
+    },
+    {
+      "t": "00:25:00",
+      "speaker": "Tan Wei Ming",
+      "text": "That's right. Just add: the two-metre threshold is my professional judgement, not a code requirement — the code says 'near electrical equipment' but doesn't define the distance. Two metres is what I use based on how water tracks along conduits. And for data centres, the critical facilities manager co-signs alongside the LEW — different asset type, slightly different escalation path. Otherwise, that captures it. Good.",
+      "extracted_rule_ids": ["TS-07"]
+    }
+  ],
+  "contradiction_detected": {
+    "detected": true,
+    "resolution_type": "distinguishing_condition",
+    "statement_a": {
+      "t": "00:06:30",
+      "speaker": "Tan Wei Ming",
+      "text_fragment": "Always isolate the whole riser — that's the default"
+    },
+    "statement_b": {
+      "t": "00:23:30",
+      "speaker": "Tan Wei Ming",
+      "text_fragment": "for an AHU branch leak where the sub-valve is accessible and stops the flow, you isolate the sub-valve only. You do not need to isolate the riser."
+    },
+    "resolution": {
+      "t": "00:23:30",
+      "distinguishing_condition": "If the leak is on the riser pipe itself, or the branch sub-valve is seized/inaccessible, or the source cannot be confirmed within 10 minutes → isolate the riser. If the leak is on a branch and the sub-valve is accessible and stops the flow → isolate the branch sub-valve only. Condensate leaks are isolated at AHU unit level — riser is never isolated for condensate.",
+      "resolved_rule_id": "TS-02",
+      "confirmation_status": "confirmed"
+    }
+  },
+  "extracted_rules_summary": {
+    "TS-07": "No re-energisation without LEW sign-off — gate at water within 2 m of electrical equipment",
+    "TS-02": "Isolate at nearest accessible valve within 10 min; branch sub-valve preferred over riser; riser only if source is riser pipe or sub-valve inaccessible",
+    "TE-01": "Tenant-area isolation within 15 minutes; first-notice tenant message within 30 min"
+  }
+}
