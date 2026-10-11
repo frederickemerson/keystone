@@ -3,6 +3,8 @@ import fixture from '@/data/fixtures/llm/tenant-message-INC-2026-1011.json';
 import { generateJson } from '@/lib/llm/providers';
 import { readRequest, tenantRequestSchema } from '@/lib/llm/requests';
 import { tenantDraftSchema, tenantSentences } from '@/lib/llm/tenant-draft';
+import { sessionRole } from '@/lib/auth/session';
+import { scopeTenantMessageFixture } from '@/lib/governance/scope';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -23,9 +25,13 @@ SENTENCE BANK: ${JSON.stringify(tenantSentences)}`;
   const draft = {
     ...recorded, ...result.data,
     draft_id: result.source === 'live' ? `TM-live-${randomUUID()}` : recorded.draft_id,
+    sensitivity: recorded.sensitivity,
     status: 'needs_approval',
   };
-  return Response.json({ ...result, data: { draft, snapshotAt: fixture.generated_at } }, {
+  // Same server-side scoping the pages use: a caller without the draft's clearance
+  // (e.g. a technician hitting this route directly) receives the masked draft.
+  const [scoped] = scopeTenantMessageFixture({ ...fixture, drafts: [draft] }, await sessionRole()).drafts;
+  return Response.json({ ...result, data: { draft: scoped, snapshotAt: fixture.generated_at } }, {
     headers: { 'Cache-Control': 'no-store' },
   });
 }

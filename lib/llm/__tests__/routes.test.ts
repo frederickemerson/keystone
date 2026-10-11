@@ -5,8 +5,9 @@ import { POST as extract } from '@/app/api/llm/extract/route';
 import { POST as tenantMessage } from '@/app/api/llm/tenant-message/route';
 import { tenantDraftSchema } from '../tenant-draft';
 
-const mocks = vi.hoisted(() => ({ query: vi.fn() }));
+const mocks = vi.hoisted(() => ({ query: vi.fn(), role: vi.fn(async () => 'asset_operations_manager') }));
 vi.mock('server-only', () => ({}));
+vi.mock('@/lib/auth/session', () => ({ sessionRole: mocks.role }));
 vi.mock('@tencent-ai/agent-sdk', () => ({ query: mocks.query }));
 vi.mock('ai', () => ({ generateText: vi.fn(() => { throw new Error('No network in tests'); }) }));
 
@@ -69,6 +70,22 @@ describe('tenant message safety boundary', () => {
   it('DC and unknown incidents do not get the office fallback or a model call', async () => {
     for (const id of ['INC-2026-1012', 'INC-2026-9999']) expect((await tenantMessage(request({ incidentId: id }))).status).toBe(404);
     expect(mocks.query).not.toHaveBeenCalled();
+  });
+});
+
+describe('tenant message is scoped to the caller role on the server', () => {
+  it('masks the tenant draft for a role without tenant_pii clearance (technician)', async () => {
+    mocks.role.mockResolvedValueOnce('technician');
+    respond(draft);
+    const result = await (await tenantMessage(request({ incidentId: 'INC-2026-1011' }))).json();
+    expect(JSON.stringify(result.data.draft)).not.toContain('Straits Meridian');
+  });
+  it('shows the draft to a cleared role and pins sensitivity from the reviewed snapshot', async () => {
+    mocks.role.mockResolvedValueOnce('asset_operations_manager');
+    respond({ ...draft, sensitivity: 'public' });
+    const result = await (await tenantMessage(request({ incidentId: 'INC-2026-1011' }))).json();
+    expect(result.data.draft.sensitivity).toBe(draft.sensitivity);
+    expect(JSON.stringify(result.data.draft)).toContain('Straits Meridian');
   });
 });
 
