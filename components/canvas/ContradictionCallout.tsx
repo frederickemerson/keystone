@@ -18,18 +18,18 @@ export function ContradictionCallout({
   return (
     <section
       aria-label={`Contradiction resolved for rule ${rule_id}`}
-      className="rounded-xl border border-approval/30 bg-approval/10 p-4"
+      className="rounded-xl border border-approval/35 bg-approval-tint p-5"
     >
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-approval/15 text-approval">
+        <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full border border-approval/40 bg-surface text-approval">
           <AlertTriangle className="size-4" aria-hidden="true" />
         </span>
         <div className="min-w-0 space-y-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-approval">
-              Contradiction resolved · Rule {rule_id}
-            </p>
-            <p className="mt-0.5 text-sm text-ink">
+            <h2 className="text-[19px] font-semibold leading-tight">
+              contradiction resolved <span className="font-sans text-[13px] font-medium text-approval">· rule <span className="font-mono">{rule_id}</span></span>
+            </h2>
+            <p className="mt-1 text-sm text-ink">
               The extractor flagged two conflicting statements from the expert interview and
               resolved them with a <strong>distinguishing condition</strong> rather than dropping
               either.
@@ -51,8 +51,8 @@ export function ContradictionCallout({
             />
           </div>
 
-          <div className="rounded-lg border border-accent/30 bg-surface p-3">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
+          <div className="rounded-lg border border-line-strong bg-surface p-3.5">
+            <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
               <ArrowLeftRight className="size-3.5" aria-hidden="true" />
               Distinguishing condition
             </p>
@@ -69,14 +69,14 @@ export function ContradictionCallout({
               </ul>
             ) : null}
             <details className="mt-2">
-              <summary className="cursor-pointer select-none text-[11px] text-ink-muted">
+              <summary className="cursor-pointer select-none text-xs text-ink-muted">
                 Rule condition (code form)
               </summary>
               <p className="mt-1 font-mono text-xs leading-relaxed text-ink">
                 {resolution.distinguishing_condition}
               </p>
             </details>
-            <p className="mt-1.5 text-[11px] text-ink-muted">
+            <p className="mt-1.5 text-xs text-ink-muted">
               Resolved at {resolution.resolved_at} · confirmation: {resolution.confirmation_status}
             </p>
           </div>
@@ -98,11 +98,11 @@ function Statement({
   tone: string;
 }) {
   return (
-    <div className={`rounded-lg border ${tone} bg-surface p-2.5`}>
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
-        {label} · {t}
+    <div className={`rounded-lg border ${tone} bg-surface p-3`}>
+      <p className="text-xs font-medium text-ink-muted">
+        {label} · <span className="font-mono tabular-nums">{t}</span>
       </p>
-      <p className="mt-1 text-xs italic text-ink">“{text}”</p>
+      <p className="mt-1 text-[13px] leading-relaxed text-ink">“{text}”</p>
     </div>
   );
 }

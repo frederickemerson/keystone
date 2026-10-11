@@ -3,9 +3,10 @@ import { cn } from '@/lib/ui/cn';
 
 /**
  * The name-label sticker from a school exercise book, repurposed as a pill's
- * identity card: the name is handwritten (the expert's), everything the system
- * governs — class, roll no. (version) — is typeset; owner and approver appear
- * as small signatures. Structured as a description list so assistive tech
+ * identity card. In the app everything is typeset (Fraunces name, Geist fields,
+ * Geist Mono version). The landing page may opt in to `variant="handwritten"`,
+ * where the name and the owner/approver signatures are marginalia.
+ * Structured as a description list so assistive tech
  * reads "Name / Class / Version / Owner / Approver" pairs.
  */
 export function PillLabel({
@@ -19,9 +20,10 @@ export function PillLabel({
   size = 'md',
   nameAs: NameTag = 'p',
   nameId,
+  variant = 'typeset',
   className,
 }: {
-  /** Handwritten pill name, e.g. "chilled-water leak". */
+  /** Pill name, e.g. "chilled-water leak". */
   name: string;
   /** The "class" field — the pill's domain, e.g. "Technical Services". */
   pillClass: string;
@@ -36,14 +38,24 @@ export function PillLabel({
   /** Degrees; keep 0 in app screens, −3…3 for hero moments. */
   rotate?: number;
   size?: 'sm' | 'md' | 'lg';
-  /** Element used for the handwritten name (use h2/h3 when it is the card title). */
+  /** Element used for the name (use h2/h3 when it is the card title). */
   nameAs?: 'p' | 'h2' | 'h3';
   nameId?: string;
+  /** `typeset` (default, all app screens) or `handwritten` (landing page only). */
+  variant?: 'typeset' | 'handwritten';
   className?: string;
 }) {
+  const hand = variant === 'handwritten';
   const v = /^\d/.test(version) ? `v${version}` : version;
-  const nameSize = { sm: 'text-[22px]', md: 'text-[27px]', lg: 'text-[36px]' }[size];
-  const signature = size === 'lg' ? 'text-[22px]' : 'text-[19px]';
+  const nameSize = hand
+    ? { sm: 'text-[22px]', md: 'text-[27px]', lg: 'text-[36px]' }[size]
+    : { sm: 'text-[17px]', md: 'text-[21px]', lg: 'text-[28px]' }[size];
+  const nameFont = hand
+    ? 'font-hand font-semibold leading-[1.05]'
+    : 'font-display-soft font-semibold leading-[1.15] tracking-[-0.005em]';
+  const signature = hand
+    ? cn('font-hand font-semibold leading-[1.05] text-marker-ink', size === 'lg' ? 'text-[22px]' : 'text-[19px]')
+    : 'text-[13px] font-medium leading-snug text-ink';
 
   return (
     <div
@@ -57,7 +69,7 @@ export function PillLabel({
             <dd>
               <NameTag
                 id={nameId}
-                className={cn('font-hand font-semibold leading-[1.05] text-ink [overflow-wrap:anywhere]', nameSize)}
+                className={cn(nameFont, 'text-ink [overflow-wrap:anywhere]', nameSize)}
               >
                 {name}
               </NameTag>
@@ -79,14 +91,14 @@ export function PillLabel({
           <div className="grid grid-cols-1 border-t border-line-strong/80 @[16rem]:grid-cols-2">
             {owner ? (
               <Cell label="Owner">
-                <span className={cn('font-hand font-semibold leading-[1.05] text-marker-ink', signature)}>
+                <span className={signature}>
                   {owner}
                 </span>
               </Cell>
             ) : null}
             {approver ? (
               <Cell label="Approver" divided={Boolean(owner)}>
-                <span className={cn('font-hand font-semibold leading-[1.05] text-marker-ink', signature)}>
+                <span className={signature}>
                   {approver}
                 </span>
               </Cell>

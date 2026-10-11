@@ -8,20 +8,17 @@ import { roleLabel } from '@/lib/governance/access';
 import type { ActionPermissions, ButtonGate } from './permissions';
 import { formatClock } from './labels';
 
-const BASE =
-  'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-45';
+const BASE = 'btn-pill text-xs';
 
 function GateButton({
   gate,
   onClick,
-  tone,
   icon,
   children,
   describedBy,
 }: {
   gate: ButtonGate;
   onClick: () => void;
-  tone: string;
   icon: React.ReactNode;
   children: React.ReactNode;
   describedBy: string;
@@ -33,7 +30,7 @@ function GateButton({
       disabled={!gate.enabled}
       title={gate.reason}
       aria-describedby={gate.enabled ? undefined : describedBy}
-      className={cn(BASE, tone)}
+      className={BASE}
     >
       {icon}
       {children}
@@ -42,10 +39,10 @@ function GateButton({
 }
 
 const OUTCOME_TONE: Record<ActionOutcome, string> = {
-  approved: 'border-recommend/30 bg-recommend/10 text-recommend',
-  rejected: 'border-line bg-surface-raised text-ink',
-  escalated: 'border-escalate/30 bg-escalate/10 text-escalate',
-  evidence_requested: 'border-approval/30 bg-approval/10 text-approval',
+  approved: 'border-recommend/35 bg-recommend-tint text-recommend',
+  rejected: 'border-line bg-na-tint text-ink',
+  escalated: 'border-escalate-mark/40 bg-escalate-tint text-escalate',
+  evidence_requested: 'border-approval/35 bg-approval-tint text-approval',
 };
 
 const OUTCOME_LABEL: Record<ActionOutcome, string> = {
@@ -68,7 +65,7 @@ export function DecisionStamp({ record }: { record: ActionDecisionRecord }) {
   return (
     <p
       className={cn(
-        'flex flex-wrap items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs',
+        'flex flex-wrap items-center gap-1.5 rounded-lg border px-3 py-2 text-xs',
         OUTCOME_TONE[record.outcome],
       )}
     >
@@ -129,8 +126,7 @@ export function DecisionButtons({
         <GateButton
           gate={permissions.approve}
           onClick={() => onDecide('approved')}
-          tone="border-recommend/40 bg-recommend/10 text-recommend hover:bg-recommend/20"
-          icon={<Check className="size-3.5" aria-hidden="true" />}
+          icon={<Check className="size-3.5 text-recommend" aria-hidden="true" />}
           describedBy={reasonId}
         >
           Approve
@@ -138,8 +134,7 @@ export function DecisionButtons({
         <GateButton
           gate={permissions.reject}
           onClick={() => onDecide('rejected')}
-          tone="border-line bg-surface-raised text-ink hover:border-ink-muted"
-          icon={<X className="size-3.5" aria-hidden="true" />}
+          icon={<X className="size-3.5 text-ink-muted" aria-hidden="true" />}
           describedBy={reasonId}
         >
           Reject
@@ -147,8 +142,7 @@ export function DecisionButtons({
         <GateButton
           gate={permissions.escalate}
           onClick={() => onDecide('escalated')}
-          tone="border-escalate/40 bg-escalate/10 text-escalate hover:bg-escalate/20"
-          icon={<ArrowUpRight className="size-3.5" aria-hidden="true" />}
+          icon={<ArrowUpRight className="size-3.5 text-escalate" aria-hidden="true" />}
           describedBy={reasonId}
         >
           {escalateLabel}
@@ -156,15 +150,14 @@ export function DecisionButtons({
         <GateButton
           gate={permissions.askEvidence}
           onClick={picking ? () => setPicking(false) : openPicker}
-          tone="border-approval/40 bg-approval/10 text-approval hover:bg-approval/20"
-          icon={<FileQuestion className="size-3.5" aria-hidden="true" />}
+          icon={<FileQuestion className="size-3.5 text-approval" aria-hidden="true" />}
           describedBy={reasonId}
         >
           Ask for evidence
         </GateButton>
       </div>
       {picking ? (
-        <fieldset id={pickerId} className="rounded-md border border-line bg-surface p-2">
+        <fieldset id={pickerId} className="rounded-lg border border-line bg-surface p-3">
           <legend className="px-1 text-[11px] font-medium text-ink">Request which evidence?</legend>
           <ul className="space-y-1">
             {missingEvidence.map((m) => (
@@ -181,14 +174,14 @@ export function DecisionButtons({
               type="button"
               onClick={sendRequest}
               disabled={chosen.length === 0}
-              className={cn(BASE, 'border-approval/40 bg-approval/10 text-approval hover:bg-approval/20')}
+              className={BASE}
             >
               Send request ({chosen.length})
             </button>
             <button
               type="button"
               onClick={() => setPicking(false)}
-              className={cn(BASE, 'border-line bg-surface-raised text-ink')}
+              className={cn(BASE, 'border-line-strong/50 shadow-none')}
             >
               Cancel
             </button>

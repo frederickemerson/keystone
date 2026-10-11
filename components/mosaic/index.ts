@@ -14,6 +14,7 @@ export { KpiStat } from './KpiStat';
 export { DiffView } from './DiffView';
 export { EmptyState } from './EmptyState';
 export { SectionHeader } from './SectionHeader';
+export { PageHeader } from './PageHeader';
 export { PersonaName } from './PersonaName';
 export { pillTitle } from './pillTitle';
 

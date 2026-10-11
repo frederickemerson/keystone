@@ -14,19 +14,24 @@ import {
   ArrowUpRight,
   Volume2,
 } from 'lucide-react';
-import { ActionCard, ConfidenceMeter, EvidenceTimeline } from '@/components/mosaic';
+import {
+  ActionCard,
+  CHIP_BASE,
+  ConfidenceMeter,
+  EvidenceTimeline,
+  PageHeader,
+  PillLabel,
+  TONE_CHIP,
+  type Tone,
+} from '@/components/mosaic';
 import { useMounted } from '@/components/mosaic/useMounted';
 import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { evaluate } from '@/lib/engine/evaluate';
 import { counterfactual } from '@/lib/engine/counterfactual';
 import type { ActionDecision, ActionStatus, Pill, Rule, TraceStep } from '@/lib/engine/types';
-import { redact, redactText, roleLabel } from '@/lib/governance/access';
+import { redact, redactText } from '@/lib/governance/access';
 import { auditFor } from '@/lib/governance/audit';
-import {
-  personaFor,
-  useGovernanceStore,
-  type ActionDecisionRecord,
-} from '@/lib/governance/store';
+import { personaFor, useGovernanceStore, type ActionDecisionRecord } from '@/lib/governance/store';
 import { currentApproved, pillAtVersion } from '@/lib/governance/versions';
 import type { TimelineEvent as DisplayTimelineEvent } from '@/components/mosaic/types';
 import { cn } from '@/lib/ui/cn';
@@ -69,19 +74,53 @@ interface BoardItem {
 }
 
 const GROUPS: { status: ActionStatus; title: string; hint: string }[] = [
-  { status: 'escalate', title: 'Must escalate', hint: 'Routes to a named human now.' },
-  { status: 'needs_approval', title: 'Requires approval', hint: 'A named human approves before anything happens.' },
-  { status: 'allowed', title: 'Recommended', hint: 'Recommended; still executed by a named human.' },
-  { status: 'blocked', title: 'Blocked', hint: 'Deterministic gate: required evidence missing.' },
+  {
+    status: 'escalate',
+    title: 'Must escalate',
+    hint: 'Routes to a named human now.',
+  },
+  {
+    status: 'needs_approval',
+    title: 'Requires approval',
+    hint: 'A named human approves before anything happens.',
+  },
+  {
+    status: 'allowed',
+    title: 'Recommended',
+    hint: 'Recommended; still executed by a named human.',
+  },
+  {
+    status: 'blocked',
+    title: 'Blocked',
+    hint: 'Deterministic gate: required evidence missing.',
+  },
 ];
 
-const SEVERITY_TONE: Record<string, string> = {
-  high: 'border-escalate/40 bg-escalate/10 text-escalate',
-  critical: 'border-escalate/40 bg-escalate/10 text-escalate',
-  medium: 'border-approval/40 bg-approval/10 text-approval',
-  low: 'border-recommend/40 bg-recommend/10 text-recommend',
+const SEVERITY_TONE: Record<string, Tone> = {
+  critical: 'escalate',
+  high: 'escalate',
+  medium: 'approval',
+  low: 'recommend',
 };
 
+const GROUP_INK: Partial<Record<ActionStatus, string>> = {
+  blocked: 'text-blocked',
+  escalate: 'text-escalate',
+  needs_approval: 'text-approval',
+  allowed: 'text-recommend',
+};
+
+/** "technical-services" → "Technical Services". */
+function titleCase(slug: string): string {
+  return slug
+    .split(/[-_]/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+function sentenceCase(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ');
+}
 
 const DEFAULT_ACTOR = personaFor('asset_operations_manager');
 const EMPTY_DECISIONS: Record<string, ActionDecisionRecord> = {};
@@ -95,14 +134,20 @@ function missingSummary(missing: string[]): string {
 /** Missing evidence of an action, labelled from its pill's evidence catalogue. */
 function missingOptions(item: BoardItem): MissingEvidenceOption[] {
   const catalog = item.entry.pill.evidenceCatalog;
-  return item.action.missingEvidence.map((key) => ({ key, label: catalog[key]?.label ?? humanizeKey(key) }));
+  return item.action.missingEvidence.map((key) => ({
+    key,
+    label: catalog[key]?.label ?? humanizeKey(key),
+  }));
 }
 
 function evaluateAll(pills: readonly ApprovedPill[], scenario: IncidentScenario, evidence: EvidenceState) {
   const asset = toEngineAsset(scenario.asset);
   const incident = toEngineIncident(scenario.incident);
   const engineEvidence = toEngineEvidence(evidence);
-  return pills.map((entry) => ({ entry, result: evaluate(entry.pill, asset, incident, engineEvidence) }));
+  return pills.map((entry) => ({
+    entry,
+    result: evaluate(entry.pill, asset, incident, engineEvidence),
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -134,9 +179,24 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
     () =>
       pills.flatMap((bundle) => {
         const history = mounted ? storeVersions[bundle.id] : undefined;
-        if (!history) return [{ bundle, pill: bundle.pill, version: bundle.pill.manifest.version }];
+        if (!history)
+          return [
+            {
+              bundle,
+              pill: bundle.pill,
+              version: bundle.pill.manifest.version,
+            },
+          ];
         const v = currentApproved(history);
-        return v ? [{ bundle, pill: pillAtVersion(bundle.pill, v), version: v.version }] : [];
+        return v
+          ? [
+              {
+                bundle,
+                pill: pillAtVersion(bundle.pill, v),
+                version: v.version,
+              },
+            ]
+          : [];
       }),
     [pills, mounted, storeVersions],
   );
@@ -158,7 +218,10 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
   const step = Math.min(steps[scenarioKey], total);
   const setStep = useCallback(
     (fn: (s: number) => number) =>
-      setSteps((prev) => ({ ...prev, [scenarioKey]: Math.max(0, Math.min(total, fn(prev[scenarioKey]))) })),
+      setSteps((prev) => ({
+        ...prev,
+        [scenarioKey]: Math.max(0, Math.min(total, fn(prev[scenarioKey]))),
+      })),
     [scenarioKey, total],
   );
 
@@ -248,7 +311,10 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
 
   // Why drawer + expert voice.
   const voice = useExpertVoice();
-  const [drawer, setDrawer] = useState<{ pillId: string; ruleId: string } | null>(null);
+  const [drawer, setDrawer] = useState<{
+    pillId: string;
+    ruleId: string;
+  } | null>(null);
   const drawerItem = drawer
     ? items.find((i) => i.entry.bundle.id === drawer.pillId && i.action.ruleId === drawer.ruleId)
     : undefined;
@@ -345,7 +411,10 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
         sensitivity: ev.sensitivity,
         text: r.text,
         evidence_updates: Object.fromEntries(
-          Object.entries(ev.evidence_updates).map(([k, u]) => [k, { confirmed: u.confirmed, value: r.evidence_updates[k]?.value }]),
+          Object.entries(ev.evidence_updates).map(([k, u]) => [
+            k,
+            { confirmed: u.confirmed, value: r.evidence_updates[k]?.value },
+          ]),
         ),
       };
     })
@@ -364,7 +433,11 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
   const te01 = items.find((i) => i.rule.id === 'TE-01');
   const te01Trace = notApplicable.find((n) => n.trace.ruleId === 'TE-01');
   const tenantGate = te01
-    ? { ruleId: 'TE-01', status: te01.action.status, missing: te01.action.missingEvidence }
+    ? {
+        ruleId: 'TE-01',
+        status: te01.action.status,
+        missing: te01.action.missingEvidence,
+      }
     : te01Trace
       ? { ruleId: 'TE-01', status: 'not_applicable' as const, missing: [] }
       : null;
@@ -376,20 +449,18 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
     const blocked = item.action.status === 'blocked';
     const override = item.rule.asset_overrides?.[asset.type];
     return (
-      <div
-        key={`${item.entry.bundle.id}:${item.rule.id}`}
-        className={cn('rounded-xl', blocked && 'ring-2 ring-escalate')}
-      >
+      <div key={`${item.entry.bundle.id}:${item.rule.id}`} className={cn('rounded-xl', blocked && 'shadow-card')}>
         {blocked ? (
-          <p className="flex items-center gap-1.5 rounded-t-xl bg-escalate px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white">
-            <Ban className="size-3.5" aria-hidden="true" />
-            Blocked · Rule {item.rule.id} v{item.entry.version} — {missingSummary(item.action.missingEvidence)}
+          <p className="flex items-center gap-1.5 rounded-t-xl border border-b-0 border-blocked/45 bg-blocked-tint px-4 py-2 text-[13px] font-semibold text-blocked">
+            <Ban className="size-3.5 shrink-0" aria-hidden="true" />
+            Blocked · rule <span className="font-mono">{item.rule.id}</span> v{item.entry.version} —{' '}
+            {missingSummary(item.action.missingEvidence)}
           </p>
         ) : null}
         <ActionCard
           action={item.action}
           onWhy={() => setDrawer({ pillId: item.entry.bundle.id, ruleId: item.rule.id })}
-          className={cn(blocked && 'rounded-t-none border-escalate/50 bg-escalate/5')}
+          className={cn(blocked && 'rounded-t-none border-blocked/45')}
         >
           <div className="flex w-full flex-col gap-2">
             <p className="text-[11px] text-ink-muted">
@@ -397,9 +468,9 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
               {target ? ` · escalation: ${personLabel(target.role, people)}` : ''}
             </p>
             {override?.escalate_to ? (
-              <p className="rounded-md border border-accent/40 bg-accent/10 px-2 py-1 text-[11px] font-medium text-accent">
-                {assetTypeLabel(asset.type)} override: escalate to {personLabel(override.escalate_to.role, people)} (base:{' '}
-                {personLabel(item.rule.escalate_to.role, people)})
+              <p className="rounded-lg border border-line bg-dew-drop px-2.5 py-1.5 text-[12px] font-medium text-ink">
+                {assetTypeLabel(asset.type)} override: escalate to {personLabel(override.escalate_to.role, people)}{' '}
+                (base: {personLabel(item.rule.escalate_to.role, people)})
               </p>
             ) : null}
             {item.trace.exceptionApplied && item.trace.exceptionNote ? (
@@ -428,70 +499,50 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
       </div>
 
       {/* ------------------------------------------------------------ Header */}
-      <header className="rounded-xl border border-line bg-surface p-4">
-        <div className="flex flex-wrap items-start gap-4">
-          <div className="min-w-0 flex-1">
-            <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-              <span className="font-mono">{incidentId}</span>
-              <span
-                className={cn(
-                  'rounded-full border px-2 py-0.5 font-semibold uppercase tracking-wide',
-                  SEVERITY_TONE[scenario.incident.severity] ?? 'border-line bg-surface-raised text-ink',
-                )}
-              >
-                {scenario.incident.severity}
-              </span>
-              <span className="uppercase tracking-wide">{scenario.incident.status}</span>
-            </p>
-            <h1 className="mt-1 text-xl font-semibold tracking-tight text-ink">
-              {humanizeKey(scenario.incident.subtype)} · {scenario.incident.location}
-            </h1>
-            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-ink">
+      <PageHeader
+        eyebrow={
+          <>
+            <span className="font-mono text-[12px] text-ink">{incidentId}</span>
+            <span className={cn(CHIP_BASE, TONE_CHIP[SEVERITY_TONE[scenario.incident.severity] ?? 'neutral'])}>
+              {sentenceCase(scenario.incident.severity)} severity
+            </span>
+            <span className="text-ink-muted">{sentenceCase(scenario.incident.status)}</span>
+          </>
+        }
+        title={humanizeKey(scenario.incident.subtype).toLowerCase()}
+        subtitle={
+          <>
+            <p className="text-ink">{scenario.incident.location}</p>
+            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[14px]">
               {asset.type === 'data_centre' ? (
-                <Server className="size-4 text-ink-muted" aria-hidden="true" />
+                <Server className="size-4" aria-hidden="true" />
               ) : (
-                <Building2 className="size-4 text-ink-muted" aria-hidden="true" />
+                <Building2 className="size-4" aria-hidden="true" />
               )}
-              <span className="font-medium">{asset.name}</span>
-              <span className="text-ink-muted">· {assetTypeLabel(asset.type)}</span>
-              {affectedParty ? <span className="text-ink-muted">· {affectedParty}</span> : null}
+              <span className="font-medium text-ink">{asset.name}</span>
+              <span>· {assetTypeLabel(asset.type)}</span>
             </p>
-            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
-              <span className="inline-flex items-center gap-1">
-                <Clock className="size-3.5" aria-hidden="true" />
-                <span className="font-semibold tabular-nums text-ink">
-                  {formatElapsed(scenario.incident.opened_at, clockAt)}
-                </span>{' '}
-                since detection (replay clock {formatClock(clockAt)})
+            {affectedParty ? <p className="mt-1 text-[14px]">{affectedParty.charAt(0).toUpperCase() + affectedParty.slice(1)}</p> : null}
+            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[14px]">
+              <Clock className="size-4" aria-hidden="true" />
+              <span className="font-medium tabular-nums text-ink">
+                {formatElapsed(scenario.incident.opened_at, clockAt)}
               </span>
-              <span>
-                Pills:{' '}
-                {approved.map((p) => (
-                  <span
-                    key={p.bundle.id}
-                    className="mr-1 rounded border border-line bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-ink"
-                  >
-                    {p.bundle.domain}/{p.bundle.name} v{p.version}
-                  </span>
-                ))}
-                {unapproved.map((p) => (
-                  <span key={p.id} className="mr-1 text-[11px] text-escalate">
-                    {p.id}: no approved version
-                  </span>
-                ))}
-              </span>
+              since detection
+              <span className="font-mono text-[12px] tabular-nums">· replay clock {formatClock(clockAt)}</span>
             </p>
-          </div>
-
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            {/* Role is switched in the app header (one switcher, bound to the store). */}
-            <p className="text-xs text-ink-muted">
-              <span className="uppercase tracking-widest">Acting as</span>{' '}
-              <span className="font-medium text-ink">{roleLabel(role)}</span> · {actor.name}
-            </p>
-            <div className="flex flex-wrap justify-end gap-2">
+          </>
+        }
+        actions={
+          <div className="flex flex-col items-end gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {/* Role is switched in the app header (one switcher, bound to the store). */}
               {overlay ? (
-                <div role="group" aria-label="Asset" className="inline-flex rounded-md border border-line p-0.5">
+                <div
+                  role="group"
+                  aria-label="Asset"
+                  className="inline-flex rounded-full border border-line-strong/70 bg-dew-drop p-0.5"
+                >
                   {(['primary', 'overlay'] as const).map((k) => {
                     const sc = k === 'primary' ? primary : overlay;
                     return (
@@ -501,8 +552,8 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
                         aria-pressed={scenarioKey === k}
                         onClick={() => switchScenario(k)}
                         className={cn(
-                          'rounded px-2.5 py-1 text-xs font-medium',
-                          scenarioKey === k ? 'bg-accent text-accent-ink' : 'text-ink-muted hover:text-ink',
+                          'min-h-8 rounded-full px-3 text-xs font-medium transition-[background-color,color,box-shadow] duration-150',
+                          scenarioKey === k ? 'bg-surface text-ink shadow-button' : 'text-ink-muted hover:text-ink',
                         )}
                       >
                         {k === 'primary' ? sc.asset.name : `Apply to ${sc.asset.name}`}
@@ -511,18 +562,31 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
                   })}
                 </div>
               ) : null}
-              <button
-                type="button"
-                onClick={resetAll}
-                className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-2.5 py-1 text-xs font-medium text-ink hover:border-accent"
-              >
+              <button type="button" onClick={resetAll} className="btn-pill text-xs">
                 <RotateCcw className="size-3.5" aria-hidden="true" />
                 Reset demo
               </button>
             </div>
+            <div className="flex flex-wrap justify-end gap-2.5" role="group" aria-label="Pills in use">
+              {approved.map((p) => (
+                <PillLabel
+                  key={p.bundle.id}
+                  size="sm"
+                  name={p.bundle.name.replace(/-/g, ' ')}
+                  pillClass={titleCase(p.bundle.domain)}
+                  version={p.version}
+                  className="w-[19.5rem]"
+                />
+              ))}
+              {unapproved.map((p) => (
+                <span key={p.id} className={cn(CHIP_BASE, TONE_CHIP.approval)}>
+                  {p.id}: no approved version
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)_400px]">
         {/* ------------------------------------------------------ Left */}
@@ -568,7 +632,12 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
               naReason={notApplicable.find((n) => n.trace.ruleId === p.ruleId)?.trace.triggerReason}
               people={people}
               role={role}
-              onWhy={(item) => setDrawer({ pillId: item.entry.bundle.id, ruleId: item.rule.id })}
+              onWhy={(item) =>
+                setDrawer({
+                  pillId: item.entry.bundle.id,
+                  ruleId: item.rule.id,
+                })
+              }
               onEscalate={(item) => decide(item, 'escalated')}
             />
           ))}
@@ -590,17 +659,12 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
             if (groupItems.length === 0) return null;
             return (
               <div key={g.status} className="space-y-2">
-                <h2
-                  className={cn(
-                    'flex items-baseline gap-2 text-sm font-semibold',
-                    g.status === 'blocked' || g.status === 'escalate' ? 'text-escalate' : 'text-ink',
-                  )}
-                >
-                  {g.title}
-                  <span className="rounded-full bg-surface-raised px-2 text-xs tabular-nums text-ink-muted">
+                <h2 className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[19px] font-semibold leading-tight">
+                  <span className={GROUP_INK[g.status]}>{g.title.toLowerCase()}</span>
+                  <span className="rounded-full border border-line bg-dew-drop px-2 py-px font-sans text-xs font-medium tabular-nums text-ink-muted">
                     {groupItems.length}
                   </span>
-                  <span className="text-xs font-normal text-ink-muted">{g.hint}</span>
+                  <span className="font-sans text-[13px] font-normal text-ink-muted">{g.hint}</span>
                 </h2>
                 <div className="grid gap-3 xl:grid-cols-2">{groupItems.map(renderCard)}</div>
               </div>
@@ -620,7 +684,10 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
             {showNa ? (
               <ul className="mt-2 space-y-1">
                 {notApplicable.map(({ entry, trace }) => (
-                  <li key={`${entry.bundle.id}:${trace.ruleId}`} className="rounded-md border border-line px-2.5 py-1.5 text-xs">
+                  <li
+                    key={`${entry.bundle.id}:${trace.ruleId}`}
+                    className="rounded-md border border-line px-2.5 py-1.5 text-xs"
+                  >
                     <span className="font-mono text-ink">{trace.ruleId}</span>{' '}
                     <span className="text-ink">{trace.ruleTitle}</span>
                     <span className="block text-[11px] text-ink-muted">{trace.triggerReason}</span>
@@ -634,7 +701,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
         {/* ----------------------------------------------------- Right */}
         <section aria-label="Communications and asset overlay" className="space-y-4 lg:col-span-2 2xl:col-span-1">
           <div>
-            <h2 className="mb-2 text-sm font-semibold text-ink">Tenant message</h2>
+            <h2 className="mb-2 text-[19px] font-semibold leading-tight">tenant message</h2>
             <TenantMessagePanel
               fixture={scenario.tenantMessage}
               role={role}
@@ -675,16 +742,17 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
       {/* ------------------------------------------------------- Footer */}
       {/* Compact audit status for this incident. The full log is the app-shell
           "Audit log" drawer; this opens that same drawer. */}
-      <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur md:left-64">
+      <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-canvas/95 backdrop-blur md:left-64">
         <button
           type="button"
           onClick={() => setAuditOpen(true)}
           aria-haspopup="dialog"
-          className="flex w-full items-center gap-2 px-6 py-2 text-left text-xs text-ink-muted hover:text-ink"
+          className="flex min-h-10 w-full items-center gap-2 px-4 text-left text-xs text-ink-muted transition-colors duration-150 hover:text-ink md:px-8"
         >
           <ScrollText className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="shrink-0 tabular-nums">
-            {auditEvents.length} audit event{auditEvents.length === 1 ? '' : 's'} · {incidentId}
+            {auditEvents.length} audit event
+            {auditEvents.length === 1 ? '' : 's'} · {incidentId}
           </span>
           {auditEvents.length > 0 ? (
             <span className="truncate">· latest: {auditEvents[auditEvents.length - 1].detail}</span>
@@ -757,10 +825,10 @@ function ProposalBanner({
   onEscalate: (item: BoardItem) => void;
 }) {
   const head = (
-    <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-muted">
       <Bot className="size-4" aria-hidden="true" />
-      AI proposed ({proposal.model}):
-      <span className="font-semibold text-ink">“{proposal.text}”</span>
+      AI proposed <span className="font-mono text-[12px]">({proposal.model})</span>
+      <span className="font-medium text-ink">“{proposal.text}”</span>
     </p>
   );
 
@@ -791,43 +859,48 @@ function ProposalBanner({
 
   const perms = actionPermissions(item.action, role, target.role);
   return (
-    <div className="overflow-hidden rounded-xl border-2 border-escalate bg-escalate/10 shadow-sm" role="alert">
-      <div className="p-4">
+    <div
+      className="overflow-hidden rounded-xl border-[1.5px] border-blocked/70 bg-blocked-tint shadow-card"
+      role="alert"
+    >
+      <div className="p-5">
         {head}
-        <p className="mt-2 flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-2 rounded-md bg-escalate px-3 py-1.5 text-lg font-black uppercase tracking-wider text-white">
-            <Ban className="size-5" aria-hidden="true" />
+        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="inline-flex items-center gap-2 rounded-full bg-blocked px-3.5 py-1.5 text-[15px] font-semibold text-white">
+            <Ban className="size-4" aria-hidden="true" />
             Blocked
           </span>
-          <span className="text-base font-semibold text-escalate">
-            Rule {item.rule.id} v{item.entry.version} — {missingSummary(item.action.missingEvidence)}
+          <span className="font-display-soft text-[19px] font-semibold leading-snug text-blocked">
+            Rule <span className="font-mono text-[16px]">{item.rule.id}</span> v{item.entry.version} —{' '}
+            {missingSummary(item.action.missingEvidence)}
           </span>
         </p>
-        <p className="mt-2 text-xs text-ink">
+        <p className="mt-2.5 text-[13px] leading-relaxed text-ink">
           {item.rule.title}. Deterministic gate — the model cannot override it. Missing:{' '}
-          <span className="font-mono">{item.action.missingEvidence.join(', ')}</span>
+          <span className="font-mono text-[12px]">{item.action.missingEvidence.join(', ')}</span>
         </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onWhy(item)}
-            className="inline-flex items-center gap-1.5 rounded-md border border-escalate/50 bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:border-escalate"
-          >
-            <HelpCircle className="size-3.5" aria-hidden="true" />
-            Why? <Volume2 className="size-3.5 text-ink-muted" aria-hidden="true" /> Hear the expert
-          </button>
+        <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => onEscalate(item)}
             disabled={!perms.escalate.enabled}
             title={perms.escalate.reason}
-            className="inline-flex items-center gap-1.5 rounded-md bg-escalate px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+            className="btn-pill btn-pill-primary text-xs"
           >
             <ArrowUpRight className="size-3.5" aria-hidden="true" />
             Escalate to {personLabel(target.role, people)}
           </button>
+          <button type="button" onClick={() => onWhy(item)} className="btn-pill text-xs">
+            <HelpCircle className="size-3.5" aria-hidden="true" />
+            Why?
+            <span aria-hidden="true" className="text-ink-muted">
+              ·
+            </span>
+            <Volume2 className="size-3.5" aria-hidden="true" />
+            Hear the expert
+          </button>
         </div>
-        {!perms.escalate.enabled ? <p className="mt-1 text-[11px] text-ink-muted">· {perms.escalate.reason}</p> : null}
+        {!perms.escalate.enabled ? <p className="mt-2 text-[12px] text-ink-muted">{perms.escalate.reason}</p> : null}
       </div>
     </div>
   );
@@ -841,8 +914,8 @@ function EvidenceStatePanel({ evidence, role }: { evidence: EvidenceState; role:
   const entries = Object.entries(evidence);
   const confirmed = entries.filter(([, e]) => e.confirmed).length;
   return (
-    <details className="rounded-lg border border-line bg-surface p-3 text-xs">
-      <summary className="cursor-pointer select-none font-medium text-ink">
+    <details className="rounded-xl border border-line bg-surface px-4 py-3 text-xs">
+      <summary className="cursor-pointer select-none text-[13px] font-medium text-ink">
         Evidence state · {entries.length} key(s), {confirmed} confirmed
       </summary>
       {entries.length === 0 ? (
@@ -852,7 +925,9 @@ function EvidenceStatePanel({ evidence, role }: { evidence: EvidenceState; role:
           {entries.map(([key, e]) => (
             <li key={key} className="flex gap-2">
               <span className={cn('font-mono', e.confirmed ? 'text-recommend' : 'text-approval')}>{key}</span>
-              <span className="truncate text-ink-muted">{redactText(JSON.stringify(e.value), role, e.sensitivity)}</span>
+              <span className="truncate text-ink-muted">
+                {redactText(JSON.stringify(e.value), role, e.sensitivity)}
+              </span>
             </li>
           ))}
         </ul>

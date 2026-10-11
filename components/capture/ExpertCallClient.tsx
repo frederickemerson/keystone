@@ -4,7 +4,7 @@
 // from the server page and owns playback + layout. Reuses mosaic components.
 
 import { useMemo } from 'react';
-import { SectionHeader } from '@/components/mosaic';
+import { PageHeader } from '@/components/mosaic';
 import type { Rule } from '@/lib/engine/types';
 import { computePhaseByTurn } from './phases';
 import { useCallPlayback } from './useCallPlayback';
@@ -63,9 +63,16 @@ export function ExpertCallClient(props: CaptureProps) {
         }
       `}</style>
 
-      <SectionHeader
-        title="Expert Onboarding Call"
-        description="Simulated voice interview — fully offline. MOSAIC extracts rule candidates, each linked to the exact transcript span."
+      <PageHeader
+        eyebrow={
+          <>
+            <span>Expert call</span>
+            <span aria-hidden="true">·</span>
+            <span className="font-mono text-[12px]">{transcript.interview_id}</span>
+          </>
+        }
+        title="expert onboarding call"
+        subtitle="A simulated, fully offline voice interview. MOSAIC extracts rule candidates as the expert speaks, each linked to the exact transcript span."
       />
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <CallPanel

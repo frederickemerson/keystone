@@ -5,7 +5,8 @@
 // above the coverage meter that shows the interviewer targeting gaps.
 
 import { useState } from 'react';
-import { SectionHeader, RuleTile, ActionClassChip } from '@/components/mosaic';
+import { SectionHeader, RuleTile, ActionClassChip, CHIP_BASE, TONE_CHIP } from '@/components/mosaic';
+import { cn } from '@/lib/ui/cn';
 import type { Rule } from '@/lib/engine/types';
 import type { CallPlayback } from './useCallPlayback';
 import { CoverageMeter } from './CoverageMeter';
@@ -34,7 +35,7 @@ export function CapturedPanel({
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="Captured so far"
+        title="captured so far"
         description={`${revealed.length} of ${totalRules} candidates · draft, awaiting your confirmation`}
       />
 
@@ -42,7 +43,7 @@ export function CapturedPanel({
 
       <div className="space-y-3">
         {revealed.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-line bg-surface p-4 text-sm text-ink-muted">
+          <p className="rounded-xl border border-dashed border-line bg-surface p-5 text-sm text-ink-muted">
             Rule candidates will appear here as the expert speaks. Each carries the exact
             transcript span as provenance.
           </p>
@@ -54,9 +55,7 @@ export function CapturedPanel({
               style={{ animationDelay: `${Math.min(i, 6) * 80}ms` }}
             >
               <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-600">
-                  Draft — awaiting your confirmation
-                </span>
+                <span className={cn(CHIP_BASE, TONE_CHIP.approval)}>Draft · awaiting your confirmation</span>
                 <ActionClassChip actionClass={rule.action_class} />
               </div>
               <RuleTile

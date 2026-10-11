@@ -20,7 +20,7 @@ export function RuleTile({
   rule: Rule;
   /** Confirmation state from the Decision Canvas: true=confirmed, false=rejected, undefined=pending. */
   confirmed?: boolean;
-  /** `expert` (optional) is the handwritten attribution; defaults to "onboarding interview". */
+  /** `expert` (optional) is the attribution name; defaults to "onboarding interview". */
   provenance?: { quote: string; timestamp: string; expert?: string };
   onConfirm?: () => void;
   onEdit?: () => void;

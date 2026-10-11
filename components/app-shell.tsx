@@ -7,7 +7,7 @@ import { ScrollText } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
 import { RoleSwitcher } from '@/components/shell/RoleSwitcher';
 import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
-import { BrandMark, NavScribble } from '@/components/shell/BrandMark';
+import { BrandMark } from '@/components/shell/BrandMark';
 
 export const NAV_ITEMS = [
   { href: '/', label: 'Portfolio Pulse', purpose: 'Portfolio-wide posture at a glance' },
@@ -34,6 +34,13 @@ export const NAV_ITEMS = [
     purpose: 'Outcome capture, version diff, evals and rollback',
   },
 ] as const;
+
+/** A nav item is active for any route in its section (e.g. every /canvas/*). */
+function isActive(pathname: string, href: string): boolean {
+  if (href === '/') return pathname === '/';
+  const section = `/${href.split('/')[1]}`;
+  return pathname === section || pathname.startsWith(`${section}/`);
+}
 
 function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
@@ -74,7 +81,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav aria-label="Primary" className="flex-1 overflow-y-auto px-3">
           <ul className="space-y-0.5">
             {NAV_ITEMS.map((item) => {
-              const active = pathname === item.href;
+              const active = isActive(pathname, item.href);
               return (
                 <li key={item.href}>
                   <Link
@@ -82,18 +89,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     title={item.purpose}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'flex min-h-10 items-center rounded-lg px-3 text-[15px] transition-colors duration-150',
+                      'relative flex min-h-10 items-center rounded-lg px-3 text-[15px] transition-colors duration-150',
                       active
-                        ? 'font-medium text-ink'
-                        : 'text-ink-muted hover:bg-cream-paper/70 hover:text-ink',
+                        ? 'bg-cream-paper font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]'
+                        : 'text-ink-muted hover:bg-cream-paper/60 hover:text-ink',
                     )}
                   >
-                    <span className="relative">
-                      {item.label}
-                      {active ? (
-                        <NavScribble className="absolute -bottom-[7px] left-[-3%] h-[8px] w-[106%]" />
-                      ) : null}
-                    </span>
+                    {active ? (
+                      <span
+                        aria-hidden="true"
+                        className="absolute inset-y-2.5 left-0 w-[3px] rounded-r-full bg-marker"
+                      />
+                    ) : null}
+                    {item.label}
                   </Link>
                 </li>
               );
@@ -101,14 +109,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
 
-        {/* Brand band: marker orange, 56px top radius (DESIGN.md §8). */}
-        <div className="mt-4 rounded-t-[56px] bg-marker px-6 pb-5 pt-7">
-          <p className="font-hand text-[24px] font-bold leading-[1.05] text-cocoa-ink" style={{ rotate: '-2deg' }}>
+        {/* Brand band: marker orange, 56px top radius (DESIGN.md §8). Typeset —
+            no handwriting inside the app. Cocoa ink on orange is 6:1. */}
+        <div className="mt-4 rounded-t-[56px] bg-marker px-7 pb-5 pt-7">
+          <p className="font-display-soft text-[19px] font-semibold leading-[1.15] text-cocoa-ink">
             expert judgement,
             <br />
-            governed
+            governed.
           </p>
-          <p className="mt-1 text-[11px] font-medium text-cocoa-ink">MOSAIC v1</p>
+          <p className="mt-2 font-mono text-[11px] font-medium text-cocoa-ink/80">MOSAIC v1</p>
         </div>
       </aside>
 
@@ -130,7 +139,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav aria-label="Primary" className="border-b border-line bg-dew-drop md:hidden">
           <ul className="flex gap-1 overflow-x-auto px-3 py-2">
             {NAV_ITEMS.map((item) => {
-              const active = pathname === item.href;
+              const active = isActive(pathname, item.href);
               return (
                 <li key={item.href} className="shrink-0">
                   <Link

@@ -95,15 +95,15 @@ export function AssetOverlayPanel({
     <section
       aria-label="Asset overlay"
       className={cn(
-        'rounded-xl border p-4',
-        overlayActive ? 'border-accent bg-accent/5' : 'border-line bg-surface',
+        'rounded-xl border p-5',
+        overlayActive ? 'border-line-strong bg-dew-drop' : 'border-line bg-surface',
       )}
     >
       <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
         <Building2 className="size-4 text-ink-muted" aria-hidden="true" />
         {baseAsset.name}
         <ArrowRight className="size-4 text-ink-muted" aria-hidden="true" />
-        <Server className="size-4 text-accent" aria-hidden="true" />
+        <Server className="size-4 text-ink-muted" aria-hidden="true" />
         {overlayAsset.name}
         <span className="text-xs font-normal text-ink-muted">
           same pills, {assetTypeLabel(overlayAsset.type)} overrides
@@ -146,7 +146,7 @@ export function AssetOverlayPanel({
                 <span className="text-ink-muted">{c.field}:</span>
                 <span className="text-ink-muted line-through">{c.before}</span>
                 <ArrowRight className="size-3 text-ink-muted" aria-hidden="true" />
-                <span className="font-semibold text-accent">{c.after}</span>
+                <span className="font-semibold text-ink underline decoration-marker decoration-2 underline-offset-2">{c.after}</span>
               </p>
             ))}
             {r.exceptionNotes.map((n) => (

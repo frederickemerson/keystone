@@ -80,25 +80,25 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
   const { overall, captured, stats, gaps } = computeCoverage(rules);
 
   return (
-    <div className="rounded-xl border border-line bg-surface-raised/50 p-4">
+    <div className="rounded-xl border border-line-strong bg-surface p-5 shadow-card">
       <div className="flex items-baseline justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Schema coverage</p>
-        <p className="text-sm font-semibold tabular-nums text-ink">{overall}%</p>
+        <p className="font-display-soft text-[17px] font-semibold text-heading">schema coverage</p>
+        <p className="text-[15px] font-semibold tabular-nums text-ink">{overall}%</p>
       </div>
-      <p className="mt-0.5 text-[11px] text-ink-muted">
+      <p className="mt-0.5 text-xs text-ink-muted">
         {captured === 0
           ? 'No candidates captured yet.'
           : `Fields filled across ${captured} captured candidate${captured === 1 ? '' : 's'}.`}
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
         {stats.map((s) => (
           <div key={s.key} className="flex items-center gap-2">
-            <span className="w-24 shrink-0 truncate text-[11px] text-ink-muted" title={s.label}>
+            <span className="w-24 shrink-0 truncate text-xs text-ink-muted" title={s.label}>
               {s.label}
             </span>
             <span
-              className="h-1.5 flex-1 overflow-hidden rounded-full bg-line"
+              className="h-1.5 flex-1 overflow-hidden rounded-full bg-dew-drop-deep"
               role="progressbar"
               aria-valuenow={s.pct}
               aria-valuemin={0}
@@ -108,12 +108,12 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
               <span
                 className={cn(
                   'block h-full rounded-full transition-[width] motion-reduce:transition-none',
-                  s.pct >= 100 ? 'bg-recommend' : s.pct > 0 ? 'bg-accent' : 'bg-ink-muted/40',
+                  s.pct >= 100 ? 'bg-recommend' : s.pct > 0 ? 'bg-charcoal' : 'bg-ink-muted/40',
                 )}
                 style={{ width: `${s.pct}%` }}
               />
             </span>
-            <span className="w-10 shrink-0 text-right text-[10px] tabular-nums text-ink-muted">
+            <span className="w-10 shrink-0 text-right text-[11px] tabular-nums text-ink-muted">
               {s.filled}/{s.total}
             </span>
           </div>
@@ -122,13 +122,11 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
 
       {gaps.length > 0 ? (
         <div className="mt-3 border-t border-line pt-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
-            Open gaps — what MOSAIC will ask next
-          </p>
+          <p className="text-[13px] font-semibold text-ink">Open gaps — what MOSAIC will ask next</p>
           <ul className="mt-1.5 space-y-1">
             {gaps.map((g) => (
-              <li key={g.key} className="flex gap-2 text-[11px] leading-snug text-ink-muted">
-                <span className="mt-0.5 shrink-0 font-mono text-accent">{g.label}</span>
+              <li key={g.key} className="flex gap-2 text-xs leading-snug text-ink-muted">
+                <span className="shrink-0 font-medium text-ink">{g.label}</span>
                 <span>
                   {g.next}{' '}
                   <span className="tabular-nums">

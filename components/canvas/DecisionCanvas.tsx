@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Check, X, ArrowRight, FileCheck2 } from 'lucide-react';
-import { RuleTile, EmptyState, ActionClassChip } from '@/components/mosaic';
+import { RuleTile, EmptyState, ActionClassChip, CHIP_BASE, TONE_CHIP } from '@/components/mosaic';
 import { cn } from '@/lib/ui/cn';
 import type { ActionClass, Rule } from '@/lib/engine/types';
 import type { PillBundle } from '@/lib/pills/load';
@@ -67,9 +67,9 @@ function buildProvenance(rule: Rule, pill: PillBundle) {
 }
 
 const STATE_BADGE: Record<DecisionState, { label: string; tone: string }> = {
-  confirmed: { label: 'Confirmed', tone: 'border-recommend/30 bg-recommend/10 text-recommend' },
-  edited: { label: 'Edited', tone: 'border-approval/30 bg-approval/10 text-approval' },
-  rejected: { label: 'Rejected', tone: 'border-escalate/40 bg-escalate/15 text-escalate' },
+  confirmed: { label: 'Confirmed', tone: TONE_CHIP.recommend },
+  edited: { label: 'Edited', tone: TONE_CHIP.approval },
+  rejected: { label: 'Rejected', tone: TONE_CHIP.blocked },
 };
 
 const FILTERS: { id: ActionClass | 'all'; label: string }[] = [
@@ -134,10 +134,8 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
               onClick={() => setFilter(f.id)}
               aria-pressed={active}
               className={cn(
-                'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
-                active
-                  ? 'border-accent bg-accent/15 text-ink'
-                  : 'border-line bg-surface text-ink-muted hover:border-accent hover:text-ink',
+                'btn-pill text-xs',
+                active ? 'bg-dew-drop-deep' : 'border-line-strong/40 text-ink-muted shadow-none hover:text-ink',
               )}
             >
               {f.label}
@@ -155,11 +153,11 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
             <section
               key={lane.id}
               aria-label={lane.title}
-              className="rounded-xl border border-line bg-surface-raised/30 p-3"
+              className="rounded-2xl border border-line bg-dew-drop/50 p-4"
             >
-              <div className="mb-3 border-b border-line pb-2">
-                <h2 className="text-sm font-semibold tracking-tight text-ink">{lane.title}</h2>
-                <p className="text-[11px] text-ink-muted">{lane.description}</p>
+              <div className="mb-4 border-b border-line pb-2.5">
+                <h2 className="text-[19px] font-semibold leading-tight">{lane.title.toLowerCase()}</h2>
+                <p className="mt-0.5 text-[13px] text-ink-muted">{lane.description}</p>
               </div>
 
               {laneRules.length === 0 ? (
@@ -180,15 +178,12 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
                           <ActionClassChip actionClass={rule.action_class} />
                           {state ? (
                             <span
-                              className={cn(
-                                'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium',
-                                STATE_BADGE[state].tone,
-                              )}
+                              className={cn(CHIP_BASE, STATE_BADGE[state].tone)}
                             >
                               {STATE_BADGE[state].label}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] text-ink-muted">
+                            <span className={cn(CHIP_BASE, 'border-line bg-surface text-ink-muted')}>
                               Pending
                             </span>
                           )}
@@ -206,7 +201,7 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
                           }
                         />
                         {edits[rule.id] ? (
-                          <p className="mt-1.5 rounded-md border border-approval/30 bg-approval/10 px-2 py-1 text-[11px] text-approval">
+                          <p className="mt-1.5 rounded-lg border border-approval/35 bg-approval-tint px-2.5 py-1 text-xs text-approval">
                             Edit note saved
                           </p>
                         ) : null}
@@ -224,7 +219,7 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
       {published ? (
         <div
           role="status"
-          className="rounded-xl border border-recommend/30 bg-recommend/10 p-4"
+          className="rounded-xl border border-recommend/35 bg-recommend-tint p-5"
         >
           <p className="flex items-center gap-2 text-sm font-medium text-recommend">
             <FileCheck2 className="size-4" aria-hidden="true" />
@@ -241,7 +236,7 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
           </p>
           <Link
             href={`/learning/${pill.id}`}
-            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+            className="btn-pill mt-3 text-xs"
           >
             Go to Learning &amp; Approval <ArrowRight className="size-3.5" aria-hidden="true" />
           </Link>
@@ -249,39 +244,34 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
       ) : null}
 
       {/* Sticky footer */}
-      <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 md:px-6">
-          <p className="text-xs text-ink">
-            <span className="font-semibold text-recommend">{counts.confirmed} confirmed</span>
+      <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-canvas/95 backdrop-blur md:left-64">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 md:px-8">
+          <p className="text-[13px] tabular-nums text-ink">
+            <span className="font-medium text-recommend">{counts.confirmed} confirmed</span>
             <span className="text-ink-muted"> · </span>
-            <span className="font-semibold text-approval">{counts.edited} edited</span>
+            <span className="font-medium text-approval">{counts.edited} edited</span>
             <span className="text-ink-muted"> · </span>
-            <span className="font-semibold text-escalate">{counts.rejected} rejected</span>
-            <span className="text-ink-muted"> — Publish as </span>
-            <span className="font-mono text-ink">v{nextVersion} draft</span>
+            <span className="font-medium text-blocked">{counts.rejected} rejected</span>
           </p>
 
           <div className="ml-auto flex items-center gap-3">
-            <span className="text-[11px] text-ink-muted">
+            <span className="text-[13px] tabular-nums text-ink-muted">
               {counts.decided} of {counts.total} decided
             </span>
             <button
               type="button"
               disabled={counts.decided < counts.total || published}
               onClick={() => setPublished(true)}
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold',
-                counts.decided < counts.total || published
-                  ? 'cursor-not-allowed border border-line bg-surface-raised text-ink-muted'
-                  : 'bg-accent text-accent-ink hover:opacity-90',
-              )}
+              className="btn-pill btn-pill-primary text-xs"
             >
               {published ? (
                 <>
                   <FileCheck2 className="size-3.5" aria-hidden="true" /> Published
                 </>
               ) : (
-                'Publish as v' + nextVersion + ' draft'
+                <>
+                  Publish as <span className="font-mono">v{nextVersion}</span> draft
+                </>
               )}
             </button>
           </div>
@@ -319,7 +309,7 @@ function EditOverlay({
   const [text, setText] = useState(initial);
   return (
     <div
-      className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-30 flex items-center justify-center bg-cocoa-ink/30 p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}
@@ -328,7 +318,7 @@ function EditOverlay({
         role="dialog"
         aria-modal="true"
         aria-label={`Edit rule ${rule.id}`}
-        className="w-full max-w-lg rounded-xl border border-line bg-surface p-4 shadow-xl"
+        className="w-full max-w-lg rounded-xl border border-line-strong bg-canvas p-6 shadow-lift"
       >
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="font-mono text-[11px] text-ink-muted">{rule.id}</p>
@@ -336,13 +326,13 @@ function EditOverlay({
             type="button"
             onClick={onCancel}
             aria-label="Cancel edit"
-            className="rounded-md p-1 text-ink-muted hover:text-ink"
+            className="grid size-9 place-items-center rounded-full border-[1.5px] border-ink text-ink transition-[background-color,scale] duration-150 hover:bg-dew-drop active:scale-[0.96]"
           >
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
-        <h3 className="text-sm font-semibold text-ink">{rule.title}</h3>
-        <label htmlFor="rule-edit" className="mt-3 block text-[11px] font-medium uppercase tracking-wide text-ink-muted">
+        <h3 className="font-display-soft text-[20px] font-semibold leading-tight text-heading">{rule.title}</h3>
+        <label htmlFor="rule-edit" className="mt-4 block text-[13px] font-medium text-ink-muted">
           Decision (editable)
         </label>
         <textarea
@@ -350,20 +340,20 @@ function EditOverlay({
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={5}
-          className="mt-1 w-full rounded-md border border-line bg-surface-raised p-2 text-sm text-ink focus:border-accent focus:outline-none"
+          className="mt-1.5 w-full rounded-lg border border-line-strong bg-surface p-3 text-sm leading-relaxed text-ink"
         />
         <div className="mt-3 flex justify-end gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-3 py-1.5 text-xs font-medium text-ink hover:border-accent"
+            className="btn-pill text-xs"
           >
             <X className="size-3.5" aria-hidden="true" /> Cancel
           </button>
           <button
             type="button"
             onClick={() => onSave(text)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-ink hover:opacity-90"
+            className="btn-pill btn-pill-primary text-xs"
           >
             <Check className="size-3.5" aria-hidden="true" /> Save edit
           </button>

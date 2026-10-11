@@ -40,9 +40,9 @@ function DraftCard({
   const left = replayAt ? minutesBetween(replayAt, draft.sla_first_notice_deadline) : null;
 
   return (
-    <article className="rounded-xl border border-approval/40 bg-surface p-4" aria-labelledby={`${reasonId}-subj`}>
+    <article className="rounded-xl border border-line-strong bg-surface p-5 shadow-card" aria-labelledby={`${reasonId}-subj`}>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-approval/40 bg-approval/10 px-2.5 py-0.5 text-xs font-semibold text-approval">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-approval/40 bg-approval-tint px-2.5 py-[3px] text-xs font-medium text-approval">
           <Mail className="size-3.5" aria-hidden="true" />
           Draft — requires {roleLabel(draft.approved_by_role)} approval
         </span>
@@ -95,9 +95,9 @@ function DraftCard({
             disabled={!permission.enabled}
             aria-describedby={permission.enabled ? undefined : reasonId}
             onClick={() => onDecide(draft, 'approved')}
-            className="inline-flex items-center gap-1.5 rounded-md border border-recommend/40 bg-recommend/10 px-2.5 py-1.5 text-xs font-medium text-recommend hover:bg-recommend/20 disabled:cursor-not-allowed disabled:opacity-45"
+            className="btn-pill text-xs"
           >
-            <Check className="size-3.5" aria-hidden="true" />
+            <Check className="size-3.5 text-recommend" aria-hidden="true" />
             Approve for sending
           </button>
           <button
@@ -105,9 +105,9 @@ function DraftCard({
             disabled={!permission.enabled}
             aria-describedby={permission.enabled ? undefined : reasonId}
             onClick={() => onDecide(draft, 'rejected')}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-ink disabled:cursor-not-allowed disabled:opacity-45"
+            className="btn-pill text-xs"
           >
-            <X className="size-3.5" aria-hidden="true" />
+            <X className="size-3.5 text-ink-muted" aria-hidden="true" />
             Reject draft
           </button>
         </div>

@@ -73,7 +73,7 @@ export function Drawer({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="presentation">
-      <div className="absolute inset-0 bg-black/40" aria-hidden="true" onClick={onClose} />
+      <div className="absolute inset-0 bg-cocoa-ink/30" aria-hidden="true" onClick={onClose} />
       <aside
         ref={panelRef}
         role="dialog"
@@ -81,25 +81,25 @@ export function Drawer({
         aria-label={title}
         tabIndex={-1}
         className={cn(
-          'relative flex h-full w-full flex-col border-l border-line bg-surface shadow-xl outline-none',
+          'relative flex h-full w-full flex-col border-l border-line-strong bg-canvas shadow-lift outline-none',
           widthClass,
         )}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-line px-6 py-5">
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-ink">{title}</h2>
-            {subtitle ? <div className="mt-0.5 text-xs text-ink-muted">{subtitle}</div> : null}
+            <h2 className="text-[22px] font-semibold leading-tight">{title}</h2>
+            {subtitle ? <div className="mt-1 text-[13px] text-ink-muted">{subtitle}</div> : null}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label={`Close ${title}`}
-            className="rounded-md p-1.5 text-ink-muted hover:bg-surface-raised hover:text-ink"
+            className="grid size-9 shrink-0 place-items-center rounded-full border-[1.5px] border-ink text-ink transition-[background-color,scale] duration-150 hover:bg-dew-drop active:scale-[0.96]"
           >
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
       </aside>
     </div>
   );

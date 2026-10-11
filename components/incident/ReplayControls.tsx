@@ -6,8 +6,7 @@ import { cn } from '@/lib/ui/cn';
 export const SPEEDS = [1, 2, 4] as const;
 export type Speed = (typeof SPEEDS)[number];
 
-const BTN =
-  'inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-ink hover:border-accent disabled:cursor-not-allowed disabled:opacity-45';
+const BTN = 'btn-pill text-xs';
 
 export function ReplayControls({
   step,
@@ -32,10 +31,10 @@ export function ReplayControls({
 }) {
   const atEnd = step >= total;
   return (
-    <div className="rounded-lg border border-line bg-surface p-3" role="group" aria-label="Timeline replay">
-      <div className="flex items-baseline justify-between text-xs">
-        <span className="font-semibold uppercase tracking-widest text-ink-muted">Replay</span>
-        <span className="tabular-nums text-ink">
+    <div className="rounded-xl border border-line-strong bg-surface p-4 shadow-card" role="group" aria-label="Timeline replay">
+      <div className="flex items-baseline justify-between">
+        <span className="font-display-soft text-[17px] font-semibold text-heading">replay</span>
+        <span className="text-[13px] tabular-nums text-ink-muted">
           Event {step} / {total}
         </span>
       </div>
@@ -48,11 +47,11 @@ export function ReplayControls({
         aria-label="Replay progress"
       >
         {Array.from({ length: total }, (_, i) => (
-          <span key={i} className={cn('flex-1 rounded-full', i < step ? 'bg-accent' : 'bg-surface-raised')} />
+          <span key={i} className={cn('flex-1 rounded-full', i < step ? 'bg-charcoal' : 'bg-dew-drop-deep')} />
         ))}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <button type="button" className={cn(BTN, 'border-accent bg-accent text-accent-ink hover:opacity-90')} onClick={onNext} disabled={atEnd}>
+        <button type="button" className={BTN} onClick={onNext} disabled={atEnd}>
           <StepForward className="size-3.5" aria-hidden="true" />
           Next event
         </button>
@@ -64,15 +63,15 @@ export function ReplayControls({
           <ChevronsRight className="size-3.5" aria-hidden="true" />
           Jump to end
         </button>
-        <button type="button" className={BTN} onClick={onRestart} disabled={step === 0} aria-label="Restart replay">
+        <button type="button" className={cn(BTN, 'px-0 size-9')} onClick={onRestart} disabled={step === 0} aria-label="Restart replay">
           <RotateCcw className="size-3.5" aria-hidden="true" />
         </button>
-        <label className="ml-auto flex items-center gap-1 text-[11px] text-ink-muted">
+        <label className="ml-auto flex items-center gap-1.5 text-xs text-ink-muted">
           Speed
           <select
             value={speed}
             onChange={(e) => onSpeed(Number(e.target.value) as Speed)}
-            className="rounded border border-line bg-surface px-1 py-0.5 text-[11px] text-ink"
+            className="min-h-8 rounded-full border border-line-strong/70 bg-surface px-2 text-xs text-ink"
           >
             {SPEEDS.map((s) => (
               <option key={s} value={s}>
