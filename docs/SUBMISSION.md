@@ -501,8 +501,8 @@ Replace each placeholder before submitting.
 - [ ] **CodeBuddy/WorkBuddy conversation history (≥3):** `docs/proof/*.png` ✔
 - [ ] **Cover image (16:9, 380×216 recommended):** TODO — add and link here
 - [ ] **Demo video (5–8 min):** TODO — `[VIDEO LINK]`
-- [ ] **Live URL / demo link (optional, bonus):** TODO — `[LIVE URL]`
-- [ ] **Source code (GitHub repository):** TODO — `[GITHUB URL]`
+- [ ] **Live URL / demo link (optional, bonus):** https://mosaic-psi-rouge.vercel.app (demo: /incident/INC-2026-1011?step=10)
+- [ ] **Source code (GitHub repository):** https://github.com/frederickemerson/mosaic (private — grant judges access)
 
 ### Open TODOs to resolve before submission
 
