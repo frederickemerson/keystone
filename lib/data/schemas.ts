@@ -3,7 +3,7 @@
 // statically imported JSON. Shapes are derived from the actual files in data/.
 
 import { z } from "zod";
-import { conditionSchema } from "../engine/schema";
+import { conditionSchema, ruleExceptionSchema } from "../engine/schema";
 
 export const sensitivityLevelSchema = z.enum(["public", "internal", "tenant_pii", "commercial"]);
 export type SensitivityLevel = z.infer<typeof sensitivityLevelSchema>;
@@ -315,7 +315,8 @@ export const ruleCandidateSchema = z.looseObject({
   decision: z.string(),
   allowed_actions: z.array(z.string()),
   forbidden_actions: z.array(z.string()),
-  exceptions: z.array(z.object({ when: z.array(conditionSchema), note: z.string() })),
+  /** Same schema the engine enforces — so add_required_evidence / escalate_to are never silently dropped. */
+  exceptions: z.array(ruleExceptionSchema),
   action_class: actionClassSchema,
   /** The extracted gate semantics — carried through to the candidate rule as-is. */
   forbidden_if_missing_evidence: z.boolean(),

@@ -668,6 +668,7 @@ export function parsePill(files: PillFiles): Pill {
 // Re-export schemas for callers that want to validate fragments.
 export {
   conditionSchema,
+  ruleExceptionSchema,
   ruleSchema,
   manifestSchema,
   provenanceSchema,

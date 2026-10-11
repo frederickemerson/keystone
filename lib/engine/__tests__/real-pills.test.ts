@@ -97,7 +97,7 @@ describe("real-pills — parse both authored pills", () => {
     expect(pill.manifest.name).toBe("chilled-water-leak");
     expect(pill.manifest.version).toBe("1.2.0");
     expect(pill.manifest.status).toBe("approved");
-    expect(pill.rules.length).toBe(12);
+    expect(pill.rules.length).toBe(13);
     expect(Object.keys(pill.provenance)).toContain("TS-07");
 
     const ts07 = pill.rules.find((r) => r.id === "TS-07");
@@ -115,7 +115,7 @@ describe("real-pills — parse both authored pills", () => {
     const pill = loadPill(TE_PILL_DIR);
     expect(pill.manifest.name).toBe("incident-comms");
     expect(pill.manifest.version).toBe("1.0.0");
-    expect(pill.rules.length).toBe(6);
+    expect(pill.rules.length).toBe(7);
 
     const te01 = pill.rules.find((r) => r.id === "TE-01");
     expect(te01).toBeDefined();
