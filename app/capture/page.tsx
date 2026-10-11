@@ -8,6 +8,7 @@ import { loadPill } from '@/lib/pills/load';
 import type { RuleCandidate } from '@/lib/data';
 import type { Rule as EngineRule } from '@/lib/engine/types';
 import { ExpertCallClient } from '@/components/capture/ExpertCallClient';
+import { pillTitle } from '@/components/mosaic/pillTitle';
 
 const INTERVIEW_ID = 'ce-interview-2026-10-02';
 const PILL_ID = 'technical-services-chilled-water-leak';
@@ -75,7 +76,7 @@ export default function CapturePage() {
       provenance={provenance}
       contradiction={contradiction}
       pillId={PILL_ID}
-      pillName={pill?.pill.manifest.name ?? 'Technical Services — Chilled Water Leak'}
+      pillName={pill ? pillTitle(pill) : PILL_ID}
     />
   );
 }

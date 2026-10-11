@@ -1,13 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Ban,
   Bot,
   ChevronDown,
   Clock,
   HelpCircle,
-  History,
   RotateCcw,
   ScrollText,
   Server,
@@ -16,6 +15,8 @@ import {
   Volume2,
 } from 'lucide-react';
 import { ActionCard, ConfidenceMeter, EvidenceTimeline } from '@/components/mosaic';
+import { useMounted } from '@/components/mosaic/useMounted';
+import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { evaluate } from '@/lib/engine/evaluate';
 import { counterfactual } from '@/lib/engine/counterfactual';
 import type { ActionDecision, ActionStatus, Pill, Rule, TraceStep } from '@/lib/engine/types';
@@ -30,7 +31,6 @@ import { currentApproved, pillAtVersion } from '@/lib/governance/versions';
 import type { TimelineEvent as DisplayTimelineEvent } from '@/components/mosaic/types';
 import { cn } from '@/lib/ui/cn';
 import { AssetOverlayPanel } from './AssetOverlayPanel';
-import { AuditDrawer } from './AuditDrawer';
 import { DecisionButtons, DecisionStamp, type DirectOutcome, type MissingEvidenceOption } from './DecisionButtons';
 import {
   accumulateEvidence,
@@ -82,16 +82,6 @@ const SEVERITY_TONE: Record<string, string> = {
   low: 'border-recommend/40 bg-recommend/10 text-recommend',
 };
 
-const subscribeNoop = () => () => {};
-
-/** False during SSR + hydration, true after — gates the persisted (localStorage) store. */
-function useMounted(): boolean {
-  return useSyncExternalStore(
-    subscribeNoop,
-    () => true,
-    () => false,
-  );
-}
 
 const DEFAULT_ACTOR = personaFor('asset_operations_manager');
 const EMPTY_DECISIONS: Record<string, ActionDecisionRecord> = {};
@@ -419,7 +409,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
             {showPanel ? (
               <DecisionButtons
                 permissions={actionPermissions(item.action, role, target?.role ?? null)}
-                escalateLabel={target ? `Escalate to ${humanizeKey(target.role)}` : 'Escalate'}
+                escalateLabel={target ? `Escalate to ${personLabel(target.role, people)}` : 'Escalate'}
                 missingEvidence={missingOptions(item)}
                 onDecide={(o) => decide(item, o)}
                 onRequestEvidence={(keys) => requestEvidence(item, keys)}
@@ -683,30 +673,26 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
       </div>
 
       {/* ------------------------------------------------------- Footer */}
+      {/* Compact audit status for this incident. The full log is the app-shell
+          "Audit log" drawer; this opens that same drawer. */}
       <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 backdrop-blur md:left-64">
-        <div className="flex items-center gap-3 px-6 py-2.5 text-xs">
-          <ScrollText className="size-4 text-ink-muted" aria-hidden="true" />
-          <span className="text-ink-muted">
-            {auditEvents.length} audit event(s) for {incidentId}
-            {auditEvents.length > 0 ? (
-              <>
-                {' '}
-                · latest: <span className="text-ink">{auditEvents[auditEvents.length - 1].detail}</span>
-              </>
-            ) : null}
+        <button
+          type="button"
+          onClick={() => setAuditOpen(true)}
+          aria-haspopup="dialog"
+          className="flex w-full items-center gap-2 px-6 py-2 text-left text-xs text-ink-muted hover:text-ink"
+        >
+          <ScrollText className="size-3.5 shrink-0" aria-hidden="true" />
+          <span className="shrink-0 tabular-nums">
+            {auditEvents.length} audit event{auditEvents.length === 1 ? '' : 's'} · {incidentId}
           </span>
-          <button
-            type="button"
-            onClick={() => setAuditOpen(true)}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-2.5 py-1 font-medium text-ink hover:border-accent"
-          >
-            <History className="size-3.5" aria-hidden="true" />
-            Audit log
-          </button>
-        </div>
+          {auditEvents.length > 0 ? (
+            <span className="truncate">· latest: {auditEvents[auditEvents.length - 1].detail}</span>
+          ) : null}
+        </button>
       </footer>
 
-      <AuditDrawer open={auditOpen} onClose={() => setAuditOpen(false)} incidentId={incidentId} events={auditEvents} />
+      <AuditLogDrawer open={auditOpen} onClose={() => setAuditOpen(false)} />
 
       {drawerItem ? (
         <RuleWhyDrawer
@@ -728,7 +714,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
               {drawerItem.action.status !== 'allowed' ? (
                 <DecisionButtons
                   permissions={actionPermissions(drawerItem.action, role, drawerItem.trace.escalateTo?.role ?? null)}
-                  escalateLabel={`Escalate to ${humanizeKey(drawerItem.trace.escalateTo.role)}`}
+                  escalateLabel={`Escalate to ${personLabel(drawerItem.trace.escalateTo.role, people)}`}
                   missingEvidence={missingOptions(drawerItem)}
                   onDecide={(o) => decide(drawerItem, o)}
                   onRequestEvidence={(keys) => requestEvidence(drawerItem, keys)}
@@ -838,7 +824,7 @@ function ProposalBanner({
             className="inline-flex items-center gap-1.5 rounded-md bg-escalate px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
           >
             <ArrowUpRight className="size-3.5" aria-hidden="true" />
-            Escalate to {humanizeKey(target.role)} · {personForRole(target.role, people).name ?? ''}
+            Escalate to {personLabel(target.role, people)}
           </button>
         </div>
         {!perms.escalate.enabled ? <p className="mt-1 text-[11px] text-ink-muted">· {perms.escalate.reason}</p> : null}

@@ -3,7 +3,9 @@ import {
   bumpMinor,
   currentApproved,
   diffVersions,
+  liveVersion,
   markApproved,
+  nextMinorVersion,
   proposeVersion,
   rollback,
   seedVersion,
@@ -124,5 +126,27 @@ describe("rollback", () => {
     expect(() => rollback(history, PILL_ID, "1.2.0", AOM, "  ", AT)).toThrow(/reason/);
     rollback(history, PILL_ID, "1.2.0", AOM, "ok", AT);
     expect(history).toHaveLength(2);
+  });
+});
+
+describe("liveVersion", () => {
+  it("follows approvals and rollbacks rather than the seed", () => {
+    const base = seeded();
+    expect(liveVersion([base])?.version).toBe("1.2.0");
+    const v13 = proposeVersion(base, [], CE, "a", [base], AT);
+    // A draft does not go live.
+    expect(liveVersion([base, v13])?.version).toBe("1.2.0");
+    const approved = markApproved([base, v13], "1.3.0", HTS, AT);
+    expect(liveVersion(approved)).toMatchObject({ version: "1.3.0", status: "Approved" });
+    const rolled = rollback(approved, PILL_ID, "1.2.0", HTS, "regression", AT);
+    expect(liveVersion(rolled)).toMatchObject({ version: "1.4.0", status: "Approved", rollbackOf: "1.2.0" });
+    expect(nextMinorVersion(rolled)).toBe("1.5.0");
+  });
+
+  it("falls back to the highest version when nothing is approved", () => {
+    const base = { ...seeded(), status: "Retired" as const };
+    const v13 = proposeVersion(base, [], CE, "a", [base], AT);
+    expect(liveVersion([base, v13])?.version).toBe("1.3.0");
+    expect(liveVersion([])).toBeUndefined();
   });
 });

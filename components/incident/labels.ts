@@ -64,9 +64,10 @@ export function personForRole(role: string, people: readonly PersonRef[]): { nam
   return { name, title: getRole(role)?.label ?? rosterTitle ?? humanizeKey(role) };
 }
 
+/** "Person · Role label" — same display form as personaLabel / PersonaName. */
 export function personLabel(role: string, people: readonly PersonRef[]): string {
   const p = personForRole(role, people);
-  return p.name ? `${p.name} — ${p.title}` : p.title;
+  return p.name ? `${p.name} · ${p.title}` : p.title;
 }
 
 export function formatClock(iso: string): string {

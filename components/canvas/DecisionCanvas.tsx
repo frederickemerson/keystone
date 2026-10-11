@@ -7,6 +7,7 @@ import { RuleTile, EmptyState, ActionClassChip } from '@/components/mosaic';
 import { cn } from '@/lib/ui/cn';
 import type { ActionClass, Rule } from '@/lib/engine/types';
 import type { PillBundle } from '@/lib/pills/load';
+import { useLivePill } from './useLivePill';
 
 type DecisionState = 'confirmed' | 'edited' | 'rejected';
 type LaneId = 'triggers' | 'decisions' | 'boundaries' | 'escalation';
@@ -54,12 +55,6 @@ function laneForRule(rule: Rule): LaneId {
   return 'decisions';
 }
 
-function bumpVersion(v: string): string {
-  const parts = v.split('.').map(Number);
-  if (parts.length < 2) return `${(parts[0] ?? 1) + 1}.0.0`;
-  return `${parts[0]}.${parts[1] + 1}.0`;
-}
-
 function buildProvenance(rule: Rule, pill: PillBundle) {
   const entry = pill.pill.provenance[rule.id];
   const seg = rule.provenance[0] ?? entry?.transcript_segment ?? '';
@@ -86,7 +81,9 @@ const FILTERS: { id: ActionClass | 'all'; label: string }[] = [
 
 export function DecisionCanvas({ pill }: { pill: PillBundle }) {
   const rules = pill.pill.rules;
-  const nextVersion = bumpVersion(pill.pill.manifest.version);
+  // Next free minor version from the governance store's full history (approvals
+  // and rollbacks included), not the version frozen in the pill files.
+  const { nextVersion } = useLivePill(pill);
 
   const [decisions, setDecisions] = useState<Record<string, DecisionState>>({});
   const [edits, setEdits] = useState<Record<string, string>>({});

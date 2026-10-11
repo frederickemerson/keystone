@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import timeline from "@/data/timelines/INC-2026-1011.json";
-import { approvableActionClasses, capabilities, redact, redactText, visibleSensitivities } from "../access";
+import {
+  approvableActionClasses,
+  capabilities,
+  personaLabel,
+  redact,
+  redactText,
+  roleLabel,
+  visibleSensitivities,
+} from "../access";
+import { DEMO_PERSONAS } from "../store";
 
 const tenantEvent = timeline.events.find((e) => e.sensitivity === "tenant_pii");
 const internalEvent = timeline.events.find((e) => e.sensitivity === "internal");
@@ -61,5 +70,18 @@ describe("redact", () => {
   it("redactText uses the caller-supplied label", () => {
     expect(redactText("Caller: Mr Tan +65 9123 4567", "technician", "tenant_pii")).toBe("[masked: tenant PII]");
     expect(redactText("Valve closed", "technician", "internal")).toBe("Valve closed");
+  });
+});
+
+describe("personaLabel", () => {
+  it("renders a role id as 'Person · Role label' from roles.json", () => {
+    expect(personaLabel("technical_services_lead")).toBe(
+      `${DEMO_PERSONAS.technical_services_lead} · ${roleLabel("technical_services_lead")}`,
+    );
+    expect(personaLabel("technical_services_lead")).not.toContain("_");
+  });
+
+  it("never throws for an unknown role", () => {
+    expect(personaLabel("not_a_role")).toBe("not_a_role");
   });
 });

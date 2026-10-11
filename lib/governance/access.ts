@@ -55,6 +55,17 @@ export function roleLabel(role: string): string {
 }
 
 /**
+ * Display form of a role id: "Person · Role label" (e.g. "Muhammad Hafiz ·
+ * Technical Services Lead"). Never throws — a role without a persona renders
+ * as its label alone.
+ */
+export function personaLabel(role: string): string {
+  const person = DEMO_PERSONAS[role];
+  const label = roleLabel(role);
+  return person === undefined ? label : `${person} · ${label}`;
+}
+
+/**
  * Sensitivity levels a role may see unmasked. Roles not defined in
  * roles.json fail closed to `public` only.
  */

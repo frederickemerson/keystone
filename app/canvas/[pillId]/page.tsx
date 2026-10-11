@@ -1,6 +1,7 @@
-import { SectionHeader } from '@/components/mosaic';
+import { basename } from 'node:path';
+import { SectionHeader, pillTitle } from '@/components/mosaic';
 import { loadPill } from '@/lib/pills/load';
-import { loadContradictionFixture } from '@/lib/data';
+import { loadContradictionFixture, loadTranscript } from '@/lib/data';
 import { CanvasHeader } from '@/components/canvas/CanvasHeader';
 import { ContradictionCallout } from '@/components/canvas/ContradictionCallout';
 import { DecisionCanvas } from '@/components/canvas/DecisionCanvas';
@@ -31,12 +32,21 @@ export default async function CanvasPage({
     contradiction.contradiction.rule_id,
   );
 
+  // Plain-language distinguishing condition, in the expert's words, from the
+  // source transcript's recorded resolution of this same rule.
+  const transcript = loadTranscript(basename(contradiction.source_transcript, '.json'));
+  const recorded = transcript?.contradiction_detected.resolution;
+  const plainCondition =
+    recorded && recorded.resolved_rule_id === contradiction.contradiction.rule_id
+      ? recorded.distinguishing_condition
+      : undefined;
+
   return (
     <div className="space-y-6">
-      <CanvasHeader pill={pill} />
+      <CanvasHeader pill={pill} title={pillTitle(pill)} />
 
       {showContradiction ? (
-        <ContradictionCallout contradiction={contradiction.contradiction} />
+        <ContradictionCallout contradiction={contradiction.contradiction} plainCondition={plainCondition} />
       ) : null}
 
       <SectionHeader

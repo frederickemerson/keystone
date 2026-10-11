@@ -72,6 +72,14 @@ export function currentApproved(history: readonly PillVersion[]): PillVersion | 
     .sort((a, b) => compareSemver(b.version, a.version))[0];
 }
 
+/**
+ * The version a pill is currently running: the Approved one, or — if none is
+ * Approved (e.g. only drafts exist) — the highest version in the history.
+ */
+export function liveVersion(history: readonly PillVersion[]): PillVersion | undefined {
+  return currentApproved(history) ?? [...history].sort((a, b) => compareSemver(b.version, a.version))[0];
+}
+
 // ---------------------------------------------------------------------------
 // Seeding + materialising
 // ---------------------------------------------------------------------------

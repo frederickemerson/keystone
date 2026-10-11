@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Quote, Check, Pencil, X, ArrowUpRight, ShieldAlert, CheckCircle2, Ban } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
 import type { Rule } from '@/lib/engine/types';
+import { PersonaName } from './PersonaName';
 
 export function RuleTile({
   rule,
@@ -144,17 +145,22 @@ export function RuleTile({
       <Field label="Escalation">
         <p className="flex items-center gap-1.5 text-xs text-ink">
           <ArrowUpRight className="size-3.5 text-approval" aria-hidden="true" />
-          {rule.escalate_to.role}
-          {rule.escalate_to.fallback ? (
-            <span className="text-ink-muted"> → fallback: {rule.escalate_to.fallback}</span>
-          ) : null}
+          <span>
+            <PersonaName role={rule.escalate_to.role} />
+            {rule.escalate_to.fallback ? (
+              <span className="text-ink-muted">
+                {' '}
+                → fallback: <PersonaName role={rule.escalate_to.fallback} />
+              </span>
+            ) : null}
+          </span>
         </p>
       </Field>
 
       <Field label="Owner">
         <p className="flex items-center gap-1.5 text-xs text-ink">
           <ShieldAlert className="size-3.5 text-ink-muted" aria-hidden="true" />
-          {rule.owner}
+          <PersonaName role={rule.owner} />
         </p>
       </Field>
 

@@ -34,12 +34,6 @@ const JUMP_MOMENTS = [
   { t: '00:23:10', label: '00:23:10 — Contradiction caught' },
 ];
 
-function fmt(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
 function Waveform({ active, expert }: { active: boolean; expert: boolean }) {
   const heights = [45, 75, 100, 60, 85];
   return (
@@ -114,6 +108,7 @@ export function CallPanel({
   revealedRules,
   pillId,
   pillName,
+  duration,
 }: {
   playback: CallPlayback;
   expert: { name: string; role: string; asset: string; retiring: string };
@@ -122,6 +117,8 @@ export function CallPanel({
   revealedRules: Rule[];
   pillId: string;
   pillName: string;
+  /** Recorded call length from the transcript ("HH:MM:SS"). */
+  duration: string;
 }) {
   const { status } = playback;
 
@@ -138,6 +135,7 @@ export function CallPanel({
           coverage={computeCoverage(revealedRules).overall}
           pillId={pillId}
           pillName={pillName}
+          duration={duration}
         />
       ) : (
         <ActiveView playback={playback} expert={expert} contradiction={contradiction} turns={turns} />
@@ -217,7 +215,9 @@ function ActiveView({
         </div>
         <div className="ml-auto flex items-center gap-2 rounded-full border border-line bg-surface-raised px-3 py-1.5">
           <Clock className="size-3.5 text-ink-muted" aria-hidden="true" />
-          <span className="tabular-nums text-sm font-medium text-ink">{fmt(playback.elapsedSec)}</span>
+          <span className="tabular-nums text-sm font-medium text-ink" aria-label="Call time">
+            {playback.callTime}
+          </span>
         </div>
       </div>
 
@@ -345,11 +345,13 @@ function EndedView({
   coverage,
   pillId,
   pillName,
+  duration,
 }: {
   playback: CallPlayback;
   coverage: number;
   pillId: string;
   pillName: string;
+  duration: string;
 }) {
   const rulesCaptured = playback.revealedRuleIds.length;
   const contradictionsResolved = playback.contradictionResolved ? 1 : 0;
@@ -366,7 +368,7 @@ function EndedView({
       </p>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <KpiStat label="Duration" value={fmt(playback.elapsedSec)} />
+        <KpiStat label="Duration" value={duration} />
         <KpiStat label="Rules captured" value={rulesCaptured} />
         <KpiStat label="Contradictions resolved" value={contradictionsResolved} />
         <KpiStat label="Coverage" value={`${coverage}%`} />

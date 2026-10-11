@@ -7,13 +7,14 @@
 //  - speak each turn with window.speechSynthesis (MOSAIC vs expert voice via
 //    pitch + voice selection); fall back to timed captions when speech is
 //    unavailable or muted
-//  - reveal rule ids as expert turns are reached
+//  - derive captured rule ids as a pure function of the current turn index
+//    (every turn up to and including it), so jumps/skips match linear playback
 //  - expose contradiction visibility/resolved flags derived from the active turn
 //  - cancel speech on pause / unmount
 //
 // No network, no API key. Works fully offline.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TranscriptTurn } from '@/lib/data';
 
 export type CallStatus = 'idle' | 'active' | 'ended';
@@ -25,7 +26,8 @@ export interface CallPlayback {
   paused: boolean;
   speed: Speed;
   muted: boolean;
-  elapsedSec: number;
+  /** Transcript (call) time of the current turn, "HH:MM:SS" — never wall time. */
+  callTime: string;
   revealedRuleIds: string[];
   contradictionVisible: boolean;
   contradictionResolved: boolean;
@@ -47,6 +49,18 @@ function firstGeo(turns: TranscriptTurn[], t: string): number {
   return idx < 0 ? turns.length - 1 : idx;
 }
 
+/** Rule ids extracted from turns[0..turnIndex], de-duplicated in first-seen order. */
+export function capturedRuleIds(
+  turns: readonly Pick<TranscriptTurn, 'extracted_rule_ids'>[],
+  turnIndex: number,
+): string[] {
+  const out: string[] = [];
+  for (const turn of turns.slice(0, Math.max(0, turnIndex + 1))) {
+    for (const id of turn.extracted_rule_ids ?? []) if (!out.includes(id)) out.push(id);
+  }
+  return out;
+}
+
 export function useCallPlayback(args: {
   turns: TranscriptTurn[];
   /** Transcript `expert.name` — identifies the expert's turns (voice + captions). */
@@ -62,8 +76,6 @@ export function useCallPlayback(args: {
   const [paused, setPaused] = useState(false);
   const [speed, setSpeedState] = useState<Speed>(1);
   const [muted, setMuted] = useState(false);
-  const [elapsedSec, setElapsedSec] = useState(0);
-  const [revealedRuleIds, setRevealedRuleIds] = useState<string[]>([]);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const safetyRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -72,29 +84,19 @@ export function useCallPlayback(args: {
   const currentTurn = turns[turnIndex];
   const phase = phaseByTurn[turnIndex] ?? '';
 
-  // Reveal rule ids as expert turns are reached (also covers jump/skip).
-  useEffect(() => {
-    const ids = currentTurn?.extracted_rule_ids;
-    if (!ids || ids.length === 0) return;
-    setRevealedRuleIds((prev) => {
-      const next = [...prev];
-      for (const id of ids) if (!next.includes(id)) next.push(id);
-      return next;
-    });
-  }, [turnIndex, currentTurn]);
+  // Captured rule ids: every id extracted from turns 0..turnIndex, in order of
+  // first appearance. A pure function of the turn index, so jumping to a key
+  // moment shows exactly what linear playback would have captured by then.
+  const revealedRuleIds = useMemo(
+    () => (status === 'idle' ? [] : capturedRuleIds(turns, turnIndex)),
+    [status, turns, turnIndex],
+  );
 
   // Contradiction card appears when we reach the contradiction turn and (optionally)
   // the resolved distinguishing condition once the expert has answered.
   const currentT = currentTurn?.t ?? '';
   const contradictionVisible = status !== 'idle' && currentT >= contradictionStartT;
   const contradictionResolved = status !== 'idle' && currentT >= contradictionResolvedT;
-
-  // Elapsed timer.
-  useEffect(() => {
-    if (status !== 'active' || paused) return;
-    const id = setInterval(() => setElapsedSec((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [status, paused]);
 
   // Speech + advance scheduling for the current turn.
   useEffect(() => {
@@ -172,8 +174,6 @@ export function useCallPlayback(args: {
     setStatus('active');
     setTurnIndex(0);
     setPaused(false);
-    setElapsedSec(0);
-    setRevealedRuleIds([]);
     // Prime the speech engine inside the user gesture (some browsers gate TTS).
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       try {
@@ -216,7 +216,7 @@ export function useCallPlayback(args: {
     paused,
     speed,
     muted,
-    elapsedSec,
+    callTime: currentT,
     revealedRuleIds,
     contradictionVisible,
     contradictionResolved,

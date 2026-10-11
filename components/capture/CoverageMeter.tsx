@@ -42,28 +42,42 @@ const NEXT_QUESTIONS: Record<string, string> = {
 };
 
 export interface CoverageResult {
+  /** Filled fields / (fields × captured candidates), as a whole percent. */
   overall: number;
+  /** Candidates captured so far (the denominator of every per-field bar). */
+  captured: number;
   stats: { key: string; label: string; filled: number; total: number; pct: number }[];
-  gaps: { key: string; label: string; next: string }[];
+  /** Fields still missing on at least one captured candidate. */
+  gaps: { key: string; label: string; next: string; missing: number }[];
 }
 
-export function computeCoverage(rules: Rule[]): CoverageResult {
-  const total = rules.length || 1;
+/**
+ * Schema coverage across the captured candidates. Per field: how many captured
+ * candidates have it filled, out of the candidates captured so far. Nothing
+ * captured yet → 0% with no denominators faked.
+ */
+export function computeCoverage(rules: readonly Rule[]): CoverageResult {
+  const captured = rules.length;
   const stats = FIELDS.map((f) => {
     const filled = rules.filter(f.test).length;
-    return { key: f.key, label: f.label, filled, total, pct: Math.round((filled / total) * 100) };
+    return {
+      key: f.key,
+      label: f.label,
+      filled,
+      total: captured,
+      pct: captured === 0 ? 0 : Math.round((filled / captured) * 100),
+    };
   });
-  const overall = Math.round(
-    (stats.reduce((s, f) => s + f.filled, 0) / (FIELDS.length * total)) * 100,
-  );
+  const filledTotal = stats.reduce((s, f) => s + f.filled, 0);
+  const overall = captured === 0 ? 0 : Math.round((filledTotal / (FIELDS.length * captured)) * 100);
   const gaps = stats
-    .filter((f) => f.filled < total)
-    .map((f) => ({ key: f.key, label: f.label, next: NEXT_QUESTIONS[f.key] }));
-  return { overall, stats, gaps };
+    .filter((f) => f.filled < f.total)
+    .map((f) => ({ key: f.key, label: f.label, next: NEXT_QUESTIONS[f.key], missing: f.total - f.filled }));
+  return { overall, captured, stats, gaps };
 }
 
 export function CoverageMeter({ rules }: { rules: Rule[] }) {
-  const { overall, stats, gaps } = computeCoverage(rules);
+  const { overall, captured, stats, gaps } = computeCoverage(rules);
 
   return (
     <div className="rounded-xl border border-line bg-surface-raised/50 p-4">
@@ -71,6 +85,11 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
         <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Schema coverage</p>
         <p className="text-sm font-semibold tabular-nums text-ink">{overall}%</p>
       </div>
+      <p className="mt-0.5 text-[11px] text-ink-muted">
+        {captured === 0
+          ? 'No candidates captured yet.'
+          : `Fields filled across ${captured} captured candidate${captured === 1 ? '' : 's'}.`}
+      </p>
 
       <div className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
         {stats.map((s) => (
@@ -110,7 +129,12 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
             {gaps.map((g) => (
               <li key={g.key} className="flex gap-2 text-[11px] leading-snug text-ink-muted">
                 <span className="mt-0.5 shrink-0 font-mono text-accent">{g.label}</span>
-                <span>{g.next}</span>
+                <span>
+                  {g.next}{' '}
+                  <span className="tabular-nums">
+                    ({g.missing} of {captured} missing)
+                  </span>
+                </span>
               </li>
             ))}
           </ul>

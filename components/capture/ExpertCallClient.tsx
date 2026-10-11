@@ -76,6 +76,7 @@ export function ExpertCallClient(props: CaptureProps) {
           revealedRules={revealedRules}
           pillId={pillId}
           pillName={pillName}
+          duration={transcript.duration}
         />
         <CapturedPanel
           rules={rules}

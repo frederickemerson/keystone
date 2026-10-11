@@ -3,9 +3,21 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Clock, AlertCircle, FileX, User, ArrowUpRight, Stamp, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
-import type { ActionDecision } from '@/lib/engine/types';
+import type { ActionClass, ActionDecision, ActionStatus } from '@/lib/engine/types';
 import { ActionClassChip } from './ActionClassChip';
 import { StatusBadge } from './StatusBadge';
+import { PersonaName } from './PersonaName';
+
+/**
+ * The status an action class yields on its own, when no evidence gate
+ * intervenes (engine status precedence, lib/engine/evaluate computeStatus).
+ * When the status equals this, the class chip only repeats it.
+ */
+const CLASS_UNGATED_STATUS: Record<ActionClass, ActionStatus> = {
+  must_escalate: 'escalate',
+  requires_approval: 'needs_approval',
+  recommend: 'allowed',
+};
 
 /** Live countdown of remaining minutes; returns remaining ms as a float. */
 function useCountdown(deadlineMinutes: number | null): number | null {
@@ -60,7 +72,9 @@ export function ActionCard({
     >
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={action.status} />
-        <ActionClassChip actionClass={action.actionClass} />
+        {CLASS_UNGATED_STATUS[action.actionClass] !== action.status ? (
+          <ActionClassChip actionClass={action.actionClass} />
+        ) : null}
         <span className="ml-auto rounded border border-line bg-surface-raised px-2 py-0.5 font-mono text-[11px] text-ink-muted">
           {action.pillId}@{action.pillVersion}
         </span>
@@ -74,7 +88,9 @@ export function ActionCard({
         <dt className="flex items-center gap-1 text-ink-muted">
           <User className="size-3.5" aria-hidden="true" /> Owner
         </dt>
-        <dd className="text-ink">{action.owner}</dd>
+        <dd className="text-ink">
+          <PersonaName role={action.owner} />
+        </dd>
 
         {action.escalateTo ? (
           <>
@@ -82,9 +98,12 @@ export function ActionCard({
               <ArrowUpRight className="size-3.5" aria-hidden="true" /> Escalate to
             </dt>
             <dd className="text-ink">
-              {action.escalateTo.role}
+              <PersonaName role={action.escalateTo.role} />
               {action.escalateTo.fallback ? (
-                <span className="text-ink-muted"> (fallback: {action.escalateTo.fallback})</span>
+                <span className="text-ink-muted">
+                  {' '}
+                  (fallback: <PersonaName role={action.escalateTo.fallback} />)
+                </span>
               ) : null}
             </dd>
           </>

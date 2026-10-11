@@ -14,6 +14,8 @@ export { KpiStat } from './KpiStat';
 export { DiffView } from './DiffView';
 export { EmptyState } from './EmptyState';
 export { SectionHeader } from './SectionHeader';
+export { PersonaName } from './PersonaName';
+export { pillTitle } from './pillTitle';
 
 export type {
   TimelineEvent,
