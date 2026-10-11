@@ -7,6 +7,8 @@ import { ActiveIncidentsTable } from '@/components/pulse/ActiveIncidentsTable';
 import { ClosedIncidentsList } from '@/components/pulse/ClosedIncidentsList';
 import { PillCoverageStrip } from '@/components/pulse/PillCoverageStrip';
 import type { IncidentRecord } from '@/lib/data';
+import { sessionRole } from '@/lib/auth/session';
+import { scopeAssets, scopeIncidents } from '@/lib/governance/scope';
 
 // Stable demo clock so "time since detection" / durations are deterministic.
 const DEMO_NOW = new Date('2026-10-11T11:30:00+08:00');
@@ -59,7 +61,7 @@ function replayAgreement(
   return { passed, total };
 }
 
-export default function PortfolioPulsePage() {
+export default async function PortfolioPulsePage() {
   const assets = loadAssets();
   const incidents = loadIncidents();
   // Pill load errors are real data bugs — let them throw to the error boundary
@@ -77,6 +79,12 @@ export default function PortfolioPulsePage() {
   ).length;
   const agreement = replayAgreement(pills);
   const downtimeAvoided = downtimeAvoidedHours(incidents);
+
+  // Aggregates above use the full records on the server; anything rendered
+  // (and so serialised to the client) is scoped to the signed-in role first.
+  const role = await sessionRole();
+  const visibleAssets = scopeAssets(assets, role);
+  const visibleIncidents = scopeIncidents(incidents, role);
 
   // The Technical Services pill is the one whose judgement is on display.
   const tsPillId = 'technical-services-chilled-water-leak';
@@ -109,7 +117,7 @@ export default function PortfolioPulsePage() {
           title="Assets"
           description="Four portfolio assets with their Keppel-native efficiency attributes and live incident state."
         />
-        <AssetGrid assets={assets} incidents={incidents} />
+        <AssetGrid assets={visibleAssets} incidents={visibleIncidents} />
       </section>
 
       {/* Active incidents */}
@@ -118,7 +126,7 @@ export default function PortfolioPulsePage() {
           title="Active incidents"
           description="Severity, detection age, the unresolved owner, evidence coverage (count, not a percentage) and the pill in use."
         />
-        <ActiveIncidentsTable incidents={incidents} />
+        <ActiveIncidentsTable incidents={visibleIncidents} />
       </section>
 
       {/* Recent closed incidents */}
@@ -127,7 +135,7 @@ export default function PortfolioPulsePage() {
           title="Recently closed"
           description="Outcome-captured incidents feeding the Learning loop."
         />
-        <ClosedIncidentsList incidents={incidents} pillId={tsPillId} />
+        <ClosedIncidentsList incidents={visibleIncidents} pillId={tsPillId} />
       </section>
 
       {/* Pill coverage strip */}
@@ -136,7 +144,7 @@ export default function PortfolioPulsePage() {
           title="Pill coverage by asset type"
           description="Which Intelligence Pills declare coverage of each asset type. Gaps are where a new pill or asset overlay is needed."
         />
-        <PillCoverageStrip pills={pills} assets={assets} />
+        <PillCoverageStrip pills={pills} assets={visibleAssets} />
       </section>
     </div>
   );

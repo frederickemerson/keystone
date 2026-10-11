@@ -93,7 +93,7 @@ export function ShadowPanel({
           <p className="text-xs text-ink-muted">{promoteBlockedReason}</p>
           {switchRole ? (
             <button type="button" onClick={switchRole.onSwitch} className="btn-pill">
-              <UserCheck className="size-3.5" aria-hidden="true" /> Switch to {switchRole.label}
+              <UserCheck className="size-3.5" aria-hidden="true" /> Switch user to {switchRole.label}
             </button>
           ) : null}
         </div>

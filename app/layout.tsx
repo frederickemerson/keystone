@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Caveat, Geist, Geist_Mono } from 'next/font/google';
 import { AppShell } from '@/components/app-shell';
+import { getSession } from '@/lib/auth/session';
 import './globals.css';
 
 // Display / headings (600–700), body, UI and tables.
@@ -30,14 +31,16 @@ export const metadata: Metadata = {
   description: 'Keystone turns expert judgement into governed, versioned Intelligence Pills.',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // The verified demo session (signed cookie) — the acting identity in the shell.
+  const session = await getSession();
   return (
     <html
       lang="en"
       className={`${geist.variable} ${geistMono.variable} ${caveat.variable}`}
     >
       <body>
-        <AppShell>{children}</AppShell>
+        <AppShell session={session}>{children}</AppShell>
       </body>
     </html>
   );

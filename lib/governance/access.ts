@@ -55,9 +55,9 @@ export function isKnownRole(role: string): boolean {
 }
 
 /**
- * Role used for policy decisions before the persisted acting role is known
- * (SSR + first client render). It is in no roles.json entry, so every policy
- * check fails closed: public data only, no grants.
+ * Role used for policy decisions before the signed session's role is known
+ * (SSR + first client render, or no session). It is in no roles.json entry, so
+ * every policy check fails closed: public data only, no grants.
  */
 export const UNRESOLVED_ROLE = "unresolved";
 
@@ -81,16 +81,13 @@ export function sameIdentity(a: string, b: string): boolean {
 }
 
 /**
- * The actor before the persisted acting role is known (SSR + hydration). No
- * persona, no grants, public data only.
+ * The actor before the signed session's identity is bound (SSR, first client
+ * render, or no session). No persona, no grants, public data only.
  */
 export const UNRESOLVED_ACTOR: Readonly<{ name: string; role: string }> = Object.freeze({
   name: "",
   role: UNRESOLVED_ROLE,
 });
-
-/** Role the demo opens as once the store has hydrated with no (valid) saved actor. */
-export const DEFAULT_ROLE = "asset_operations_manager";
 
 // ---------------------------------------------------------------------------
 // Human decisions on incident actions / tenant messages

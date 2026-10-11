@@ -1,11 +1,14 @@
 import { loadAllPills } from "@/lib/pills/load";
 import { loadIncidents } from "@/lib/data";
 import { ApprovalsQueue } from "@/components/approvals/ApprovalsQueue";
+import { sessionRole } from "@/lib/auth/session";
+import { scopeIncidents } from "@/lib/governance/scope";
 
-export default function ApprovalsPage() {
+export default async function ApprovalsPage() {
   // Server loads pill bundles (for version approvals) and incidents (for
   // pending action decisions); the client queue seeds the governance store.
   const bundles = loadAllPills();
-  const incidents = loadIncidents();
+  // Incidents are scoped to the signed-in role before they reach the client.
+  const incidents = scopeIncidents(loadIncidents(), await sessionRole());
   return <ApprovalsQueue bundles={bundles} incidents={incidents} />;
 }

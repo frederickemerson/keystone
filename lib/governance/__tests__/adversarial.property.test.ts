@@ -126,6 +126,32 @@ const sequenceArb = fc
   .tuple(fc.boolean(), fc.array(commandArb, { minLength: 1, maxLength: 40 }))
   .map(([prefixed, rest]) => (prefixed ? [...APPROVED_PREFIX, ...rest] : rest));
 
+/**
+ * A sequence that drives every privileged action to both outcomes. Run as an
+ * explicit example before the random sequences, so the "really exercises both
+ * outcomes" check below holds on every run instead of depending on the random
+ * generator hitting rare preconditions (e.g. an empty proposal needs exactly the
+ * base deadline, 15 of 1..60, with a non-blank reason).
+ */
+const BOTH_OUTCOMES: Command[] = [
+  { op: "setRole", role: "chief_engineer" },
+  { op: "propose", base: "1.2.0", deadline: 15, reason: "ok" }, // refused: rules unchanged
+  { op: "propose", base: "1.2.0", deadline: 10, reason: "fix" }, // ok → 1.3.0 Draft
+  { op: "setRole", role: "technician" },
+  { op: "promote", version: "1.3.0" }, // refused: no promotion grant
+  { op: "approve", version: "1.3.0", regressed: false, override: null }, // refused
+  { op: "rollback", version: "1.2.0", reason: "x" }, // refused: no rollback grant
+  { op: "decide", outcome: "approved", subject: undefined }, // refused: no approval grant
+  { op: "setRole", role: "head_technical_services" },
+  { op: "promote", version: "1.3.0" }, // ok → Shadow
+  { op: "setRole", role: "executive" },
+  { op: "approve", version: "1.3.0", regressed: false, override: null }, // ok
+  { op: "rollback", version: "1.2.0", reason: "production regression" }, // ok
+  { op: "setRole", role: "asset_operations_manager" },
+  { op: "decide", outcome: "escalated", subject: undefined }, // ok
+  { op: "reset" }, // ok
+];
+
 /** Run one command; returns whether it threw a policy refusal, a malformed-input error, or succeeded. */
 function run(store: GovernanceStore, c: Command): "ok" | "refused" | "invalid" {
   const s = store.getState();
@@ -197,6 +223,9 @@ describe("governance store under random action sequences", () => {
           if (result === "invalid") {
             // Malformed input (unknown role / base version / empty reason): no state change at all.
             expect(after).toBe(before);
+          } else if (c.op === "setRole" && before.currentActor.role === UNRESOLVED_ROLE) {
+            // Binding the first (session) identity is session start, not a switch: not audited.
+            expect(after.audit.length).toBe(before.audit.length);
           } else {
             expect(after.audit.length).toBe(before.audit.length + 1);
           }
@@ -205,9 +234,9 @@ describe("governance store under random action sequences", () => {
           assertInvariants(store);
         }
       }),
-      { numRuns: 500 },
+      { numRuns: 500, examples: [[BOTH_OUTCOMES]] },
     );
-    // The generator really exercises both outcomes of every privileged action.
+    // Every privileged action really reaches both outcomes (guaranteed by BOTH_OUTCOMES).
     for (const op of ["propose", "promote", "approve", "rollback", "decide", "reset", "setRole"]) {
       expect(seen.ok.has(op), `${op} never succeeded`).toBe(true);
     }

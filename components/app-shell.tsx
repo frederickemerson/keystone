@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { ScrollText } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
-import { RoleSwitcher } from '@/components/shell/RoleSwitcher';
+import { SwitchUser } from '@/components/shell/SwitchUser';
+import { useSessionBinding, type SessionActor } from '@/components/shell/session';
 import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { BrandLogo } from '@/components/shell/BrandMark';
 
@@ -57,13 +58,18 @@ function Wordmark({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+/** Full-bleed public pages with their own header (no sidebar shell). */
+const BARE_ROUTES = new Set(['/', '/sign-in']);
+
+export function AppShell({ children, session }: { children: React.ReactNode; session: SessionActor | null }) {
   const pathname = usePathname();
   const [auditOpen, setAuditOpen] = useState(false);
+  // The signed session is the acting identity for every governance check.
+  useSessionBinding(session);
 
-  // The landing page (/) is full-bleed with its own minimal header; every app
-  // screen gets the sidebar shell. The brand mark links back to it.
-  if (pathname === '/') return <>{children}</>;
+  // The landing page (/) and sign-in are full-bleed with their own header;
+  // every app screen gets the sidebar shell. The brand mark links back to /.
+  if (BARE_ROUTES.has(pathname)) return <>{children}</>;
 
   return (
     <div className="flex min-h-dvh bg-canvas text-ink">
@@ -121,7 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Wordmark compact />
           </div>
           <div className="ml-auto flex items-center gap-2.5">
-            <RoleSwitcher />
+            {session ? <SwitchUser actor={session} /> : null}
             <button type="button" onClick={() => setAuditOpen(true)} className="btn-pill text-xs">
               <ScrollText className="size-3.5" aria-hidden="true" />
               Audit log

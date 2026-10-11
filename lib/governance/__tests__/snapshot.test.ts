@@ -2,7 +2,7 @@
 // crashes and never trusts a snapshot that breaks a governance invariant.
 
 import { describe, expect, it, vi } from "vitest";
-import { personaFor } from "../access";
+import { personaFor, UNRESOLVED_ACTOR } from "../access";
 import {
   createGovernanceStore,
   GOVERNANCE_STORE_KEY,
@@ -40,7 +40,7 @@ async function rehydrateFrom(value: string): Promise<GovernanceStore> {
 
 function expectFresh(store: GovernanceStore) {
   const s = store.getState();
-  expect(s.currentActor).toEqual(personaFor("asset_operations_manager"));
+  expect(s.currentActor).toEqual(UNRESOLVED_ACTOR);
   expect(s.versions).toEqual({});
   expect(s.audit).toEqual([]);
   expect(s.decisions).toEqual({});
@@ -94,14 +94,6 @@ const TAMPERS: Record<string, Tamper> = {
     r.state.audit[0].action = "rules_rewritten";
     return r;
   },
-  "acting as a role not in roles.json": (r) => {
-    r.state.currentActor = { name: "Mallory", role: "superuser" };
-    return r;
-  },
-  "acting role with a forged name": (r) => {
-    r.state.currentActor = { name: "Mallory", role: "executive" };
-    return r;
-  },
   "rule with an unknown field (strict engine schema)": (r) => {
     r.state.versions[PILL_ID][1].rules[0].bypass_gate = true;
     return r;
@@ -130,8 +122,25 @@ describe("persisted snapshot tampering", () => {
     const { raw } = populated();
     const store = await rehydrateFrom(JSON.stringify(raw));
     expect(store.getState().versions[PILL_ID].map((v) => v.status)).toEqual(["Retired", "Approved"]);
-    expect(store.getState().currentActor.role).toBe("head_technical_services");
+    // The acting identity is not part of the snapshot: it is bound from the session.
+    expect(raw.state).not.toHaveProperty("currentActor");
+    expect(store.getState().currentActor).toEqual(UNRESOLVED_ACTOR);
   });
+
+  for (const forged of [
+    { name: "Mallory", role: "superuser" },
+    { name: "Mallory", role: "executive" },
+    { name: "Tan Siew Leng", role: "executive" },
+  ]) {
+    it(`ignores an acting identity written into storage (${forged.name} as ${forged.role})`, async () => {
+      const { raw } = populated();
+      raw.state.currentActor = forged;
+      const store = await rehydrateFrom(JSON.stringify(raw));
+      // Governance data still loads; the forged identity never becomes the actor.
+      expect(store.getState().versions[PILL_ID]).toHaveLength(2);
+      expect(store.getState().currentActor).toEqual(UNRESOLVED_ACTOR);
+    });
+  }
 
   for (const [name, tamper] of Object.entries(TAMPERS)) {
     it(`discards: ${name}`, async () => {

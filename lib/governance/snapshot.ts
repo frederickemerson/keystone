@@ -8,13 +8,16 @@
 // half-trusted. This is a client-side demo store — it makes tampering
 // visible and fail-closed, it does not make it impossible (production would
 // enforce governance server-side).
+//
+// The acting identity is never read from the snapshot: it comes from the
+// signed session (lib/auth). A `currentActor` left by an older build is ignored.
 
 import { z } from "zod";
 import { ruleSchema } from "@/lib/engine";
-import { isKnownRole, personaFor, sameIdentity } from "./access";
+import { isKnownRole, sameIdentity } from "./access";
 import { AUDIT_ACTIONS, auditId, type AuditEvent } from "./audit";
 import { compareSemver, type PillVersion } from "./versions";
-import type { GovernanceData } from "./store";
+import type { PersistedGovernanceData } from "./store";
 
 const actorSchema = z.object({ name: z.string(), role: z.string() });
 
@@ -69,7 +72,6 @@ const shadowRunSchema = z.object({
 });
 
 const snapshotSchema = z.object({
-  currentActor: actorSchema,
   versions: z.record(z.string(), z.array(pillVersionSchema).min(1)),
   seedVersions: z.record(z.string(), z.array(pillVersionSchema).length(1)),
   audit: z.array(auditEventSchema),
@@ -77,7 +79,7 @@ const snapshotSchema = z.object({
   shadowRuns: z.record(z.string(), z.array(shadowRunSchema)),
 });
 
-export type SnapshotResult = { ok: true; data: GovernanceData } | { ok: false; reason: string };
+export type SnapshotResult = { ok: true; data: PersistedGovernanceData } | { ok: false; reason: string };
 
 const DECISION_AUDIT: Record<string, string> = {
   approved: "action_approved",
@@ -91,13 +93,7 @@ function sameJson(a: unknown, b: unknown): boolean {
 }
 
 /** Governance invariants over a structurally valid snapshot; returns the first violation. */
-function violation(data: GovernanceData): string | null {
-  const actor = data.currentActor;
-  if (!isKnownRole(actor.role)) return `acting role "${actor.role}" is not defined`;
-  if (!sameIdentity(actor.name, personaFor(actor.role).name)) {
-    return `acting name "${actor.name}" is not the ${actor.role} persona`;
-  }
-
+function violation(data: PersistedGovernanceData): string | null {
   // Audit: contiguous ids from AUD-00001 — a removed or reordered entry leaves a gap.
   const audit = data.audit;
   for (let i = 0; i < audit.length; i++) {
@@ -196,7 +192,7 @@ function hasPrototypeKey(value: unknown): boolean {
 }
 
 /**
- * Parse an untrusted persisted snapshot. Returns frozen-audit GovernanceData
+ * Parse an untrusted persisted snapshot. Returns frozen-audit governance data
  * only when it is structurally valid and satisfies every invariant.
  */
 export function parseGovernanceSnapshot(raw: unknown): SnapshotResult {
@@ -206,7 +202,7 @@ export function parseGovernanceSnapshot(raw: unknown): SnapshotResult {
     const first = parsed.error.issues[0];
     return { ok: false, reason: `invalid shape at ${first?.path.join(".") || "(root)"}: ${first?.message ?? "?"}` };
   }
-  const data = parsed.data as GovernanceData;
+  const data = parsed.data as PersistedGovernanceData;
   const problem = violation(data);
   if (problem) return { ok: false, reason: problem };
   return {

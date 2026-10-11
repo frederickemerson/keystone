@@ -14,9 +14,17 @@ export function LandingHeader() {
       >
         <BrandLogo markSize={36} textClassName="text-[26px]" />
       </Link>
-      <Link href={INCIDENT_ROOM_HREF} className="btn-pill min-h-10 px-4 text-[14px] max-[380px]:px-3">
-        Open the incident room
-      </Link>
+      <nav aria-label="Account" className="flex items-center gap-3 sm:gap-4">
+        <Link
+          href="/sign-in"
+          className="rounded-md text-[14px] font-medium text-ink underline-offset-4 hover:underline focus-visible:outline-offset-4"
+        >
+          Sign in
+        </Link>
+        <Link href={INCIDENT_ROOM_HREF} className="btn-pill min-h-10 px-4 text-[14px] max-[380px]:px-3">
+          Open the incident room
+        </Link>
+      </nav>
     </header>
   );
 }

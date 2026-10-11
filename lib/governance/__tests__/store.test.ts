@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Regression } from "@/lib/engine";
 import { createGovernanceStore, GOVERNANCE_STORE_KEY, GOVERNANCE_STORE_VERSION, GovernanceError, memoryStorage } from "../store";
-import { ROLES, hasCapability } from "../access";
+import { ROLES, hasCapability, UNRESOLVED_ROLE } from "../access";
 import { shadowPromotionAuthority } from "../approval";
 import { PILL_ID, pill } from "./fixtures";
 
@@ -102,15 +102,18 @@ describe("governance store", () => {
     });
   });
 
-  it("persists to storage under a versioned key and rehydrates", async () => {
+  it("persists to storage under a versioned key and rehydrates — without the acting identity", async () => {
     ctx.store.getState().setRole("tenant_experience_manager");
     const raw = await ctx.storage.getItem(GOVERNANCE_STORE_KEY);
     expect(raw).toBeTruthy();
-    expect(JSON.parse(String(raw)).version).toBe(GOVERNANCE_STORE_VERSION);
+    const parsed = JSON.parse(String(raw));
+    expect(parsed.version).toBe(GOVERNANCE_STORE_VERSION);
+    // Who is acting comes from the signed session on every load, never from storage.
+    expect(parsed.state).not.toHaveProperty("currentActor");
 
     const again = createGovernanceStore(ctx.storage, clock);
     await again.persist.rehydrate();
-    expect(again.getState().currentActor.role).toBe("tenant_experience_manager");
+    expect(again.getState().currentActor.role).toBe(UNRESOLVED_ROLE);
     expect(again.getState().versions[PILL_ID]).toHaveLength(1);
     expect(Object.isFrozen(again.getState().audit)).toBe(true);
   });
@@ -186,5 +189,28 @@ describe("governance store", () => {
       expect(storeAllowed).toBe(ui);
       expect(ui).toBe(role === draft.approverRole || hasCapability(role, "promote_pill_version"));
     }
+  });
+
+  it("binding the session identity onto the unresolved actor is not a switch; later changes are audited", () => {
+    const s = () => ctx.store.getState();
+    expect(s().currentActor.role).toBe(UNRESOLVED_ROLE);
+    const before = s().audit.length;
+    s().setRole("technician");
+    expect(s().currentActor).toEqual({ name: "Rajesh Kumar", role: "technician" });
+    expect(s().audit).toHaveLength(before);
+    s().setRole("asset_operations_manager");
+    expect(s().audit).toHaveLength(before + 1);
+    expect(s().audit.at(-1)).toMatchObject({ action: "role_switched", actor: "Priya Nair", role: "asset_operations_manager" });
+  });
+
+  it("with no session identity bound, nothing can be proposed (fails closed, audited)", () => {
+    const s = () => ctx.store.getState();
+    const before = s().audit.length;
+    expect(() =>
+      s().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], "anon"),
+    ).toThrow(GovernanceError);
+    expect(s().versions[PILL_ID]).toHaveLength(1);
+    expect(s().audit).toHaveLength(before + 1);
+    expect(s().audit.at(-1)?.action).toBe("version_proposal_blocked");
   });
 });

@@ -2,6 +2,10 @@
 // Composes versions, approval, shadow runs, incident action decisions and the
 // append-only audit log. Seeded from file pills (PillBundle) passed down from
 // server components; "Reset demo" restores the seed state.
+//
+// The acting identity is NOT persisted: it is bound from the signed session
+// (lib/auth → app shell → setRole) on every load, so localStorage can never
+// choose who is acting.
 
 import { useStore } from "zustand";
 import { createJSONStorage, persist, type PersistStorage, type StateStorage } from "zustand/middleware";
@@ -15,13 +19,13 @@ import {
   type ShadowRun,
 } from "./approval";
 import {
-  DEFAULT_ROLE,
   decisionAuthority,
   hasCapability,
   isKnownRole,
   personaFor,
   roleLabel,
   UNRESOLVED_ACTOR,
+  UNRESOLVED_ROLE,
   type DecisionOutcome,
   type DecisionSubject,
 } from "./access";
@@ -71,7 +75,7 @@ export interface ActionDecisionRecord {
 }
 
 export interface GovernanceData {
-  /** UNRESOLVED_ACTOR until the persisted snapshot has been read (SSR + hydration). */
+  /** UNRESOLVED_ACTOR until the signed session's identity is bound (SSR, first render, no session). Never persisted. */
   currentActor: Actor;
   /** pillId → full version history (never shrinks). */
   versions: Record<string, PillVersion[]>;
@@ -95,8 +99,17 @@ export class GovernanceError extends Error {
  * input having changed nothing. seedPills is the system exception: one
  * pill_seeded event per pill it seeds.
  */
+/** What the store persists: everything except the acting identity, which comes from the session. */
+export type PersistedGovernanceData = Omit<GovernanceData, "currentActor">;
+
 export interface GovernanceActions {
-  /** Act as the named persona of a roles.json role (the persona is bound to the role). */
+  /**
+   * Act as the named persona of a roles.json role (the persona is bound to the
+   * role; a name cannot be chosen). In the app only the session binding calls
+   * this, with the role of the signed session. Binding the first identity onto
+   * the unresolved actor is session start, not a switch, and is not audited;
+   * every later change is audited as role_switched.
+   */
   setRole: (role: string) => void;
   /** Seed any pill not already in the store (persisted edits survive reloads). */
   seedPills: (seeds: readonly PillSeed[]) => void;
@@ -253,8 +266,11 @@ export function createGovernanceStore(
           setRole: (role) => {
             if (!isKnownRole(role)) throw new Error(`Role "${role}" is not defined in data/roles.json`);
             const actor = personaFor(role);
+            const sessionStart = get().currentActor.role === UNRESOLVED_ROLE;
             set({ currentActor: actor });
-            log({ ...actorFields(), action: "role_switched", detail: `Switched to ${roleLabel(role)} (${actor.name})` });
+            if (!sessionStart) {
+              log({ ...actorFields(), action: "role_switched", detail: `Switched user to ${actor.name} (${roleLabel(role)})` });
+            }
           },
 
           seedPills: (seeds) => {
@@ -309,6 +325,12 @@ export function createGovernanceStore(
             const h = history(pillId);
             const base = findVersion(h, baseVersion);
             if (!base) throw new Error(`Unknown version ${pillId}@${baseVersion}`);
+            if (!isKnownRole(get().currentActor.role)) {
+              // No session identity bound yet: nobody to author the version.
+              const why = "No signed-in identity — sign in to propose a version";
+              log({ ...actorFields(), action: "version_proposal_blocked", pillId, pillVersion: baseVersion, detail: why });
+              throw new GovernanceError(why);
+            }
             let proposed: PillVersion;
             try {
               proposed = proposePure(base, changes, get().currentActor, reason, h, now());
@@ -476,8 +498,7 @@ export function createGovernanceStore(
         name: GOVERNANCE_STORE_KEY,
         version: GOVERNANCE_STORE_VERSION,
         storage: tolerantJSONStorage(storage),
-        partialize: (s): GovernanceData => ({
-          currentActor: s.currentActor,
+        partialize: (s): PersistedGovernanceData => ({
           versions: s.versions,
           seedVersions: s.seedVersions,
           audit: s.audit,
@@ -488,15 +509,16 @@ export function createGovernanceStore(
         migrate: () => undefined,
         // The snapshot is untrusted input: accept it only if it parses and
         // satisfies every governance invariant; otherwise start fresh.
+        // The acting identity is always the in-memory (session-bound) one.
         merge: (persisted, current) => {
-          const fresh = { ...current, ...initialData({}, personaFor(DEFAULT_ROLE)) };
+          const fresh = { ...current, ...initialData({}, current.currentActor) };
           if (persisted === undefined || persisted === null) return deepFreeze(fresh);
           const parsed = parseGovernanceSnapshot(persisted);
           if (!parsed.ok) {
             if (typeof console !== "undefined") console.warn(`[keystone] discarded stored governance state: ${parsed.reason}`);
             return deepFreeze(fresh);
           }
-          return deepFreeze({ ...current, ...parsed.data });
+          return deepFreeze({ ...current, ...parsed.data, currentActor: current.currentActor });
         },
       },
     ),

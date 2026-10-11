@@ -7,7 +7,7 @@
 //   1 outcome capture → 2 expert correction → 3 diff → 4 eval replay
 //   → 5 shadow → 6 approve → 7 rollback
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Lock } from 'lucide-react';
 import { PageHeader, RomanList, SectionHeader, type RomanListItem } from '@/components/mosaic';
 import { compareVersions, type EvalCase } from '@/lib/engine';
@@ -37,6 +37,7 @@ import { HistoryRail } from './HistoryRail';
 import { OutcomeForm } from './OutcomeForm';
 import { RollbackPanel } from './RollbackPanel';
 import { ShadowPanel } from './ShadowPanel';
+import { useSwitchUser } from '@/components/shell/session';
 import { goToStep, type StepState } from './StepRail';
 import { VersionChip } from './VersionChip';
 import {
@@ -126,7 +127,7 @@ export function LearningFlow({
   incident: IncidentRecord | null;
 }) {
   const seedPills = useGovernanceStore((s) => s.seedPills);
-  const setRole = useGovernanceStore((s) => s.setRole);
+  const switchUser = useSwitchUser();
   const proposeVersion = useGovernanceStore((s) => s.proposeVersion);
   const promoteToShadow = useGovernanceStore((s) => s.promoteToShadow);
   const recordShadowRun = useGovernanceStore((s) => s.recordShadowRun);
@@ -138,19 +139,14 @@ export function LearningFlow({
   const audit = useGovernanceStore((s) => s.audit);
   const shadowRuns = useGovernanceStore((s) => s.shadowRuns);
 
-  const seeded = useRef(false);
-
-  // Seed this pill into the governance store once; the demo opens as the
-  // Chief Engineer because step 2 is his correction. Step 5 (Shadow) needs the
-  // pill-promotion grant he does not hold, so it offers a hand-off to the steward.
+  // Seed this pill into the governance store. The acting identity is the
+  // signed-in user (step 2 is typically the Chief Engineer's correction); step 5
+  // (Shadow) needs the pill-promotion grant, so it offers a switch-user hand-off
+  // to the steward when the signed-in user does not hold it.
   useEffect(() => {
     const seed: PillSeed = { id: bundle.id, pill: bundle.pill };
     seedPills([seed]);
-    if (!seeded.current) {
-      seeded.current = true;
-      setRole('chief_engineer');
-    }
-  }, [bundle, seedPills, setRole]);
+  }, [bundle, seedPills]);
 
   const [outcome, setOutcome] = useState<OutcomeDraft>(() => defaultOutcome(incident));
   const [outcomeSaved, setOutcomeSaved] = useState(false);
@@ -443,7 +439,7 @@ export function LearningFlow({
               promoteBlockedReason={promoteBlockedReason}
               switchRole={
                 promoteBlockedReason && promoterRole
-                  ? { label: personaLabel(promoterRole), onSwitch: () => setRole(promoterRole) }
+                  ? { label: personaLabel(promoterRole), onSwitch: () => void switchUser(promoterRole) }
                   : undefined
               }
               runs={runs}

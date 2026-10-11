@@ -13,6 +13,8 @@ import {
   type Timeline,
 } from '@/lib/data';
 import { loadAllPills } from '@/lib/pills/load';
+import { sessionRole } from '@/lib/auth/session';
+import { scopeAsset, scopeIncident, scopeTenantMessageFixture, scopeTimeline } from '@/lib/governance/scope';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,15 +37,20 @@ function proposalsFor(incidentId: string, timeline: Timeline): AiProposal[] {
   });
 }
 
-function scenarioFor(incident: IncidentRecord, assets: AssetRecord[]): IncidentScenario | null {
+/**
+ * One incident's room data, scoped to the signed-in role on the server: records
+ * above the role's clearance are masked before they reach the client.
+ */
+function scenarioFor(incident: IncidentRecord, assets: AssetRecord[], role: string): IncidentScenario | null {
   const asset = assets.find((a) => a.id === incident.asset_id);
   const timeline = loadTimeline(incident.id);
   if (!asset || !timeline) return null;
+  const tenantMessage = loadTenantMessageFixture(incident.id);
   return {
-    incident,
-    asset,
-    timeline,
-    tenantMessage: loadTenantMessageFixture(incident.id) ?? null,
+    incident: scopeIncident(incident, role),
+    asset: scopeAsset(asset, role),
+    timeline: scopeTimeline(timeline, role),
+    tenantMessage: tenantMessage ? scopeTenantMessageFixture(tenantMessage, role) : null,
     aiProposals: proposalsFor(incident.id, timeline),
   };
 }
@@ -53,7 +60,7 @@ function scenarioFor(incident: IncidentRecord, assets: AssetRecord[]): IncidentS
  * of the same type, with a timeline, on an asset of a different type —
  * preferring one recorded with an `asset_overlay`.
  */
-function overlayFor(primary: IncidentScenario, incidents: IncidentRecord[], assets: AssetRecord[]) {
+function overlayFor(primary: IncidentScenario, incidents: IncidentRecord[], assets: AssetRecord[], role: string) {
   const withTimeline = new Set(listTimelineIds());
   const candidates = incidents.filter((i) => {
     if (i.id === primary.incident.id || i.status === 'closed' || !withTimeline.has(i.id)) return false;
@@ -62,7 +69,7 @@ function overlayFor(primary: IncidentScenario, incidents: IncidentRecord[], asse
     return asset !== undefined && asset.type !== primary.asset.type;
   });
   const pick = candidates.find((i) => i.asset_overlay) ?? candidates[0];
-  return pick ? scenarioFor(pick, assets) : null;
+  return pick ? scenarioFor(pick, assets, role) : null;
 }
 
 function parseStep(raw: string | string[] | undefined): number | 'end' {
@@ -81,12 +88,13 @@ export default async function IncidentPage({
 }) {
   const { id } = await params;
   const { step } = await searchParams;
+  const role = await sessionRole();
 
   const incidents = loadIncidents();
   const assets = loadAssets();
   const incident = incidents.find((i) => i.id === id);
   if (!incident) notFound();
-  const primary = scenarioFor(incident, assets);
+  const primary = scenarioFor(incident, assets, role);
   if (!primary) notFound();
 
   // Approved-version selection happens client-side against the governance
@@ -101,7 +109,7 @@ export default async function IncidentPage({
   return (
     <IncidentRoom
       primary={primary}
-      overlay={overlayFor(primary, incidents, assets)}
+      overlay={overlayFor(primary, incidents, assets, role)}
       pills={pills}
       initialStep={parseStep(step)}
     />

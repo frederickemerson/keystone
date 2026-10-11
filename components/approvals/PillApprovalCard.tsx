@@ -57,7 +57,7 @@ export function PillApprovalCard({
     ? undefined
     : version.status !== "Draft"
       ? promotion.reason
-      : `${roleLabel(currentActor.role)} has no pill-promotion grant — switch to a role that holds it (e.g. ${roleLabel(version.approverRole)}) to start Shadow.`;
+      : `${roleLabel(currentActor.role)} has no pill-promotion grant — switch user to someone who holds it (e.g. ${roleLabel(version.approverRole)}) to start Shadow.`;
 
   const overrideReady =
     comparison.regressions.length > 0 &&

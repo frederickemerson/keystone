@@ -4,25 +4,47 @@ Decisions taken on the demo's scope and governance behaviour, each with the
 reason behind it. Where a decision changes how the product should be
 described (README, submission), the wording to use is recorded here.
 
-## D1 — Redaction stays client-side in the demo
+## D1 — Redaction runs on the server, per authenticated demo session
 
-**Decision.** Role/sensitivity redaction (`lib/governance/access.ts`
-`redact` / `redactText`) runs in the browser, keyed by the role picked in
-the role switcher. The demo has no server login, so there is no
-authenticated identity a server could enforce against.
+**Decision.** The demo has a sign-in (`/sign-in`): pick a persona from
+`data/roles.json` and enter the shared demo passcode. The server issues a
+signed session cookie (HS256 via `jose`, HTTP-only, SameSite=Lax, Secure in
+production, 8 hours) carrying the role and its persona's name. Middleware
+sends every app screen to `/sign-in` without a valid session, and the LLM API
+answers 401. Each page reads the role from the verified session
+(`lib/auth/session.ts`) and redacts on the server (`lib/governance/scope.ts`)
+before any props reach a client component. Records above the role's clearance
+are masked in the HTML and in the RSC payload. For example, a Technician's
+browser never receives the anchor tenant's name.
 
-**Rationale.** Without authenticated sessions a server-side check would
-only trust the same client-chosen role, so it would add no real protection.
-It is more honest to keep redaction where it is and say what it is.
+The governance store takes its acting identity from the session on every
+load, never from localStorage. Separation-of-duties and grant checks use that
+identity. With no session, nothing can be proposed. "Switch user" replaces the
+old free role picker. A valid session switches in one click, because every
+persona shares the passcode the session already proved. Without a valid
+session, switching goes through `/sign-in`.
 
-**How to describe it.** In the demo, redaction is presentation-level: it
-shows what each role would see, and it fails closed (the unresolved
-server-render role sees public data only). It is not access control,
-because the full record still reaches the browser. In production, role and
-sensitivity are enforced server-side against authenticated sessions:
-records above a user's clearance are masked before they leave the server,
-and the same policy (`data/roles.json` grants and sensitivity levels) also
-gates every governance action on the server.
+**What is classified, and how.** Incidents, timeline events and
+tenant-message drafts carry their own `sensitivity` labels, and `redact`
+applies them. Asset tenant and client sub-records are not labelled in
+`assets.json`, so `ASSET_FIELD_SENSITIVITY` classifies them field by field:
+tenant name, floors and trading hours are tenant PII; the lease clause, client
+name and SLA credit trigger are commercial. For an event above clearance, only
+its narrative is masked. Its evidence keys and boolean facts still ship,
+because they are the deterministic engine's inputs and the gates must come out
+the same for every viewer (they name no one, and the UI masks their values
+anyway). Pill rule definitions ship intact: a rule's label classifies the data
+it acts on, and the engine needs the rule itself.
+
+**How to describe it.** The demo enforces redaction on the server against an
+authenticated session. It is still a demo login: one shared passcode unlocks
+every persona, so it shows per-role enforcement but is not identity proofing.
+The governance store (versions, approvals, audit) still lives in the
+browser's localStorage, validated on load. In production, sign-in goes through
+the enterprise identity provider (OIDC/SAML SSO), with roles mapped from IdP
+groups. The same `data/roles.json` policy would gate every governance action
+in a server-side store, and the LLM routes would scope their output to the
+caller's role.
 
 ## D2 — Shadow mode requires the pill-promotion grant
 

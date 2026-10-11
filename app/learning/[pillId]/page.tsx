@@ -6,6 +6,8 @@ import { notFound } from 'next/navigation';
 import { LearningFlow } from '@/components/learning/LearningFlow';
 import { loadIncident } from '@/lib/data';
 import { loadPill } from '@/lib/pills/load';
+import { sessionRole } from '@/lib/auth/session';
+import { scopeIncident } from '@/lib/governance/scope';
 
 /** The incident this learning loop closes the loop on (SPEC §1 step 3). */
 const INCIDENT_ID = 'INC-2026-1011';
@@ -19,5 +21,7 @@ export default async function LearningPage({ params }: { params: Promise<{ pillI
   const bundle = loadPill(pillId);
   if (!bundle) notFound();
 
-  return <LearningFlow bundle={bundle} incident={loadIncident(INCIDENT_ID) ?? null} />;
+  // The incident is scoped to the signed-in role before it reaches the client.
+  const incident = loadIncident(INCIDENT_ID);
+  return <LearningFlow bundle={bundle} incident={incident ? scopeIncident(incident, await sessionRole()) : null} />;
 }
