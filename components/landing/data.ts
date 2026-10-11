@@ -3,10 +3,19 @@
 // copy of pill content: if the pill changes, the landing page changes with it.
 
 import { loadAllPills, loadPill, type PillBundle } from '@/lib/pills/load';
-import { loadAssets, loadRoles, loadTimeline } from '@/lib/data';
+import { loadAssets, loadRoles, loadTimeline, loadTranscript } from '@/lib/data';
+import type { Timeline } from '@/lib/data/schemas';
 import { pillTitle } from '@/components/mosaic/pillTitle';
 import { runEvals } from '@/lib/engine';
 import type { ActionClass, EvalCase, Pill, Rule } from '@/lib/engine/types';
+import { parseDemoVideoUrl, type DemoVideo } from './video';
+
+/**
+ * The walkthrough video shown under "See it in action". Leave empty for the
+ * "coming soon" poster. NEXT_PUBLIC_DEMO_VIDEO_URL, when set, wins over this.
+ * Accepts a YouTube or Vimeo link, an .mp4/.webm URL, or a path under public/.
+ */
+export const DEMO_VIDEO_URL = '';
 
 /** The pill and rule the hero shows: the LEW re-energisation gate. */
 const HERO_PILL_ID = 'technical-services-chilled-water-leak';
@@ -72,12 +81,27 @@ export interface StoryFacts {
   };
 }
 
+/** Facts for "The problem": the same expert and incident, without Keystone. */
+export interface ProblemFacts {
+  expert: string;
+  expertRole: string;
+  /** From the expert's onboarding interview record. */
+  experienceYears: number;
+  incidentAsset: string;
+  /** hh:mm the incident confirms the gate's trigger: electrical equipment wetted by water. */
+  electricsWetAt: string;
+  /** hh:mm the LEW's insulation-resistance test (a gate check) passed. */
+  insulationPassedAt: string;
+  /** hh:mm the area was first confirmed dry (the gate check still open at the test). */
+  areaDryAt: string;
+}
+
 export interface LandingFacts {
   hero: HeroFacts;
   story: StoryFacts;
+  problem: ProblemFacts;
   classes: ClassExample[];
-  rulesTotal: number;
-  rulesTraced: number;
+  video: DemoVideo | null;
 }
 
 function humanize(slug: string): string {
@@ -220,6 +244,50 @@ function storyFacts(bundle: PillBundle): StoryFacts {
   };
 }
 
+/** hh:mm of the first event that confirms `key` as true. */
+function firstConfirmedAt(timeline: Timeline, key: string): string {
+  const event = timeline.events.find(
+    (e) => e.evidence_updates[key]?.value === true && e.evidence_updates[key]?.confirmed,
+  );
+  if (!event) throw new Error(`landing: ${timeline.incident_id} never confirms ${key}`);
+  return hhmm(event.at);
+}
+
+/** Gate evidence the problem story narrates, from the hero rule's required evidence. */
+const INSULATION_TEST = 'insulation_resistance_ok';
+const AREA_DRY = 'area_dry';
+
+function problemFacts(bundle: PillBundle, story: StoryFacts): ProblemFacts {
+  const { pill } = bundle;
+  const rule = pill.rules.find((r) => r.id === HERO_RULE_ID)!;
+  for (const key of [INSULATION_TEST, AREA_DRY]) {
+    if (!rule.required_evidence.includes(key)) {
+      throw new Error(`landing: ${HERO_RULE_ID} no longer requires ${key}; rewrite the problem story`);
+    }
+  }
+  const triggerKey = rule.trigger.all[0]?.path.replace(/^evidence\./, '');
+  if (!triggerKey) throw new Error(`landing: ${HERO_RULE_ID} has no evidence trigger`);
+
+  const prov = pill.provenance[HERO_RULE_ID];
+  const transcript = prov ? loadTranscript(prov.source) : undefined;
+  if (!transcript || transcript.expert.name !== prov?.confirmed_by) {
+    throw new Error(`landing: interview behind ${HERO_RULE_ID} not found for its expert`);
+  }
+
+  const timeline = loadTimeline(story.incidentId);
+  if (!timeline) throw new Error(`landing: timeline ${story.incidentId} not found`);
+
+  return {
+    expert: transcript.expert.name,
+    expertRole: story.expertRole,
+    experienceYears: transcript.expert.experience_years,
+    incidentAsset: timeline.asset_name,
+    electricsWetAt: firstConfirmedAt(timeline, triggerKey),
+    insulationPassedAt: firstConfirmedAt(timeline, INSULATION_TEST),
+    areaDryAt: firstConfirmedAt(timeline, AREA_DRY),
+  };
+}
+
 const CLASS_ORDER: ActionClass[] = ['recommend', 'requires_approval', 'must_escalate'];
 
 export function loadLandingFacts(): LandingFacts {
@@ -227,12 +295,8 @@ export function loadLandingFacts(): LandingFacts {
   if (!heroBundle) throw new Error(`landing: pill ${HERO_PILL_ID} not found`);
 
   const approved = loadAllPills().filter((b) => b.pill.manifest.status === 'approved');
-  const rules: { rule: Rule; traced: boolean; isHeroPill: boolean }[] = approved.flatMap((b) =>
-    b.pill.rules.map((rule) => ({
-      rule,
-      traced: Boolean(b.pill.provenance[rule.id]?.quote?.trim()),
-      isHeroPill: b.id === HERO_PILL_ID,
-    })),
+  const rules: { rule: Rule; isHeroPill: boolean }[] = approved.flatMap((b) =>
+    b.pill.rules.map((rule) => ({ rule, isHeroPill: b.id === HERO_PILL_ID })),
   );
 
   const classes = CLASS_ORDER.map((actionClass) => {
@@ -248,11 +312,12 @@ export function loadLandingFacts(): LandingFacts {
       : null;
   }).filter((c): c is ClassExample => c !== null);
 
+  const story = storyFacts(heroBundle);
   return {
     hero: heroFacts(heroBundle),
-    story: storyFacts(heroBundle),
+    story,
+    problem: problemFacts(heroBundle, story),
     classes,
-    rulesTotal: rules.length,
-    rulesTraced: rules.filter((r) => r.traced).length,
+    video: parseDemoVideoUrl(process.env.NEXT_PUBLIC_DEMO_VIDEO_URL || DEMO_VIDEO_URL),
   };
 }

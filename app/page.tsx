@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { Hero } from '@/components/landing/Hero';
-import { ProblemFlow } from '@/components/landing/ProblemFlow';
+import { ProblemStory } from '@/components/landing/ProblemStory';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { SafeBounded } from '@/components/landing/SafeBounded';
-import { BrandBand, ProofStrip } from '@/components/landing/ProofAndFooter';
+import { DemoVideo } from '@/components/landing/DemoVideo';
+import { BrandBand } from '@/components/landing/BrandBand';
 import { loadLandingFacts } from '@/components/landing/data';
 
 export const metadata: Metadata = {
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
 };
 
 // Landing page. Rendered full-bleed (AppShell skips the sidebar on "/").
-// Every quote, rule and count below is read from the real pills at build time.
+// Every quote, rule, name and timestamp below is read from the real pills and
+// demo data at build time.
 export default function LandingPage() {
   const facts = loadLandingFacts();
   return (
@@ -28,10 +30,10 @@ export default function LandingPage() {
       <LandingHeader />
       <main id="main" className="flex-1">
         <Hero facts={facts.hero} />
-        <ProblemFlow />
+        <ProblemStory facts={facts.problem} />
         <HowItWorks hero={facts.hero} story={facts.story} />
         <SafeBounded classes={facts.classes} />
-        <ProofStrip rulesTraced={facts.rulesTraced} rulesTotal={facts.rulesTotal} />
+        <DemoVideo video={facts.video} />
       </main>
       <BrandBand />
     </div>
