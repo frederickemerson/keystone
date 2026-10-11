@@ -1,0 +1,146 @@
+'use client';
+
+// Step 5 — Shadow mode. The new version runs silently alongside the approved
+// one over the closed incidents; nothing is applied until a human approves.
+
+import { CheckCircle2, Eye, Play, XCircle } from 'lucide-react';
+import { KpiStat, SectionHeader } from '@/components/mosaic';
+import type { ActionStatus } from '@/lib/engine/types';
+import {
+  shadowSummary,
+  type ShadowRun,
+  type ShadowSummary,
+} from '@/lib/governance/approval';
+import type { PillVersion } from '@/lib/governance/versions';
+import { VersionChip } from './VersionChip';
+
+function decisionsLine(decisions: Record<string, ActionStatus>): string {
+  const entries = Object.entries(decisions);
+  if (entries.length === 0) return 'no rule fired';
+  return entries.map(([ruleId, status]) => `${ruleId} ${status}`).join(' · ');
+}
+
+export function ShadowPanel({
+  version,
+  approvedVersion,
+  canRun,
+  blockedReason,
+  runs,
+  totalCases,
+  onPromote,
+  onRun,
+}: {
+  version: PillVersion;
+  approvedVersion: string | null;
+  canRun: boolean;
+  blockedReason?: string;
+  runs: readonly ShadowRun[];
+  totalCases: number;
+  onPromote: () => void;
+  onRun: () => void;
+}) {
+  const summary: ShadowSummary = shadowSummary(runs);
+  const promotable = version.status === 'Draft';
+  const isShadow = version.status === 'Shadow';
+
+  return (
+    <section aria-labelledby="learn-step-5-title" id="learn-step-5" tabIndex={-1} className="scroll-mt-4">
+      <SectionHeader
+        title="5. Run it in Shadow"
+        description="Shadow replays the closed incidents through both versions. The approved version stays live — the shadow only records what it would have decided."
+        icon={<Eye className="size-4" />}
+        actions={<VersionChip status={version.status} version={version.version} />}
+      />
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={onPromote}
+          disabled={!promotable}
+          title={promotable ? undefined : `v${version.version} is already ${version.status}`}
+          className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-ink disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <Eye className="size-3.5" aria-hidden="true" /> Promote to Shadow
+        </button>
+        <button
+          type="button"
+          onClick={onRun}
+          disabled={!canRun}
+          title={canRun ? undefined : blockedReason}
+          className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface-raised px-3 py-1.5 text-xs font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <Play className="size-3.5" aria-hidden="true" /> Replay {totalCases} closed incidents
+        </button>
+        {!canRun && blockedReason ? <span className="text-xs text-ink-muted">{blockedReason}</span> : null}
+      </div>
+
+      {runs.length === 0 ? (
+        <p className="mt-3 text-xs text-ink-muted">
+          No shadow runs recorded yet
+          {isShadow ? ' — press “Replay closed incidents”.' : ' — promote to Shadow first.'}
+        </p>
+      ) : (
+        <>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <KpiStat label="Shadow agreements" value={summary.label} />
+            <KpiStat label="Incidents replayed" value={`${runs.length}/${totalCases}`} />
+            <KpiStat label="Compared against" value={approvedVersion ? `v${approvedVersion}` : '—'} />
+          </div>
+
+          <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+            <table className="w-full text-left text-sm">
+              <caption className="sr-only">Shadow run results per closed incident</caption>
+              <thead className="border-b border-line bg-surface-raised text-xs text-ink-muted">
+                <tr>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Closed incident
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Approved {approvedVersion ? `v${approvedVersion}` : ''}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Shadow v{version.version}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-medium">
+                    Agreement
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {runs.map((run) => (
+                  <tr key={run.incidentId} className="border-b border-line last:border-0">
+                    <th scope="row" className="px-3 py-2 font-mono text-xs font-normal text-ink">
+                      {run.incidentId}
+                    </th>
+                    <td className="px-3 py-2 font-mono text-[11px] text-ink-muted">
+                      {decisionsLine(run.approvedDecision)}
+                    </td>
+                    <td className="px-3 py-2 font-mono text-[11px] text-ink-muted">
+                      {decisionsLine(run.shadowDecision)}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={
+                          run.agree
+                            ? 'inline-flex items-center gap-1 text-xs font-medium text-recommend'
+                            : 'inline-flex items-center gap-1 text-xs font-medium text-escalate'
+                        }
+                      >
+                        {run.agree ? (
+                          <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                        ) : (
+                          <XCircle className="size-3.5" aria-hidden="true" />
+                        )}
+                        {run.agree ? 'Agrees' : 'Differs'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
