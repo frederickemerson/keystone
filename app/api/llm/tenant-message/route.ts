@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import fixture from '@/data/fixtures/llm/tenant-message-INC-2026-1011.json';
+import { loadTenantMessageFixture } from '@/lib/data';
 import { generateJson } from '@/lib/llm/providers';
 import { readRequest, tenantRequestSchema } from '@/lib/llm/requests';
 import { tenantDraftSchema, tenantSentences } from '@/lib/llm/tenant-draft';
@@ -12,6 +12,9 @@ export const maxDuration = 60;
 export async function POST(request: Request) {
   const input = await readRequest(request, tenantRequestSchema);
   if (input instanceof Response) return input;
+  // Validated (zod) fixture through the shared loader — typed sensitivity, no raw JSON import.
+  const fixture = loadTenantMessageFixture('INC-2026-1011');
+  if (!fixture) return Response.json({ error: 'Tenant message snapshot unavailable.' }, { status: 503 });
   if (input.incidentId !== fixture.source_incident) {
     return Response.json({ error: 'No reviewed tenant first-notice snapshot for this incident. DC clients use the CFM SLA channel.' }, { status: 404 });
   }
