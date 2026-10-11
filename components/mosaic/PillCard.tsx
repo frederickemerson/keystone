@@ -2,6 +2,7 @@ import { CalendarClock, CircleDashed, Eye, BadgeCheck, Archive, ShieldCheck, typ
 import { cn } from '@/lib/ui/cn';
 import type { PillCardData, PillStatus } from './types';
 import { PillLabel } from './PillLabel';
+import { pillDisplayName } from './pillTitle';
 import { CHIP_BASE, TONE_CHIP, type Tone } from './tones';
 
 const STATUS: Record<PillStatus, { tone: Tone; icon: LucideIcon; extra?: string }> = {
@@ -37,7 +38,7 @@ export function PillCard({ data, className }: { data: PillCardData; className?: 
       aria-label={`Pill ${data.domain}/${data.name}`}
     >
       <PillLabel
-        name={data.name.replace(/-/g, ' ')}
+        name={pillDisplayName(data.name)}
         pillClass={humanize(data.domain)}
         version={data.version}
         owner={data.owner}

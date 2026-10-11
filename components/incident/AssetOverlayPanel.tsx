@@ -106,7 +106,7 @@ export function AssetOverlayPanel({
         <Server className="size-4 text-ink-muted" aria-hidden="true" />
         {overlayAsset.name}
         <span className="text-xs font-normal text-ink-muted">
-          same pills, {assetTypeLabel(overlayAsset.type)} overrides
+          Same pills, {assetTypeLabel(overlayAsset.type)} overrides
         </span>
       </h3>
 

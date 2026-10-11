@@ -84,7 +84,7 @@ export default function PortfolioPulsePage() {
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-8">
       <header className="space-y-1.5">
-        <h1>portfolio pulse</h1>
+        <h1>Portfolio pulse</h1>
         <p className="text-sm text-ink-muted">
           Where judgement is applied, what awaits a human, and where pills do not yet cover an asset
           type.

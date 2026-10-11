@@ -61,7 +61,7 @@ export function ApprovalsQueue({
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-8">
       <PageHeader
-        title="approvals"
+        title="Approvals"
         subtitle="Every decision that must be approved or escalated by a named human — nothing executes without one."
       />
 

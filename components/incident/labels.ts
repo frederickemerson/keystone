@@ -30,14 +30,18 @@ const TOKENS: Record<string, string> = {
   ts: 'TS',
 };
 
+/** Sentence-case a display value: capitalise the first letter, keep the rest as written. */
+export function sentenceCase(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /** snake_case identifier → readable label ("lew_signoff" → "LEW sign-off"). */
 export function humanizeKey(key: string): string {
   const words = key
     .split('_')
     .filter(Boolean)
     .map((w) => TOKENS[w] ?? w);
-  const s = words.join(' ');
-  return s.charAt(0).toUpperCase() + s.slice(1);
+  return sentenceCase(words.join(' '));
 }
 
 const ASSET_TYPE_LABEL: Record<string, string> = {

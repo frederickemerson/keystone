@@ -10,21 +10,21 @@ import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { BrandMark } from '@/components/shell/BrandMark';
 
 export const NAV_ITEMS = [
-  { href: '/pulse', label: 'Portfolio Pulse', purpose: 'Portfolio-wide posture at a glance' },
+  { href: '/pulse', label: 'Portfolio pulse', purpose: 'Portfolio-wide posture at a glance' },
   {
     href: '/capture',
-    label: 'Expert Call',
+    label: 'Expert call',
     purpose: 'Capture expert judgement from an onboarding interview',
   },
   {
     href: '/canvas/technical-services-chilled-water-leak',
-    label: 'Decision Canvas',
+    label: 'Decision canvas',
     purpose: 'Review, edit and confirm extracted rule candidates',
   },
-  { href: '/registry', label: 'Pill Registry', purpose: 'Versioned pills and their lifecycle state' },
+  { href: '/registry', label: 'Pill registry', purpose: 'Versioned pills and their lifecycle state' },
   {
     href: '/incident/INC-2026-1011',
-    label: 'Incident Room',
+    label: 'Incident room',
     purpose: 'Apply approved pills to a live incident with deterministic gates',
   },
   { href: '/approvals', label: 'Approvals', purpose: 'Queue of decisions awaiting a named human' },
@@ -59,7 +59,7 @@ function Wordmark({ compact = false }: { compact?: boolean }) {
           mosaic
         </span>
         {compact ? null : (
-          <span className="mt-1 text-xs leading-none text-ink-muted">intelligence pills</span>
+          <span className="mt-1 text-xs leading-none text-ink-muted">Intelligence Pills</span>
         )}
       </span>
     </Link>
@@ -116,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             no handwriting inside the app. Cocoa ink on orange is 6:1. */}
         <div className="mt-4 rounded-t-[56px] bg-marker px-7 pb-5 pt-7">
           <p className="font-display-soft text-[19px] font-semibold leading-[1.15] text-cocoa-ink">
-            expert judgement,
+            Expert judgement,
             <br />
             governed.
           </p>

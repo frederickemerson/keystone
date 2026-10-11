@@ -27,7 +27,7 @@ export function ContradictionCallout({
         <div className="min-w-0 space-y-3">
           <div>
             <h2 className="text-[19px] font-semibold leading-tight">
-              contradiction resolved <span className="font-sans text-[13px] font-medium text-approval">· rule <span className="font-mono">{rule_id}</span></span>
+              Contradiction resolved <span className="font-sans text-[13px] font-medium text-approval">· rule <span className="font-mono">{rule_id}</span></span>
             </h2>
             <p className="mt-1 text-sm text-ink">
               The extractor flagged two conflicting statements from the expert interview and

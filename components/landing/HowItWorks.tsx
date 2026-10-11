@@ -11,11 +11,11 @@ function step(title: string, description: string, href: string, id: string): Rom
 
 export function HowItWorks({ pillId }: { pillId: string }) {
   const items: RomanListItem[] = [
-    step('capture', 'An AI interview surfaces cues, exceptions and contradictions.', '/capture', 'capture'),
-    step('compile', 'The expert confirms or edits each candidate rule.', `/canvas/${pillId}`, 'compile'),
-    step('apply', 'Approved rules check incident evidence and explain each decision.', '/incident/INC-2026-1011', 'apply'),
-    step('learn', 'Corrections are versioned, replay-tested and reviewed before promotion.', `/learning/${pillId}`, 'learn'),
-    step('reuse', 'Approved pills carry the rulebook to the next asset.', '/registry', 'reuse'),
+    step('Capture', 'An AI interview surfaces cues, exceptions and contradictions.', '/capture', 'capture'),
+    step('Compile', 'The expert confirms or edits each candidate rule.', `/canvas/${pillId}`, 'compile'),
+    step('Apply', 'Approved rules check incident evidence and explain each decision.', '/incident/INC-2026-1011', 'apply'),
+    step('Learn', 'Corrections are versioned, replay-tested and reviewed before promotion.', `/learning/${pillId}`, 'learn'),
+    step('Reuse', 'Approved pills carry the rulebook to the next asset.', '/registry', 'reuse'),
   ];
 
   return (
@@ -26,7 +26,7 @@ export function HowItWorks({ pillId }: { pillId: string }) {
             id="how-title"
             className="font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[52px]"
           >
-            how it works
+            How it works
           </h2>
           <p className="mt-5 max-w-[26rem] text-[19px] leading-[1.5] text-ink">
             Follow one judgement from conversation to reuse.

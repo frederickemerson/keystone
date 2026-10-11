@@ -156,7 +156,7 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
               className="rounded-2xl border border-line bg-dew-drop/50 p-4"
             >
               <div className="mb-4 border-b border-line pb-2.5">
-                <h2 className="text-[19px] font-semibold leading-tight">{lane.title.toLowerCase()}</h2>
+                <h2 className="text-[19px] font-semibold leading-tight">{lane.title}</h2>
                 <p className="mt-0.5 text-[13px] text-ink-muted">{lane.description}</p>
               </div>
 

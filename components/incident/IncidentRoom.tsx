@@ -25,6 +25,7 @@ import {
   type Tone,
 } from '@/components/mosaic';
 import { useMounted } from '@/components/mosaic/useMounted';
+import { pillDisplayName } from '@/components/mosaic/pillTitle';
 import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { evaluate } from '@/lib/engine/evaluate';
 import { counterfactual } from '@/lib/engine/counterfactual';
@@ -525,7 +526,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
             <span className="text-ink-muted">{sentenceCase(scenario.incident.status)}</span>
           </>
         }
-        title={humanizeKey(scenario.incident.subtype).toLowerCase()}
+        title={humanizeKey(scenario.incident.subtype)}
         subtitle={
           <>
             <p className="text-ink">{scenario.incident.location}</p>
@@ -588,7 +589,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
                 <PillLabel
                   key={p.bundle.id}
                   size="sm"
-                  name={p.bundle.name.replace(/-/g, ' ')}
+                  name={pillDisplayName(p.bundle.name)}
                   pillClass={titleCase(p.bundle.domain)}
                   version={p.version}
                   className="w-[19.5rem]"
@@ -676,7 +677,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
             return (
               <div key={g.status} className="space-y-2">
                 <h2 className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[19px] font-semibold leading-tight">
-                  <span className={GROUP_INK[g.status]}>{g.title.toLowerCase()}</span>
+                  <span className={GROUP_INK[g.status]}>{g.title}</span>
                   <span className="rounded-full border border-line bg-dew-drop px-2 py-px font-sans text-xs font-medium tabular-nums text-ink-muted">
                     {groupItems.length}
                   </span>
@@ -717,7 +718,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
         {/* ----------------------------------------------------- Right */}
         <section aria-label="Communications and asset overlay" className="space-y-4 lg:col-span-2 2xl:col-span-1">
           <div>
-            <h2 className="mb-2 text-[19px] font-semibold leading-tight">tenant message</h2>
+            <h2 className="mb-2 text-[19px] font-semibold leading-tight">Tenant message</h2>
             <TenantMessagePanel
               key={incidentId}
               fixture={scenario.tenantMessage}

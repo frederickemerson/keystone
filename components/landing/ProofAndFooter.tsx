@@ -11,7 +11,7 @@ export function ProofStrip({ rulesTraced, rulesTotal }: { rulesTraced: number; r
       rest: 'Safety gates and governance, checked.',
     },
     {
-      lead: 'native CodeBuddy skill',
+      lead: 'Native CodeBuddy skill',
       rest: 'Verified against the engine’s TS-07 decision.',
     },
     {
@@ -44,7 +44,7 @@ export function BrandBand() {
       <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-8 px-6 pb-12 pt-14 sm:px-10 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-display text-[34px] font-bold leading-[1.05] tracking-[-0.02em] sm:text-[44px]">
-            built with CodeBuddy Code
+            Built with CodeBuddy Code
           </p>
           <p className="mt-3 text-[18px] font-medium">Tencent Cloud AI CAN DO IT 2026</p>
           <p className="mt-2 text-[13px]">Demo data; all people, assets and incidents are fictional.</p>
@@ -53,7 +53,7 @@ export function BrandBand() {
           href="/pulse"
           className="inline-flex min-h-11 w-fit shrink-0 items-center rounded-full border-[1.5px] border-cocoa-ink px-5 text-[15px] font-semibold hover:bg-cocoa-ink/10 focus-visible:outline-cocoa-ink"
         >
-          see the portfolio pulse
+          See the portfolio pulse
         </Link>
       </div>
     </footer>

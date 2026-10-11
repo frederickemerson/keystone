@@ -1,11 +1,13 @@
-// Human title of a pill, from the authored SKILL.md body heading
-// ("# Chilled-Water Leak — Technical Services Pill" → "Chilled-Water Leak").
-// Falls back to the manifest slug made readable.
+// Human title of a pill, from its manifest `name` (the authoritative id,
+// e.g. "chilled-water-leak" → "Chilled water leak"). Sentence case per
+// DESIGN.md; acronyms come from the shared token table.
 
-export function pillTitle(bundle: { name: string; skillBody?: string }): string {
-  const heading = bundle.skillBody?.match(/^#\s+(.+?)\s*$/m)?.[1];
-  const title = heading?.split(/\s+[—–]\s+/)[0]?.trim();
-  if (title) return title;
-  const s = bundle.name.replace(/[-_]+/g, ' ');
-  return s.charAt(0).toUpperCase() + s.slice(1);
+import { humanizeKey } from '@/components/incident/labels';
+
+export function pillDisplayName(name: string): string {
+  return humanizeKey(name.replace(/-+/g, '_'));
+}
+
+export function pillTitle(bundle: { name: string }): string {
+  return pillDisplayName(bundle.name);
 }

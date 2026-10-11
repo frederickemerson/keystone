@@ -57,7 +57,7 @@ export function CanvasHeader({
           </span>
         </>
       }
-      title="review rule candidates"
+      title="Review rule candidates"
       subtitle={description}
       meta={
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-muted">
@@ -82,7 +82,7 @@ export function CanvasHeader({
       }
       actions={
         <PillLabel
-          name={title.toLowerCase()}
+          name={title}
           pillClass={domainLabel(pill.domain)}
           version={live.version}
           owner={personOrRole(m.owner)}

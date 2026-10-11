@@ -30,7 +30,7 @@ export function LiveExtractionPanel({ transcript, rules }: Pick<CaptureProps, 't
     <section className="space-y-3 rounded-xl border border-line bg-surface p-4" aria-label="Optional live extraction" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn-pill text-xs" disabled={loading} onClick={extract}>
-          {loading ? 'drafting with Hunyuan…' : 're-extract live with Hunyuan'}
+          {loading ? 'Drafting with Hunyuan…' : 'Re-extract live with Hunyuan'}
         </button>
         <span role="status"><LlmBadge result={result} /></span>
         {result ? <button type="button" className="btn-pill text-xs" onClick={() => setResult(null)}>Dismiss preview</button> : null}
@@ -38,11 +38,11 @@ export function LiveExtractionPanel({ transcript, rules }: Pick<CaptureProps, 't
       <p className="text-xs text-ink-muted">Optional preview from the full recorded transcript (up to four live candidates). The offline call below stays unchanged.</p>
       {result ? (
         <div className="space-y-3">
-          <p className="text-xs font-medium text-approval">DRAFT — requires {transcript.expert.name}’s review and named human approval. Not applied to a pill or copied to the Decision Canvas.</p>
+          <p className="text-xs font-medium text-approval">Draft — requires {transcript.expert.name}’s review and named human approval. Not applied to a pill or copied to the Decision Canvas.</p>
           {result.data.candidates.length === 0 ? <p className="text-xs text-ink-muted">No rule candidates extracted.</p> : null}
           {result.data.candidates.map(({ rule }) => (
             <details key={rule.id} className="rounded-lg border border-line p-3">
-              <summary className="cursor-pointer text-sm">DRAFT · {rule.id} · {rule.title}</summary>
+              <summary className="cursor-pointer text-sm">Draft · {rule.id} · {rule.title}</summary>
               <p className="mt-2 text-xs">{rule.decision}</p>
               <p className="mt-2 text-xs text-ink-muted">Source references (verify against transcript): {rule.provenance.join(', ')}</p>
               <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap text-[11px]">{JSON.stringify(rule, null, 2)}</pre>

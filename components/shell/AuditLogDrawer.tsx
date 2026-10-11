@@ -61,7 +61,7 @@ export function AuditLogDrawer({ open, onClose }: { open: boolean; onClose: () =
       >
         <div className="flex items-start justify-between gap-3 border-b border-line px-6 py-5">
           <div className="min-w-0">
-            <h2 className="text-[22px] font-semibold leading-tight">audit log</h2>
+            <h2 className="text-[22px] font-semibold leading-tight">Audit log</h2>
             <p className="mt-1 text-[13px] text-ink-muted">
               Append-only. Who / when / pill version / action / outcome.
             </p>

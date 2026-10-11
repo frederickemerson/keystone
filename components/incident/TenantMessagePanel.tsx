@@ -48,7 +48,7 @@ function DraftCard({
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-approval/40 bg-approval-tint px-2.5 py-[3px] text-xs font-medium text-approval">
           <Mail className="size-3.5" aria-hidden="true" />
-          DRAFT — requires {getRole(draft.approved_by_role)?.person ?? roleLabel(draft.approved_by_role)}’s approval
+          Draft — requires {getRole(draft.approved_by_role)?.person ?? roleLabel(draft.approved_by_role)}’s approval
         </span>
         <span className="text-[11px] text-ink-muted">
           {draft.channel} · {draft.draft_id}
@@ -174,12 +174,12 @@ export function TenantMessagePanel({
     <div className="space-y-3" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className="btn-pill text-xs" disabled={loading || !mayDraft} onClick={draftLive} title={mayDraft ? 'Optional live drafting; nothing is sent.' : 'Switch to a role permitted to draft tenant messages.'}>
-          {loading ? 'drafting with Hunyuan…' : 'draft live with Hunyuan'}
+          {loading ? 'Drafting with Hunyuan…' : 'Draft live with Hunyuan'}
         </button>
         {generation ? <button type="button" className="btn-pill text-xs" onClick={() => setGeneration(null)}>Use recorded draft</button> : null}
       </div>
       <p className="text-[11px] text-ink-muted">First-notice snapshot at {formatClock(fixture.generated_at)}, not the current replay step. Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.</p>
-      <span className="sr-only" role="status">{loading ? 'drafting with Hunyuan…' : generation ? `${generation.source} draft ready for human review` : 'recorded output'}</span>
+      <span className="sr-only" role="status">{loading ? 'Drafting with Hunyuan…' : generation ? `${generation.source === 'live' ? 'Live' : 'Recorded'} draft ready for human review` : 'Recorded output'}</span>
       {(generation ? [generation.data.draft] : fixture.drafts).map((d) => (
         <DraftCard
           key={d.draft_id}

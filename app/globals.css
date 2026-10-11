@@ -195,8 +195,8 @@
  * Page titles. Screens render `<h1 className="text-xl font-semibold …">`; this
  * unlayered rule deliberately wins over those utilities so every screen gets a
  * notebook-scale display title without per-screen edits. Phase B screens can
- * drop the size utilities. Lowercase is a content choice (write titles in
- * lowercase); it is not forced here because titles can contain ids.
+ * drop the size utilities. Case is a content choice (sentence case, per
+ * DESIGN.md); it is never forced with text-transform because titles contain ids.
  */
 main h1 {
   font-family: var(--font-display);

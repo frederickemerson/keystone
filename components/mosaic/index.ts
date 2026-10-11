@@ -16,7 +16,7 @@ export { EmptyState } from './EmptyState';
 export { SectionHeader } from './SectionHeader';
 export { PageHeader } from './PageHeader';
 export { PersonaName } from './PersonaName';
-export { pillTitle } from './pillTitle';
+export { pillDisplayName, pillTitle } from './pillTitle';
 
 // Notebook marginalia — the expert's handwritten voice (docs/design/DESIGN.md).
 export { MarginNote, HandArrow } from './MarginNote';

@@ -370,7 +370,7 @@ function EndedView({
     <div className="flex flex-col gap-4 py-2">
       <div className="flex items-center gap-2">
         <CheckCircle2 className="size-5 text-recommend" aria-hidden="true" />
-        <h2 className="text-[24px] font-semibold leading-tight">call complete</h2>
+        <h2 className="text-[24px] font-semibold leading-tight">Call complete</h2>
       </div>
       <p className="text-sm text-ink-muted">
         The interview is transcribed and {rulesCaptured} rule candidates were extracted, each
@@ -388,7 +388,7 @@ function EndedView({
         href={`/canvas/${pillId}`}
         className="btn-pill btn-pill-primary min-h-11 self-start px-6 text-sm"
       >
-        Review on Decision Canvas
+        Review on the decision canvas
         <ArrowRight className="size-4" aria-hidden="true" />
       </Link>
       <p className="text-xs text-ink-muted">

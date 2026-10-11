@@ -39,7 +39,7 @@ export function SafeBounded({ classes }: { classes: ClassExample[] }) {
           id="safe-title"
           className="font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[52px]"
         >
-          safe and bounded
+          Safe and bounded
         </h2>
         <p className="max-w-[36rem] text-[19px] leading-[1.55] text-ink">
           Three action classes, with deterministic evidence gates the AI cannot override.

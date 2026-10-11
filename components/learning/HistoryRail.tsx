@@ -23,7 +23,7 @@ function VersionEntry({ version, isLive }: { version: PillVersion; isLive: boole
         <VersionChip status={version.status} version={version.version} />
         {isLive ? (
           <span className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-ink">
-            live
+            Live
           </span>
         ) : null}
       </div>
@@ -44,7 +44,7 @@ function VersionEntry({ version, isLive }: { version: PillVersion; isLive: boole
       ) : version.parentVersion ? (
         <p className="text-[11px] text-ink-muted">from v{version.parentVersion}</p>
       ) : (
-        <p className="text-[11px] text-ink-muted">seeded from pill files</p>
+        <p className="text-[11px] text-ink-muted">Seeded from pill files</p>
       )}
     </li>
   );

@@ -33,7 +33,7 @@ export function ReplayControls({
   return (
     <div className="rounded-xl border border-line-strong bg-surface p-4 shadow-card" role="group" aria-label="Timeline replay">
       <div className="flex items-baseline justify-between">
-        <span className="font-display-soft text-[17px] font-semibold text-heading">replay</span>
+        <span className="font-display-soft text-[17px] font-semibold text-heading">Replay</span>
         <span className="text-[13px] tabular-nums text-ink-muted">
           Event {step} / {total}
         </span>

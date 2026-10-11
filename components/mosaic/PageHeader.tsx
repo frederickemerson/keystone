@@ -3,7 +3,7 @@ import { cn } from '@/lib/ui/cn';
 
 /**
  * The one page-header pattern for app screens: a quiet eyebrow line (ids,
- * status chips), a lowercase Fraunces title kept to one line where possible,
+ * status chips), a sentence-case display title kept to one line where possible,
  * a Geist subtitle for the detail, optional meta row, and right-aligned
  * actions. Typeset only — no marginalia inside the app.
  */

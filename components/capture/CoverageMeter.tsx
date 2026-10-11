@@ -82,7 +82,7 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
   return (
     <div className="rounded-xl border border-line-strong bg-surface p-5 shadow-card">
       <div className="flex items-baseline justify-between">
-        <p className="font-display-soft text-[17px] font-semibold text-heading">schema coverage</p>
+        <p className="font-display-soft text-[17px] font-semibold text-heading">Schema coverage</p>
         <p className="text-[15px] font-semibold tabular-nums text-ink">{overall}%</p>
       </div>
       <p className="mt-0.5 text-xs text-ink-muted">

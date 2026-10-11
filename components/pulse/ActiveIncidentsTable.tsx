@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/ui/cn';
 import type { IncidentRecord } from '@/lib/data';
 import { personaFor, roleLabel } from '@/lib/governance/access';
-import { humanizeKey } from '@/components/incident/labels';
+import { humanizeKey, sentenceCase } from '@/components/incident/labels';
 
 // Stable demo clock so "time since detection" is deterministic across renders.
 const DEMO_NOW = new Date('2026-10-11T11:30:00+08:00');
@@ -90,7 +90,7 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
                       SEVERITY_TONE[incident.severity] ?? 'text-ink-muted',
                     )}
                   >
-                    {incident.severity}
+                    {sentenceCase(incident.severity)}
                   </span>
                 </td>
                 <td className="px-4 py-3">

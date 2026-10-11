@@ -72,7 +72,7 @@ export function ExpertCallClient(props: CaptureProps) {
             <span className="font-mono text-[12px]">{transcript.interview_id}</span>
           </>
         }
-        title="expert onboarding call"
+        title="Expert onboarding call"
         subtitle="A simulated, fully offline voice interview. MOSAIC extracts rule candidates as the expert speaks, each linked to the exact transcript span."
       />
       <LiveExtractionPanel transcript={transcript} rules={rules} />

@@ -22,13 +22,13 @@ const TODAY: FlowStep[] = [
     label: 'One central expert holds the links to years of operational judgement.',
   },
   {
-    title: 'he retires',
+    title: 'He retires',
     detail: 'The drawer is empty.',
     figure: Drawer,
     label: 'Empty drawers: the expert leaves without a reusable rulebook.',
   },
   {
-    title: 'the team guesses',
+    title: 'The team guesses',
     detail: 'Next leak at 3am: no shared rule.',
     figure: Query,
     label: 'A question mark: the next shift faces a leak without the expert’s judgement.',
@@ -37,32 +37,32 @@ const TODAY: FlowStep[] = [
 
 const WITH_MOSAIC: FlowStep[] = [
   {
-    title: 'one onboarding call',
+    title: 'One onboarding call',
     detail: 'Capture the expert’s cues.',
     figure: Phone,
     label: 'A phone: one onboarding conversation captures the expert’s judgement.',
   },
   {
-    title: 'judgement compiles into rules',
+    title: 'Judgement compiles into rules',
     detail: 'The expert confirms each rule.',
     figure: Settle,
     label: 'Crooked tiles settle into a connected tree of structured rules.',
   },
   {
-    title: 'gates AI cannot override',
+    title: 'Gates AI cannot override',
     detail: 'Missing required evidence blocks action.',
     figure: Padlock,
     label: 'A closed padlock: the AI cannot bypass required evidence gates.',
     locked: true,
   },
   {
-    title: 'every correction is versioned',
+    title: 'Every correction is versioned',
     detail: 'Test, approve, or roll back.',
     figure: Branches,
     label: 'A branching version history preserves corrections and earlier rules.',
   },
   {
-    title: 'reused on every asset',
+    title: 'Reused on every asset',
     detail: 'Same rules, asset-specific roles.',
     figure: Relay,
     label: 'A relay connects one rulebook to multiple assets and their local roles.',
@@ -124,7 +124,7 @@ export function ProblemFlow() {
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 id="problem-title" className="font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[52px]">
-              the problem
+              The problem
             </h2>
             <p className="mt-4 text-[19px] text-ink-muted">When the expert leaves, what stays?</p>
           </div>
@@ -132,27 +132,27 @@ export function ProblemFlow() {
             {motionAllowed ? (
               <button type="button" className="btn-pill gap-2 shadow-none" onClick={() => setPaused(!paused)}>
                 {paused ? <Play className="size-3.5" aria-hidden="true" /> : <Pause className="size-3.5" aria-hidden="true" />}
-                {paused ? 'play figures' : 'pause figures'}
+                {paused ? 'Play figures' : 'Pause figures'}
               </button>
             ) : null}
           </div>
         </div>
 
         <div className={cn(styles.flowRow, styles.today)}>
-          <h3 className="mb-6 text-[20px] font-semibold text-ink-muted">today</h3>
+          <h3 className="mb-6 text-[20px] font-semibold text-ink-muted">Today</h3>
           <FlowSteps steps={TODAY} play={play} />
           <p className={cn(styles.flowOutcome, 'border-blocked/20 bg-blocked-tint text-blocked')}>
             <Ban className="size-4 shrink-0" aria-hidden="true" />
-            unsafe re-energisation, inconsistent calls, lost tenant trust
+            Unsafe re-energisation, inconsistent calls, lost tenant trust
           </p>
         </div>
 
         <div className={cn(styles.flowRow, styles.withMosaic)}>
-          <h3 className="mb-6 text-[20px] font-semibold text-heading">with mosaic</h3>
+          <h3 className="mb-6 text-[20px] font-semibold text-heading">With MOSAIC</h3>
           <FlowSteps steps={WITH_MOSAIC} play={play} />
           <p className={cn(styles.flowOutcome, 'border-recommend/20 bg-recommend-tint text-recommend')}>
             <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
-            same safe call, every site, every shift
+            Same safe call, every site, every shift
           </p>
         </div>
       </div>

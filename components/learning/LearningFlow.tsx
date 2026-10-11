@@ -351,7 +351,7 @@ export function LearningFlow({
             {bundle.domain}/{bundle.name}
           </span>
         }
-        title="outcome & learning"
+        title="Outcome & learning"
         subtitle={
           <>
             {incident ? `${incident.id} · ${incident.location}. ` : ''}

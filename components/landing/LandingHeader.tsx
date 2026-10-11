@@ -16,7 +16,7 @@ export function LandingHeader() {
         <span className="font-display text-[26px] font-bold leading-none tracking-[-0.02em] text-heading">mosaic</span>
       </Link>
       <Link href={INCIDENT_ROOM_HREF} className="btn-pill min-h-10 px-4 text-[14px] max-[380px]:px-3">
-        open the incident room
+        Open the incident room
       </Link>
     </header>
   );

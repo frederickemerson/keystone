@@ -35,7 +35,7 @@ export function CapturedPanel({
   return (
     <div className="space-y-4">
       <SectionHeader
-        title="captured so far"
+        title="Captured so far"
         description={`${revealed.length} of ${totalRules} candidates · draft, awaiting your confirmation`}
       />
 

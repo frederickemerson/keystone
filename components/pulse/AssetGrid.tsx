@@ -5,6 +5,7 @@ import { CHIP_BASE, TONE_CHIP, type Tone } from '@/components/mosaic';
 import type { AssetRecord, IncidentRecord } from '@/lib/data';
 import { RoleRedacted } from '@/components/mosaic/RoleRedacted';
 import { assetTypeMeta } from './assetMeta';
+import { sentenceCase } from '@/components/incident/labels';
 
 function attributeChips(asset: AssetRecord): { key: string; label: ReactNode; tone?: Tone }[] {
   const cert = asset.green_certification;
@@ -18,7 +19,7 @@ function attributeChips(asset: AssetRecord): { key: string; label: ReactNode; to
     chips.push({ key: 'eui', label: `EUI ${cert.eui_kwh_per_sqm_per_year} kWh/m²·yr` });
   }
   if (asset.operating_model) {
-    chips.push({ key: 'operating-model', label: asset.operating_model });
+    chips.push({ key: 'operating-model', label: sentenceCase(asset.operating_model) });
   }
   if (asset.anchor_tenant) {
     // The anchor tenant's identity is tenant PII (as in the incident room).
@@ -97,7 +98,7 @@ export function AssetGrid({
                   className={cn(CHIP_BASE, TONE_CHIP[SEVERITY_TONE[open.severity] ?? 'neutral'])}
                 >
                   <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
-                  {open.severity} incident · {open.id}
+                  {sentenceCase(open.severity)} incident · {open.id}
                 </Link>
               ) : (
                 <span className={cn(CHIP_BASE, TONE_CHIP.neutral)}>No active incident</span>

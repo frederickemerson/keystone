@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
 import type { TimelineEvent, TimelineSource } from './types';
+import { humanizeKey } from '@/components/incident/labels';
 
 const SOURCE_MAP: Record<string, { icon: LucideIcon; label: string }> = {
   iBMS: { icon: Activity, label: 'iBMS' },
@@ -102,7 +103,7 @@ export function EvidenceTimeline({
                   {label}
                 </span>
                 {event.type ? (
-                  <span className="text-ink-muted">{event.type}</span>
+                  <span className="text-ink-muted">{humanizeKey(event.type)}</span>
                 ) : null}
                 {isNewest ? (
                   <span className="rounded-full bg-ink px-2 py-0.5 text-[11px] font-medium text-canvas">

@@ -60,7 +60,7 @@ function heroFacts(bundle: PillBundle): HeroFacts {
   }
   return {
     pillId: bundle.id,
-    pillName: pillTitle(bundle).toLowerCase(),
+    pillName: pillTitle(bundle),
     pillClass: humanize(bundle.domain),
     version: bundle.pill.manifest.version,
     ruleId: rule.id,

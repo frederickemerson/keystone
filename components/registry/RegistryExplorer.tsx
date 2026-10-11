@@ -101,7 +101,7 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 lg:flex-row">
       <div className="min-w-0 flex-1 space-y-5">
         <PageHeader
-          title="pill registry"
+          title="Pill registry"
           subtitle="Every Intelligence Pill, its lifecycle state and health at a glance."
         />
 
