@@ -5,8 +5,8 @@ import type {
   ActionDecision,
   ActionStatus,
   Asset,
+  AssetOverrides,
   Confidence,
-  EscalateTarget,
   EvaluationResult,
   Evidence,
   EvidenceItem,
@@ -43,18 +43,16 @@ export function evaluate(
   let totalConfirmed = 0;
 
   for (const rule of pill.rules) {
-    const step = evaluateRule(rule, ctx, pill);
-    trace.push(step);
+    const step = evaluateRule(rule, ctx);
+    trace.push(step.trace);
 
-    if (step.triggered) {
+    if (step.trace.triggered) {
       // Confidence contribution from this fired rule.
-      const req = rule.required_evidence.length;
-      const conf = rule.required_evidence.filter((key) => isEvidenceSatisfied(evidence[key])).length;
-      totalRequired += req;
-      totalConfirmed += conf;
+      totalRequired += step.requiredEvidence.length;
+      totalConfirmed += step.requiredEvidence.length - step.trace.missingEvidence.length;
 
       // Build the action decision.
-      actions.push(buildAction(rule, step, asset, pill));
+      actions.push(buildAction(rule, step.trace, asset, pill));
     }
   }
 
@@ -70,11 +68,18 @@ export function evaluate(
 // Per-rule evaluation
 // ---------------------------------------------------------------------------
 
-function evaluateRule(
-  rule: Rule,
-  ctx: ConditionContext,
-  _pill: Pill,
-): TraceStep {
+export interface RuleEvaluation {
+  trace: TraceStep;
+  /** Effective required evidence (base ∪ exception-added), de-duplicated. */
+  requiredEvidence: string[];
+}
+
+/**
+ * Evaluate ONE rule. evaluate() is a fold of this over pill.rules — rules are
+ * independent — so callers that need a single rule's outcome (counterfactual)
+ * use this directly instead of re-evaluating the whole pill.
+ */
+export function evaluateRule(rule: Rule, ctx: ConditionContext): RuleEvaluation {
   // 1. Incident type match.
   const typeMatch = ctx.incident.type === rule.trigger.incident_type;
 
@@ -99,51 +104,69 @@ function evaluateRule(
     triggerReason = "Trigger matched (incident type + all conditions + any conditions)";
   }
 
-  // 4. Effective action class and forbidden_if_missing_evidence (with asset overrides).
-  const effectiveClass = resolveActionClass(rule, ctx.asset.type);
-  const effectiveForbidden = resolveForbiddenIfMissing(rule, ctx.asset.type);
+  // 4. Effective action class and forbidden_if_missing_evidence (with asset
+  //    overrides — which parse-time validation only lets TIGHTEN a gate).
+  const override = overrideFor(rule, ctx.asset.type);
+  const effectiveClass = override?.action_class ?? rule.action_class;
+  const effectiveForbidden =
+    override?.forbidden_if_missing_evidence ?? rule.forbidden_if_missing_evidence;
 
-  // 5. Exception check — exceptions annotate and may ADD requirements, never relax.
-  let exceptionApplied = false;
-  let exceptionNote: string | null = null;
-  let exceptionAddRequired: string[] = [];
-  // Exception escalate_to is supported in the schema/types. When set, it
-  // takes precedence over the asset override and base rule value.
-  let exceptionEscalateTo: EscalateTarget | null = null;
-  if (triggered) {
-    const ex = checkExceptions(rule.exceptions, ctx);
-    if (ex) {
-      exceptionApplied = true;
-      exceptionNote = ex.note;
-      exceptionAddRequired = ex.add_required_evidence ?? [];
-      exceptionEscalateTo = ex.escalate_to ?? null;
-    }
-  }
+  // 5. Exceptions — EVERY matching exception applies. Exceptions annotate and
+  //    may only ADD requirements, so applying all of them is the monotone
+  //    (never-relaxing) choice; applying only the first would silently drop
+  //    a later exception's added gate.
+  const matched = triggered ? matchingExceptions(rule.exceptions, ctx) : [];
+  const exceptionApplied = matched.length > 0;
+  const exceptionNote = exceptionApplied ? matched.map((ex) => ex.note).join("; ") : null;
+  // Exception escalate_to takes precedence over the asset override and base
+  // rule value; the first matching exception (authored order) that sets one wins.
+  const exceptionEscalateTo = matched.find((ex) => ex.escalate_to)?.escalate_to ?? null;
 
-  // 6. Missing evidence — base required + any exception-added evidence.
-  const missingEvidence = computeMissingEvidence(rule, ctx.evidence, exceptionAddRequired);
+  // 6. Missing evidence — base required + every exception-added key.
+  const requiredEvidence = unique([
+    ...rule.required_evidence,
+    ...matched.flatMap((ex) => ex.add_required_evidence ?? []),
+  ]);
+  const missingEvidence = requiredEvidence.filter((key) => !isEvidenceSatisfied(ownItem(ctx.evidence, key)));
 
   // 7. Compute status — exceptions never relax a gate.
   const status = computeStatus(triggered, effectiveClass, effectiveForbidden, missingEvidence);
 
   // Effective escalate_to: exception > asset override > base.
-  const effectiveEscalateTo =
-    exceptionEscalateTo ?? resolveEscalateTo(rule, ctx.asset.type);
+  const effectiveEscalateTo = exceptionEscalateTo ?? override?.escalate_to ?? rule.escalate_to;
 
   return {
-    ruleId: rule.id,
-    ruleTitle: rule.title,
-    triggered,
-    triggerReason,
-    allConditions: allResult.traces,
-    anyConditions: anyResult.traces,
-    missingEvidence,
-    exceptionApplied,
-    exceptionNote,
-    status,
-    actionClass: effectiveClass,
-    escalateTo: effectiveEscalateTo,
+    requiredEvidence,
+    trace: {
+      ruleId: rule.id,
+      ruleTitle: rule.title,
+      triggered,
+      triggerReason,
+      allConditions: allResult.traces,
+      anyConditions: anyResult.traces,
+      missingEvidence,
+      exceptionApplied,
+      exceptionNote,
+      status,
+      actionClass: effectiveClass,
+      escalateTo: effectiveEscalateTo,
+    },
   };
+}
+
+function unique(keys: string[]): string[] {
+  return [...new Set(keys)];
+}
+
+/** The evidence item recorded under `key` — own keys only (never `constructor`, `__proto__`, …). */
+function ownItem(evidence: Evidence, key: string): EvidenceItem | undefined {
+  return Object.hasOwn(evidence, key) ? evidence[key] : undefined;
+}
+
+/** The asset override for `assetType` — own keys only, so an asset type named
+ *  "constructor" or "__proto__" never picks up an inherited member. */
+function overrideFor(rule: Rule, assetType: string): AssetOverrides[string] | undefined {
+  return Object.hasOwn(rule.asset_overrides, assetType) ? rule.asset_overrides[assetType] : undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,47 +182,18 @@ function evaluateRule(
  * count as missing.
  */
 export function isEvidenceSatisfied(item: EvidenceItem | undefined): boolean {
-  return item !== undefined && item.confirmed === true && item.value === true;
-}
-
-/**
- * A required evidence key is "missing" unless it is satisfied (see
- * {@link isEvidenceSatisfied}). Includes exception-added evidence keys
- * (exceptions may add requirements, never relax them).
- */
-function computeMissingEvidence(
-  rule: Rule,
-  evidence: Evidence,
-  extraRequired: string[] = [],
-): string[] {
-  const missing: string[] = [];
-  const allRequired = [...rule.required_evidence, ...extraRequired];
-  for (const key of allRequired) {
-    if (!isEvidenceSatisfied(evidence[key])) {
-      missing.push(key);
-    }
-  }
-  return missing;
+  // Total over whatever a caller passes (evidence often comes from JSON): a
+  // null or non-object item is simply not satisfied.
+  return typeof item === "object" && item !== null && item.confirmed === true && item.value === true;
 }
 
 // ---------------------------------------------------------------------------
 // Exception checking
 // ---------------------------------------------------------------------------
 
-function checkExceptions(
-  exceptions: RuleException[],
-  ctx: ConditionContext,
-): RuleException | null {
-  for (const ex of exceptions) {
-    const allMatch = ex.when.every((cond) => {
-      const trace = evaluateCondition(cond, ctx);
-      return trace.matched;
-    });
-    if (allMatch) {
-      return ex;
-    }
-  }
-  return null;
+/** Every exception whose `when` conditions all match, in authored order. */
+function matchingExceptions(exceptions: RuleException[], ctx: ConditionContext): RuleException[] {
+  return exceptions.filter((ex) => ex.when.every((cond) => evaluateCondition(cond, ctx).matched));
 }
 
 // ---------------------------------------------------------------------------
@@ -252,46 +246,12 @@ function computeStatus(
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve the effective action class for a rule given asset type overrides.
- */
-function resolveActionClass(rule: Rule, assetType: string): ActionClass {
-  const override = rule.asset_overrides[assetType];
-  if (override?.action_class) {
-    return override.action_class;
-  }
-  return rule.action_class;
-}
-
-/**
- * Resolve the effective forbidden_if_missing_evidence for a rule given asset
- * type overrides.
- */
-function resolveForbiddenIfMissing(rule: Rule, assetType: string): boolean {
-  const override = rule.asset_overrides[assetType];
-  if (override?.forbidden_if_missing_evidence !== undefined) {
-    return override.forbidden_if_missing_evidence;
-  }
-  return rule.forbidden_if_missing_evidence;
-}
-
-/**
- * Resolve the effective escalate_to for a rule given asset type overrides.
- */
-function resolveEscalateTo(rule: Rule, assetType: string): EscalateTarget {
-  const override = rule.asset_overrides[assetType];
-  if (override?.escalate_to) {
-    return override.escalate_to;
-  }
-  return rule.escalate_to;
-}
-
-/**
  * Resolve effective deadline_minutes for a rule given asset type overrides.
  */
 function resolveDeadline(rule: Rule, assetType: string): number | null {
-  const override = rule.asset_overrides[assetType];
+  const override = overrideFor(rule, assetType);
   if (override?.deadline_minutes !== undefined) {
-    return override.deadline_minutes ?? null;
+    return override.deadline_minutes;
   }
   return rule.deadline_minutes;
 }
@@ -303,7 +263,7 @@ function resolveActions(
   rule: Rule,
   assetType: string,
 ): { allowed: string[]; forbidden: string[] } {
-  const override = rule.asset_overrides[assetType];
+  const override = overrideFor(rule, assetType);
   return {
     allowed: override?.allowed_actions ?? rule.allowed_actions,
     forbidden: override?.forbidden_actions ?? rule.forbidden_actions,
@@ -328,14 +288,16 @@ function buildAction(
     decision: rule.decision,
     actionClass: step.actionClass,
     status: step.status,
-    missingEvidence: step.missingEvidence,
+    missingEvidence: [...step.missingEvidence],
     owner: rule.owner,
-    escalateTo: step.status === "escalate" || step.status === "blocked" ? step.escalateTo : null,
+    escalateTo: step.status === "escalate" || step.status === "blocked" ? { ...step.escalateTo } : null,
     deadline,
-    provenance: rule.provenance,
+    // Copies: the decision must not alias the pill (a consumer sorting or
+    // editing a decision's lists would otherwise rewrite the rule itself).
+    provenance: [...rule.provenance],
     pillId: pill.manifest.name,
     pillVersion: pill.manifest.version,
-    allowedActions: allowed,
-    forbiddenActions: forbidden,
+    allowedActions: [...allowed],
+    forbiddenActions: [...forbidden],
   };
 }

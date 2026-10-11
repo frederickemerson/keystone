@@ -77,6 +77,7 @@ const provenanceJson = JSON.stringify({
 const evalsYaml = `id: case-1
 title: LEW sign-off missing
 incident_date: "2026-01-01"
+incident_type: water_ingress
 asset:
   name: Harbourfront One
   type: grade_a_office
@@ -157,6 +158,9 @@ describe("parsePill", () => {
   type: boolean
   confirmable_by: [duty_lew]
   description: Signed electrical safety certificate
+water_near_electrical: { label: Water near electrical, type: boolean, confirmable_by: [technician] }
+insulation_resistance_ok: { label: IR test passed, type: boolean, confirmable_by: [duty_lew] }
+area_dry: { label: Area dry, type: boolean, confirmable_by: [technician] }
 `,
       evals: {},
     });

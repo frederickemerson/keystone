@@ -20,63 +20,60 @@ export interface ConditionContext {
 }
 
 /**
+ * Own-property lookup. Inherited members (`constructor`, `toString`,
+ * `__proto__`, …) are never data: a path segment only resolves when the
+ * container really holds that key. Non-objects resolve to undefined.
+ */
+function ownGet(container: unknown, key: string): unknown {
+  if (container === null || typeof container !== "object") return undefined;
+  return Object.hasOwn(container, key) ? (container as Record<string, unknown>)[key] : undefined;
+}
+
+function walk(start: unknown, keys: string[]): unknown {
+  let current = start;
+  for (const key of keys) {
+    current = ownGet(current, key);
+    if (current === undefined) return undefined;
+  }
+  return current;
+}
+
+/**
  * Resolve a dotted path like "evidence.lew_signoff" or "asset.type" or
  * "incident.type" against the context.
  *
- * - "evidence.foo" → returns the *EvidenceItem.value* for key "foo", or undefined.
- * - "asset.type" → asset.type; "asset.attributes.X" → nested lookup.
- * - "incident.type" → incident.type; "incident.X" → incident[X].
+ * - "evidence.foo" → the EvidenceItem.value for key "foo"; "evidence.foo.bar"
+ *   walks into that value.
+ * - "asset.id|name|type" → the asset field; "asset.attributes.X…" and the
+ *   shorthand "asset.X…" walk into asset.attributes.
+ * - "incident.X…" → walks the incident record.
  *
- * If the path doesn't start with one of these roots, returns undefined.
+ * Only own properties resolve (see {@link ownGet}); anything else, including
+ * an unknown root, is undefined. Paths are validated at parse time
+ * (schema.ts `conditionPathSchema`), so this never sees a malformed path from
+ * a parsed pill — but it must still be total and side-effect free.
  */
 export function resolvePath(path: string, ctx: ConditionContext): unknown {
-  const parts = path.split(".");
-  if (parts.length === 0) return undefined;
-  const root = parts[0];
+  const [root, ...rest] = path.split(".");
+  if (rest.length === 0) return undefined;
 
   switch (root) {
     case "evidence": {
-      if (parts.length < 2) return undefined;
-      const key = parts[1];
-      const item = ctx.evidence[key];
+      const [key, ...inner] = rest;
+      const item = ownGet(ctx.evidence, key) as { value?: unknown } | undefined;
       if (item === undefined) return undefined;
-      return item.value;
+      return walk(ownGet(item, "value"), inner);
     }
     case "asset": {
-      if (parts.length < 2) return undefined;
-      // asset.id, asset.name, asset.type
-      if (parts.length === 2) {
-        const field = parts[1];
-        if (field === "id") return ctx.asset.id;
-        if (field === "name") return ctx.asset.name;
-        if (field === "type") return ctx.asset.type;
-        // Fall through to attributes
-        return ctx.asset.attributes[field];
+      const [field, ...inner] = rest;
+      if (field === "id" || field === "name" || field === "type") {
+        return walk(ctx.asset[field], inner);
       }
-      // asset.attributes.X
-      if (parts[1] === "attributes") {
-        return parts.slice(2).reduce<unknown>((obj, key) => {
-          if (obj && typeof obj === "object" && key in obj) {
-            return (obj as Record<string, unknown>)[key];
-          }
-          return undefined;
-        }, ctx.asset.attributes);
-      }
-      // Unknown deep asset path
-      return undefined;
+      if (field === "attributes") return walk(ctx.asset.attributes, inner);
+      return walk(ctx.asset.attributes, rest);
     }
-    case "incident": {
-      if (parts.length < 2) return undefined;
-      const field = parts[1];
-      const top = (ctx.incident as Record<string, unknown>)[field];
-      if (parts.length === 2) return top;
-      return parts.slice(2).reduce<unknown>((obj, key) => {
-        if (obj && typeof obj === "object" && key in obj) {
-          return (obj as Record<string, unknown>)[key];
-        }
-        return undefined;
-      }, top);
-    }
+    case "incident":
+      return walk(ctx.incident, rest);
     default:
       return undefined;
   }
@@ -87,68 +84,43 @@ export function resolvePath(path: string, ctx: ConditionContext): unknown {
 // ---------------------------------------------------------------------------
 
 /**
- * Evaluate a single condition against resolved value.
- * Returns true/false.
+ * Evaluate a single operator against a resolved value.
+ *
+ * Semantics are deliberately strict — there is no type coercion anywhere:
+ *  - eq / neq / in: `===` (so "true" ≠ true, 1 ≠ true). A missing value is
+ *    `undefined`, which equals no authored scalar: `neq` on a missing key is
+ *    true, `eq` is false.
+ *  - gt / gte / lt / lte: only between two finite numbers. Anything else
+ *    (missing, null, strings, booleans, NaN, ±Infinity) does NOT match — a
+ *    missing reading must never satisfy a threshold.
+ *  - exists: the key is present (any value other than undefined, incl. null).
+ *  - in: membership in an array; a non-array operand matches nothing.
  */
 export function evaluateOp(op: Operator, resolved: unknown, conditionValue: unknown): boolean {
   switch (op) {
     case "exists":
       return resolved !== undefined;
-
     case "eq":
-      return strictEqual(resolved, conditionValue);
-
+      return resolved === conditionValue;
     case "neq":
-      return !strictEqual(resolved, conditionValue);
-
+      return resolved !== conditionValue;
     case "in":
-      if (!Array.isArray(conditionValue)) return false;
-      return conditionValue.some((v) => strictEqual(resolved, v));
-
+      return Array.isArray(conditionValue) && conditionValue.some((v) => v === resolved);
     case "gt":
-      return compare(resolved, conditionValue) > 0;
+      return ordered(resolved, conditionValue, (a, b) => a > b);
     case "gte":
-      return compare(resolved, conditionValue) >= 0;
+      return ordered(resolved, conditionValue, (a, b) => a >= b);
     case "lt":
-      return compare(resolved, conditionValue) < 0;
+      return ordered(resolved, conditionValue, (a, b) => a < b);
     case "lte":
-      return compare(resolved, conditionValue) <= 0;
-
+      return ordered(resolved, conditionValue, (a, b) => a <= b);
     default:
       return false;
   }
 }
 
-function strictEqual(a: unknown, b: unknown): boolean {
-  // Treat boolean/number coercion explicitly: true === 1 is false in JS strict.
-  // We want strict equality except: string "true"/"false" coerce to boolean? No — keep strict.
-  return a === b;
-}
-
-function compare(a: unknown, b: unknown): number {
-  const aN = toNumber(a);
-  const bN = toNumber(b);
-  if (aN === null || bN === null) {
-    // Fallback to string comparison
-    const aS = String(a);
-    const bS = String(b);
-    if (aS < bS) return -1;
-    if (aS > bS) return 1;
-    return 0;
-  }
-  if (aN < bN) return -1;
-  if (aN > bN) return 1;
-  return 0;
-}
-
-function toNumber(v: unknown): number | null {
-  if (typeof v === "number") return v;
-  if (typeof v === "boolean") return v ? 1 : 0;
-  if (typeof v === "string" && v.trim() !== "") {
-    const n = Number(v);
-    if (!Number.isNaN(n)) return n;
-  }
-  return null;
+function ordered(a: unknown, b: unknown, cmp: (a: number, b: number) => boolean): boolean {
+  return typeof a === "number" && typeof b === "number" && Number.isFinite(a) && Number.isFinite(b) && cmp(a, b);
 }
 
 // ---------------------------------------------------------------------------

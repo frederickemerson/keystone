@@ -3,17 +3,15 @@
 // statically imported JSON. Shapes are derived from the actual files in data/.
 
 import { z } from "zod";
+import { conditionSchema } from "../engine/schema";
 
 export const sensitivityLevelSchema = z.enum(["public", "internal", "tenant_pii", "commercial"]);
 export type SensitivityLevel = z.infer<typeof sensitivityLevelSchema>;
 
 const actionClassSchema = z.enum(["recommend", "requires_approval", "must_escalate"]);
 
-const conditionSchema = z.object({
-  path: z.string(),
-  op: z.enum(["eq", "neq", "gt", "gte", "lt", "lte", "in", "exists"]),
-  value: z.unknown().optional(),
-});
+// Extraction candidates become engine rules (app/capture), so their conditions
+// must meet the engine's own typed condition schema — not a looser copy.
 
 // ---------------------------------------------------------------------------
 // data/roles.json

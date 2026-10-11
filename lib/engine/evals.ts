@@ -44,9 +44,12 @@ export function runEvals(pill: Pill, cases: EvalCase[]): EvalSummary {
 
   for (const evalCase of cases) {
     const result = evaluate(pill, evalCase.asset, evalCase.incident, evalCase.evidence);
+    // Index once per case: a linear find per expectation made a full replay
+    // O(cases × rules²) — 13.7 s for 1,000 cases × 2,000 rules.
+    const byRule = new Map(result.actions.map((a) => [a.ruleId, a]));
 
     for (const [ruleId, expectedDecision] of Object.entries(evalCase.expected)) {
-      const action = result.actions.find((a) => a.ruleId === ruleId);
+      const action = byRule.get(ruleId);
 
       for (const [field, expected] of assertedFields(expectedDecision)) {
         const actual = actualField(action, field);

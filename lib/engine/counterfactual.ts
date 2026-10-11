@@ -10,33 +10,80 @@ import type {
   Incident,
   Pill,
   Rule,
+  TraceStep,
 } from "./types";
-import { evaluate, isEvidenceSatisfied } from "./evaluate";
+import { evaluateRule, isEvidenceSatisfied } from "./evaluate";
+
+/** The item recorded under `key` — own keys only. */
+function ownItem(evidence: Evidence, key: string): EvidenceItem | undefined {
+  return Object.hasOwn(evidence, key) ? evidence[key] : undefined;
+}
 
 /**
- * Build the hypothetical item that would satisfy a required evidence key.
- * Satisfaction requires value === true AND confirmed === true, so the
- * counterfactual change is "key confirmed true" (with value true).
+ * The hypothetical item that satisfies a key (value true AND confirmed true).
+ * Pure: provenance fields are carried over from the existing item, never
+ * stamped with the wall clock, so the same inputs always give the same answer.
  */
 function satisfy(key: string, evidence: Evidence): EvidenceItem {
-  const existing = evidence[key];
+  const existing = ownItem(evidence, key);
   return {
     value: true,
     source: existing?.source ?? "counterfactual-hypothesis",
-    at: existing?.at ?? new Date().toISOString(),
+    at: existing?.at ?? "",
     confirmed: true,
   };
 }
 
-/** Required evidence keys that are not satisfied (see isEvidenceSatisfied). */
-function computeMissing(rule: Rule, evidence: Evidence): string[] {
-  return rule.required_evidence.filter((key) => !isEvidenceSatisfied(evidence[key]));
+/** `evidence` with every key in `keys` satisfied (a copy; the input is untouched). */
+function withSatisfied(evidence: Evidence, keys: Iterable<string>): Evidence {
+  const next: Evidence = { ...evidence };
+  for (const key of keys) next[key] = satisfy(key, evidence);
+  return next;
+}
+
+/**
+ * Rules are evaluated independently, so the counterfactual only ever
+ * re-evaluates the ONE rule asked about (not the whole pill per hypothesis).
+ */
+function traceOf(rule: Rule, asset: Asset, incident: Incident, evidence: Evidence): TraceStep {
+  return evaluateRule(rule, { asset, incident, evidence }).trace;
+}
+
+/**
+ * Satisfy every missing gating key until none is missing. Confirming evidence
+ * can make an exception match, and an exception can ADD required evidence, so
+ * one pass over the currently-missing keys is not enough: iterate to the
+ * fixpoint (bounded — each round adds at least one new key).
+ */
+function satisfyAllMissing(
+  rule: Rule,
+  asset: Asset,
+  incident: Incident,
+  evidence: Evidence,
+  start: string[],
+): { keys: string[]; trace: TraceStep } {
+  const keys = new Set<string>();
+  let missing = start;
+  let trace = traceOf(rule, asset, incident, evidence);
+  while (missing.some((k) => !keys.has(k))) {
+    for (const k of missing) keys.add(k);
+    trace = traceOf(rule, asset, incident, withSatisfied(evidence, keys));
+    missing = trace.missingEvidence;
+  }
+  return { keys: [...keys], trace };
 }
 
 // ---------------------------------------------------------------------------
 // Public API: counterfactual(pill, asset, incident, evidence, ruleId)
 // ---------------------------------------------------------------------------
 
+/**
+ * "Which evidence, if confirmed, would change rule X's status — and to what?"
+ *
+ * Soundness (property-tested): satisfying exactly the keys in `ifEvidence`
+ * makes the rule evaluate to `flipsTo`. When nothing flips the status,
+ * `ifEvidence` is empty and `flipsTo === currentStatus`.
+ */
 export function counterfactual(
   pill: Pill,
   asset: Asset,
@@ -49,103 +96,52 @@ export function counterfactual(
     throw new Error(`counterfactual: rule "${ruleId}" not found in pill`);
   }
 
-  // 1. Current status.
-  const currentResult = evaluate(pill, asset, incident, evidence);
-  const currentTrace = currentResult.trace.find((t) => t.ruleId === ruleId);
-  const currentStatus: ActionStatus = currentTrace?.status ?? "not_applicable";
+  // 1. Current status. missingEvidence is the EFFECTIVE gate: base required
+  //    evidence plus whatever every matching exception added.
+  const current = traceOf(rule, asset, incident, evidence);
+  const currentStatus = current.status;
 
-  // 2. Determine what would flip the status.
-  //
-  // Strategy: find the minimal set of evidence changes that alter the status.
-  // The key insight: status is determined by (triggered, missingEvidence, exceptionApplied).
-  // The most common flip is: missing evidence → confirmed evidence flips blocked → allowed/escalate.
-  //
-  // We test: "if all currently-missing required evidence were confirmed, what would the status be?"
+  let flipsTo: ActionStatus = currentStatus;
+  let ifEvidence: string[] = [];
 
-  const missingNow = computeMissing(rule, evidence);
-
-  // Build a hypothetical evidence where all missing required evidence is satisfied.
-  const flippedEvidence: Evidence = { ...evidence };
-  for (const key of missingNow) {
-    flippedEvidence[key] = satisfy(key, evidence);
-  }
-
-  const flippedResult = evaluate(pill, asset, incident, flippedEvidence);
-  const flippedTrace = flippedResult.trace.find((t) => t.ruleId === ruleId);
-  const flippedStatus: ActionStatus = flippedTrace?.status ?? "not_applicable";
-
-  // 3. Build the ifEvidence list.
-  //
-  // If confirming all missing evidence flips the status, we report all of them.
-  // But we also want the *minimal* set — so we try each individually.
-  const ifEvidence: string[] = [];
-  let flipsTo: ActionStatus = flippedStatus;
-
-  if (flippedStatus !== currentStatus) {
-    // Try to find a minimal single-key flip.
-    let minimalFound = false;
-    for (const key of missingNow) {
-      const singleFlip: Evidence = { ...evidence };
-      singleFlip[key] = satisfy(key, evidence);
-      const singleResult = evaluate(pill, asset, incident, singleFlip);
-      const singleTrace = singleResult.trace.find((t) => t.ruleId === ruleId);
-      const singleStatus = singleTrace?.status ?? "not_applicable";
-      if (singleStatus !== currentStatus) {
-        ifEvidence.push(key);
-        flipsTo = singleStatus;
-        minimalFound = true;
-        break; // Found a single-key flip — that's minimal.
-      }
-    }
-
-    // No single key flips it alone — need all missing evidence.
-    if (!minimalFound) {
-      ifEvidence.push(...missingNow);
-      flipsTo = flippedStatus;
-    }
+  // 2. A single missing key that flips the status on its own is minimal.
+  const single = current.missingEvidence.find(
+    (key) => traceOf(rule, asset, incident, withSatisfied(evidence, [key])).status !== currentStatus,
+  );
+  if (single !== undefined) {
+    ifEvidence = [single];
+    flipsTo = traceOf(rule, asset, incident, withSatisfied(evidence, [single])).status;
   } else {
-    // Confirming all missing evidence doesn't flip it.
-    // Maybe the rule isn't triggered at all — check if trigger conditions need evidence.
-    if (!currentTrace?.triggered) {
-      // Find evidence-backed trigger conditions that could be satisfied.
-      const evidenceConds = [
-        ...rule.trigger.all.filter((c) => c.path.startsWith("evidence.")),
-        ...rule.trigger.any.filter((c) => c.path.startsWith("evidence.")),
-      ];
-      const evKeys = evidenceConds.map((c) => c.path.split(".")[1]);
-      const missingTriggerEv = evKeys.filter((k) => !isEvidenceSatisfied(evidence[k]));
-
-      if (missingTriggerEv.length > 0) {
-        // Hypothesize: provide all missing trigger evidence + all missing required evidence.
-        const hypoEvidence: Evidence = { ...evidence };
-        for (const key of missingTriggerEv) {
-          hypoEvidence[key] = satisfy(key, evidence);
-        }
-        // Also satisfy all required evidence.
-        for (const key of missingNow) {
-          hypoEvidence[key] = satisfy(key, evidence);
-        }
-
-        const hypoResult = evaluate(pill, asset, incident, hypoEvidence);
-        const hypoTrace = hypoResult.trace.find((t) => t.ruleId === ruleId);
-        const hypoStatus = hypoTrace?.status ?? "not_applicable";
-        if (hypoStatus !== currentStatus) {
-          flipsTo = hypoStatus;
-          ifEvidence.push(...new Set([...missingTriggerEv, ...missingNow]));
+    // 3. Otherwise: all missing gating evidence (to the fixpoint).
+    const all = satisfyAllMissing(rule, asset, incident, evidence, current.missingEvidence);
+    if (all.trace.status !== currentStatus) {
+      ifEvidence = all.keys;
+      flipsTo = all.trace.status;
+    } else if (!current.triggered) {
+      // 4. Not triggered: try confirming the evidence its trigger reads, plus
+      //    every gating key that then goes missing.
+      const triggerKeys = [...rule.trigger.all, ...rule.trigger.any]
+        .filter((c) => c.path.startsWith("evidence."))
+        .map((c) => c.path.split(".")[1])
+        .filter((k) => !isEvidenceSatisfied(ownItem(evidence, k)));
+      if (triggerKeys.length > 0) {
+        const base = withSatisfied(evidence, triggerKeys);
+        const after = traceOf(rule, asset, incident, base);
+        const gated = satisfyAllMissing(rule, asset, incident, base, after.missingEvidence);
+        if (gated.trace.status !== currentStatus) {
+          ifEvidence = [...new Set([...triggerKeys, ...gated.keys])];
+          flipsTo = gated.trace.status;
         }
       }
     }
   }
-
-  // 4. Build the plain-English summary.
-  const summary = buildSummary(ruleId, currentStatus, flipsTo, ifEvidence);
 
   return {
     ruleId,
     currentStatus,
     flipsTo,
     ifEvidence,
-    summary,
+    summary: buildSummary(ruleId, currentStatus, flipsTo, ifEvidence),
   };
 }
 
