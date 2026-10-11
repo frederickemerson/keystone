@@ -11,7 +11,7 @@ import styles from './landing.module.css';
  */
 export function HeroNotebook({ facts }: { facts: HeroFacts }) {
   return (
-    <figure className="relative mx-auto w-full max-w-[560px] pb-4 pt-14 lg:mx-0 lg:ml-auto">
+    <figure aria-label={`The expert’s quote becomes safety gate ${facts.ruleId}`} className="relative mx-auto w-full max-w-[560px] pb-4 pt-14 lg:mx-0 lg:ml-auto">
       <figcaption className="sr-only">
         {facts.expert} said, at {facts.timestamp} of the onboarding interview: “{facts.quoteFragment}”.
         MOSAIC compiled it into rule {facts.ruleId}, {facts.ruleTitle}, which stays blocked until{' '}
@@ -27,7 +27,7 @@ export function HeroNotebook({ facts }: { facts: HeroFacts }) {
         )}
       >
         <PillLabel
-          variant="handwritten"
+          variant="typeset"
           name={facts.pillName}
           pillClass={facts.pillClass}
           version={facts.version}
@@ -67,8 +67,8 @@ export function HeroNotebook({ facts }: { facts: HeroFacts }) {
             >
               {facts.quoteFragment}
             </p>
-            <p className="mt-[2px] font-hand text-[22px] font-medium leading-[40px] text-ink-muted">
-              — {facts.expert}, {facts.timestamp}
+            <p className="mt-3 text-[13px] font-medium leading-relaxed text-ink-muted">
+              {facts.expert} · <span className="font-mono text-[12px]">{facts.timestamp}</span>
             </p>
           </div>
         </div>
@@ -86,7 +86,7 @@ export function HeroNotebook({ facts }: { facts: HeroFacts }) {
             <span className="shrink-0 whitespace-nowrap rounded-[5px] border border-line-strong bg-dew-drop px-1.5 py-0.5 font-mono text-[12px] font-medium text-ink">
               {facts.ruleId}
             </span>
-            <span className="min-w-0 font-display-soft text-[17px] font-semibold leading-tight text-heading">
+            <span className="min-w-0 font-display text-[17px] font-semibold leading-tight tracking-[-0.02em] text-heading">
               {facts.ruleTitle}
             </span>
           </div>

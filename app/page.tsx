@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { Hero } from '@/components/landing/Hero';
+import { ProblemFlow } from '@/components/landing/ProblemFlow';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { SafeBounded } from '@/components/landing/SafeBounded';
 import { BrandBand, ProofStrip } from '@/components/landing/ProofAndFooter';
@@ -27,6 +28,7 @@ export default function LandingPage() {
       <LandingHeader />
       <main id="main" className="flex-1">
         <Hero facts={facts.hero} />
+        <ProblemFlow />
         <HowItWorks pillId={facts.hero.pillId} />
         <SafeBounded classes={facts.classes} />
         <ProofStrip rulesTraced={facts.rulesTraced} rulesTotal={facts.rulesTotal} />

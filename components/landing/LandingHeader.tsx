@@ -13,7 +13,7 @@ export function LandingHeader() {
         className="inline-flex items-center gap-2.5 rounded-lg focus-visible:outline-offset-4"
       >
         <BrandMark size={38} />
-        <span className="font-display-soft text-[26px] font-bold leading-none text-heading">mosaic</span>
+        <span className="font-display text-[26px] font-bold leading-none tracking-[-0.02em] text-heading">mosaic</span>
       </Link>
       <Link href={INCIDENT_ROOM_HREF} className="btn-pill min-h-10 px-4 text-[14px] max-[380px]:px-3">
         open the incident room

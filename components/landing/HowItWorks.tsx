@@ -1,4 +1,4 @@
-import { MarginNote, RomanList, Sticker, type RomanListItem } from '@/components/mosaic';
+import { RomanList, type RomanListItem } from '@/components/mosaic';
 
 function step(title: string, description: string, href: string, id: string): RomanListItem {
   return {
@@ -11,56 +11,26 @@ function step(title: string, description: string, href: string, id: string): Rom
 
 export function HowItWorks({ pillId }: { pillId: string }) {
   const items: RomanListItem[] = [
-    step(
-      'capture',
-      'An AI interviewer runs the onboarding call with the expert and probes for the cues, exceptions and contradictions behind each decision.',
-      '/capture',
-      'capture',
-    ),
-    step(
-      'compile',
-      'Each judgement becomes a candidate rule with its trigger, required evidence and action class, which the expert confirms or edits on the decision canvas.',
-      `/canvas/${pillId}`,
-      'compile',
-    ),
-    step(
-      'apply',
-      'In a live incident, approved rules are evaluated against the evidence on hand, and every action shows its status and the reason for it.',
-      '/incident/INC-2026-1011',
-      'apply',
-    ),
-    step(
-      'learn',
-      'Incident outcomes propose a new version. It is replayed against the pill’s evals, and an approver promotes it or rolls it back.',
-      `/learning/${pillId}`,
-      'learn',
-    ),
-    step(
-      'reuse',
-      'Approved pills sit in a versioned registry, ready for the next asset, the next shift and the next engineer.',
-      '/registry',
-      'reuse',
-    ),
+    step('capture', 'An AI interview surfaces cues, exceptions and contradictions.', '/capture', 'capture'),
+    step('compile', 'The expert confirms or edits each candidate rule.', `/canvas/${pillId}`, 'compile'),
+    step('apply', 'Approved rules check incident evidence and explain each decision.', '/incident/INC-2026-1011', 'apply'),
+    step('learn', 'Corrections are versioned, replay-tested and reviewed before promotion.', `/learning/${pillId}`, 'learn'),
+    step('reuse', 'Approved pills carry the rulebook to the next asset.', '/registry', 'reuse'),
   ];
 
   return (
     <section aria-labelledby="how-title" className="border-t border-pencil bg-dew-drop/60">
-      <div className="mx-auto grid w-full max-w-[1240px] gap-x-16 gap-y-10 px-4 py-20 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:py-28">
-        <div className="relative">
+      <div className="mx-auto grid w-full max-w-[1240px] gap-x-16 gap-y-10 px-4 py-16 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:py-20">
+        <div>
           <h2
             id="how-title"
-            className="font-display-soft text-[44px] font-extrabold leading-[1] tracking-[-0.02em] sm:text-[56px]"
+            className="font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[52px]"
           >
             how it works
           </h2>
-          <p className="mt-5 max-w-[26rem] text-[19px] leading-[1.55] text-ink">
-            One conversation becomes a rulebook that is used, checked and improved. Each step
-            opens the screen where it happens.
+          <p className="mt-5 max-w-[26rem] text-[19px] leading-[1.5] text-ink">
+            Follow one judgement from conversation to reuse.
           </p>
-          <MarginNote arrow="right" rotate={-2} size="md" className="mt-10 hidden lg:flex lg:justify-end">
-            it starts with a conversation
-          </MarginNote>
-          <Sticker kind="bolt" size={52} rotate={14} className="absolute right-6 top-0 hidden lg:block" />
         </div>
         <RomanList items={items} aria-label="How MOSAIC works, in five steps" className="[&_a]:py-5 [&_a]:sm:px-7" />
       </div>

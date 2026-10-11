@@ -3,8 +3,8 @@
 /*
  * MOSAIC — "the expert's field notebook" (docs/design/DESIGN.md).
  *
- * The expert's voice is handwritten; the system's voice is typeset.
- * Cream paper, thin ink borders, whisper shadows, marker-orange marginalia.
+ * Geist throughout; Caveat only for the landing notebook's expert quote.
+ * Cream paper, thin ink borders, whisper shadows, marker-orange accents.
  *
  * Dark mode: intentionally dropped. The paper look is the product's identity and
  * a dark "paper" fights it (status tints and marker strokes lose meaning on a
@@ -114,7 +114,7 @@
   /* Type — CSS variables come from next/font in app/layout.tsx */
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-display: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  --font-display: var(--font-geist), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-hand: var(--font-caveat), 'Comic Sans MS', cursive;
 
   /* Radii: pill buttons/tags 20px, cards 12px, inputs 8px, brand band 56px */
@@ -154,12 +154,21 @@
   }
 
   h1,
-  h2 {
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
-    font-variation-settings: 'SOFT' 100, 'WONK' 0;
+    font-weight: 600;
     color: var(--heading);
-    letter-spacing: normal;
+    letter-spacing: -0.02em;
     text-align: left;
+  }
+
+  h1,
+  h2 {
+    line-height: 1.05;
   }
 
   p {
@@ -191,11 +200,10 @@
  */
 main h1 {
   font-family: var(--font-display);
-  font-variation-settings: 'SOFT' 100, 'WONK' 0;
   font-size: clamp(1.75rem, 1.35rem + 0.9vw, 2.25rem);
   font-weight: 650;
-  line-height: 1.12;
-  letter-spacing: -0.005em;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   color: var(--heading);
 }
 
@@ -263,10 +271,10 @@ main h1 {
   color: var(--marker-ink);
 }
 
-/* Fraunces display with the soft axis set. */
+/* Shared display utility used by existing app components. */
 @utility font-display-soft {
   font-family: var(--font-display);
-  font-variation-settings: 'SOFT' 100, 'WONK' 0;
+  letter-spacing: -0.02em;
 }
 
 @media (prefers-reduced-motion: reduce) {

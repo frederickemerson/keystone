@@ -41,7 +41,155 @@
   }
 }
 
+.problemFlow {
+  --hairline-plate: #fdfbf9;
+  --hairline-hi: #171717;
+  --hairline-edge: #2b1a07;
+  --hairline-mid: #8a8580;
+  --hairline-lo: #d9d4cf;
+  --hairline-stroke: 1;
+}
+
+.flowRow {
+  padding: 24px;
+  border: 1px solid var(--pencil);
+  border-radius: 12px;
+}
+
+.today {
+  --hairline-plate: #f7efe9;
+  background: var(--dew-drop);
+}
+
+.withMosaic {
+  margin-top: 20px;
+  border-color: var(--charcoal);
+  background: var(--cream-paper);
+}
+
+.flowSteps {
+  display: grid;
+  gap: 36px;
+}
+
+.flowStep {
+  position: relative;
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.flowTile {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  aspect-ratio: 5 / 4;
+  background: var(--hairline-plate);
+  box-shadow: none;
+}
+
+.today .flowTile {
+  border-color: var(--pencil);
+}
+
+.flowFigure {
+  width: 100%;
+  max-width: 192px;
+}
+
+.lockedFigure {
+  pointer-events: none;
+}
+
+.flowCopy {
+  min-width: 0;
+}
+
+.flowArrow {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 36px;
+  width: 32px;
+  height: 16px;
+  color: var(--charcoal);
+  rotate: 90deg;
+}
+
+.flowOutcome {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  margin-left: auto;
+  padding: 8px 14px;
+  border-width: 1px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+@media (min-width: 1024px) {
+  .flowRow {
+    padding: 28px;
+  }
+
+  .flowSteps {
+    gap: 32px;
+  }
+
+  .threeSteps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fiveSteps {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .flowStep {
+    display: block;
+  }
+
+  .flowTile {
+    height: 156px;
+    aspect-ratio: auto;
+  }
+
+  .flowCopy {
+    margin-top: 18px;
+  }
+
+  .flowArrow {
+    top: 70px;
+    left: auto;
+    right: -32px;
+    rotate: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .flowRow {
+    padding: 20px 16px;
+  }
+
+  .flowStep {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .flowArrow {
+    left: 24px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .flowFigure {
+    pointer-events: none;
+  }
+
   .notebookIn,
   .labelIn {
     animation: none;

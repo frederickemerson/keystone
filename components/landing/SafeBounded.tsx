@@ -13,21 +13,21 @@ const CLASS_COPY: Record<
     tone: 'recommend',
     ink: 'text-recommend',
     icon: CheckCircle2,
-    meaning: 'MOSAIC suggests the step. Your team carries it out.',
+    meaning: 'Your team carries out the suggested step.',
   },
   requires_approval: {
     label: 'Requires approval',
     tone: 'approval',
     ink: 'text-approval',
     icon: Clock,
-    meaning: 'Held until a named person with the authority approves it.',
+    meaning: 'A named, authorised person must approve.',
   },
   must_escalate: {
     label: 'Must escalate',
     tone: 'escalate',
     ink: 'text-escalate',
     icon: Siren,
-    meaning: 'Handed to the role the pill names, with a fallback if they are unreachable.',
+    meaning: 'Route to the named role, or its fallback.',
   },
 };
 
@@ -37,13 +37,12 @@ export function SafeBounded({ classes }: { classes: ClassExample[] }) {
       <div className="grid gap-x-16 gap-y-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-end">
         <h2
           id="safe-title"
-          className="font-display-soft text-[44px] font-extrabold leading-[1] tracking-[-0.02em] sm:text-[56px]"
+          className="font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.02em] sm:text-[52px]"
         >
           safe and bounded
         </h2>
         <p className="max-w-[36rem] text-[19px] leading-[1.55] text-ink">
-          Every rule carries one of three action classes, and a rule missing its required evidence
-          is blocked outright. These are deterministic gates — the model cannot override them.
+          Three action classes, with deterministic evidence gates the AI cannot override.
         </p>
       </div>
 

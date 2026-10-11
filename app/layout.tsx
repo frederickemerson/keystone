@@ -1,17 +1,9 @@
 import type { Metadata } from 'next';
-import { Caveat, Fraunces, Geist, Geist_Mono } from 'next/font/google';
+import { Caveat, Geist, Geist_Mono } from 'next/font/google';
 import { AppShell } from '@/components/app-shell';
 import './globals.css';
 
-// Display / headings: Fraunces, variable, soft axis (weights 600–700 used).
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  axes: ['SOFT', 'WONK', 'opsz'],
-  variable: '--font-fraunces',
-  display: 'swap',
-});
-
-// Body / UI / tables.
+// Display / headings (600–700), body, UI and tables.
 const geist = Geist({
   subsets: ['latin'],
   variable: '--font-geist',
@@ -25,10 +17,10 @@ const geistMono = Geist_Mono({
   display: 'swap',
 });
 
-// Marginalia only — the expert's handwritten voice.
+// Only the landing notebook's single expert quote is handwritten.
 const caveat = Caveat({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
+  weight: ['600'],
   variable: '--font-caveat',
   display: 'swap',
 });
@@ -42,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${geist.variable} ${geistMono.variable} ${caveat.variable}`}
+      className={`${geist.variable} ${geistMono.variable} ${caveat.variable}`}
     >
       <body>
         <AppShell>{children}</AppShell>

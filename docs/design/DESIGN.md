@@ -3,14 +3,12 @@
 Reference: superr.ai (screens: `ref-superr-hero.png`, `ref-superr-notes.png`) and the Superr style tokens below.
 Adapted for an operations product judged on professionalism, readability and responsible AI.
 
-## ⚠️ Scope decision (user, 11 Oct): NO handwriting inside the app
-Handwriting (Caveat), MarginNote, hand-drawn arrows, Stickers and the marker-orange marginalia voice are for the **landing page only**. Every app screen (pulse, capture, canvas, registry, incident, approvals, learning, shell/sidebar, drawers) is fully typeset and professional: Fraunces for page/section headings, Geist for all text and data, Geist Mono for ids/versions. Expert provenance in the app = typeset quote with a quiet attribution line (name · role · timestamp), not a handwritten one. The paper palette, ink borders, pill buttons, PillLabel layout (typeset) and status tints stay.
+## Scope decision (user, 11 Oct): one handwritten quote, Geist everywhere else
+Caveat is reserved for the **single expert quote on the landing notebook card**. Its attribution and PillLabel are typeset; there are no handwritten margin notes. Every app screen (pulse, capture, canvas, registry, incident, approvals, learning, shell/sidebar, drawers) is fully typeset and professional: Geist for headings, text and data, Geist Mono for ids/versions. Expert provenance in the app = typeset quote with a quiet attribution line (name · role · timestamp). The paper palette, ink borders, pill buttons and status tints stay.
 
-## The one idea (landing page; in-app it is expressed through typeset quote blocks, not handwriting)
-**The expert's voice is handwritten. The system's voice is typeset.**
-MOSAIC turns a person's soft, spoken judgement into hard, governed rules. The UI shows that transformation:
-- Anything that came from a human expert — interview quotes, provenance, "Hear the expert", contradiction notes, expert corrections, approver signatures — is rendered as **marginalia**: marker-orange handwriting, hand-drawn arrows, sticky labels.
-- Anything the system decides or enforces — rules, gates, evidence, statuses, deadlines, approvals — is **crisp typeset UI** on cream paper with thin ink borders.
+## The one idea
+**Spoken judgement becomes governed rules.**
+The landing notebook pairs one handwritten expert quote with a typeset safety gate; all other content is crisp typeset UI on cream paper with thin ink borders. Human provenance stays visible without making the operational interface look handwritten.
 
 ## Readability & professionalism rules (non-negotiable)
 - Handwriting font is **decorative/attributive only**: max ~1–2 lines, ≥18px, never for anything a user must act on, never for numbers, statuses, rule ids, deadlines, buttons or table data. Every handwritten quote has a typeset equivalent available to screen readers (or is real text with sufficient contrast).
@@ -40,14 +38,14 @@ MOSAIC turns a person's soft, spoken judgement into hard, governed rules. The UI
 Radii: buttons/tags 20px (pill), cards 12px, inputs 8px, brand band 56px top corners. Borders 1–1.5px charcoal. Shadows whisper-light: card `rgba(0,0,0,.06) 0 2px 20px`, button `rgba(0,0,0,.25) 0 1px 2px`. No gradients, no glass, no neon. Base spacing 4px; card padding 24–32px.
 
 ## Type
-- Display / headings: **Fraunces** (Google Fonts, `SOFT` 100, `WONK` 0, weight 600–700) — substitutes for gelica's soft heavy rounded feel. Lowercase headlines, normal tracking, left-aligned.
-- Body / UI / tables: **Geist** (Google Fonts) 400/500; `Geist Mono` for rule ids, versions, evidence keys.
-- Marginalia: **Caveat** (Google Fonts) 500–600, marker orange, slight rotation (−2° to 2°).
+- Display / headings: **Geist** (Google Fonts), weight 600–700, through the shared `--font-display` variable. Lowercase headlines, letter-spacing **−0.02em**, left-aligned; **1.05 line-height at display sizes**, with more room for small multi-line headings. No Fraunces.
+- Body / UI / tables: **Geist** 400/500; **Geist Mono** for rule ids, versions, timestamps and evidence keys.
+- Expert quote only: **Caveat** 600, accessible marker ink `#c4470c`, slight rotation (−2° to 2°), on the landing notebook. The quote is loaded from the real pill; its attribution, PillLabel and all other landing text are typeset.
 
 ## Signature components
-1. **Pill label sticker** (name-label): white card, 1px charcoal border, 8px radius, slight rotation on hero only. Fields: *name* (handwritten: "chilled-water leak"), *class* (Technical Services), *roll no.* (v1.2.0) + owner/approver as tiny signatures. Used on Registry cards, Canvas header, Incident "pills in use".
-2. **Margin note**: Caveat marker-orange text + thin hand-drawn SVG curved arrow pointing at the element it annotates (e.g. next to the BLOCKED gate: "Wei Ming said this, 00:14:32 →").
-3. **Expert quote**: typeset quote body (readable) with a handwritten attribution line + timestamp sticker; "Hear the expert" is an outlined pill button with a small speaker icon.
+1. **Pill label sticker** (name-label): white card, 1px charcoal border, 8px radius, slight rotation on hero only. Fields: *name* (Geist: "chilled-water leak"), *class* (Technical Services), *roll no.* (Geist Mono: v1.2.0) + typeset owner/approver. Used on Registry cards, Canvas header, Incident "pills in use".
+2. **Flow figures**: Hairline line drawings in paper tiles, with 1px charcoal SVG arrows; horizontal on desktop, stacked on mobile. Theme is light with paper-coloured plates, charcoal highlights, cocoa edges and grey supporting strokes. Each figure has a meaningful accessible label; autoplay is omitted for reduced motion and can be paused. The safety padlock stays closed.
+3. **Expert quote**: typeset body and attribution in the app; only the landing notebook quote body uses Caveat. "Hear the expert" is an outlined pill button with a small speaker icon.
 4. **Marker highlight**: one key word per screen underlined with a wobbly orange SVG stroke (e.g. "blocked", "learns").
 5. **Pill buttons**: cream fill, 1.5px charcoal border, 20px radius; primary = charcoal fill with cream text is allowed ONLY for the single most important action per view (Superr never fills — we bend this one rule for operational clarity of the primary action).
 6. **Roman-numeral step lists** for the Learning flow (I–VII) and the interview phases.
@@ -55,5 +53,6 @@ Radii: buttons/tags 20px (pill), cards 12px, inputs 8px, brand band 56px top cor
 8. **Brand band footer**: marker orange, 56px top radius, on landing + bottom of app sidebar.
 
 ## Landing page (new route `/`; Portfolio Pulse moves to `/pulse`)
-Hero (two-column): margin note "dear keppel," → display headline "the chief engineer retires in december. his judgement doesn't." → body with marker highlight on "governed" → pill CTA "open the incident room" + secondary "hear the onboarding call" → right: a large paper notebook card (SVG/CSS, not stock photo) showing a handwritten rule ("never re-energise before the LEW signs off" — Tan Wei Ming, 00:14:32) with an arrow to a typeset rule card "TS-07 · blocked until lew_signoff" — the whole product in one image.
-Then: roman-numeral "how it works" (I capture → II compile → III apply → IV learn → V reuse), each linking to its screen; a "safe & bounded" section (recommend / requires approval / must escalate); proof strip (161 tests, deterministic gates, CodeBuddy skill install); orange brand band footer "built with CodeBuddy · Tencent Cloud".
+Hero (two-column): Geist headline "the expert retires. his judgement stays." → one-sentence body with marker highlight on "governed" → pill CTA "open the incident room" + secondary "hear the onboarding call" → right: the paper notebook with one handwritten quote, a typeset attribution and PillLabel, and a typeset TS-07 rule card. Quote, attribution and evidence keys come from the real pill.
+Immediately after the hero: **the problem**, comparing today (20 years in one person → retirement and an empty drawer → a team guessing at 3am) with MOSAIC (call → compiled rules → non-overridable gates → versioned corrections → reuse). Paper Hairline figures carry the story, with blocked-red and safe-green outcome chips.
+Then: roman-numeral "how it works" (I capture → II compile → III apply → IV learn → V reuse), each linking to its screen; "safe and bounded" (recommend / requires approval / must escalate); proof strip (verified test count, CodeBuddy skill, real-pill provenance count); orange brand band footer "built with CodeBuddy Code · Tencent Cloud" with a fictional-demo-data note.
