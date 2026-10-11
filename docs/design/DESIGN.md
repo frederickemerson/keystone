@@ -3,7 +3,10 @@
 Reference: superr.ai (screens: `ref-superr-hero.png`, `ref-superr-notes.png`) and the Superr style tokens below.
 Adapted for an operations product judged on professionalism, readability and responsible AI.
 
-## The one idea
+## ⚠️ Scope decision (user, 11 Oct): NO handwriting inside the app
+Handwriting (Caveat), MarginNote, hand-drawn arrows, Stickers and the marker-orange marginalia voice are for the **landing page only**. Every app screen (pulse, capture, canvas, registry, incident, approvals, learning, shell/sidebar, drawers) is fully typeset and professional: Fraunces for page/section headings, Geist for all text and data, Geist Mono for ids/versions. Expert provenance in the app = typeset quote with a quiet attribution line (name · role · timestamp), not a handwritten one. The paper palette, ink borders, pill buttons, PillLabel layout (typeset) and status tints stay.
+
+## The one idea (landing page; in-app it is expressed through typeset quote blocks, not handwriting)
 **The expert's voice is handwritten. The system's voice is typeset.**
 MOSAIC turns a person's soft, spoken judgement into hard, governed rules. The UI shows that transformation:
 - Anything that came from a human expert — interview quotes, provenance, "Hear the expert", contradiction notes, expert corrections, approver signatures — is rendered as **marginalia**: marker-orange handwriting, hand-drawn arrows, sticky labels.
