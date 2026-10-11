@@ -2,7 +2,7 @@
 
 import { useId, useState } from 'react';
 import { LlmBadge } from '@/components/mosaic/LlmBadge';
-import type { Generation } from '@/lib/llm/providers';
+import type { Generation } from '@/lib/llm/attribution';
 import { Check, EyeOff, Mail, X } from 'lucide-react';
 import { StatusBadge } from '@/components/mosaic';
 import type { ActionStatus } from '@/lib/engine/types';
@@ -157,12 +157,12 @@ export function TenantMessagePanel({
       const response = await fetch('/api/llm/tenant-message', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ incidentId: fixture.source_incident }),
-        signal: AbortSignal.timeout(35_000),
+        signal: AbortSignal.timeout(50_000),
       });
       if (!response.ok) throw new Error('request-failed');
       setGeneration(await response.json());
     } catch {
-      setGeneration({ data: { draft: fixture.drafts[0], snapshotAt: fixture.generated_at }, source: 'recorded', provider: 'fixtures', model: fixture.model, latencyMs: 0, reason: 'Live request unavailable; showing the recorded first notice.' });
+      setGeneration({ data: { draft: fixture.drafts[0], snapshotAt: fixture.generated_at }, source: 'recorded', provider: 'fixtures', model: fixture.model, latencyMs: 0, attempts: [], reason: 'Live request unavailable; showing the recorded first notice.' });
     } finally {
       setLoading(false);
     }
@@ -174,12 +174,12 @@ export function TenantMessagePanel({
     <div className="space-y-3" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className="btn-pill text-xs" disabled={loading || !mayDraft} onClick={draftLive} title={mayDraft ? 'Optional live drafting; nothing is sent.' : 'Switch to a role permitted to draft tenant messages.'}>
-          {loading ? 'Drafting with Hunyuan…' : 'Draft live with Hunyuan'}
+          {loading ? 'Drafting live…' : 'Draft live'}
         </button>
         {generation ? <button type="button" className="btn-pill text-xs" onClick={() => setGeneration(null)}>Use recorded draft</button> : null}
       </div>
       <p className="text-[11px] text-ink-muted">First-notice snapshot at {formatClock(fixture.generated_at)}, not the current replay step. Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.</p>
-      <span className="sr-only" role="status">{loading ? 'Drafting with Hunyuan…' : generation ? `${generation.source === 'live' ? 'Live' : 'Recorded'} draft ready for human review` : 'Recorded output'}</span>
+      <span className="sr-only" role="status">{loading ? 'Drafting live…' : generation ? `${generation.source === 'live' ? 'Live' : 'Recorded'} draft ready for human review` : 'Recorded output'}</span>
       {(generation ? [generation.data.draft] : fixture.drafts).map((d) => (
         <DraftCard
           key={d.draft_id}

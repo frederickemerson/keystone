@@ -9,6 +9,8 @@ import { decisionAuthority, ROLES } from "@/lib/governance/access";
 import { canApprove } from "@/lib/governance/approval";
 import { createGovernanceStore, GovernanceError, memoryStorage } from "@/lib/governance/store";
 import { candidateToRule, toDraftCandidates } from "../candidates";
+
+vi.mock("server-only", () => ({}));
 import { getModel, isConfigured } from "../client";
 
 const PILL_ID = "technical-services-chilled-water-leak";

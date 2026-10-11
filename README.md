@@ -83,7 +83,7 @@ Next.js 15 (App Router, TS) + React 19 + Tailwind v4 + shadcn-style components
 ├─ lib/engine/                    pure TS, NO LLM: evaluate() → decisions + trace;
 │                                 counterfactual(); runEvals(); schema; conditions
 ├─ lib/llm/                       CodeBuddy Agent SDK → Hunyuan hy4-preview (live).
-│                                 TokenHub adapter ready pending account verification.
+│                                 Falls through to TokenHub, then OpenAI, per credentials.
 │                                 Opt-in extraction + tenant drafts; recorded fallback.
 │                                 Probes, contradictions and summaries remain recorded.
 ├─ lib/governance/                versions (semver + jsondiffpatch + rollback),
@@ -174,21 +174,29 @@ npm run build      # production build
 ### Environment variables (all optional)
 
 **Every screen opens on recorded output, even when credentials are present.**
-Only **re-extract live with Hunyuan** on `/capture` or **draft live with Hunyuan**
-in the Incident Room makes a request. The scripted voice call stays offline.
+Only **re-extract live** on `/capture` or **draft live** in the Incident Room
+makes a request. The scripted voice call stays offline.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `MOSAIC_LLM_PROVIDER` | `auto` | `auto`, `codebuddy`, `tokenhub`, or `fixtures` |
+| `MOSAIC_LLM_PROVIDER` | `auto` | `auto`, `codebuddy`, `tokenhub`, `openai`, or `fixtures` (a provider name forces only that provider) |
 | `CODEBUDDY_API_KEY` | _(unset)_ | CodeBuddy international API key; requires a **Pro plan** |
 | `TOKENHUB_API_KEY` | _(unset)_ | TokenHub adapter; account KYC is currently pending, not verified live |
 | `TOKENHUB_BASE_URL` | `https://tokenhub-intl.tencentcloudmaas.com/v1` | TokenHub endpoint |
 | `MOSAIC_MODEL` | `hy4-preview` | TokenHub model only; CodeBuddy always requests Hunyuan `hy4-preview` |
+| `OPENAI_API_KEY` | _(unset)_ | OpenAI, the final live fallback |
+| `OPENAI_MODEL` | `gpt-5.4-mini` | OpenAI model id |
 
-`auto` selects **CodeBuddy Agent SDK → Hunyuan hy4-preview** when a CodeBuddy
-key is set or a local saved CLI login is present; otherwise **TokenHub** when
-its key is set; otherwise **recorded fixtures**. This is a selection order,
-not sequential retries: a selected provider's failure goes directly to the fixture.
+`auto` tries, in order, each provider that has credentials, falling through to the
+next on an error, timeout, invalid JSON or schema/safety rejection:
+
+1. **CodeBuddy Agent SDK → Hunyuan hy4-preview** (CodeBuddy key or local saved CLI login; 25 s)
+2. **TokenHub** (`TOKENHUB_API_KEY`; 15 s)
+3. **OpenAI** (`OPENAI_API_KEY`; 20 s) — final live fallback
+4. **Recorded fixtures**
+
+Each timeout is capped by a 45-second budget for the whole chain; providers left
+when under 3 s remain are skipped. A forced provider that fails goes to the fixture.
 Local login detection reads only the installed SDK's shared auth-cache shape and
 logout marker, without spawning a CLI or decrypting credentials. The SDK handles
 actual login reuse/refresh; a stale login fails safely to recorded output.
@@ -202,9 +210,11 @@ Do **not** set `CODEBUDDY_INTERNET_ENVIRONMENT`; this integration uses the
 international edition. Keep all credentials server-side (never `NEXT_PUBLIC_*`).
 
 The Node routes `/api/llm/extract` and `/api/llm/tenant-message` have a 60-second
-platform budget and a 25-second inference timeout. Requests are limited to 64 KB;
+platform budget and the 45-second provider-chain budget above. Requests are limited to 64 KB;
 extraction permits at most 100 turns of 4,000 characters each. Results include
-`data`, `source`, `provider`, `model`, `latencyMs` and a safe fallback `reason`.
+`data`, `source`, `provider`, `model`, `latencyMs`, `attempts` (earlier providers that
+failed, with an outcome only) and a safe `reason`. `provider`/`model` always name
+the provider that produced `data` (`fixtures` for recorded output).
 The badge reports actual provenance and latency; recorded output exposes its reason
 on hover. Keys, full prompts and raw provider errors are not logged by this layer;
 SDK conversation persistence is disabled. Tool whitelists are empty, with an

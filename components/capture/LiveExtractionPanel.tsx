@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { LlmBadge } from '@/components/mosaic/LlmBadge';
-import type { Generation } from '@/lib/llm/providers';
+import type { Generation } from '@/lib/llm/attribution';
 import type { CandidateParse } from '@/lib/llm/candidates';
 import type { CaptureProps } from './types';
 
@@ -16,12 +16,12 @@ export function LiveExtractionPanel({ transcript, rules }: Pick<CaptureProps, 't
       const response = await fetch('/api/llm/extract', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ interviewId: transcript.interview_id, turns: transcript.turns.map(({ t, speaker, text }) => ({ t, speaker, text })) }),
-        signal: AbortSignal.timeout(35_000),
+        signal: AbortSignal.timeout(50_000),
       });
       if (!response.ok) throw new Error('request-failed');
       setResult(await response.json());
     } catch {
-      setResult({ data: { candidates: rules.map((rule) => ({ rule, status: 'draft', requiresExpertConfirmation: true })), rejected: [] }, source: 'recorded', provider: 'fixtures', model: 'hy4-preview', latencyMs: 0, reason: 'Live request unavailable; showing the recorded candidates.' });
+      setResult({ data: { candidates: rules.map((rule) => ({ rule, status: 'draft', requiresExpertConfirmation: true })), rejected: [] }, source: 'recorded', provider: 'fixtures', model: 'hy4-preview', latencyMs: 0, attempts: [], reason: 'Live request unavailable; showing the recorded candidates.' });
     } finally {
       setLoading(false);
     }
@@ -30,7 +30,7 @@ export function LiveExtractionPanel({ transcript, rules }: Pick<CaptureProps, 't
     <section className="space-y-3 rounded-xl border border-line bg-surface p-4" aria-label="Optional live extraction" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn-pill text-xs" disabled={loading} onClick={extract}>
-          {loading ? 'Drafting with Hunyuan…' : 'Re-extract live with Hunyuan'}
+          {loading ? 'Drafting live…' : 'Re-extract live'}
         </button>
         <span role="status"><LlmBadge result={result} /></span>
         {result ? <button type="button" className="btn-pill text-xs" onClick={() => setResult(null)}>Dismiss preview</button> : null}

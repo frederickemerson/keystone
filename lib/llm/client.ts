@@ -1,11 +1,14 @@
+import 'server-only';
+
+import { createOpenAI } from '@ai-sdk/openai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 
 /**
- * TokenHub adapter for providers.ts (CodeBuddy is the primary live provider).
+ * TokenHub and OpenAI adapters for providers.ts (CodeBuddy is the primary live provider).
  * Used only for: rule extraction, follow-up probes, contradiction detection,
  * tenant-message drafting, incident summary. Decisions stay deterministic.
  *
- * The API key is read from the environment and is never logged or exposed.
+ * API keys are read from the server environment and are never logged or exposed.
  */
 export const DEFAULT_BASE_URL = 'https://tokenhub-intl.tencentcloudmaas.com/v1';
 export const DEFAULT_MODEL = 'hy4-preview';
@@ -45,4 +48,21 @@ function getProvider() {
 /** Returns the configured chat model. Throws if no API key is present. */
 export function getModel(modelId: string = getModelId()): MosaicModel {
   return getProvider().chatModel(modelId);
+}
+
+/** Final live fallback. Any model id the installed @ai-sdk/openai supports. */
+export const DEFAULT_OPENAI_MODEL = 'gpt-5.4-mini';
+
+export function getOpenAIModelId(): string {
+  return process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL;
+}
+
+let openaiProvider: ReturnType<typeof createOpenAI> | null = null;
+
+/** Responses API model. Throws if OPENAI_API_KEY is absent. */
+export function getOpenAIModel(modelId: string = getOpenAIModelId()) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('OPENAI_API_KEY is not set.');
+  openaiProvider ??= createOpenAI({ apiKey });
+  return openaiProvider.responses(modelId);
 }
