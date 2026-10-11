@@ -30,14 +30,19 @@ import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { evaluate } from '@/lib/engine/evaluate';
 import { counterfactual } from '@/lib/engine/counterfactual';
 import type { ActionDecision, ActionStatus, Pill, Rule, TraceStep } from '@/lib/engine/types';
-import { redact, redactText, UNRESOLVED_ACTOR } from '@/lib/governance/access';
+import { canSee, redact, redactText, UNRESOLVED_ACTOR } from '@/lib/governance/access';
 import { auditFor } from '@/lib/governance/audit';
-import { useGovernanceStore, type ActionDecisionRecord } from '@/lib/governance/store';
+import {
+  useGovernanceStore,
+  type ActionDecisionRecord,
+  type EvidenceConfirmationRecord,
+} from '@/lib/governance/store';
 import { currentApproved, pillAtVersion } from '@/lib/governance/versions';
 import type { TimelineEvent as DisplayTimelineEvent } from '@/components/mosaic/types';
 import { cn } from '@/lib/ui/cn';
 import { AssetOverlayPanel } from './AssetOverlayPanel';
 import { DecisionButtons, DecisionStamp, type DirectOutcome, type MissingEvidenceOption } from './DecisionButtons';
+import { EvidenceSuggestions } from './EvidenceSuggestions';
 import {
   accumulateEvidence,
   evidenceKeysForRule,
@@ -125,6 +130,7 @@ function sentenceCase(s: string): string {
 }
 
 const EMPTY_DECISIONS: Record<string, ActionDecisionRecord> = {};
+const EMPTY_CONFIRMATIONS: Record<string, EvidenceConfirmationRecord> = {};
 
 function missingSummary(missing: string[]): string {
   if (missing.length === 0) return '';
@@ -165,6 +171,8 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
   const storeDecisions = useGovernanceStore((s) => s.decisions);
   const storeAudit = useGovernanceStore((s) => s.audit);
   const storeDecideAction = useGovernanceStore((s) => s.decideAction);
+  const storeConfirmations = useGovernanceStore((s) => s.evidenceConfirmations);
+  const storeConfirmEvidence = useGovernanceStore((s) => s.confirmEvidence);
   const resetDemo = useGovernanceStore((s) => s.resetDemo);
   const seedPills = useGovernanceStore((s) => s.seedPills);
 
@@ -240,8 +248,14 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
     return () => clearTimeout(t);
   }, [playing, step, total, speed, setStep]);
 
-  // Evidence + engine.
-  const evidence = useMemo(() => accumulateEvidence(events, step), [events, step]);
+  // Evidence + engine. Human evidence confirmations (the only path by which a
+  // Jev suggestion can matter) fold in at their anchor event.
+  const incidentId = scenario.incident.id;
+  const confirmations = (mounted ? storeConfirmations[incidentId] : undefined) ?? EMPTY_CONFIRMATIONS;
+  const evidence = useMemo(
+    () => accumulateEvidence(events, step, confirmations),
+    [events, step, confirmations],
+  );
   const evaluations = useMemo(() => evaluateAll(approved, scenario, evidence), [approved, scenario, evidence]);
 
   const items: BoardItem[] = useMemo(
@@ -288,7 +302,6 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
   }, [approved, primary, overlay]);
 
   // Decisions + audit for this incident.
-  const incidentId = scenario.incident.id;
   const decisions = (mounted ? storeDecisions[incidentId] : undefined) ?? EMPTY_DECISIONS;
   const auditEvents = useMemo(
     () => (mounted ? auditFor(storeAudit, { incidentId }) : []),
@@ -394,6 +407,18 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
       if (rec) setAnnouncement(`${item.rule.id}: evidence requested by ${rec.actor.name}.`);
     },
     [decideAction, incidentId],
+  );
+
+  const confirmEvidence = useCallback(
+    (input: Parameters<typeof storeConfirmEvidence>[0]) => {
+      try {
+        const rec = storeConfirmEvidence(input);
+        setAnnouncement(`${rec.key} confirmed by ${rec.actor.name}.`);
+      } catch (err) {
+        setAnnouncement(`Not recorded: ${(err as Error).message}`);
+      }
+    },
+    [storeConfirmEvidence],
   );
 
   const resetAll = () => {
@@ -632,7 +657,38 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
               evidence as it arrived.
             </p>
           ) : (
-            <EvidenceTimeline events={displayEvents} highlightId={displayEvents[0]?.id} />
+            <EvidenceTimeline
+              events={displayEvents}
+              highlightId={displayEvents[0]?.id}
+              renderExtra={(ev) =>
+                // Only for a role cleared to read the event's text (it is what Jev reads).
+                mounted && canSee(role, events.find((e) => e.id === ev.id)?.sensitivity ?? 'commercial') ? (
+                  <EvidenceSuggestions
+                    key={`${incidentId}:${ev.id}`}
+                    incidentId={incidentId}
+                    eventId={ev.id}
+                    pills={approved.map((a) => ({ pillId: a.bundle.id, pillVersion: a.version, pill: a.pill }))}
+                    ctx={{
+                      asset: toEngineAsset(scenario.asset),
+                      incident: toEngineIncident(scenario.incident),
+                      evidence: toEngineEvidence(evidence),
+                    }}
+                    role={role}
+                    confirmations={confirmations}
+                    onConfirm={(sug, model) =>
+                      confirmEvidence({
+                        incidentId,
+                        pillId: sug.pillId,
+                        pillVersion: sug.pillVersion,
+                        key: sug.key,
+                        eventId: ev.id,
+                        suggestion: { model, probability: sug.probability },
+                      })
+                    }
+                  />
+                ) : null
+              }
+            />
           )}
           {step < total ? (
             <p className="text-center text-[11px] text-ink-muted">{total - step} more event(s) queued</p>

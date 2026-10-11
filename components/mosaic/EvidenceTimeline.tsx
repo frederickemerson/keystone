@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   Activity,
   Wrench,
@@ -50,11 +51,14 @@ export function EvidenceTimeline({
   events,
   highlightId,
   className,
+  renderExtra,
 }: {
   events: TimelineEvent[];
   /** Event id to highlight as newest. Defaults to the last event in the list. */
   highlightId?: string;
   className?: string;
+  /** Optional content rendered inside an event's card, below its evidence updates. */
+  renderExtra?: (event: TimelineEvent) => ReactNode;
 }) {
   if (events.length === 0) {
     return (
@@ -149,6 +153,7 @@ export function EvidenceTimeline({
                   ))}
                 </div>
               ) : null}
+              {renderExtra?.(event)}
             </div>
           </li>
         );

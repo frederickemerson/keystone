@@ -52,6 +52,7 @@ function dataOf(store: GovernanceStore): GovernanceData {
     audit: s.audit,
     decisions: s.decisions,
     shadowRuns: s.shadowRuns,
+    evidenceConfirmations: s.evidenceConfirmations,
   };
 }
 

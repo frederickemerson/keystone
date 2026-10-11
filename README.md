@@ -106,6 +106,8 @@ a strict status precedence (`not_applicable → blocked → escalate → needs_a
 allowed`), evidence-coverage confidence (**a count, never a fabricated percentage**),
 and a trace for every rule. The LLM is confined to language work where it is safe.
 
+Jev (TypeSafe AI) provides fast (~0.25 s), **unconfirmed** evidence suggestions for timeline events in the Incident Room; it never gates — evidence counts only once a human in the key's `confirmable_by` confirms it.
+
 See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full Mermaid diagrams
 (the eight required diagram points, and the component/data-flow view) and
 **[docs/SUBMISSION.md](docs/SUBMISSION.md)** for the challenge-mapped write-up.
@@ -186,6 +188,7 @@ makes a request. The scripted voice call stays offline.
 | `MOSAIC_MODEL` | `hy4-preview` | TokenHub model only; CodeBuddy always requests Hunyuan `hy4-preview` |
 | `OPENAI_API_KEY` | _(unset)_ | OpenAI, the final live fallback |
 | `OPENAI_MODEL` | `gpt-5.4-mini` | OpenAI model id |
+| `JEV_API_KEY` | _(unset)_ | TypeSafe Jev key (server-only) for evidence suggestions; unset → suggestions unavailable |
 
 `auto` tries, in order, each provider that has credentials, falling through to the
 next on an error, timeout, invalid JSON or schema/safety rejection:

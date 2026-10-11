@@ -65,6 +65,7 @@ describe("middleware", () => {
       "/learning/technical-services-chilled-water-leak",
       "/api/llm/extract",
       "/api/llm/tenant-message",
+      "/api/jev/suggest",
     ]) {
       expect(matched(p), p).toBe(true);
     }

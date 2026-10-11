@@ -10,7 +10,7 @@
 import { useStore } from "zustand";
 import { createJSONStorage, persist, type PersistStorage, type StateStorage } from "zustand/middleware";
 import { createStore, type Mutate, type StoreApi } from "zustand/vanilla";
-import type { ComparisonResult, Pill } from "@/lib/engine";
+import type { ComparisonResult, EvidenceCatalog, Pill } from "@/lib/engine";
 import {
   canApprove,
   shadowPromotionAuthority,
@@ -20,6 +20,7 @@ import {
 } from "./approval";
 import {
   decisionAuthority,
+  evidenceConfirmAuthority,
   hasCapability,
   isKnownRole,
   personaFor,
@@ -74,6 +75,25 @@ export interface ActionDecisionRecord {
   pillVersion?: string;
 }
 
+/**
+ * A human's confirmation of one evidence key on an incident (value `true`,
+ * confirmed) — the ONLY way a model suggestion can reach the engine. When the
+ * confirmation came from a Jev suggestion, the suggestion is kept as context;
+ * it is never itself evidence.
+ */
+export interface EvidenceConfirmationRecord {
+  incidentId: string;
+  key: string;
+  value: true;
+  /** Timeline event the confirmation is anchored to (it applies from that event on). */
+  eventId: string;
+  pillId: string;
+  pillVersion?: string;
+  actor: Actor;
+  at: string;
+  suggestion?: { model: string; probability: number };
+}
+
 export interface GovernanceData {
   /** UNRESOLVED_ACTOR until the signed session's identity is bound (SSR, first render, no session). Never persisted. */
   currentActor: Actor;
@@ -86,6 +106,8 @@ export interface GovernanceData {
   decisions: Record<string, Record<string, ActionDecisionRecord>>;
   /** "<pillId>@<version>" → shadow runs for that version. */
   shadowRuns: Record<string, ShadowRun[]>;
+  /** incidentId → evidence key → human confirmation (full history is in `audit`). */
+  evidenceConfirmations: Record<string, Record<string, EvidenceConfirmationRecord>>;
 }
 
 /** Thrown when a store action is refused by governance policy (the refusal is audited first). */
@@ -130,6 +152,20 @@ export interface GovernanceActions {
   decideAction: (
     input: Omit<ActionDecisionRecord, "actor" | "at"> & { at?: string; subject?: DecisionSubject },
   ) => ActionDecisionRecord;
+  /**
+   * Record evidence `key` as confirmed (value true) by the acting human. The
+   * key must be a boolean declared in the pill's evidence.yaml, and the acting
+   * role must be in its `confirmable_by`; otherwise the refusal is audited and
+   * a GovernanceError thrown. Nothing else (no model) confirms evidence.
+   */
+  confirmEvidence: (input: {
+    incidentId: string;
+    pillId: string;
+    pillVersion?: string;
+    key: string;
+    eventId: string;
+    suggestion?: { model: string; probability: number };
+  }) => EvidenceConfirmationRecord;
   resetDemo: () => void;
 }
 
@@ -150,6 +186,7 @@ function initialData(
     audit: EMPTY_AUDIT_LOG,
     decisions: {},
     shadowRuns: {},
+    evidenceConfirmations: {},
   };
 }
 
@@ -259,6 +296,9 @@ export function createGovernanceStore(
           return h;
         };
         const actorFields = () => ({ actor: get().currentActor.name, role: get().currentActor.role });
+        // Evidence catalogs of the seeded pills (from the pill files; not
+        // persisted, so localStorage cannot widen who may confirm what).
+        const catalogs = new Map<string, EvidenceCatalog>();
 
         return {
           ...initialData(),
@@ -274,6 +314,7 @@ export function createGovernanceStore(
           },
 
           seedPills: (seeds) => {
+            for (const s of seeds) catalogs.set(s.id, s.pill.evidenceCatalog);
             const at = now();
             const baseline = (pill: Pill, id: string) =>
               seedVersion(
@@ -484,6 +525,57 @@ export function createGovernanceStore(
             return record;
           },
 
+          confirmEvidence: ({ incidentId, pillId, pillVersion, key, eventId, suggestion }) => {
+            const actor = get().currentActor;
+            const refuse = (why: string): never => {
+              log({
+                ...actorFields(),
+                action: "evidence_confirmation_blocked",
+                incidentId,
+                pillId,
+                pillVersion,
+                evidenceKey: key,
+                detail: `Confirm ${key} refused: ${why}`,
+              });
+              throw new GovernanceError(why);
+            };
+            const catalog = catalogs.get(pillId);
+            if (!catalog) return refuse(`Unknown pill ${pillId}`);
+            const entry = Object.hasOwn(catalog, key) ? catalog[key] : undefined;
+            if (!entry || entry.type !== "boolean") return refuse(`${key} is not a boolean evidence key of ${pillId}`);
+            const authority = evidenceConfirmAuthority(actor.role, entry.confirmable_by);
+            if (!authority.allowed) return refuse(authority.reason ?? "Not authorised");
+            const record: EvidenceConfirmationRecord = {
+              incidentId,
+              key,
+              value: true,
+              eventId,
+              pillId,
+              ...(pillVersion ? { pillVersion } : {}),
+              actor,
+              at: now(),
+              ...(suggestion ? { suggestion } : {}),
+            };
+            set((s) => ({
+              evidenceConfirmations: {
+                ...s.evidenceConfirmations,
+                [incidentId]: { ...(s.evidenceConfirmations[incidentId] ?? {}), [key]: record },
+              },
+            }));
+            log({
+              ...actorFields(),
+              action: "evidence_confirmed",
+              incidentId,
+              pillId,
+              pillVersion,
+              evidenceKey: key,
+              detail:
+                `Confirmed ${entry.label} (${key}) at ${eventId}` +
+                (suggestion ? ` — Jev suggested ${suggestion.probability.toFixed(2)}, unconfirmed until now` : ""),
+            });
+            return record;
+          },
+
           resetDemo: () => {
             // Versions, decisions and shadow runs return to the seed; the audit
             // log is append-only and survives (the reset itself is audited).
@@ -504,6 +596,7 @@ export function createGovernanceStore(
           audit: s.audit,
           decisions: s.decisions,
           shadowRuns: s.shadowRuns,
+          evidenceConfirmations: s.evidenceConfirmations,
         }),
         // Unknown/older snapshot versions are discarded rather than half-migrated.
         migrate: () => undefined,

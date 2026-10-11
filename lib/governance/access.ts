@@ -271,3 +271,23 @@ export function redact<T>(value: T, role: string, sensitivity: SensitivityLevel 
 export function redactText(text: string, role: string, sensitivity: SensitivityLevel): string {
   return canSee(role, sensitivity) ? text : maskPlaceholder(sensitivity);
 }
+
+// ---------------------------------------------------------------------------
+// Evidence confirmation (evidence.yaml confirmable_by)
+// ---------------------------------------------------------------------------
+
+/**
+ * May `role` confirm an evidence item whose evidence.yaml entry lists
+ * `confirmableBy`? Only a defined role named there may — a model suggestion
+ * (Jev) never confirms anything; it can only be confirmed by such a human.
+ */
+export function evidenceConfirmAuthority(role: string, confirmableBy: readonly string[]): DecisionAuthority {
+  if (!isKnownRole(role)) return { allowed: false, reason: `Role "${role}" is not defined in roles.json` };
+  if (!confirmableBy.includes(role)) {
+    return {
+      allowed: false,
+      reason: `${roleLabel(role)} cannot confirm this evidence — confirmable by ${confirmableBy.map(roleLabel).join(", ") || "nobody"}.`,
+    };
+  }
+  return { allowed: true };
+}

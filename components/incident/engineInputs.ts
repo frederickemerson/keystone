@@ -5,6 +5,7 @@ import type { ConditionContext } from '@/lib/engine/conditions';
 import { evaluateRule } from '@/lib/engine/evaluate';
 import type { Asset, Evidence, EvidenceItem, Incident, Pill, Rule } from '@/lib/engine/types';
 import type { AssetRecord, IncidentRecord, SensitivityLevel, TimelineEvent } from '@/lib/data/schemas';
+import type { EvidenceConfirmationRecord } from '@/lib/governance/store';
 
 export interface EvidenceEntry extends EvidenceItem {
   /** Sensitivity of the timeline event that last set this key. */
@@ -14,15 +15,36 @@ export interface EvidenceEntry extends EvidenceItem {
 
 export type EvidenceState = Record<string, EvidenceEntry>;
 
-/** Fold evidence_updates of events[0..step) — later events overwrite earlier ones. */
-export function accumulateEvidence(events: readonly TimelineEvent[], step: number): EvidenceState {
+/**
+ * Fold evidence_updates of events[0..step) — later events overwrite earlier
+ * ones. A human evidence confirmation (governance store) is folded in right
+ * after the event it is anchored to, so it applies from that point of the
+ * replay on. Jev suggestions never appear here: only confirmations do.
+ */
+export function accumulateEvidence(
+  events: readonly TimelineEvent[],
+  step: number,
+  confirmations: Readonly<Record<string, EvidenceConfirmationRecord>> = {},
+): EvidenceState {
   const state: EvidenceState = {};
+  const byEvent = new Map<string, EvidenceConfirmationRecord[]>();
+  for (const c of Object.values(confirmations)) byEvent.set(c.eventId, [...(byEvent.get(c.eventId) ?? []), c]);
   for (const event of events.slice(0, step)) {
     for (const [key, upd] of Object.entries(event.evidence_updates)) {
       state[key] = {
         value: upd.value,
         confirmed: upd.confirmed,
         source: event.source,
+        at: event.at,
+        sensitivity: event.sensitivity,
+        eventId: event.id,
+      };
+    }
+    for (const c of byEvent.get(event.id) ?? []) {
+      state[c.key] = {
+        value: c.value,
+        confirmed: true,
+        source: `confirmed by ${c.actor.name}`,
         at: event.at,
         sensitivity: event.sensitivity,
         eventId: event.id,

@@ -20,6 +20,8 @@ export const AUDIT_ACTIONS = [
   "action_escalated",
   "action_evidence_requested",
   "action_decision_blocked",
+  "evidence_confirmed",
+  "evidence_confirmation_blocked",
   "demo_reset",
   "snapshot_discarded",
 ] as const;
@@ -43,6 +45,8 @@ export interface AuditEvent {
   readonly pillVersion?: string;
   readonly incidentId?: string;
   readonly ruleId?: string;
+  /** Evidence key, for evidence_confirmed / evidence_confirmation_blocked. */
+  readonly evidenceKey?: string;
   readonly detail: string;
 }
 

@@ -48,6 +48,7 @@ const auditEventSchema = z.object({
   pillVersion: z.string().optional(),
   incidentId: z.string().optional(),
   ruleId: z.string().optional(),
+  evidenceKey: z.string().optional(),
   detail: z.string(),
 });
 
@@ -61,6 +62,18 @@ const decisionSchema = z.object({
   requestedEvidence: z.array(z.string()).optional(),
   pillId: z.string().optional(),
   pillVersion: z.string().optional(),
+});
+
+const evidenceConfirmationSchema = z.object({
+  incidentId: z.string(),
+  key: z.string(),
+  value: z.literal(true),
+  eventId: z.string(),
+  pillId: z.string(),
+  pillVersion: z.string().optional(),
+  actor: actorSchema,
+  at: z.string(),
+  suggestion: z.object({ model: z.string(), probability: z.number().min(0).max(1) }).optional(),
 });
 
 const shadowRunSchema = z.object({
@@ -77,6 +90,8 @@ const snapshotSchema = z.object({
   audit: z.array(auditEventSchema),
   decisions: z.record(z.string(), z.record(z.string(), decisionSchema)),
   shadowRuns: z.record(z.string(), z.array(shadowRunSchema)),
+  // Absent in snapshots written before evidence confirmation existed.
+  evidenceConfirmations: z.record(z.string(), z.record(z.string(), evidenceConfirmationSchema)).default({}),
 });
 
 export type SnapshotResult = { ok: true; data: PersistedGovernanceData } | { ok: false; reason: string };
@@ -165,6 +180,16 @@ function violation(data: PersistedGovernanceData): string | null {
       if (!isKnownRole(record.actor.role)) return `decision ${incidentId}/${ruleId} by undefined role`;
       if (!hasEvent([DECISION_AUDIT[record.outcome]], { incidentId, ruleId })) {
         return `decision ${incidentId}/${ruleId} has no audit event`;
+      }
+    }
+  }
+
+  for (const [incidentId, byKey] of Object.entries(data.evidenceConfirmations)) {
+    for (const [key, record] of Object.entries(byKey)) {
+      if (record.incidentId !== incidentId || record.key !== key) return `evidence confirmation ${incidentId}/${key} is misfiled`;
+      if (!isKnownRole(record.actor.role)) return `evidence confirmation ${incidentId}/${key} by undefined role`;
+      if (!hasEvent(["evidence_confirmed"], { incidentId, evidenceKey: key, role: record.actor.role })) {
+        return `evidence confirmation ${incidentId}/${key} has no audit event`;
       }
     }
   }

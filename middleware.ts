@@ -1,5 +1,6 @@
 // Keystone demo auth — every app screen and the LLM API need a valid signed
 // session. Pages redirect to /sign-in?next=<this path>; the API answers 401.
+// /api/jev/* (Jev suggestions) is protected the same way.
 // "/", /sign-in, /api/auth/*, static assets and icons stay public (not matched).
 
 import { NextResponse, type NextRequest } from "next/server";
@@ -32,5 +33,6 @@ export const config = {
     "/approvals/:path*",
     "/learning/:path*",
     "/api/llm/:path*",
+    "/api/jev/:path*",
   ],
 };
