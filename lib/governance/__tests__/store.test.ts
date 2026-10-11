@@ -113,14 +113,17 @@ describe("governance store", () => {
     expect(Object.isFrozen(again.getState().audit)).toBe(true);
   });
 
-  it("resetDemo restores seeded versions and clears runtime state", () => {
+  it("resetDemo restores seeded versions and clears runtime state, keeping the append-only audit", () => {
     const s = () => ctx.store.getState();
     s().setRole("chief_engineer");
     s().proposeVersion(PILL_ID, "1.2.0", [], "x");
+    s().setRole("asset_operations_manager");
     s().decideAction({ incidentId: "INC-1", ruleId: "TS-07", outcome: "approved" });
+    const before = s().audit;
     s().resetDemo();
     expect(s().versions[PILL_ID]).toHaveLength(1);
     expect(s().decisions).toEqual({});
-    expect(s().audit.map((e) => e.action)).toEqual(["demo_reset"]);
+    expect(s().audit.slice(0, before.length)).toEqual(before);
+    expect(s().audit.map((e) => e.action).at(-1)).toBe("demo_reset");
   });
 });

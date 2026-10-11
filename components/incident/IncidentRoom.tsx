@@ -29,9 +29,9 @@ import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { evaluate } from '@/lib/engine/evaluate';
 import { counterfactual } from '@/lib/engine/counterfactual';
 import type { ActionDecision, ActionStatus, Pill, Rule, TraceStep } from '@/lib/engine/types';
-import { redact, redactText } from '@/lib/governance/access';
+import { redact, redactText, UNRESOLVED_ACTOR } from '@/lib/governance/access';
 import { auditFor } from '@/lib/governance/audit';
-import { personaFor, useGovernanceStore, type ActionDecisionRecord } from '@/lib/governance/store';
+import { useGovernanceStore, type ActionDecisionRecord } from '@/lib/governance/store';
 import { currentApproved, pillAtVersion } from '@/lib/governance/versions';
 import type { TimelineEvent as DisplayTimelineEvent } from '@/components/mosaic/types';
 import { cn } from '@/lib/ui/cn';
@@ -39,6 +39,7 @@ import { AssetOverlayPanel } from './AssetOverlayPanel';
 import { DecisionButtons, DecisionStamp, type DirectOutcome, type MissingEvidenceOption } from './DecisionButtons';
 import {
   accumulateEvidence,
+  evidenceKeysForRule,
   findRule,
   toEngineAsset,
   toEngineEvidence,
@@ -122,7 +123,6 @@ function sentenceCase(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ');
 }
 
-const DEFAULT_ACTOR = personaFor('asset_operations_manager');
 const EMPTY_DECISIONS: Record<string, ActionDecisionRecord> = {};
 
 function missingSummary(missing: string[]): string {
@@ -163,11 +163,13 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
   const storeVersions = useGovernanceStore((s) => s.versions);
   const storeDecisions = useGovernanceStore((s) => s.decisions);
   const storeAudit = useGovernanceStore((s) => s.audit);
-  const decideAction = useGovernanceStore((s) => s.decideAction);
+  const storeDecideAction = useGovernanceStore((s) => s.decideAction);
   const resetDemo = useGovernanceStore((s) => s.resetDemo);
   const seedPills = useGovernanceStore((s) => s.seedPills);
 
-  const actor = mounted ? storeActor : DEFAULT_ACTOR;
+  // Until the persisted actor is known (SSR + hydration) render as the
+  // unresolved actor: no grants, public data only — never a privileged default.
+  const actor = mounted ? storeActor : UNRESOLVED_ACTOR;
   const role = actor.role;
 
   useEffect(() => {
@@ -294,6 +296,20 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
 
   // Live announcements (new evidence, gate changes, decisions).
   const [announcement, setAnnouncement] = useState('');
+
+  // The store enforces decision authority itself (and audits refusals); the
+  // buttons are already gated, so a refusal here is announced, not thrown.
+  const decideAction = useCallback(
+    (input: Parameters<typeof storeDecideAction>[0]): ActionDecisionRecord | null => {
+      try {
+        return storeDecideAction(input);
+      } catch (err) {
+        setAnnouncement(`Not recorded: ${(err as Error).message}`);
+        return null;
+      }
+    },
+    [storeDecideAction],
+  );
   const prevBlocked = useRef<string[]>([]);
   useEffect(() => {
     const blocked = items.filter((i) => i.action.status === 'blocked').map((i) => i.action.ruleId);
@@ -355,7 +371,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
         pillId: item.entry.bundle.id,
         pillVersion: item.entry.version,
       });
-      setAnnouncement(`${item.rule.id} ${outcome} by ${rec.actor.name}.`);
+      if (rec) setAnnouncement(`${item.rule.id} ${outcome} by ${rec.actor.name}.`);
     },
     [decideAction, incidentId, scenario.asset.people],
   );
@@ -374,7 +390,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
         pillId: item.entry.bundle.id,
         pillVersion: item.entry.version,
       });
-      setAnnouncement(`${item.rule.id}: evidence requested by ${rec.actor.name}.`);
+      if (rec) setAnnouncement(`${item.rule.id}: evidence requested by ${rec.actor.name}.`);
     },
     [decideAction, incidentId],
   );
@@ -715,8 +731,9 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
                   outcome,
                   note: `${outcome === 'approved' ? 'Approved' : 'Rejected'} tenant message ${draft.draft_id} (${draft.channel})`,
                   pillId: pills.find((p) => p.domain === 'tenant-experience')?.id,
+                  subject: { kind: 'tenant_message', approverRole: draft.approved_by_role },
                 });
-                setAnnouncement(`Tenant message ${draft.draft_id} ${outcome} by ${rec.actor.name}.`);
+                if (rec) setAnnouncement(`Tenant message ${draft.draft_id} ${outcome} by ${rec.actor.name}.`);
               }}
               noDraftReason={
                 asset.type === 'data_centre'
@@ -770,6 +787,11 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
           rule={drawerItem.rule}
           pillVersion={drawerItem.entry.version}
           evidence={evidence}
+          evidenceKeys={evidenceKeysForRule(drawerItem.rule, {
+            asset: toEngineAsset(scenario.asset),
+            incident: toEngineIncident(scenario.incident),
+            evidence: toEngineEvidence(evidence),
+          })}
           expert={expertQuoteFor(drawerItem.entry.pill, drawerItem.rule)}
           expertName={personForRole(drawerItem.rule.owner, people).name ?? humanizeKey(drawerItem.rule.owner)}
           counterfactual={drawerCounterfactual}

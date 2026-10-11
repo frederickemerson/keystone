@@ -2,21 +2,32 @@
 // Pure + client-safe. There is deliberately no update or delete API: the only
 // operation is appendAudit(), which returns a new log with one frozen event added.
 
-export type AuditAction =
-  | "role_switched"
-  | "pill_seeded"
-  | "version_proposed"
-  | "version_shadowed"
-  | "shadow_run_recorded"
-  | "version_approved"
-  | "version_approval_blocked"
-  | "version_approval_overridden"
-  | "version_rolled_back"
-  | "action_approved"
-  | "action_rejected"
-  | "action_escalated"
-  | "action_evidence_requested"
-  | "demo_reset";
+export const AUDIT_ACTIONS = [
+  "role_switched",
+  "pill_seeded",
+  "version_proposed",
+  "version_shadowed",
+  "shadow_run_recorded",
+  "version_approved",
+  "version_approval_blocked",
+  "version_approval_overridden",
+  "version_rolled_back",
+  "version_rollback_blocked",
+  "action_approved",
+  "action_rejected",
+  "action_escalated",
+  "action_evidence_requested",
+  "action_decision_blocked",
+  "demo_reset",
+  "snapshot_discarded",
+] as const;
+
+export type AuditAction = (typeof AUDIT_ACTIONS)[number];
+
+/** Audit id for the event at 0-based position `index` — ids are contiguous, so a gap means tampering. */
+export function auditId(index: number): string {
+  return `AUD-${String(index + 1).padStart(5, "0")}`;
+}
 
 export interface AuditEvent {
   readonly id: string;
@@ -45,7 +56,7 @@ export function appendAudit(log: AuditLog, input: AuditInput): AuditLog {
   const event: AuditEvent = Object.freeze({
     ...input,
     at,
-    id: `AUD-${String(log.length + 1).padStart(5, "0")}`,
+    id: auditId(log.length),
   });
   return Object.freeze([...log, event]);
 }

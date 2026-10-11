@@ -38,6 +38,6 @@ describe("audit log", () => {
     const fns = Object.entries(audit)
       .filter(([, v]) => typeof v === "function")
       .map(([k]) => k);
-    expect(fns.sort()).toEqual(["appendAudit", "auditFor"]);
+    expect(fns.sort()).toEqual(["appendAudit", "auditFor", "auditId"]);
   });
 });

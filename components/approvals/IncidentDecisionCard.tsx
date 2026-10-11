@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Ban, Siren, ExternalLink } from "lucide-react";
 import { useGovernanceStore } from "@/lib/governance/store";
 import { type Actor } from "@/lib/governance/versions";
-import { hasCapability, canEscalate, roleLabel } from "@/lib/governance/access";
+import { decisionAuthority, roleLabel } from "@/lib/governance/access";
 import { StatusBadge, ActionClassChip } from "@/components/mosaic";
 import type { ActionStatus } from "@/lib/engine/types";
 import type { IncidentRecord, IncidentActionRecord } from "@/lib/data/schemas";
@@ -19,6 +20,7 @@ export function IncidentDecisionCard({
   currentActor: Actor;
 }) {
   const decideAction = useGovernanceStore((s) => s.decideAction);
+  const [refusal, setRefusal] = useState<string | null>(null);
   const recorded = useGovernanceStore(
     (s) => s.decisions[incident.id]?.[action.rule_id],
   );
@@ -27,21 +29,28 @@ export function IncidentDecisionCard({
   const isEscalate = status === "escalate";
   const isNeedsApproval = status === "needs_approval";
 
-  const canApproveAction =
-    isNeedsApproval && hasCapability(currentActor.role, "approve_requires_approval_actions");
-  const canEscalateAction = isEscalate && canEscalate(currentActor.role);
+  // Same policy the governance store enforces on decideAction.
+  const canApproveAction = isNeedsApproval && decisionAuthority(currentActor.role, "approved").allowed;
+  const canEscalateAction = isEscalate && decisionAuthority(currentActor.role, "escalated").allowed;
 
   const missingEvidence = (action.missing_evidence ?? []).join(", ") || "—";
 
   function decide(outcome: "approved" | "rejected" | "escalated", note?: string) {
-    decideAction({
-      incidentId: incident.id,
-      ruleId: action.rule_id,
-      outcome,
-      note,
-      pillId: incident.pill_applied,
-      pillVersion: incident.pill_version,
-    });
+    // The store enforces the same authority the buttons show (and audits a
+    // refusal); a refusal is surfaced, not thrown into React.
+    try {
+      decideAction({
+        incidentId: incident.id,
+        ruleId: action.rule_id,
+        outcome,
+        note,
+        pillId: incident.pill_applied,
+        pillVersion: incident.pill_version,
+      });
+      setRefusal(null);
+    } catch (err) {
+      setRefusal((err as Error).message);
+    }
   }
 
   return (
@@ -124,6 +133,11 @@ export function IncidentDecisionCard({
           </button>
         ) : null}
       </div>
+      {refusal ? (
+        <p role="alert" className="text-xs text-blocked">
+          Not recorded: {refusal}
+        </p>
+      ) : null}
     </article>
   );
 }

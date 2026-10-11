@@ -93,6 +93,11 @@ Next.js 15 (App Router, TS) + React 19 + Tailwind v4 + shadcn-style components
                                   roles, and recorded LLM fixtures
 ```
 
+> **Governance enforcement is a client-side demo.** The governance store (versions,
+> approvals, audit log, acting role) lives in the browser's localStorage and is
+> validated on load, but anyone with devtools can bypass it; a production deployment
+> would enforce governance and redaction server-side.
+
 The decision path is deliberately **not** an LLM. `lib/engine` is a ~200-line pure-TS
 rule evaluator: structured conditions (`op: eq | neq | gt | gte | lt | lte | in | exists`),
 a strict status precedence (`not_applicable → blocked → escalate → needs_approval →

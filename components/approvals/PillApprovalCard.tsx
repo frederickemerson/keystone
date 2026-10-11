@@ -47,7 +47,9 @@ export function PillApprovalCard({
   const candidateSummary = runEvals(candidatePill, cases);
 
   const evalReport = { regressions: comparison.regressions };
-  const check = canApprove(version, evalReport, currentActor);
+  const check = canApprove(version, evalReport, currentActor, undefined, {
+    liveApprovedVersion: approved?.version,
+  });
   const canPromote =
     version.status === "Draft" &&
     (hasCapability(currentActor.role, "promote_pill_version") ||

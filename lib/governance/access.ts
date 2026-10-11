@@ -50,6 +50,107 @@ export function personaFor(role: string): { name: string; role: string } {
   return { name: person, role };
 }
 
+export function isKnownRole(role: string): boolean {
+  return getRole(role) !== undefined;
+}
+
+/**
+ * Role used for policy decisions before the persisted acting role is known
+ * (SSR + first client render). It is in no roles.json entry, so every policy
+ * check fails closed: public data only, no grants.
+ */
+export const UNRESOLVED_ROLE = "unresolved";
+
+/**
+ * Canonical identity key for a person's name: Unicode-normalised (NFKC, so
+ * full-width / compatibility forms fold), zero-width characters removed,
+ * whitespace collapsed, case-folded. Separation of duties compares these keys,
+ * never raw display strings, so " priya  NAIR" is the same human as "Priya Nair".
+ */
+export function identityKey(name: string): string {
+  return name
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("en");
+}
+
+export function sameIdentity(a: string, b: string): boolean {
+  return identityKey(a) === identityKey(b);
+}
+
+/**
+ * The actor before the persisted acting role is known (SSR + hydration). No
+ * persona, no grants, public data only.
+ */
+export const UNRESOLVED_ACTOR: Readonly<{ name: string; role: string }> = Object.freeze({
+  name: "",
+  role: UNRESOLVED_ROLE,
+});
+
+/** Role the demo opens as once the store has hydrated with no (valid) saved actor. */
+export const DEFAULT_ROLE = "asset_operations_manager";
+
+// ---------------------------------------------------------------------------
+// Human decisions on incident actions / tenant messages
+// ---------------------------------------------------------------------------
+
+export type DecisionOutcome = "approved" | "rejected" | "escalated" | "evidence_requested";
+
+/** What a decision is about: an engine action, or an outbound tenant-message draft. */
+export type DecisionSubject = { kind: "action" } | { kind: "tenant_message"; approverRole: string };
+
+export interface DecisionAuthority {
+  allowed: boolean;
+  /** Why not, when not allowed. */
+  reason?: string;
+}
+
+/**
+ * May `role` record `outcome` on `subject`? The single policy both the UI
+ * buttons and the governance store enforce (roles.json grants):
+ * - approve / reject an engine action → the requires_approval grant;
+ * - escalate → can_escalate;
+ * - request evidence → any defined role working the incident;
+ * - approve / reject a tenant message → the draft's named approver role,
+ *   holding the tenant-message grant. Tenant messages are never escalated
+ *   or evidence-requested through this path.
+ */
+export function decisionAuthority(
+  role: string,
+  outcome: DecisionOutcome,
+  subject: DecisionSubject = { kind: "action" },
+): DecisionAuthority {
+  const who = roleLabel(role);
+  if (!isKnownRole(role)) return { allowed: false, reason: `Role "${role}" is not defined in roles.json` };
+
+  if (subject.kind === "tenant_message") {
+    if (outcome !== "approved" && outcome !== "rejected") {
+      return { allowed: false, reason: `Tenant messages can only be approved or rejected, not ${outcome}` };
+    }
+    if (role !== subject.approverRole) {
+      return { allowed: false, reason: `Requires ${roleLabel(subject.approverRole)} approval — you are ${who}.` };
+    }
+    if (!hasCapability(role, "approve_tenant_message")) {
+      return { allowed: false, reason: `${who} has no tenant-message approval grant.` };
+    }
+    return { allowed: true };
+  }
+
+  switch (outcome) {
+    case "approved":
+    case "rejected":
+      return hasCapability(role, "approve_requires_approval_actions")
+        ? { allowed: true }
+        : { allowed: false, reason: `${who} has no approval grant for requires-approval actions.` };
+    case "escalated":
+      return canEscalate(role) ? { allowed: true } : { allowed: false, reason: `${who} cannot escalate.` };
+    case "evidence_requested":
+      return { allowed: true };
+  }
+}
+
 export function roleLabel(role: string): string {
   return getRole(role)?.label ?? role;
 }

@@ -7,13 +7,11 @@
 // hydration mismatch.
 
 import { useEffect, useState } from 'react';
-import { personaFor, useGovernanceStore } from '@/lib/governance/store';
-import { ROLES } from '@/lib/governance/access';
+import { useGovernanceStore } from '@/lib/governance/store';
+import { ROLES, UNRESOLVED_ACTOR, UNRESOLVED_ROLE } from '@/lib/governance/access';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
 
-/** Matches the store's seed actor so server HTML and the first client render agree. */
-const DEFAULT_ACTOR = personaFor('asset_operations_manager');
 
 export function RoleSwitcher({ className }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
@@ -22,12 +20,15 @@ export function RoleSwitcher({ className }: { className?: string }) {
 
   useEffect(() => setMounted(true), []);
 
-  const actor = mounted ? currentActor : DEFAULT_ACTOR;
+  // Server HTML and the first client render show the unresolved actor (no
+  // grants); the persisted role appears once the store has been read.
+  const actor = mounted ? currentActor : UNRESOLVED_ACTOR;
+  const unresolved = actor.role === UNRESOLVED_ROLE;
 
   return (
     <label className={cn('flex min-w-0 items-center gap-2.5 text-xs text-ink-muted', className)}>
       <span className="hidden truncate text-[13px] text-ink-muted lg:inline">
-        Acting as <span className="font-medium text-ink">{actor.name}</span>
+        Acting as <span className="font-medium text-ink">{unresolved ? '…' : actor.name}</span>
       </span>
       <span className="relative inline-flex">
         <select
@@ -36,6 +37,11 @@ export function RoleSwitcher({ className }: { className?: string }) {
           aria-label="Current role"
           className="min-h-9 cursor-pointer appearance-none rounded-full border-[1.5px] border-ink bg-surface py-1 pl-3.5 pr-8 text-xs font-medium text-ink shadow-button transition-colors duration-150 hover:bg-dew-drop"
         >
+          {unresolved ? (
+            <option value={UNRESOLVED_ROLE} disabled>
+              Loading role…
+            </option>
+          ) : null}
           {ROLES.map((r) => (
             <option key={r.role} value={r.role}>
               {r.label}

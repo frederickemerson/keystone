@@ -1,25 +1,35 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/ui/cn';
 import { CHIP_BASE, TONE_CHIP, type Tone } from '@/components/mosaic';
 import type { AssetRecord, IncidentRecord } from '@/lib/data';
+import { RoleRedacted } from '@/components/mosaic/RoleRedacted';
 import { assetTypeMeta } from './assetMeta';
 
-function attributeChips(asset: AssetRecord): { label: string; tone?: Tone }[] {
+function attributeChips(asset: AssetRecord): { key: string; label: ReactNode; tone?: Tone }[] {
   const cert = asset.green_certification;
-  const chips: { label: string; tone?: Tone }[] = [
-    { label: `Green Mark ${cert.rating}`, tone: 'recommend' },
+  const chips: { key: string; label: ReactNode; tone?: Tone }[] = [
+    { key: 'green-mark', label: `Green Mark ${cert.rating}`, tone: 'recommend' },
   ];
   if (typeof cert.pue === 'number') {
-    chips.push({ label: `PUE ${cert.pue}` });
+    chips.push({ key: 'pue', label: `PUE ${cert.pue}` });
   }
   if (typeof cert.eui_kwh_per_sqm_per_year === 'number') {
-    chips.push({ label: `EUI ${cert.eui_kwh_per_sqm_per_year} kWh/m²·yr` });
+    chips.push({ key: 'eui', label: `EUI ${cert.eui_kwh_per_sqm_per_year} kWh/m²·yr` });
   }
   if (asset.operating_model) {
-    chips.push({ label: asset.operating_model });
+    chips.push({ key: 'operating-model', label: asset.operating_model });
   }
   if (asset.anchor_tenant) {
-    chips.push({ label: `Anchor: ${asset.anchor_tenant.name}` });
+    // The anchor tenant's identity is tenant PII (as in the incident room).
+    chips.push({
+      key: 'anchor',
+      label: (
+        <>
+          Anchor: <RoleRedacted text={asset.anchor_tenant.name} sensitivity="tenant_pii" />
+        </>
+      ),
+    });
   }
   return chips;
 }
@@ -69,7 +79,7 @@ export function AssetGrid({
             <div className="flex flex-wrap gap-1.5">
               {attributeChips(asset).map((chip) => (
                 <span
-                  key={chip.label}
+                  key={chip.key}
                   className={cn(
                     CHIP_BASE,
                     chip.tone ? TONE_CHIP[chip.tone] : TONE_CHIP.neutral,

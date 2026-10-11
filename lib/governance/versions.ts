@@ -2,7 +2,8 @@
 // Pure + client-safe. History is append-only: rollback creates a new version.
 
 import { create as createDiffPatcher, type ArrayDelta, type Delta, type ObjectDelta } from "jsondiffpatch";
-import type { Pill, Rule } from "@/lib/engine";
+import { z } from "zod";
+import { ruleSchema, type Pill, type Rule } from "@/lib/engine";
 
 export type VersionStatus = "Draft" | "Shadow" | "Approved" | "Retired";
 
@@ -120,13 +121,37 @@ export type RuleChange =
   | { op: "add"; rule: Rule }
   | { op: "remove"; ruleId: string };
 
+const proposedRulesSchema = z.array(ruleSchema);
+
+/**
+ * Apply rule changes and re-validate the result through the engine's (strict)
+ * rule schema: a correction can never introduce an unknown field, an invalid
+ * condition, a relaxing asset override, a renamed rule or a duplicate id.
+ */
 export function applyRuleChanges(rules: readonly Rule[], changes: readonly RuleChange[]): Rule[] {
+  const next = applyRuleChangesUnchecked(rules, changes);
+  const ids = new Set<string>();
+  for (const r of next) {
+    if (ids.has(r.id)) throw new Error(`Duplicate rule id ${r.id}`);
+    ids.add(r.id);
+  }
+  const parsed = proposedRulesSchema.safeParse(next);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const where = issue?.path.length ? next[Number(issue.path[0])]?.id ?? issue.path.join(".") : "rules";
+    throw new Error(`Invalid proposed rules (${where} ${issue?.path.slice(1).join(".") ?? ""}): ${issue?.message ?? "?"}`);
+  }
+  return parsed.data;
+}
+
+function applyRuleChangesUnchecked(rules: readonly Rule[], changes: readonly RuleChange[]): Rule[] {
   let next = structuredClone([...rules]);
   for (const change of changes) {
     switch (change.op) {
       case "update": {
         const idx = next.findIndex((r) => r.id === change.ruleId);
         if (idx === -1) throw new Error(`Cannot update unknown rule ${change.ruleId}`);
+        if ("id" in change.patch) throw new Error(`A rule update cannot change the rule id (${change.ruleId})`);
         next[idx] = { ...next[idx], ...structuredClone(change.patch) };
         break;
       }
@@ -199,6 +224,9 @@ export function markApproved(
 ): PillVersion[] {
   const target = findVersion(history, version);
   if (!target) throw new Error(`Unknown version ${version}`);
+  if (target.status !== "Draft" && target.status !== "Shadow") {
+    throw new Error(`Only Draft or Shadow versions can be approved (v${version} is ${target.status})`);
+  }
   return history.map((v) => {
     if (v.version === version) return { ...v, status: "Approved", approvedBy: approver, approvedAt: at };
     if (v.status === "Approved") return { ...v, status: "Retired" };
@@ -214,6 +242,12 @@ export function markApproved(
  * Roll a pill back to an earlier version's rules. Appends a NEW Approved
  * version (next minor) carrying `toVersion`'s rules, and marks the version
  * being rolled back (the current Approved one) Retired. Nothing is removed.
+ *
+ * Only a Retired version — one that was approved once and then superseded —
+ * can be rolled back to: restoring a Draft/Shadow version's rules would put
+ * never-approved rules live without passing the approval gate. Rolling back to
+ * rules identical to the live version is a no-op and is refused (so a double
+ * rollback does not mint a duplicate version).
  */
 export function rollback(
   history: readonly PillVersion[],
@@ -229,6 +263,14 @@ export function rollback(
   const current = currentApproved(history);
   if (current && current.version === toVersion) {
     throw new Error(`v${toVersion} is already the approved version`);
+  }
+  if (target.status !== "Retired") {
+    throw new Error(
+      `Cannot roll back to v${toVersion}: it is ${target.status}; only previously approved (Retired) versions can be restored`,
+    );
+  }
+  if (current && diffRules(current.rules, target.rules).delta === undefined) {
+    throw new Error(`v${current.version} already carries v${toVersion}'s rules — nothing to roll back`);
   }
 
   const restored: PillVersion = {

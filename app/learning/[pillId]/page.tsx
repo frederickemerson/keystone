@@ -2,10 +2,10 @@
 // closed incident from data/, then hands plain serialisable props to the
 // client flow. No client-side data fetching.
 
-import { EmptyState, PageHeader } from '@/components/mosaic';
+import { notFound } from 'next/navigation';
 import { LearningFlow } from '@/components/learning/LearningFlow';
 import { loadIncident } from '@/lib/data';
-import { loadPill, type PillBundle } from '@/lib/pills/load';
+import { loadPill } from '@/lib/pills/load';
 
 /** The incident this learning loop closes the loop on (SPEC §1 step 3). */
 const INCIDENT_ID = 'INC-2026-1011';
@@ -13,24 +13,11 @@ const INCIDENT_ID = 'INC-2026-1011';
 export default async function LearningPage({ params }: { params: Promise<{ pillId: string }> }) {
   const { pillId } = await params;
 
-  let bundle: PillBundle | undefined;
-  try {
-    bundle = loadPill(pillId);
-  } catch {
-    bundle = undefined;
-  }
-
-  if (!bundle) {
-    return (
-      <div className="mx-auto w-full max-w-[1200px] space-y-3">
-        <PageHeader title="outcome & learning" />
-        <EmptyState
-          title={`Pill “${pillId}” could not be loaded`}
-          description="It may not exist in pills/, or its package is not yet parseable by the engine."
-        />
-      </div>
-    );
-  }
+  // Unknown (or hostile) ids are a 404 — loadPill resolves ids only from the
+  // pills/ index. A real pill that fails to parse throws to app/error.tsx
+  // rather than being disguised as "not found".
+  const bundle = loadPill(pillId);
+  if (!bundle) notFound();
 
   return <LearningFlow bundle={bundle} incident={loadIncident(INCIDENT_ID) ?? null} />;
 }

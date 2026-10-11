@@ -1,6 +1,8 @@
 // Adapters from data/ records to engine inputs, plus replay-step evidence
 // accumulation (evidence state = all evidence_updates up to the current step).
 
+import type { ConditionContext } from '@/lib/engine/conditions';
+import { evaluateRule } from '@/lib/engine/evaluate';
 import type { Asset, Evidence, EvidenceItem, Incident, Pill, Rule } from '@/lib/engine/types';
 import type { AssetRecord, IncidentRecord, SensitivityLevel, TimelineEvent } from '@/lib/data/schemas';
 
@@ -47,13 +49,20 @@ export function toEngineIncident(incident: IncidentRecord): Incident {
   return { ...incident };
 }
 
-/** Evidence keys a rule reads: trigger conditions on `evidence.*` + required evidence. */
-export function evidenceKeysForRule(rule: Rule): string[] {
+/**
+ * Evidence keys a rule reads in this situation: its trigger's `evidence.*`
+ * conditions plus the gating keys the ENGINE derives for it (base
+ * required_evidence ∪ add_required_evidence of every matching exception, e.g.
+ * cfm_cosign for TS-07 at a data centre). The gating set comes from
+ * evaluateRule, never re-derived here, so the drawer lists exactly what the
+ * engine checks.
+ */
+export function evidenceKeysForRule(rule: Rule, ctx: ConditionContext): string[] {
   const fromTrigger = [...rule.trigger.all, ...rule.trigger.any]
     .filter((c) => c.path.startsWith('evidence.'))
     .map((c) => c.path.split('.')[1] ?? '')
     .filter(Boolean);
-  return [...new Set([...fromTrigger, ...rule.required_evidence])];
+  return [...new Set([...fromTrigger, ...evaluateRule(rule, ctx).requiredEvidence])];
 }
 
 export function findRule(pill: Pill, ruleId: string): Rule | undefined {

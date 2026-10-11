@@ -121,7 +121,7 @@ describe("rollback", () => {
 
   it("does not mutate its input and requires a reason", () => {
     const base = seeded();
-    const v13 = proposeVersion(base, [], CE, "x", [base], AT);
+    const v13 = proposeVersion(base, [TS03_TO_10], CE, "x", [base], AT);
     const history = Object.freeze(markApproved([base, v13], "1.3.0", HTS, AT));
     expect(() => rollback(history, PILL_ID, "1.2.0", AOM, "  ", AT)).toThrow(/reason/);
     rollback(history, PILL_ID, "1.2.0", AOM, "ok", AT);
@@ -129,11 +129,13 @@ describe("rollback", () => {
   });
 });
 
+const TS03_TO_10 = { op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } } as const;
+
 describe("liveVersion", () => {
   it("follows approvals and rollbacks rather than the seed", () => {
     const base = seeded();
     expect(liveVersion([base])?.version).toBe("1.2.0");
-    const v13 = proposeVersion(base, [], CE, "a", [base], AT);
+    const v13 = proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT);
     // A draft does not go live.
     expect(liveVersion([base, v13])?.version).toBe("1.2.0");
     const approved = markApproved([base, v13], "1.3.0", HTS, AT);

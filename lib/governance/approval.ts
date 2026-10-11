@@ -2,7 +2,7 @@
 // Pure + client-safe.
 
 import type { ActionDecision, ActionStatus, ComparisonResult } from "@/lib/engine";
-import { hasCapability } from "./access";
+import { hasCapability, sameIdentity } from "./access";
 import type { Actor, PillVersion } from "./versions";
 
 export interface ApprovalOverride {
@@ -19,12 +19,24 @@ export interface ApprovalCheck {
   overridden: boolean;
 }
 
+export interface ApprovalContext {
+  /**
+   * Version currently Approved for the pill. When given, a version proposed
+   * from any other base is stale: approving it would silently discard the
+   * approved version's rules (lost update), so it must be re-proposed.
+   */
+  liveApprovedVersion?: string;
+}
+
 /**
  * Can `actor` approve `version`, given the eval comparison against the
  * currently approved version (engine compareVersions)?
  *
  * - Only Draft/Shadow versions can be approved.
  * - Separation of duties: the author can never approve their own version.
+ *   Identities are compared canonically (identityKey), so case, whitespace,
+ *   zero-width and Unicode-compatibility variants of a name are the same human.
+ * - The version must derive from the currently approved version (when known).
  * - Authority: the pill's approver role (manifest `approver`), or a role whose
  *   roles.json grants include pill version promotion.
  * - Eval regressions block approval, unless the pill's approver role (for both
@@ -35,6 +47,7 @@ export function canApprove(
   evalReport: Pick<ComparisonResult, "regressions"> | null,
   actor: Actor,
   override?: ApprovalOverride,
+  context: ApprovalContext = {},
 ): ApprovalCheck {
   const blockers: string[] = [];
 
@@ -42,8 +55,18 @@ export function canApprove(
     blockers.push(`v${version.version} is ${version.status}; only Draft or Shadow versions can be approved`);
   }
 
-  if (actor.name === version.createdBy.name) {
+  if (sameIdentity(actor.name, version.createdBy.name)) {
     blockers.push(`Separation of duties: ${actor.name} authored v${version.version} and cannot approve it`);
+  }
+
+  if (
+    context.liveApprovedVersion !== undefined &&
+    version.parentVersion !== context.liveApprovedVersion &&
+    (version.status === "Draft" || version.status === "Shadow")
+  ) {
+    blockers.push(
+      `v${version.version} was proposed from v${version.parentVersion ?? "∅"} but v${context.liveApprovedVersion} is now approved — re-propose from v${context.liveApprovedVersion}`,
+    );
   }
 
   const authorised = actor.role === version.approverRole || hasCapability(actor.role, "promote_pill_version");
@@ -58,7 +81,8 @@ export function canApprove(
   } else {
     regressions = evalReport.regressions.length;
     if (regressions > 0) {
-      const canOverride = actor.role === version.approverRole && Boolean(override?.reason.trim());
+      const canOverride =
+        actor.role === version.approverRole && typeof override?.reason === "string" && override.reason.trim().length > 0;
       if (canOverride) {
         overridden = true;
       } else {

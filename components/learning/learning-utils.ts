@@ -51,9 +51,12 @@ export function defaultOutcome(incident: IncidentRecord | null): OutcomeDraft {
   const isolation = incident?.actions?.find((a) => a.rule_id === "TS-02");
   const measured = isolation?.completed_at ? minutesBetween(openedAt, isolation.completed_at) : null;
 
+  // The tenant's name is tenant_pii and this free-text draft is shown to
+  // whoever is acting (the flow opens as the Chief Engineer, who may not see
+  // it), so the prefill names the floors, never the tenant.
   const tenant = incident?.affected_tenant;
   const tenantImpact = tenant
-    ? `${tenant.name} — floors ${tenant.floors}, no trading-floor interruption`
+    ? `Anchor tenant — floors ${tenant.floors}, no trading-floor interruption`
     : "None reported";
 
   const cause =

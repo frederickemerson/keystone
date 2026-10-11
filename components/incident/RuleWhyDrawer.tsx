@@ -17,7 +17,6 @@ import type { ActionDecision, CounterfactualResult, Rule } from '@/lib/engine/ty
 import { cn } from '@/lib/ui/cn';
 import { Drawer } from './Drawer';
 import type { EvidenceState } from './engineInputs';
-import { evidenceKeysForRule } from './engineInputs';
 import type { ExpertQuote as ExpertQuoteSource } from './provenance';
 import { humanizeKey } from './labels';
 import type { ExpertVoiceState } from './useExpertVoice';
@@ -62,6 +61,7 @@ export function RuleWhyDrawer({
   rule,
   pillVersion,
   evidence,
+  evidenceKeys,
   expert,
   expertName,
   counterfactual,
@@ -76,6 +76,8 @@ export function RuleWhyDrawer({
   rule: Rule;
   pillVersion: string;
   evidence: EvidenceState;
+  /** Evidence keys the rule reads here (engineInputs.evidenceKeysForRule). */
+  evidenceKeys: string[];
   expert: ExpertQuoteSource | null;
   expertName: string;
   counterfactual: CounterfactualResult | null;
@@ -85,7 +87,7 @@ export function RuleWhyDrawer({
   /** Escalation / approval controls. */
   footer?: ReactNode;
 }) {
-  const keys = evidenceKeysForRule(rule);
+  const keys = evidenceKeys;
   const playingThis = voice.speaking && expert !== null && voice.text === expert.quote;
 
   return (

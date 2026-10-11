@@ -1,4 +1,5 @@
 import { basename } from 'node:path';
+import { notFound } from 'next/navigation';
 import { pillTitle } from '@/components/mosaic';
 import { loadPill } from '@/lib/pills/load';
 import { loadContradictionFixture, loadTranscript } from '@/lib/data';
@@ -13,19 +14,11 @@ export default async function CanvasPage({
 }) {
   const { pillId } = await params;
 
-  // Parse errors throw to the error boundary (see app/error.tsx); a genuinely
-  // unknown id returns undefined and gets the friendly not-found message below.
+  // Unknown (or hostile) ids are a 404: loadPill only resolves ids from the
+  // pills/ index, never a filesystem path. Parse errors of a real pill throw
+  // to the error boundary (app/error.tsx).
   const pill = loadPill(pillId);
-  if (!pill) {
-    return (
-      <div className="space-y-3">
-        <h1>decision canvas</h1>
-        <p className="rounded-lg border border-dashed border-line bg-surface/50 px-4 py-8 text-center text-sm text-ink-muted">
-          Pill “{pillId}” could not be loaded. It may not exist or its package is not yet parseable.
-        </p>
-      </div>
-    );
-  }
+  if (!pill) notFound();
 
   const contradiction = loadContradictionFixture();
   const showContradiction = Object.keys(pill.pill.provenance).includes(

@@ -1,44 +1,17 @@
 // Server component — loads the interview transcript, the recorded extraction and
 // contradiction fallbacks (lib/data), and the real pill (lib/pills/load, import
-// only). Maps extraction candidates into engine `Rule` shapes and passes purely
+// only). Maps extraction candidates into draft engine `Rule`s (lib/llm/candidates) and passes purely
 // serialisable props to the client component. No client-side data fetching.
 
 import { loadTranscript, loadExtractionFixture, loadContradictionFixture } from '@/lib/data';
 import { loadPill } from '@/lib/pills/load';
-import type { RuleCandidate } from '@/lib/data';
 import type { Rule as EngineRule } from '@/lib/engine/types';
+import { toDraftCandidates } from '@/lib/llm/candidates';
 import { ExpertCallClient } from '@/components/capture/ExpertCallClient';
 import { pillTitle } from '@/components/mosaic/pillTitle';
 
 const INTERVIEW_ID = 'ce-interview-2026-10-02';
 const PILL_ID = 'technical-services-chilled-water-leak';
-
-// Map a recorded extraction candidate into the engine `Rule` shape used by RuleTile.
-function toRule(c: RuleCandidate): EngineRule {
-  return {
-    id: c.rule_id,
-    title: c.title,
-    trigger: {
-      incident_type: c.trigger.incident_type,
-      all: c.trigger.all,
-      any: c.trigger.any ?? [],
-    },
-    required_evidence: c.required_evidence,
-    decision: c.decision,
-    allowed_actions: c.allowed_actions,
-    forbidden_actions: c.forbidden_actions,
-    exceptions: c.exceptions,
-    action_class: c.action_class,
-    forbidden_if_missing_evidence: c.forbidden_if_missing_evidence,
-    escalate_to: c.escalate_to,
-    owner: c.owner,
-    deadline_minutes: c.deadline_minutes,
-    asset_overrides: (c.asset_overrides ?? {}) as EngineRule['asset_overrides'],
-    asset_refs: [],
-    sensitivity: 'internal',
-    provenance: c.provenance,
-  };
-}
 
 export default function CapturePage() {
   const transcript = loadTranscript(INTERVIEW_ID);
@@ -54,7 +27,8 @@ export default function CapturePage() {
     );
   }
 
-  const rules: EngineRule[] = extraction.rule_candidates.map(toRule);
+  // Extractor output only ever becomes draft candidates for the expert to confirm.
+  const rules: EngineRule[] = toDraftCandidates(extraction).candidates.map((c) => c.rule);
 
   // First provenance quote/timestamp per rule, taken from the transcript spans.
   const provenance: Record<string, { quote: string; timestamp: string }> = {};

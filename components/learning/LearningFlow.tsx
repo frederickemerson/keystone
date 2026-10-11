@@ -224,7 +224,9 @@ export function LearningFlow({
   const canRollback =
     hasCapability(currentActor.role, 'rollback_pill') || currentActor.role === base?.approverRole;
   const evalReport = comparison ? { regressions: comparison.regressions } : null;
-  const check: ApprovalCheck | null = target ? canApprove(target, evalReport, currentActor) : null;
+  const check: ApprovalCheck | null = target
+    ? canApprove(target, evalReport, currentActor, undefined, { liveApprovedVersion: approved?.version })
+    : null;
   const canOverride = Boolean(
     target && check && check.regressions > 0 && currentActor.role === target.approverRole,
   );
