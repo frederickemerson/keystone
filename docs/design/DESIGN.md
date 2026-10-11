@@ -20,7 +20,7 @@ The landing notebook pairs one handwritten expert quote with a typeset safety ga
   - Recommend / Allowed → leaf green `#2f7d32` on `#eef7ee`
   - Not applicable → `#6b6560` on Dew Drop
 - Marker Orange `#ff6f1e` is for marginalia and brand moments only — not for statuses or primary data.
-- Ops density is preserved: tables stay tables, timelines stay scannable. Superr's 104px display type is for the landing hero only; app page titles 32–40px lowercase.
+- Ops density is preserved: tables stay tables, timelines stay scannable. Superr's 104px display type is for the landing hero only; app page titles 32–40px, **sentence case** (first word capitalised: "Chilled water leak", "How it works").
 - Light theme is the primary design. Dark mode may be dropped if it compromises the paper look (state it in README).
 
 ## Tokens (from Superr, adapted)
@@ -38,7 +38,7 @@ The landing notebook pairs one handwritten expert quote with a typeset safety ga
 Radii: buttons/tags 20px (pill), cards 12px, inputs 8px, brand band 56px top corners. Borders 1–1.5px charcoal. Shadows whisper-light: card `rgba(0,0,0,.06) 0 2px 20px`, button `rgba(0,0,0,.25) 0 1px 2px`. No gradients, no glass, no neon. Base spacing 4px; card padding 24–32px.
 
 ## Type
-- Display / headings: **Geist** (Google Fonts), weight 600–700, through the shared `--font-display` variable. Lowercase headlines, letter-spacing **−0.02em**, left-aligned; **1.05 line-height at display sizes**, with more room for small multi-line headings. No Fraunces.
+- Display / headings: **Geist** (Google Fonts), weight 600–700, through the shared `--font-display` variable. **Sentence case** headlines (user decision 11 Oct: first word capitalised, proper nouns/ids as written — no all-lowercase, no Title Case, no ALL CAPS), letter-spacing **−0.02em**, left-aligned; **1.05 line-height at display sizes**, with more room for small multi-line headings. No Fraunces.
 - Body / UI / tables: **Geist** 400/500; **Geist Mono** for rule ids, versions, timestamps and evidence keys.
 - Expert quote only: **Caveat** 600, accessible marker ink `#c4470c`, slight rotation (−2° to 2°), on the landing notebook. The quote is loaded from the real pill; its attribution, PillLabel and all other landing text are typeset.
 
