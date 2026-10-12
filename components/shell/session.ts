@@ -33,10 +33,9 @@ export function useSessionBinding(actor: SessionActor | null): void {
   }, [role]);
 }
 
-/** Sign-in URL that comes back to the current screen, with a persona preselected. */
-export function signInHref(role?: string): string {
-  const next = `${window.location.pathname}${window.location.search}`;
-  const params = new URLSearchParams({ next });
+/** Sign-in URL that comes back to `next` (default: the current screen), with a persona preselected. */
+export function signInHref(role?: string, next?: string): string {
+  const params = new URLSearchParams({ next: next ?? `${window.location.pathname}${window.location.search}` });
   if (role) params.set('as', role);
   return `/sign-in?${params.toString()}`;
 }
@@ -44,11 +43,18 @@ export function signInHref(role?: string): string {
 /**
  * Switch user. One click while the session is valid (every persona shares the
  * demo passcode the session already proved); otherwise — expired or missing
- * session — via /sign-in, coming back to this screen.
+ * session — via /sign-in, coming back to this screen (or to `then`).
+ *
+ * `then`: the screen to open as the new persona. That is a full document
+ * navigation, not router.push(): the new cookie changes what every server
+ * component renders, so the client router cache (prefetched routes) is stale,
+ * and a push issued alongside the refresh can be dropped by it.
+ *
+ * Resolves true when the switch happened, false when it went to /sign-in.
  */
-export function useSwitchUser(): (role: string) => Promise<void> {
+export function useSwitchUser(): (role: string, then?: string) => Promise<boolean> {
   const router = useRouter();
-  return async (role: string) => {
+  return async (role: string, then?: string) => {
     let ok = false;
     try {
       const res = await fetch('/api/auth/switch', {
@@ -61,12 +67,17 @@ export function useSwitchUser(): (role: string) => Promise<void> {
       ok = false;
     }
     if (!ok) {
-      router.push(signInHref(role));
-      return;
+      router.push(signInHref(role, then));
+      return false;
     }
-    // The new cookie is set; act as the new persona now and re-render the
-    // server components so their props are re-scoped to the new role.
+    // The new cookie is set; act as the new persona now.
     getGovernanceStore().getState().setRole(role);
-    router.refresh();
+    if (then) {
+      window.location.assign(then);
+    } else {
+      // Stay here: re-render the server components re-scoped to the new role.
+      router.refresh();
+    }
+    return true;
   };
 }

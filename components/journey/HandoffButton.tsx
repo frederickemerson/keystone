@@ -5,7 +5,6 @@
 // check>), so this never claims someone can act when the store would refuse.
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { roleLabel } from '@/lib/governance/access';
 import type { Persona } from '@/lib/journey';
@@ -25,14 +24,14 @@ interface HandoffButtonProps {
 
 export function HandoffButton({ to, href, reason, action = 'continue', className }: HandoffButtonProps) {
   const switchUser = useSwitchUser();
-  const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function handOff() {
     setBusy(true);
     try {
-      await switchUser(to.role);
-      if (href) router.push(href);
+      // With an href the switch opens it as the new person (a full navigation,
+      // see useSwitchUser); without one it stays on this screen.
+      await switchUser(to.role, href);
     } finally {
       setBusy(false);
     }
