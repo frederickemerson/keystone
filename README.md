@@ -195,7 +195,8 @@ stays offline.
 | `MOSAIC_LLM_PROVIDER` | `auto` | `auto`, `codebuddy`, `tokenhub`, `openai`, or `fixtures` (a provider name forces only that provider) |
 | `CODEBUDDY_API_KEY` | _(unset)_ | CodeBuddy international API key; requires a **Pro plan** |
 | `TOKENHUB_API_KEY` | _(unset)_ | TokenHub → Hunyuan `hy4-preview` (verified live, 12 Oct) |
-| `TOKENHUB_BASE_URL` | `https://tokenhub.tencentcloudmaas.com/v1` | TokenHub endpoint (area gz, verified for our key; the `-intl` Singapore host returned 401 for it) |
+| `TOKENHUB_BASE_URL` | `https://tokenhub-intl.tencentcloudmaas.com/v1` | TokenHub Singapore (ap-singapore) host. Expert data is processed in Singapore. |
+| `TOKENHUB_ENDPOINT_ID` | e.g. `ep-…` | Dedicated Singapore inference service for hy4-preview (requests are routed to it; badges still show the served model, `hy4-preview`). Measured: 5/5 live extractions, ~3.9 s each. |
 | `MOSAIC_MODEL` | `hy4-preview` | TokenHub model only; CodeBuddy always requests Hunyuan `hy4-preview` |
 | `OPENAI_API_KEY` | _(unset)_ | OpenAI, the final live fallback |
 | `OPENAI_MODEL` | `gpt-5.4-mini` | OpenAI model id |

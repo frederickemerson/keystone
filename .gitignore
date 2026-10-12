@@ -6,3 +6,5 @@ coverage
 *.tsbuildinfo
 .vercel
 .claude/worktrees/
+reports/
+research_notes/

@@ -10,9 +10,9 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
  *
  * API keys are read from the server environment and are never logged or exposed.
  */
-// The area-gz endpoint is the one verified live for our key (the -intl
-// Singapore host returns 401 for it). TOKENHUB_BASE_URL overrides per account.
-export const DEFAULT_BASE_URL = 'https://tokenhub.tencentcloudmaas.com/v1';
+// Singapore (ap-singapore) TokenHub host: Keystone routes to a dedicated Singapore
+// inference service (TOKENHUB_ENDPOINT_ID) so expert data is processed in Singapore.
+export const DEFAULT_BASE_URL = 'https://tokenhub-intl.tencentcloudmaas.com/v1';
 export const DEFAULT_MODEL = 'hy4-preview';
 
 export type MosaicModel = ReturnType<ReturnType<typeof createOpenAICompatible>>;
@@ -23,6 +23,16 @@ export function getBaseUrl(): string {
 
 export function getModelId(): string {
   return process.env.MOSAIC_MODEL || DEFAULT_MODEL;
+}
+
+/**
+ * TokenHub routing target. A dedicated inference service (e.g. the Singapore
+ * deployment) is addressed by its endpoint id rather than the model name; the
+ * model id stays the display/attribution name (TokenHub reports the served model
+ * in the response, which is what attribution uses).
+ */
+export function tokenhubTarget(modelId: string = getModelId()): string {
+  return process.env.TOKENHUB_ENDPOINT_ID || modelId;
 }
 
 /** False when no key is present — callers should use the recorded fixtures instead. */

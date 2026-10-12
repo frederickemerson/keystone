@@ -12,7 +12,7 @@ import tenantMessage from '@/data/fixtures/llm/tenant-message-INC-2026-1011.json
 import {
   LLM_SERVER_BUDGET_MS, PROVIDER_NAMES, type AttemptOutcome, type Generation, type LiveProvider, type ProviderAttempt,
 } from './attribution';
-import { DEFAULT_MODEL, getModel, getModelId, getOpenAIModel, getOpenAIModelId } from './client';
+import { DEFAULT_MODEL, getModel, getModelId, getOpenAIModel, getOpenAIModelId, tokenhubTarget } from './client';
 
 export type { AttemptOutcome, Generation, LiveProvider, LlmProvider, ProviderAttempt } from './attribution';
 export type LlmTask = 'extract' | 'tenant-message-INC-2026-1011';
@@ -199,7 +199,7 @@ async function callProvider(
       // contract. The SDK keeps any reasoning in a separate part; only the
       // answer text is parsed, and the guard still validates it.
       const result = await generateText({
-        model: getModel(model), system: SYSTEM_PROMPT, prompt,
+        model: getModel(tokenhubTarget(model)), system: SYSTEM_PROMPT, prompt,
         output: structured ? Output.object({ schema: structured, name: 'keystone_draft' }) : Output.json(),
         abortSignal: controller.signal, maxRetries: 0, maxOutputTokens: TOKENHUB_MAX_OUTPUT_TOKENS,
         providerOptions: { tokenhub: TOKENHUB_REQUEST_OPTIONS },

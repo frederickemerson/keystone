@@ -268,3 +268,12 @@ key) TokenHub is first.
 extractions answered live by TokenHub (`hy4-preview`), p50 11.4 s, p95 12.9 s;
 tenant drafts 2 of 2 (3.2 s, 5.9 s). This supersedes D8's budget figures (20 s
 chain, TokenHub 10 s, 25 s client wait).
+
+
+## D10 — TokenHub moves to a dedicated Singapore inference service (2026-10-12)
+
+**Context.** The elicitation feasibility study (docs/research/elicitation-feasibility.md) flagged that the area-gz TokenHub endpoint processes captured expert data in Guangzhou, a cross-border transfer we would have to justify under PDPA before any Keppel pilot. The free hy4-preview quota claimed earlier activated only the Guangzhou region; in ap-singapore the shared hy4-preview endpoint stayed INACTIVE.
+
+**Decision.** Claim the hy4-preview free quota in ap-singapore and deploy a dedicated inference service there (`thcli deploy --model-id hy4-preview --charge-type FREE --region ap-singapore` → `ep-…`). Keystone routes TokenHub requests to that endpoint id (`TOKENHUB_ENDPOINT_ID`) on the Singapore host (`TOKENHUB_BASE_URL=https://tokenhub-intl.tencentcloudmaas.com/v1`) while keeping `hy4-preview` as the attributed model (TokenHub reports it in the response). Settings from D9 are unchanged (thinking disabled, strict json_schema).
+
+**Evidence.** 5/5 extractions through the app route answered live via TokenHub, ~3.7–4.1 s each (vs p50 11.4 s on area gz). This supersedes D9's endpoint and latency figures.

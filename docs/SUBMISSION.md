@@ -215,7 +215,7 @@ design; items 1 and 3 run as recorded output in the demo:
 Agent SDK → Hunyuan hy4-preview, TokenHub, OpenAI gpt-5.4-mini — each with its own
 timeout, falling through on error, timeout, invalid JSON or safety rejection, within
 an overall time budget (values in `README.md`); if none succeeds it returns the recorded fixture with a reason.
-**TokenHub is live:** Hunyuan hy4-preview via TokenHub (area gz endpoint), with
+**TokenHub is live in Singapore:** Hunyuan hy4-preview via a dedicated TokenHub inference service in ap-singapore (expert data stays in Singapore; ~3.9 s per extraction), with
 thinking disabled and strict `json_schema` output. Output badges name the provider
 and model that actually answered (on the deployed site, for example,
 `Live · hy4-preview via TokenHub`) or show `Recorded output`. The CodeBuddy
@@ -486,7 +486,7 @@ TokenHub, with OpenAI gpt-5.4-mini as the final fallback. Rows marked
 | Layer | Tencent product | Role in Keystone |
 |---|---|---|
 | **Models (built, runs locally)** | **CodeBuddy Agent SDK → Hunyuan `hy4-preview`** | Opt-in extraction and tenant drafts; local CLI login (with CodeBuddy credits) or Pro API key. Recorded defaults and fallback. No autonomous approvals or tool use. |
-| **Models (built, live)** | **TokenHub → Hunyuan `hy4-preview`** (`https://tokenhub.tencentcloudmaas.com/v1`, area gz) | OpenAI-compatible adapter, thinking disabled, strict `json_schema` output; first live provider on the Vercel deployment (10 of 10 app-path extractions, p50 11.4 s). |
+| **Models (built, live)** | **TokenHub → Hunyuan `hy4-preview`** (`https://tokenhub-intl.tencentcloudmaas.com/v1`, dedicated ap-singapore endpoint) | OpenAI-compatible adapter, thinking disabled, strict `json_schema` output; first live provider on the Vercel deployment (10 of 10 app-path extractions, p50 11.4 s). |
 | Models (fallback, non-Tencent) | OpenAI `gpt-5.4-mini` | Final live fallback. |
 | **Builder skills (verified)** | **CodeBuddy** — `.codebuddy/skills/<name>/SKILL.md` | The same pill loads as a CodeBuddy skill (`docs/proof/04a`, `04b`); `rules.yaml` and `evals/` are executed only by the Keystone engine. |
 | **Expert host (proposed)** | **WorkBuddy** — Skills & Expert Center, Experts, Expert Teams | A pill would become a Skill; a domain pill + persona an Expert; the Asset Ops orchestrator an Expert Team leader. WorkBuddy documents a security scan before install; `access` could map to its RBAC. |
