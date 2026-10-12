@@ -104,15 +104,40 @@ export function scopeAssets(assets: readonly AssetRecord[], role: string): Asset
 }
 
 /**
- * Tenant-message fixture: each draft carries its own label. The fixture's
- * free-text description summarises those drafts, so it is shown only to a role
- * cleared for every one of them.
+ * Fields of a tenant-message draft that are workflow metadata, not message
+ * content: which draft, how it is sent, who must approve it, its status and the
+ * first-notice SLA clock. They are operational (internal), like the asset SLA
+ * windows: the draft's own label covers what it says and to whom.
+ */
+export const TENANT_DRAFT_OPERATIONAL_FIELDS = [
+  "draft_id",
+  "channel",
+  "approved_by_role",
+  "status",
+  "sla_first_notice_deadline_min",
+  "sla_first_notice_clock_start",
+  "sla_first_notice_deadline",
+] as const satisfies readonly (keyof TenantMessageFixture["drafts"][number])[];
+
+type TenantDraft = TenantMessageFixture["drafts"][number];
+
+function scopeTenantDraft(draft: TenantDraft, role: string): TenantDraft {
+  const scoped = redactAs(draft, role);
+  if (!canSee(role, "internal")) return scoped;
+  const operational = Object.fromEntries(TENANT_DRAFT_OPERATIONAL_FIELDS.map((f) => [f, draft[f]]));
+  return { ...scoped, ...operational };
+}
+
+/**
+ * Tenant-message fixture: each draft carries its own label (its operational
+ * fields stay visible to internal roles). The fixture's free-text description
+ * summarises those drafts, so it is shown only to a role cleared for every one.
  */
 export function scopeTenantMessageFixture(fixture: TenantMessageFixture, role: string): TenantMessageFixture {
   const hidden = fixture.drafts.find((d) => !canSee(role, d.sensitivity));
   return {
     ...fixture,
     description: hidden ? maskPlaceholder(hidden.sensitivity) : fixture.description,
-    drafts: fixture.drafts.map((d) => redactAs(d, role)),
+    drafts: fixture.drafts.map((d) => scopeTenantDraft(d, role)),
   };
 }

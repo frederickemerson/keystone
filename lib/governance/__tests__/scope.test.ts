@@ -114,6 +114,18 @@ describe("server-side redaction of page props", () => {
     expect(typeof hf1.anchor_tenant!.sla_first_notice_min).toBe("number");
   });
 
+  it("a masked tenant-message draft keeps its SLA timing (operational) so the deadline still computes", () => {
+    const fixture = loadTenantMessageFixture("INC-2026-1011")!;
+    const [draft] = scopeTenantMessageFixture(fixture, "technician").drafts;
+    const [source] = fixture.drafts;
+    expect(draft.body).toBe("[masked: tenant PII]");
+    expect(draft.recipients).toEqual(["[masked: tenant PII]"]);
+    expect(draft.sla_first_notice_deadline).toBe(source.sla_first_notice_deadline);
+    expect(draft.sla_first_notice_clock_start).toBe(source.sla_first_notice_clock_start);
+    expect(draft.sla_first_notice_deadline_min).toBe(source.sla_first_notice_deadline_min);
+    expect(Number.isNaN(Date.parse(draft.sla_first_notice_deadline))).toBe(false);
+  });
+
   it("scoping is idempotent", () => {
     for (const role of ["technician", "asset_operations_manager", "dc_critical_facilities_manager"]) {
       const once = pageProps(role);
