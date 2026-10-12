@@ -71,6 +71,7 @@ describe('incident decision record', () => {
     expect(proposal).toMatchObject({ ruleId: 'TS-07', origin: 'recorded', afterEventId: 'EV-1011-10' });
     expect(proposal.gateThen.status).toBe('blocked');
     expect(proposal.gateThen.missing).toEqual(expect.arrayContaining(['lew_signoff', 'insulation_resistance_ok', 'area_dry']));
+    expect(proposal.fate).toContain('LEW written sign-off');
     expect(proposal.fate).toMatch(/^Held by TS-07 v1\.2\.0: .*not confirmed when it was proposed\. Escalated by Muhammad Hafiz\.$/);
   });
 

@@ -176,9 +176,14 @@ function gateAt(input: RecordInput, rule: Rule, step: number): { status: RecordA
   return { status: trace.triggered ? trace.status : 'not_applicable', missing: trace.missingEvidence };
 }
 
+/** A label placed mid-sentence: "Area confirmed dry" → "area confirmed dry"; "LEW sign-off" stays. */
+function inSentence(label: string): string {
+  return /^[A-Z][a-z]/.test(label) ? label.charAt(0).toLowerCase() + label.slice(1) : label;
+}
+
 function fateOf(input: RecordInput, p: RecordProposalInput, version: string, then: RecordAiProposal['gateThen'], now: RecordAiProposal['gateNow'], decision?: RecordDecision): string {
   const gate = `${p.ruleId} v${version}`;
-  const missing = then.missing.map((k) => labelFor(input.pills, k).toLowerCase());
+  const missing = then.missing.map((k) => inSentence(labelFor(input.pills, k)));
   let first: string;
   if (then.status === 'allowed') first = `Gate ${gate} allowed it when it was proposed; a named person still acts.`;
   else if (then.status === 'not_applicable') first = `Gate ${gate} did not apply when it was proposed.`;
