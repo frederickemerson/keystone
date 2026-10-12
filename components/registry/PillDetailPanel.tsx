@@ -1,13 +1,14 @@
 "use client";
 
-import { Download, PackageCheck, History, ShieldAlert } from "lucide-react";
+import { PackageCheck, History, ShieldAlert } from "lucide-react";
 import { useGovernanceStore, personaFor } from "@/lib/governance/store";
 import { currentApproved } from "@/lib/governance/versions";
 import { SectionHeader, EmptyState } from "@/components/mosaic";
 import type { PillBundle } from "@/lib/pills/load";
 import type { PillVersion, VersionStatus } from "@/lib/governance/versions";
 import { roleLabel } from "@/lib/governance/access";
-import { assetRefsFor, latestShadow, maxSensitivity, skillFrontmatter } from "./registry-utils";
+import { assetRefsFor, latestShadow, maxSensitivity } from "./registry-utils";
+import { SkillPackageExport } from "@/components/export/SkillPackageExport";
 
 function plainList(items: readonly string[] | undefined): string {
   return items && items.length > 0 ? items.join(", ") : "—";
@@ -32,18 +33,6 @@ function VersionBadge({ status }: { status: VersionStatus }) {
   );
 }
 
-function triggerDownload(filename: string, content: string) {
-  const blob = new Blob([content], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 export function PillDetailPanel({
   bundle,
   history,
@@ -64,20 +53,6 @@ export function PillDetailPanel({
 
   const manifest = bundle.pill.manifest;
   const sensitivity = focus ? maxSensitivity(focus) : "internal";
-
-  function handleExport() {
-    const payload = {
-      "SKILL.md": `${skillFrontmatter(manifest)}\n\n${bundle.skillBody}`,
-      "rules.yaml": bundle.pill.rules,
-      "provenance.json": bundle.pill.provenance,
-      evals: bundle.pill.evals,
-      CHANGELOG: bundle.changelog,
-    };
-    triggerDownload(`${bundle.id}.pill.json`, JSON.stringify(payload, null, 2));
-  }
-
-  const installName = bundle.name;
-  const installPath = bundle.path;
 
   return (
     <aside
@@ -187,23 +162,11 @@ export function PillDetailPanel({
       {/* Portability: export + install */}
       <section className="space-y-2">
         <SectionHeader title="Portability" icon={<PackageCheck className="size-4" aria-hidden="true" />} />
-        <button
-          type="button"
-          onClick={handleExport}
-          className="btn-pill"
-        >
-          <Download className="size-3.5" aria-hidden="true" />
-          Export pill (.json bundle)
-        </button>
-        <p className="text-[11px] text-ink-muted">
-          Downloads a portable JSON bundle of SKILL.md, rules, provenance, evals and CHANGELOG.
-        </p>
-        <div className="rounded-lg border border-line bg-dew-drop/50 p-3">
-          <p className="text-xs font-medium text-ink">Install as a CodeBuddy skill</p>
-          <pre className="mt-1.5 overflow-x-auto rounded bg-canvas p-2 font-mono text-[11px] text-ink">
-            {`mkdir -p .codebuddy/skills/${installName}\ncp -r ${installPath}/* .codebuddy/skills/${installName}/`}
-          </pre>
-        </div>
+        <SkillPackageExport
+          pill={{ id: bundle.id, name: bundle.name }}
+          history={history}
+          diskVersion={manifest.version}
+        />
       </section>
     </aside>
   );

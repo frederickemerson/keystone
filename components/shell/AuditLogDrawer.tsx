@@ -8,6 +8,7 @@ import { X } from 'lucide-react';
 import { useGovernanceStore } from '@/lib/governance/store';
 import { roleLabel } from '@/lib/governance/access';
 import { useModalDialog } from '@/components/mosaic/useModalDialog';
+import { AuditExportButtons } from '@/components/export/AuditExportButtons';
 
 // Deterministic wall-clock in Singapore, identical on server and client.
 // (en-GB renders 24-hour time by default.)
@@ -59,6 +60,9 @@ export function AuditLogDrawer({ open, onClose }: { open: boolean; onClose: () =
             <p className="mt-1 text-[13px] text-ink-muted">
               Append-only. Who / when / pill version / action / outcome.
             </p>
+            <div className="mt-3">
+              <AuditExportButtons log={audit} />
+            </div>
           </div>
           <button
             ref={closeRef}

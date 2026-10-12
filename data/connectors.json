@@ -1,0 +1,336 @@
+[
+  {
+    "id": "ibms_alarms",
+    "name": "iBMS alarms and trends",
+    "system": "iBMS (BACnet/IP)",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [
+      "iBMS"
+    ],
+    "evidenceKeys": [
+      "leak_alarm_active",
+      "chw_flow_anomaly",
+      "active_water_release",
+      "crah_condensate_alarm",
+      "underfloor_leak_detection"
+    ],
+    "canConfirmGateEvidence": false,
+    "label": "iBMS alarm",
+    "description": "Replays recorded alarm and trend events from the incident timelines; no building system is connected. In production it would read alarm points bound by Brick class, so one pill runs at any site whose points are tagged.",
+    "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-02"
+  },
+  {
+    "id": "leak_detection",
+    "name": "Leak detection cables",
+    "system": "Leak detection panel (brick:Leak_Alarm), reported through the iBMS",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [],
+    "evidenceKeys": [
+      "leak_alarm_active",
+      "underfloor_leak_detection"
+    ],
+    "canConfirmGateEvidence": false,
+    "label": "Leak detector",
+    "description": "In the demo, detector alarms such as LD-23-04 and LD-DH2-01 arrive as recorded iBMS events. In production the panel's points would be read through the same iBMS adapter; a detector can raise an incident, never confirm where the water is.",
+    "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-01"
+  },
+  {
+    "id": "cmms_work_orders",
+    "name": "CMMS work orders",
+    "system": "CMMS work orders (by cmms_asset_code)",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [
+      "CMMS"
+    ],
+    "evidenceKeys": [
+      "shutoff_map_available"
+    ],
+    "canConfirmGateEvidence": true,
+    "label": "CMMS work order",
+    "description": "Replays recorded work orders. A work order that links the isolation diagram is accepted as the shut-off map being in hand: a document on file, not a sensor reading. In production, work orders would be matched to assets by CMMS asset code.",
+    "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-04"
+  },
+  {
+    "id": "tenant_hotline",
+    "name": "Tenant hotline",
+    "system": "Tenant hotline, logged by the Asset Operations Manager",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [
+      "tenant"
+    ],
+    "evidenceKeys": [
+      "affected_units_confirmed",
+      "anchor_tenant_affected",
+      "ceiling_stain_or_drip",
+      "tenant_premises_affected",
+      "tenant_property_damage",
+      "tenant_report_drip",
+      "tenant_request_completion_time",
+      "wet_building_fabric"
+    ],
+    "canConfirmGateEvidence": true,
+    "label": "Tenant call",
+    "description": "Recorded tenant calls. A named Asset Operations Manager logs each call and confirms what the caller reports; the caller never confirms anything. Calls carry tenant data and are masked for roles not cleared for it.",
+    "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-12"
+  },
+  {
+    "id": "tenant_experience_desk",
+    "name": "Tenant experience desk",
+    "system": "Tenant experience log",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [
+      "tenant_experience"
+    ],
+    "evidenceKeys": [
+      "account_manager_available",
+      "next_update_time_set"
+    ],
+    "canConfirmGateEvidence": true,
+    "label": "Tenant experience",
+    "description": "Recorded entries by the Tenant Experience Manager, such as reaching the account manager and setting the next tenant update. In production these would come from the tenant experience team's own log.",
+    "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-13"
+  },
+  {
+    "id": "technician_app",
+    "name": "Technician field app",
+    "system": "Mobile field app (observations, photos, actions)",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [
+      "technician"
+    ],
+    "evidenceKeys": [
+      "active_water_release",
+      "affected_materials_inventory",
+      "distance_to_electrical_m",
+      "equipment_wetted_or_isolated",
+      "isolation_complete",
+      "leak_alarm_confirmed",
+      "location_confirmed",
+      "moisture_meter_readings",
+      "moisture_reading_pct",
+      "pre_cleanup_photos",
+      "source_system",
+      "sub_valve_accessible",
+      "visual_inspection",
+      "visual_or_alarm_confirmation",
+      "water_category",
+      "water_contacting_live_it",
+      "water_flowing_toward_electrical",
+      "water_in_electrical_room",
+      "water_near_electrical"
+    ],
+    "canConfirmGateEvidence": true,
+    "label": "Technician",
+    "description": "Recorded observations, photos and actions entered by a named technician on site. In production this would be the field app the technician already uses; each entry carries who made it and when.",
+    "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-06"
+  },
+  {
+    "id": "technical_services_desk",
+    "name": "Technical Services duty log",
+    "system": "Technical Services Lead's duty log",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [
+      "technical_services"
+    ],
+    "evidenceKeys": [
+      "failed_component_retained",
+      "lew_dispatched",
+      "source_confirmed",
+      "source_system"
+    ],
+    "canConfirmGateEvidence": true,
+    "label": "Technical Services",
+    "description": "Recorded dispatches and findings by the named Technical Services Lead, such as calling the duty LEW or confirming the failed component.",
+    "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-16"
+  },
+  {
+    "id": "critical_facilities_desk",
+    "name": "Critical facilities desk",
+    "system": "Data-centre Critical Facilities Manager's log",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [
+      "critical_facilities"
+    ],
+    "evidenceKeys": [
+      "cfm_available",
+      "cfm_cosign",
+      "dc_client_affected",
+      "lew_dispatched",
+      "sla_terms_on_file"
+    ],
+    "canConfirmGateEvidence": true,
+    "label": "Critical facilities",
+    "description": "Recorded entries by the named Critical Facilities Manager at the data centre: SLA terms on file, client impact and the co-signature for return to service.",
+    "samplePayload": "data/timelines/INC-2026-1012.json#EV-1012-09"
+  },
+  {
+    "id": "lew_signoff",
+    "name": "LEW sign-off",
+    "system": "Licensed Electrical Worker's written sign-off",
+    "kind": "evidence_source",
+    "status": "simulated",
+    "statusFrom": "static",
+    "timelineSources": [
+      "lew"
+    ],
+    "evidenceKeys": [
+      "area_dry",
+      "insulation_resistance_ok",
+      "lew_on_site",
+      "lew_signoff",
+      "moisture_reading_pct",
+      "water_flowing_toward_electrical",
+      "water_near_electrical"
+    ],
+    "canConfirmGateEvidence": true,
+    "label": "LEW sign-off",
+    "description": "Recorded inspections and written sign-offs by the named duty LEW. The sign-off and insulation-resistance items that the re-energise gate (TS-07) needs can be confirmed only by the duty LEW; no feed can.",
+    "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-17"
+  },
+  {
+    "id": "contractor",
+    "name": "Contractor reports",
+    "system": "Term contractor job reports",
+    "kind": "evidence_source",
+    "status": "planned",
+    "statusFrom": "static",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "Contractor",
+    "description": "Proposed for a pilot: contractor job reports attached to the work order. Not built; in the demo, contractor work is reported by Technical Services."
+  },
+  {
+    "id": "dcim",
+    "name": "DCIM",
+    "system": "Data-centre infrastructure management",
+    "kind": "evidence_source",
+    "status": "planned",
+    "statusFrom": "static",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "DCIM",
+    "description": "Proposed for a pilot: hall temperatures and N+1 cooling state from the data centre's DCIM. Not built; in the demo, data-hall alarms arrive as recorded iBMS events."
+  },
+  {
+    "id": "llm_drafting",
+    "name": "LLM drafting chain",
+    "system": "CodeBuddy SDK, then TokenHub hy4-preview (ap-singapore), then OpenAI",
+    "kind": "ai_service",
+    "status": "adapter_not_configured",
+    "statusFrom": "config",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "LLM draft",
+    "description": "Drafts rules from interview and note transcripts, and tenant messages. Tries each provider that has credentials, in order, and falls back to a labelled recorded draft. Output is always a draft for a named person to check."
+  },
+  {
+    "id": "jev",
+    "name": "Jev evidence suggestions",
+    "system": "TypeSafe AI Jev (System One)",
+    "kind": "ai_service",
+    "status": "adapter_not_configured",
+    "statusFrom": "config",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "Jev suggestion",
+    "description": "Suggests which evidence items look likely from the incident so far. A suggestion is never evidence: a person in an allowed role must confirm it before a gate reads it."
+  },
+  {
+    "id": "tencent_asr",
+    "name": "Tencent Cloud ASR",
+    "system": "Tencent Cloud ASR, ap-singapore",
+    "kind": "ai_service",
+    "status": "adapter_not_configured",
+    "statusFrom": "config",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "Tencent ASR",
+    "description": "Speech to text processed in Singapore for frontline voice notes. The adapter is typed and tested but has not been verified against the live service, so Keystone does not use it."
+  },
+  {
+    "id": "openai_transcribe",
+    "name": "OpenAI transcription",
+    "system": "OpenAI gpt-4o-mini-transcribe (processed offshore)",
+    "kind": "ai_service",
+    "status": "adapter_not_configured",
+    "statusFrom": "config",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "OpenAI transcription",
+    "description": "Optional speech to text for voice notes. Off unless explicitly enabled, because the audio leaves Singapore. The audio is never stored."
+  },
+  {
+    "id": "browser_speech",
+    "name": "Browser speech recognition",
+    "system": "Web Speech API in the viewer's browser",
+    "kind": "ai_service",
+    "status": "adapter_not_configured",
+    "statusFrom": "config",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "Browser speech",
+    "description": "The no-key baseline for voice notes. Depends on your browser: in most browsers the audio is processed by the browser vendor's service. Typing a note always works."
+  },
+  {
+    "id": "skill_package_export",
+    "name": "Skill package export",
+    "system": "Zip download (SKILL.md, rules, evidence, provenance, evals, changelog)",
+    "kind": "export",
+    "status": "live",
+    "statusFrom": "static",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "Skill package",
+    "description": "Downloads the approved version of a pill as a skill folder, built in your browser from the governance record. Tested to load back through the pill loader with the same eval results."
+  },
+  {
+    "id": "decision_record_export",
+    "name": "Incident decision record",
+    "system": "Printable page and JSON download",
+    "kind": "export",
+    "status": "live",
+    "statusFrom": "static",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "Decision record",
+    "description": "One incident's pills and versions, gates and their evidence, named-human decisions and audit trail, masked for your role. Print it or download it as JSON."
+  },
+  {
+    "id": "audit_log_export",
+    "name": "Audit log export",
+    "system": "CSV and JSON download",
+    "kind": "export",
+    "status": "live",
+    "statusFrom": "static",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "Audit log",
+    "description": "Downloads the append-only audit log from the audit drawer, as CSV for a spreadsheet or JSON for another system."
+  }
+]
