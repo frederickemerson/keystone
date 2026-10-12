@@ -1,8 +1,9 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { LlmBadge } from '@/components/mosaic/LlmBadge';
-import type { Generation } from '@/lib/llm/attribution';
+import { LLM_CLIENT_WAIT_MS, type Generation } from '@/lib/llm/attribution';
+import { requestLive } from '@/lib/llm/live-request';
 import { Check, EyeOff, Mail, X } from 'lucide-react';
 import { StatusBadge } from '@/components/mosaic';
 import type { ActionStatus } from '@/lib/engine/types';
@@ -15,6 +16,8 @@ import { tenantMessagePermission } from './permissions';
 import { formatClock } from './labels';
 
 type Draft = TenantMessageFixture['drafts'][number];
+
+const WAIT_S = LLM_CLIENT_WAIT_MS / 1000;
 
 function minutesBetween(fromIso: string, toIso: string): number {
   return Math.round((new Date(toIso).getTime() - new Date(fromIso).getTime()) / 60_000);
@@ -83,7 +86,11 @@ function DraftCard({
         </dd>
       </dl>
 
+      {/* A scrollable region must be reachable by keyboard (WCAG 2.1.1). */}
       <pre
+        tabIndex={0}
+        role="region"
+        aria-label={`Tenant message body${masked ? ' (masked for your role)' : ''}`}
         className={cn(
           'mt-3 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-3 font-sans text-xs leading-relaxed',
           masked ? 'italic text-ink-muted' : 'text-ink',
@@ -137,6 +144,7 @@ export function TenantMessagePanel({
   records,
   onDecide,
   noDraftReason,
+  liveProviderName = 'the live model',
 }: {
   fixture: TenantMessageFixture | null;
   role: string;
@@ -145,26 +153,58 @@ export function TenantMessagePanel({
   records: Record<string, ActionDecisionRecord>;
   onDecide: (draft: Draft, outcome: ActionOutcome) => void;
   noDraftReason: string;
+  /** Display name of the configured live provider, if the page knows it (e.g. "OpenAI"). */
+  liveProviderName?: string;
 }) {
   const [generation, setGeneration] = useState<Generation<{ draft: Draft; snapshotAt: string }> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+  const inFlight = useRef<AbortController | null>(null);
+  const loading = startedAt !== null;
   const mayDraft = Boolean(getRole(role)?.can_draft_tenant_message);
+
+  useEffect(() => {
+    if (startedAt === null) return;
+    const tick = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 250);
+    return () => clearInterval(tick);
+  }, [startedAt]);
+  useEffect(() => () => inFlight.current?.abort(), []);
+
   async function draftLive() {
     if (!fixture || !mayDraft) return;
-    setLoading(true);
+    const controller = new AbortController();
+    inFlight.current = controller;
     setGeneration(null);
+    setElapsed(0);
+    setStartedAt(Date.now());
     try {
-      const response = await fetch('/api/llm/tenant-message', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incidentId: fixture.source_incident }),
-        signal: AbortSignal.timeout(50_000),
-      });
-      if (!response.ok) throw new Error('request-failed');
-      setGeneration(await response.json());
+      // Shared client: 25 s wait, HTTP / timeout failures mapped to the
+      // recorded first notice with a reason, the server Generation passed
+      // through so the badge names the provider that actually answered.
+      const result = await requestLive<{ draft: Draft; snapshotAt: string }>(
+        '/api/llm/tenant-message',
+        { incidentId: fixture.source_incident },
+        {
+          signal: controller.signal,
+          fallback: (reason) => ({
+            data: { draft: fixture.drafts[0], snapshotAt: fixture.generated_at },
+            source: 'recorded',
+            provider: 'fixtures',
+            model: fixture.model,
+            latencyMs: 0,
+            attempts: [],
+            reason,
+          }),
+        },
+      );
+      setGeneration(result);
     } catch {
-      setGeneration({ data: { draft: fixture.drafts[0], snapshotAt: fixture.generated_at }, source: 'recorded', provider: 'fixtures', model: fixture.model, latencyMs: 0, attempts: [], reason: 'Live request unavailable; showing the recorded first notice.' });
+      // Aborted by unmount; nothing to show.
     } finally {
-      setLoading(false);
+      if (inFlight.current === controller) {
+        inFlight.current = null;
+        setStartedAt(null);
+      }
     }
   }
   if (!fixture || fixture.drafts.length === 0) {
@@ -174,15 +214,21 @@ export function TenantMessagePanel({
     <div className="space-y-3" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className="btn-pill text-xs" disabled={loading || !mayDraft} onClick={draftLive} title={mayDraft ? 'Optional live drafting; nothing is sent.' : 'Switch to a role permitted to draft tenant messages.'}>
-          {loading ? 'Drafting live…' : 'Draft live'}
+          {loading ? `Drafting with ${liveProviderName}…` : 'Draft live'}
         </button>
+        {loading ? (
+          <span className="text-xs tabular-nums text-ink-muted">
+            {elapsed} s of {WAIT_S} s, then the recorded output
+          </span>
+        ) : null}
         {generation ? <button type="button" className="btn-pill text-xs" onClick={() => setGeneration(null)}>Use recorded draft</button> : null}
       </div>
+      {generation?.reason ? <p className="text-[11px] text-ink-muted">{generation.reason}</p> : null}
       <p className="text-[11px] text-ink-muted" title="Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.">
         Snapshot at <span className="font-mono tabular-nums">{formatClock(fixture.generated_at)}</span> · reviewed sentences only
         <span className="sr-only">. Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.</span>
       </p>
-      <span className="sr-only" role="status">{loading ? 'Drafting live…' : generation ? `${generation.source === 'live' ? 'Live' : 'Recorded'} draft ready for human review` : 'Recorded output'}</span>
+      <span className="sr-only" role="status">{loading ? `Drafting with ${liveProviderName}…` : generation ? `${generation.source === 'live' ? 'Live' : 'Recorded'} draft ready for human review` : 'Recorded output'}</span>
       {(generation ? [generation.data.draft] : fixture.drafts).map((d) => (
         <DraftCard
           key={d.draft_id}

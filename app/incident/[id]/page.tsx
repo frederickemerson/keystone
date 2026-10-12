@@ -13,7 +13,8 @@ import {
   type Timeline,
 } from '@/lib/data';
 import { loadAllPills } from '@/lib/pills/load';
-import { sessionRole } from '@/lib/auth/session';
+import { getSession } from '@/lib/auth/session';
+import { UNRESOLVED_ROLE } from '@/lib/governance/access';
 import { scopeAsset, scopeIncident, scopeTenantMessageFixture, scopeTimeline } from '@/lib/governance/scope';
 
 export const dynamic = 'force-dynamic';
@@ -33,7 +34,15 @@ function proposalsFor(incidentId: string, timeline: Timeline): AiProposal[] {
         `${fixture.fixture_id}: ${p.proposal_id} proposed_after_event ${p.proposed_after_event} is not on the ${incidentId} timeline`,
       );
     }
-    return { proposalId: p.proposal_id, ruleId: p.rule_id, text: p.text, model: fixture.model, afterStep: index + 1 };
+    return {
+      proposalId: p.proposal_id,
+      ruleId: p.rule_id,
+      text: p.text,
+      model: fixture.model,
+      afterStep: index + 1,
+      // The schema admits only recorded fixtures (fixture_type "llm_fallback").
+      source: { kind: 'recorded' as const, fixtureId: fixture.fixture_id, generatedAt: fixture.generated_at },
+    };
   });
 }
 
@@ -88,7 +97,8 @@ export default async function IncidentPage({
 }) {
   const { id } = await params;
   const { step } = await searchParams;
-  const role = await sessionRole();
+  const session = await getSession();
+  const role = session?.role ?? UNRESOLVED_ROLE;
 
   const incidents = loadIncidents();
   const assets = loadAssets();
@@ -112,6 +122,7 @@ export default async function IncidentPage({
       overlay={overlayFor(primary, incidents, assets, role)}
       pills={pills}
       initialStep={parseStep(step)}
+      sessionActor={session ? { role: session.role, name: session.name } : null}
     />
   );
 }

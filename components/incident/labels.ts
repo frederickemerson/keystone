@@ -92,3 +92,20 @@ export function formatElapsed(fromIso: string, toIso: string): string {
   const ss = String(s).padStart(2, '0');
   return h > 0 ? `T+${h}:${mm}:${ss}` : `T+${mm}:${ss}`;
 }
+
+const SGT_CLOCK = new Intl.DateTimeFormat('en-GB', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'Asia/Singapore',
+});
+
+/**
+ * "08:41" in Singapore time for an instant the app itself recorded (a store
+ * timestamp, which is UTC ISO). Source timestamps that carry "+08:00" use
+ * formatClock instead.
+ */
+export function formatSgtClock(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : SGT_CLOCK.format(d);
+}

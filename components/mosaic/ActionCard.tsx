@@ -81,7 +81,9 @@ export function ActionCard({
   return (
     <article
       className={cn(
-        'flex flex-col gap-3 rounded-xl border border-line-strong bg-surface p-5 shadow-card',
+        // min-w-0: as a grid/flex item the card must shrink to its track, never
+        // grow to fit a long nowrap child (that pushed actions off-screen).
+        'flex min-w-0 flex-col gap-3 rounded-xl border border-line-strong bg-surface p-5 shadow-card',
         className,
       )}
       aria-labelledby={`action-${action.ruleId}-title`}
@@ -107,7 +109,7 @@ export function ActionCard({
         <dt className="flex items-center gap-1.5 text-ink-muted">
           <User className="size-3.5" aria-hidden="true" /> Owner
         </dt>
-        <dd className="text-ink">
+        <dd className="min-w-0 text-ink">
           {ownerLabel ?? <PersonaName role={action.owner} />}
         </dd>
 
@@ -116,7 +118,7 @@ export function ActionCard({
             <dt className="flex items-center gap-1.5 text-ink-muted">
               <ArrowUpRight className="size-3.5" aria-hidden="true" /> Escalate to
             </dt>
-            <dd className="text-ink">
+            <dd className="min-w-0 text-ink">
               {escalateLabel ?? (action.escalateTo ? <PersonaName role={action.escalateTo.role} /> : null)}
             </dd>
           </>
@@ -129,7 +131,7 @@ export function ActionCard({
             </dt>
             <dd
               className={cn(
-                'font-mono font-medium tabular-nums',
+                'relative font-mono font-medium tabular-nums',
                 urgent ? 'text-escalate' : 'text-ink',
               )}
             >
@@ -203,7 +205,7 @@ export function ActionCard({
         </div>
       </Disclosure>
 
-      <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+      <div className="mt-auto flex min-w-0 flex-wrap items-center gap-2 pt-1">
         {children}
         {onWhy ? (
           <button type="button" onClick={onWhy} className="btn-pill ml-auto text-xs">

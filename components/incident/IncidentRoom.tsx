@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Ban,
   Bot,
+  Check,
   ChevronDown,
   Clock,
   HelpCircle,
@@ -41,7 +42,13 @@ import { currentApproved, pillAtVersion } from '@/lib/governance/versions';
 import type { TimelineEvent as DisplayTimelineEvent } from '@/components/mosaic/types';
 import { cn } from '@/lib/ui/cn';
 import { AssetOverlayPanel } from './AssetOverlayPanel';
-import { DecisionButtons, DecisionStamp, type DirectOutcome, type MissingEvidenceOption } from './DecisionButtons';
+import {
+  DecisionButtons,
+  DecisionStamp,
+  WRAPPING_PILL,
+  type DirectOutcome,
+  type MissingEvidenceOption,
+} from './DecisionButtons';
 import { EvidenceSuggestions } from './EvidenceSuggestions';
 import {
   accumulateEvidence,
@@ -52,8 +59,16 @@ import {
   toEngineIncident,
   type EvidenceState,
 } from './engineInputs';
-import { assetTypeLabel, formatClock, formatElapsed, humanizeKey, personForRole, personLabel } from './labels';
-import { actionPermissions } from './permissions';
+import {
+  assetTypeLabel,
+  formatClock,
+  formatElapsed,
+  formatSgtClock,
+  humanizeKey,
+  personForRole,
+  personLabel,
+} from './labels';
+import { actionPermissions, withRecordedDecision } from './permissions';
 import { expertQuoteFor } from './provenance';
 import { ReplayControls, type Speed } from './ReplayControls';
 import { RuleWhyDrawer } from './RuleWhyDrawer';
@@ -161,7 +176,7 @@ function evaluateAll(pills: readonly ApprovedPill[], scenario: IncidentScenario,
 // Room
 // ---------------------------------------------------------------------------
 
-export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: IncidentRoomProps) {
+export function IncidentRoom({ primary, overlay, pills, initialStep = 0, sessionActor = null }: IncidentRoomProps) {
   const mounted = useMounted();
 
   // Governance store (persisted). Before mount, render the seed state so the
@@ -176,9 +191,12 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
   const resetDemo = useGovernanceStore((s) => s.resetDemo);
   const seedPills = useGovernanceStore((s) => s.seedPills);
 
-  // Until the persisted actor is known (SSR + hydration) render as the
-  // unresolved actor: no grants, public data only — never a privileged default.
-  const actor = mounted ? storeActor : UNRESOLVED_ACTOR;
+  // Server render + hydration use the verified session's identity (the same
+  // one the shell binds into the store before this renders), so the first
+  // paint already shows this role's buttons and redactions and nothing jumps
+  // once the store is readable. No session → the unresolved actor: no grants,
+  // public data only — never a privileged default.
+  const actor = mounted ? storeActor : (sessionActor ?? UNRESOLVED_ACTOR);
   const role = actor.role;
 
   useEffect(() => {
@@ -303,10 +321,22 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
 
   // Decisions + audit for this incident.
   const decisions = (mounted ? storeDecisions[incidentId] : undefined) ?? EMPTY_DECISIONS;
-  const auditEvents = useMemo(
-    () => (mounted ? auditFor(storeAudit, { incidentId }) : []),
-    [mounted, storeAudit, incidentId],
-  );
+  // The audit log is append-only and survives "Reset demo"; the footer shows
+  // only the current run (events after the latest reset) and says so.
+  const { auditEvents, lastReset, earlierCount } = useMemo(() => {
+    if (!mounted) return { auditEvents: [], lastReset: undefined, earlierCount: 0 };
+    let resetIndex = -1;
+    storeAudit.forEach((e, i) => {
+      if (e.action === 'demo_reset') resetIndex = i;
+    });
+    const all = auditFor(storeAudit, { incidentId });
+    const current = resetIndex === -1 ? all : auditFor(storeAudit.slice(resetIndex + 1), { incidentId });
+    return {
+      auditEvents: current,
+      lastReset: resetIndex === -1 ? undefined : storeAudit[resetIndex],
+      earlierCount: all.length - current.length,
+    };
+  }, [mounted, storeAudit, incidentId]);
 
   // Live announcements (new evidence, gate changes, decisions).
   const [announcement, setAnnouncement] = useState('');
@@ -331,9 +361,10 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
     prevBlocked.current = blocked;
     const ev = events[step - 1];
     if (!ev) return;
-    const text = redactText(ev.text, role, ev.sensitivity);
+    // Never read a mask placeholder aloud: say the content is restricted.
+    const body = canSee(role, ev.sensitivity) ? `: ${ev.text.slice(0, 160)}` : ` (restricted for your role)`;
     setAnnouncement(
-      `New evidence, event ${step} of ${total}, ${ev.source} ${ev.type}: ${text.slice(0, 160)}` +
+      `New evidence, event ${step} of ${total}, ${ev.source} ${ev.type}${body}` +
         (newlyBlocked.length ? ` Gate now blocking: ${newlyBlocked.join(', ')}.` : ''),
     );
     // Announce only on step / scenario change; role is read for redaction.
@@ -370,6 +401,9 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
   // Actions.
   const decide = useCallback(
     (item: BoardItem, outcome: DirectOutcome) => {
+      // Idempotent against the store: the same outcome as the latest recorded
+      // decision for this rule is a no-op (a repeat click must not log twice).
+      if (decisions[item.rule.id]?.outcome === outcome) return;
       const people = scenario.asset.people;
       const target = item.trace.escalateTo;
       const note =
@@ -387,7 +421,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
       });
       if (rec) setAnnouncement(`${item.rule.id} ${outcome} by ${rec.actor.name}.`);
     },
-    [decideAction, incidentId, scenario.asset.people],
+    [decideAction, decisions, incidentId, scenario.asset.people],
   );
 
   const requestEvidence = useCallback(
@@ -421,7 +455,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
     [storeConfirmEvidence],
   );
 
-  const resetAll = () => {
+  const resetAll = (): void => {
     voice.stop();
     setPlaying(false);
     setDrawer(null);
@@ -523,7 +557,11 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
             {record ? <DecisionStamp record={record} /> : null}
             {showPanel ? (
               <DecisionButtons
-                permissions={actionPermissions(item.action, role, target?.role ?? null)}
+                permissions={withRecordedDecision(
+                  actionPermissions(item.action, role, target?.role ?? null),
+                  record,
+                  formatSgtClock,
+                )}
                 escalateLabel={target ? `Escalate to ${personLabel(target.role, people)}` : 'Escalate'}
                 missingEvidence={missingOptions(item)}
                 onDecide={(o) => decide(item, o)}
@@ -581,41 +619,42 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
             </p>
           </>
         }
-        actions={
-          <div className="flex flex-col items-end gap-3">
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {/* Role is switched in the app header (one switcher, bound to the store). */}
-              {overlay ? (
-                <div
-                  role="group"
-                  aria-label="Asset"
-                  className="inline-flex rounded-full border border-line-strong/70 bg-dew-drop p-0.5"
-                >
-                  {(['primary', 'overlay'] as const).map((k) => {
-                    const sc = k === 'primary' ? primary : overlay;
-                    return (
-                      <button
-                        key={k}
-                        type="button"
-                        aria-pressed={scenarioKey === k}
-                        onClick={() => switchScenario(k)}
-                        className={cn(
-                          'min-h-8 rounded-full px-3 text-xs font-medium transition-[background-color,color,box-shadow] duration-150',
-                          scenarioKey === k ? 'bg-surface text-ink shadow-button' : 'text-ink-muted hover:text-ink',
-                        )}
-                      >
-                        {k === 'primary' ? sc.asset.name : `Apply to ${sc.asset.name}`}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
-              <button type="button" onClick={resetAll} className="btn-pill text-xs">
-                <RotateCcw className="size-3.5" aria-hidden="true" />
-                Reset demo
-              </button>
-            </div>
-            <div className="flex flex-wrap justify-end gap-2.5" role="group" aria-label="Pills in use">
+        meta={
+          // Scope controls + pills in use sit under the subtitle (PageHeader's
+          // `meta` slot), in the shrinkable column: on a phone they wrap
+          // instead of widening the page.
+          <div className="flex flex-col gap-3">
+            {/* Role is switched in the app header (one switcher, bound to the store). */}
+            {overlay ? (
+              <div
+                role="group"
+                aria-label="Asset"
+                className="inline-flex max-w-full flex-wrap self-start rounded-[18px] border border-line-strong/70 bg-dew-drop p-0.5"
+              >
+                {(['primary', 'overlay'] as const).map((k) => {
+                  const sc = k === 'primary' ? primary : overlay;
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      aria-pressed={scenarioKey === k}
+                      onClick={() => switchScenario(k)}
+                      className={cn(
+                        'min-h-8 rounded-full px-3 text-left text-xs font-medium transition-[background-color,color,box-shadow] duration-150',
+                        scenarioKey === k ? 'bg-surface text-ink shadow-button' : 'text-ink-muted hover:text-ink',
+                      )}
+                    >
+                      {k === 'primary' ? sc.asset.name : `Apply to ${sc.asset.name}`}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+            <div
+              className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,15rem),19.5rem))] gap-2.5"
+              role="group"
+              aria-label="Pills in use"
+            >
               {approved.map((p) => (
                 <PillLabel
                   key={p.bundle.id}
@@ -623,7 +662,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
                   name={pillDisplayName(p.bundle.name)}
                   pillClass={titleCase(p.bundle.domain)}
                   version={p.version}
-                  className="w-[19.5rem]"
+                  className="min-w-0"
                 />
               ))}
               {unapproved.map((p) => (
@@ -634,6 +673,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
             </div>
           </div>
         }
+        actions={<ResetDemoControl onConfirm={resetAll} />}
       />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)_400px]">
@@ -668,7 +708,9 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
               highlightId={displayEvents[0]?.id}
               renderExtra={(ev) =>
                 // Only for a role cleared to read the event's text (it is what Jev reads).
-                mounted && canSee(role, events.find((e) => e.id === ev.id)?.sensitivity ?? 'commercial') ? (
+                // The role is the session's from the first render, so this is
+                // server-rendered too (no post-hydration insert → no layout shift).
+                canSee(role, events.find((e) => e.id === ev.id)?.sensitivity ?? 'commercial') ? (
                   <EvidenceSuggestions
                     key={`${incidentId}:${ev.id}`}
                     incidentId={incidentId}
@@ -711,6 +753,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
               naReason={notApplicable.find((n) => n.trace.ruleId === p.ruleId)?.trace.triggerReason}
               people={people}
               role={role}
+              record={decisions[p.ruleId]}
               onWhy={(item) =>
                 setDrawer({
                   pillId: item.entry.bundle.id,
@@ -834,9 +877,15 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
           <span className="shrink-0 tabular-nums">
             {auditEvents.length} audit event
             {auditEvents.length === 1 ? '' : 's'} · {incidentId}
+            {lastReset ? ` since reset at ${formatSgtClock(lastReset.at)}` : ''}
           </span>
           {auditEvents.length > 0 ? (
             <span className="truncate">· latest: {auditEvents[auditEvents.length - 1].detail}</span>
+          ) : lastReset ? (
+            <span className="truncate">
+              · demo reset by {lastReset.actor}
+              {earlierCount > 0 ? ` · ${earlierCount} earlier event${earlierCount === 1 ? '' : 's'} in the full log` : ''}
+            </span>
           ) : null}
         </button>
       </footer>
@@ -867,7 +916,11 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0 }: Incid
               {decisions[drawerItem.rule.id] ? <DecisionStamp record={decisions[drawerItem.rule.id]} /> : null}
               {drawerItem.action.status !== 'allowed' ? (
                 <DecisionButtons
-                  permissions={actionPermissions(drawerItem.action, role, drawerItem.trace.escalateTo?.role ?? null)}
+                  permissions={withRecordedDecision(
+                    actionPermissions(drawerItem.action, role, drawerItem.trace.escalateTo?.role ?? null),
+                    decisions[drawerItem.rule.id],
+                    formatSgtClock,
+                  )}
                   escalateLabel={`Escalate to ${personLabel(drawerItem.trace.escalateTo.role, people)}`}
                   missingEvidence={missingOptions(drawerItem)}
                   onDecide={(o) => decide(drawerItem, o)}
@@ -899,6 +952,7 @@ function ProposalBanner({
   naReason,
   people,
   role,
+  record,
   onWhy,
   onEscalate,
 }: {
@@ -907,13 +961,21 @@ function ProposalBanner({
   naReason: string | undefined;
   people: readonly { name: string; role: string }[];
   role: string;
+  /** Latest recorded human decision on the proposal's gating rule. */
+  record: ActionDecisionRecord | undefined;
   onWhy: (item: BoardItem) => void;
   onEscalate: (item: BoardItem) => void;
 }) {
+  // Proposals are recorded fixtures replayed with the timeline, not live
+  // model calls: say so, and keep the provenance one hover/focus away.
+  const provenance = `Recorded proposal from fixture ${proposal.source.fixtureId} (labelled ${proposal.model}, recorded ${formatClock(proposal.source.generatedAt)} SGT). Replayed with the timeline; no model is called.`;
   const head = (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-muted">
       <Bot className="size-4" aria-hidden="true" />
-      AI proposed <span className="font-mono text-[12px]">({proposal.model})</span>
+      <span title={provenance}>
+        AI proposal <span aria-hidden="true">·</span> recorded
+        <span className="sr-only">. {provenance}</span>
+      </span>
       <span className="font-medium text-ink">“{proposal.text}”</span>
     </p>
   );
@@ -943,7 +1005,8 @@ function ProposalBanner({
     );
   }
 
-  const perms = actionPermissions(item.action, role, target.role);
+  const escalated = record?.outcome === 'escalated' ? record : undefined;
+  const perms = withRecordedDecision(actionPermissions(item.action, role, target.role), record, formatSgtClock);
   return (
     <div
       className="overflow-hidden rounded-xl border-[1.5px] border-blocked/70 bg-blocked-tint shadow-card"
@@ -965,17 +1028,31 @@ function ProposalBanner({
           {item.rule.title}. Deterministic gate — the model cannot override it. Missing:{' '}
           <span className="font-mono text-[12px]">{item.action.missingEvidence.join(', ')}</span>
         </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onEscalate(item)}
-            disabled={!perms.escalate.enabled}
-            title={perms.escalate.reason}
-            className="btn-pill btn-pill-primary text-xs"
-          >
-            <ArrowUpRight className="size-3.5" aria-hidden="true" />
-            Escalate to {personLabel(target.role, people)}
-          </button>
+        {escalated ? (
+          <p className="mt-4 flex items-start gap-2 rounded-lg border border-escalate-mark/40 bg-surface px-3 py-2 text-[13px] leading-snug text-ink">
+            <Check className="mt-0.5 size-4 shrink-0 text-recommend" aria-hidden="true" />
+            <span>
+              <span className="font-semibold">Escalated to {personLabel(target.role, people)}</span> at{' '}
+              <time dateTime={escalated.at} className="font-mono tabular-nums">
+                {formatSgtClock(escalated.at)}
+              </time>{' '}
+              by {escalated.actor.name}. The gate stays blocked until the missing evidence is confirmed.
+            </span>
+          </p>
+        ) : null}
+        <div className="mt-4 flex min-w-0 flex-wrap gap-2">
+          {escalated ? null : (
+            <button
+              type="button"
+              onClick={() => onEscalate(item)}
+              disabled={!perms.escalate.enabled}
+              title={perms.escalate.reason}
+              className={cn('btn-pill btn-pill-primary text-xs', WRAPPING_PILL)}
+            >
+              <ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" />
+              Escalate to {personLabel(target.role, people)}
+            </button>
+          )}
           <button type="button" onClick={() => onWhy(item)} className="btn-pill text-xs">
             <HelpCircle className="size-3.5" aria-hidden="true" />
             Why?
@@ -986,8 +1063,88 @@ function ProposalBanner({
             Hear the expert
           </button>
         </div>
-        {!perms.escalate.enabled ? <p className="mt-2 text-[12px] text-ink-muted">{perms.escalate.reason}</p> : null}
+        {!perms.escalate.enabled && !escalated ? (
+          <p className="mt-2 text-[12px] text-ink-muted">{perms.escalate.reason}</p>
+        ) : null}
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reset demo: an inline, non-blocking confirm step
+// ---------------------------------------------------------------------------
+
+function ResetDemoControl({ onConfirm }: { onConfirm: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+  const [resetAt, setResetAt] = useState<string | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef(false);
+
+  useEffect(() => {
+    if (confirming) confirmRef.current?.focus();
+    else if (returnFocus.current) {
+      returnFocus.current = false;
+      triggerRef.current?.focus();
+    }
+  }, [confirming]);
+
+  const cancel = () => {
+    returnFocus.current = true;
+    setConfirming(false);
+  };
+  const confirm = () => {
+    onConfirm();
+    setResetAt(new Date().toISOString());
+    returnFocus.current = true;
+    setConfirming(false);
+  };
+
+  if (confirming) {
+    return (
+      <div
+        role="group"
+        aria-labelledby="reset-demo-question"
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            cancel();
+          }
+        }}
+        className="flex flex-col items-end gap-2 rounded-xl border border-blocked/45 bg-blocked-tint px-3 py-2.5"
+      >
+        <p id="reset-demo-question" className="text-[12px] leading-snug text-ink">
+          Reset versions, decisions and evidence?
+          <span className="block text-ink-muted">The audit log is kept.</span>
+        </p>
+        <div className="flex gap-2">
+          <button type="button" onClick={cancel} className="btn-pill text-xs">
+            Cancel
+          </button>
+          <button ref={confirmRef} type="button" onClick={confirm} className="btn-pill btn-pill-primary text-xs">
+            <RotateCcw className="size-3.5" aria-hidden="true" />
+            Reset demo
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button ref={triggerRef} type="button" onClick={() => setConfirming(true)} className="btn-pill text-xs">
+        <RotateCcw className="size-3.5" aria-hidden="true" />
+        Reset demo
+      </button>
+      {resetAt ? (
+        <p role="status" className="text-[11px] text-ink-muted">
+          Reset at{' '}
+          <time dateTime={resetAt} className="font-mono tabular-nums">
+            {formatSgtClock(resetAt)}
+          </time>
+        </p>
+      ) : null}
     </div>
   );
 }

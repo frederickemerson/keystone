@@ -62,11 +62,14 @@ export function PillLabel({
       className={cn('rounded-lg border border-line-strong bg-surface p-[3px] shadow-sticker', className)}
       style={rotate ? { rotate: `${rotate}deg` } : undefined}
     >
-      <dl className="@container overflow-hidden rounded-[5px] border border-line-strong/80">
-        <div className="flex items-start gap-3 px-3 pb-2 pt-1.5">
-          <div className="min-w-0 flex-1">
-            <dt className="text-[11px] font-medium text-ink-muted">Name</dt>
-            <dd>
+      {/* Each row is its own <dl> whose direct children are <div>s holding
+          one <dt> and its <dd>(s) — the only grouping HTML allows inside a
+          description list, so screen readers keep the term/value pairs. */}
+      <div className="@container overflow-hidden rounded-[5px] border border-line-strong/80">
+        <dl>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 px-3 pb-2 pt-1.5">
+            <dt className="col-start-1 text-[11px] font-medium text-ink-muted">Name</dt>
+            <dd className="col-start-1 min-w-0">
               <NameTag
                 id={nameId}
                 className={cn(nameFont, 'text-ink [overflow-wrap:anywhere]', nameSize)}
@@ -74,21 +77,21 @@ export function PillLabel({
                 {name}
               </NameTag>
             </dd>
+            {status ? <dd className="col-start-2 row-span-2 row-start-1 mt-1 self-start">{status}</dd> : null}
           </div>
-          {status ? <dd className="mt-1 shrink-0">{status}</dd> : null}
-        </div>
+        </dl>
 
-        <div className="grid grid-cols-1 border-t border-line-strong/80 @[16rem]:grid-cols-[1fr_auto]">
+        <dl className="grid grid-cols-1 border-t border-line-strong/80 @[16rem]:grid-cols-[1fr_auto]">
           <Cell label="Class">
             <span className="text-[13px] font-medium leading-snug text-ink">{pillClass}</span>
           </Cell>
           <Cell label="Roll no." srSuffix=" (version)" divided>
             <span className="font-mono text-[13px] font-medium tabular-nums text-ink">{v}</span>
           </Cell>
-        </div>
+        </dl>
 
         {owner || approver ? (
-          <div className="grid grid-cols-1 border-t border-line-strong/80 @[16rem]:grid-cols-2">
+          <dl className="grid grid-cols-1 border-t border-line-strong/80 @[16rem]:grid-cols-2">
             {owner ? (
               <Cell label="Owner">
                 <span className={signature}>
@@ -103,9 +106,9 @@ export function PillLabel({
                 </span>
               </Cell>
             ) : null}
-          </div>
+          </dl>
         ) : null}
-      </dl>
+      </div>
     </div>
   );
 }
@@ -125,7 +128,7 @@ function Cell({
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-col gap-0.5 px-3 py-1.5 @[16rem]:flex-row @[16rem]:items-baseline @[16rem]:gap-2',
+        'relative flex min-w-0 flex-col gap-0.5 px-3 py-1.5 @[16rem]:flex-row @[16rem]:items-baseline @[16rem]:gap-2',
         divided && 'border-t border-line-strong/80 @[16rem]:border-l @[16rem]:border-t-0',
       )}
     >

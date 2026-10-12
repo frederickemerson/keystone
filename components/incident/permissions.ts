@@ -77,3 +77,20 @@ export function tenantMessagePermission(role: string, approverRole: string): But
   const authority = decisionAuthority(role, 'approved', { kind: 'tenant_message', approverRole });
   return authority.allowed ? ALLOW : { enabled: false, reason: authority.reason };
 }
+
+/**
+ * Fold the latest recorded decision into the gates: once an action has been
+ * escalated, escalating it again is disabled (with who/when as the reason),
+ * so a repeat click can never log a duplicate escalation.
+ */
+export function withRecordedDecision(
+  permissions: ActionPermissions,
+  record: { outcome: string; actor: { name: string }; at: string } | undefined,
+  formatAt: (iso: string) => string,
+): ActionPermissions {
+  if (record?.outcome !== 'escalated') return permissions;
+  return {
+    ...permissions,
+    escalate: { enabled: false, reason: `Already escalated by ${record.actor.name} at ${formatAt(record.at)}` },
+  };
+}

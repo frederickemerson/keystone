@@ -9,6 +9,12 @@ import type { ActionPermissions, ButtonGate } from './permissions';
 import { formatClock } from './labels';
 
 const BASE = 'btn-pill text-xs';
+/**
+ * Decision buttons carry long, per-asset labels ("Escalate to Rahul Menon ·
+ * Duty Licensed Electrical Worker"). btn-pill is nowrap, so let these wrap
+ * inside their card instead of overflowing it.
+ */
+export const WRAPPING_PILL = 'max-w-full whitespace-normal text-balance py-1.5 text-left leading-tight';
 
 function GateButton({
   gate,
@@ -30,7 +36,7 @@ function GateButton({
       disabled={!gate.enabled}
       title={gate.reason}
       aria-describedby={gate.enabled ? undefined : describedBy}
-      className={BASE}
+      className={cn(BASE, WRAPPING_PILL)}
     >
       {icon}
       {children}

@@ -23,6 +23,12 @@ export interface AiProposal {
   model: string;
   /** Replay step (1-based event count) at which the model made the proposal. */
   afterStep: number;
+  /**
+   * Where the proposal comes from. Every proposal today is a recorded fixture
+   * (data/fixtures/llm, fixture_type "llm_fallback") replayed with the
+   * timeline — never a live model call — and the room must say so.
+   */
+  source: { kind: 'recorded'; fixtureId: string; generatedAt: string };
 }
 
 /** One incident + the asset it happened on + its evidence timeline. */
@@ -46,4 +52,10 @@ export interface IncidentRoomProps {
   pills: RoomPill[];
   /** Replay position to open at (`?step=` deep link): event count or "end". */
   initialStep?: number | 'end';
+  /**
+   * The verified session's identity (server-side, signed cookie). Used for the
+   * server render and hydration so they already show what this role can do;
+   * null without a session (fails closed to the unresolved actor).
+   */
+  sessionActor?: { role: string; name: string } | null;
 }

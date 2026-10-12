@@ -20,7 +20,9 @@ export function PillCoverageStrip({
   }));
 
   return (
-    <div className="card-paper overflow-x-auto">
+    // `relative`: containing block for any absolutely positioned descendant, so
+    // nothing escapes the horizontal scroll box (see ActiveIncidentsTable).
+    <div className="card-paper relative overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
           <tr className="border-b border-line text-[13px] text-ink-muted">

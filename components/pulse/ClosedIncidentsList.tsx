@@ -28,7 +28,8 @@ export function ClosedIncidentsList({
   }
 
   return (
-    <div className="card-paper overflow-x-auto">
+    // `relative`: containing block for the sr-only spans (see ActiveIncidentsTable).
+    <div className="card-paper relative overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
           <tr className="border-b border-line text-[13px] text-ink-muted">

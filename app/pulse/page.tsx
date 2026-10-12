@@ -6,6 +6,7 @@ import { AssetGrid } from '@/components/pulse/AssetGrid';
 import { ActiveIncidentsTable } from '@/components/pulse/ActiveIncidentsTable';
 import { ClosedIncidentsList } from '@/components/pulse/ClosedIncidentsList';
 import { PillCoverageStrip } from '@/components/pulse/PillCoverageStrip';
+import { LiveGovernanceKpis } from '@/components/pulse/LiveGovernance';
 import type { IncidentRecord } from '@/lib/data';
 import { sessionRole } from '@/lib/auth/session';
 import { scopeAssets, scopeIncidents } from '@/lib/governance/scope';
@@ -104,8 +105,11 @@ export default async function PortfolioPulsePage() {
           <KpiStat label="Active incidents" value={activeIncidents} unit="open" />
           <KpiStat label="Avg time-to-isolate" value={avgIsolate} unit="min" />
           <KpiStat label="Decisions awaiting approval" value={awaitingApproval} />
-          <KpiStat label="Pills approved" value={pillsApproved} />
-          <KpiStat label="Replay agreement" value={`${agreement.passed} of ${agreement.total}`} />
+          {/* Governed state (approve / rollback) lives in the governance store. */}
+          <LiveGovernanceKpis
+            pills={pills.map(({ id, pill }) => ({ id, pill }))}
+            initial={{ approved: pillsApproved, agreement }}
+          />
           <KpiStat label="Downtime avoided" value={downtimeAvoided} unit="hrs" />
         </div>
       </section>
@@ -123,7 +127,10 @@ export default async function PortfolioPulsePage() {
         <SectionHeader
           title="Active incidents"
         />
-        <ActiveIncidentsTable incidents={visibleIncidents} />
+        <ActiveIncidentsTable
+          incidents={visibleIncidents}
+          pillIds={Object.fromEntries(pills.map((p) => [`${p.domain}/${p.name}`, p.id]))}
+        />
       </section>
 
       {/* Recent closed incidents */}

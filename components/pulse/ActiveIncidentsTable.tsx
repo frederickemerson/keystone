@@ -4,6 +4,7 @@ import type { IncidentRecord } from '@/lib/data';
 import { personaFor, roleLabel } from '@/lib/governance/access';
 import { humanizeKey, sentenceCase } from '@/components/incident/labels';
 import { pillDisplayName } from '@/components/mosaic/pillTitle';
+import { LivePillVersion } from './LiveGovernance';
 
 // Stable demo clock so "time since detection" is deterministic across renders.
 const DEMO_NOW = new Date('2026-10-11T11:30:00+08:00');
@@ -49,7 +50,14 @@ const SEVERITY_TONE: Record<string, string> = {
   low: 'text-recommend',
 };
 
-export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[] }) {
+export function ActiveIncidentsTable({
+  incidents,
+  pillIds,
+}: {
+  incidents: IncidentRecord[];
+  /** Pill id by "<domain>/<name>" (an incident's `pill_applied`). */
+  pillIds: Record<string, string>;
+}) {
   const active = incidents.filter((i) => i.status !== 'closed');
 
   if (active.length === 0) {
@@ -61,7 +69,10 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
   }
 
   return (
-    <div className="card-paper overflow-x-auto">
+    // `relative` makes the scroll box the containing block of the sr-only
+    // (absolutely positioned) spans in its cells, so they are clipped here
+    // instead of stretching the page sideways.
+    <div className="card-paper relative overflow-x-auto">
       <table className="min-w-full text-left text-sm">
         <thead>
           <tr className="border-b border-line text-[13px] text-ink-muted">
@@ -130,9 +141,12 @@ export function ActiveIncidentsTable({ incidents }: { incidents: IncidentRecord[
                   )}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-ink">
-                  <span title={`${incident.pill_applied}@${incident.pill_version}`}>
+                  <span>
                     {pillDisplayName(incident.pill_applied.split('/').pop() ?? incident.pill_applied)}
-                    <span className="font-mono tabular-nums text-ink-muted"> v{incident.pill_version}</span>
+                    <LivePillVersion
+                      pillId={pillIds[incident.pill_applied]}
+                      appliedAtOpen={incident.pill_version}
+                    />
                   </span>
                   <span className="sr-only"> ({incident.pill_applied})</span>
                 </td>

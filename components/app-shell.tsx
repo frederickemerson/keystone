@@ -73,6 +73,12 @@ export function AppShell({ children, session }: { children: React.ReactNode; ses
 
   return (
     <div className="flex min-h-dvh bg-canvas text-ink">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-surface focus:px-4 focus:py-2 focus:shadow-card"
+      >
+        Skip to content
+      </a>
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-line bg-dew-drop md:flex">
         <div className="px-5 pb-6 pt-6">
           <Wordmark />
@@ -110,27 +116,36 @@ export function AppShell({ children, session }: { children: React.ReactNode; ses
         </nav>
 
         {/* Brand band: marker orange, 56px top radius (DESIGN.md §8). Typeset —
-            no handwriting inside the app. Cocoa ink on orange is 6:1. */}
+            no handwriting inside the app. Full cocoa ink on #ff6f1e is 6.0:1;
+            never fade it with opacity (cocoa/80 drops to 4.3:1, below AA). */}
         <div className="mt-4 rounded-t-[56px] bg-marker px-7 pb-5 pt-7">
           <p className="font-display-soft text-[19px] font-semibold leading-[1.15] text-cocoa-ink">
             Expert judgement,
             <br />
             governed.
           </p>
-          <p className="mt-2 font-mono text-[11px] font-medium text-cocoa-ink/80">Keystone v1</p>
+          <p className="mt-2 font-mono text-[11px] font-medium text-cocoa-ink">Keystone v1</p>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 shrink-0 items-center gap-3 border-b border-line bg-canvas px-4 md:px-8">
-          <div className="md:hidden">
+          <div className="shrink-0 md:hidden">
             <Wordmark compact />
           </div>
-          <div className="ml-auto flex items-center gap-2.5">
+          {/* On phones the two header buttons collapse to icons (40px targets)
+              so the bar fits 360px screens; the accessible name stays. */}
+          <div className="ml-auto flex min-w-0 items-center gap-2">
             {session ? <SwitchUser actor={session} /> : null}
-            <button type="button" onClick={() => setAuditOpen(true)} className="btn-pill text-xs">
+            <button
+              type="button"
+              onClick={() => setAuditOpen(true)}
+              aria-haspopup="dialog"
+              aria-label="Audit log"
+              className="btn-pill text-xs max-sm:size-10 max-sm:px-0"
+            >
               <ScrollText className="size-3.5" aria-hidden="true" />
-              Audit log
+              <span className="max-sm:hidden">Audit log</span>
             </button>
           </div>
         </header>
@@ -158,7 +173,7 @@ export function AppShell({ children, session }: { children: React.ReactNode; ses
           </ul>
         </nav>
 
-        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
+        <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none md:px-8 md:py-8">{children}</main>
       </div>
 
       <AuditLogDrawer open={auditOpen} onClose={() => setAuditOpen(false)} />
