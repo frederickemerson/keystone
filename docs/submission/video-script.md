@@ -1,7 +1,7 @@
 # Keystone demo video script
 
-**Target length:** 7:00 (window 6:30 to 7:30; the handbook asks for 5 to 8 minutes).
-**Covers the three required parts:** project overview (0:00 to 1:05), core agent features and how they are used (1:05 to 5:20), reflection on the build with CodeBuddy tips (5:20 to 6:45).
+**Target length:** 7:25 (window 6:30 to 7:30; the handbook asks for 5 to 8 minutes).
+**Covers the three required parts:** project overview (0:00 to 1:05), core agent features and how they are used (1:05 to 5:45), reflection on the build with CodeBuddy tips (5:45 to 7:10).
 **Voice:** first person plural, calm and confident. Read at about 150 words a minute. Narration lines are written to be read as is.
 
 **Before recording**
@@ -11,8 +11,9 @@
 - Use a fresh browser profile, or clear the site's localStorage, so the governance store starts at v1.2.0 with nothing approved.
 - Browser at 1440 x 900, zoom 110 %, cursor highlight on, notifications off.
 - Have CodeBuddy Code open in a terminal in the repo, with `.codebuddy/skills/chilled-water-leak/` present, for the reflection section. The screenshots `docs/proof/04a-codebuddy-skill-invoked.png` and `04b-codebuddy-skill-ts07-answer.png` are the fallback if a live run is not possible.
-- Have `npx vitest run` ready in a second terminal. Last verified run (12 Oct 2026): **38 test files, 593 tests, all passing.** Re-run before recording; the narration says "over 590 tests".
-- Live AI on the Vercel deployment is Hunyuan hy4-preview via TokenHub (OpenAI gpt-5.4-mini is the final fallback) or recorded output, and the badge says which. Sign in once more if you have an older session (tokens now carry a `jti`). This script does not show a live AI call. If you record one locally with CodeBuddy credentials, the badge will read Hunyuan hy4-preview via CodeBuddy; narrate whatever the badge shows.
+- Have `npx vitest run` ready in a second terminal. Last verified run (12 Oct 2026): **46 test files, 712 tests, all passing.** Re-run before recording; the narration says "over 700 tests".
+- Live AI on the Vercel deployment is Hunyuan hy4-preview via TokenHub, served from a dedicated Singapore endpoint, or recorded output, and the badge says which (OpenAI gpt-5.4-mini is a fallback).
+- Frontline capture segment: use the labelled **demo note** (or type a note) on `/c/AHU-23-01`. Do not present hold-to-talk as working on Singapore-accented speech; real microphone speech is untested. Do **not** propose the captured draft in the recording profile: proposing it creates v1.3.0, which would change the version numbers in the Learning segment. The peer-gate shots use `docs/capture/screens/c7-approvals-peer-gate-blocks-shadow.png` and `c8-hafiz-peer-confirmed.png`. Sign in once more if you have an older session (tokens now carry a `jti`). This script does not show a live AI call. If you record one locally with CodeBuddy credentials, the badge will read Hunyuan hy4-preview via CodeBuddy; narrate whatever the badge shows.
 
 ---
 
@@ -84,7 +85,14 @@
 **Narration:**
 > Now the same pill at a colocation data centre. We don't fork it or rewrite it. Asset overrides change who gets the escalation and how the client is told. A data hall escalates to the Critical Facilities Manager and uses a client-SLA notice instead of a tenant notice. The expert's judgement stays the same, and only the context around it changes. That's how one pill scales across a portfolio.
 
-### 4:20 to 5:20 · Learning: a governed change, from correction to rollback
+### 4:20 to 4:45 · Frontline capture: asking why at the moment it matters
+
+**On screen:** **Switch user** to **Rajesh Kumar · Technician**. Open `/c/AHU-23-01` (phone-width window if possible). Tick the consent notice, choose the demo note (it is labelled as a demo note with no audio), then show the read-back chips and mark them **Right**. Click **Draft rule** and show the draft with his quote. Cut to the screenshot `c7-approvals-peer-gate-blocks-shadow.png` (Promote to Shadow blocked by the peer gate), then `c8-hafiz-peer-confirmed.png`.
+
+**Narration:**
+> A gate block is also a question. When TS-07 stops a technician, Keystone asks him why, in twenty seconds. Here Rajesh scans the QR code on AHU-23-01, agrees to the notice, and leaves a note. He checks every number, tag and role we heard. Before the rule can run in shadow, a colleague who neither said it nor proposed it must confirm it.
+
+### 4:45 to 5:45 · Learning: a governed change, from correction to rollback
 
 **On screen:** Open `/learning/technical-services-chilled-water-leak`. Follow the step rail:
 1. **Capture outcome:** the leak was isolated in 7 minutes.
@@ -102,14 +110,14 @@
 > She can't approve what she shadowed either. The approver of record, Goh Boon Kheng, Head of Technical Services, signs it off. Author, steward and approver are three different people, and the code enforces that separation of duties.
 > If it turns out to be wrong, Goh rolls it back with a reason. The rollback adds a new version, v1.4.0, with the old rules, and deletes nothing, so the audit trail stays complete.
 
-### 5:20 to 5:45 · Responsible AI, briefly
+### 5:45 to 6:10 · Responsible AI, briefly
 
-**On screen:** Split screen. On the left, the terminal runs `npx vitest run` and ends on the "Test Files … passed · Tests … passed" summary (last run: 38 files, 593 tests). On the right, use **Switch user** to choose **Rajesh Kumar · Technician** and show that the incident's tenant name is masked.
+**On screen:** Split screen. On the left, the terminal runs `npx vitest run` and ends on the "Test Files … passed · Tests … passed" summary (last run: 46 files, 712 tests). On the right, use **Switch user** to choose **Rajesh Kumar · Technician** and show that the incident's tenant name is masked.
 
 **Narration:**
-> Here's the responsible-AI part in one breath. Gates are deterministic and evidence counts only when it's confirmed true. Redaction happens on the server, so a technician's browser never receives the tenant's name. Every decision is audited. And it's all tested: over 590 tests, including adversarial and property-based tests on the gates and the governance rules. The language model handles language. It never decides on a safety action.
+> Here's the responsible-AI part in one breath. Gates are deterministic and evidence counts only when it's confirmed true. Redaction happens on the server, so a technician's browser never receives the tenant's name. Every decision is audited. And it's all tested: over 700 tests, including adversarial and property-based tests on the gates and the governance rules. The language model handles language. It never decides on a safety action.
 
-### 5:45 to 6:45 · Reflection: how we built it with CodeBuddy
+### 6:10 to 7:10 · Reflection: how we built it with CodeBuddy
 
 **On screen:** Show `docs/proof/01a-codebuddy-plan-mode-hy4-subagents.png`, then `01b`/`01c` (plan-mode clarifying questions answered by a sub-agent), `02c-codebuddy-scaffold-build-pass-7-routes.png` and `03a-codebuddy-hy4-learning-screen-build.png`. Then show CodeBuddy Code live, or `04a`/`04b`: the pill folder in `.codebuddy/skills/`, the skill invoked, and the answer that TS-07 blocks and escalates to the duty LEW with the Chief Engineer's quote.
 
@@ -119,14 +127,14 @@
 > We also used Claude Code for planning, code review, the governance, auth and data layers, the AI provider chain, engine hardening and the landing page. Two tools, each doing what it does best.
 > Three tips. Start in Plan mode and freeze scope early. Put the language model in charge of language and nothing else. And write your safety rules as tests, not comments.
 
-### 6:45 to 7:00 · Close
+### 7:10 to 7:25 · Close
 
 **On screen:** Back to the landing hero, then cut to the cover image (`docs/submission/cover.png`) with the live URL beneath it.
 
 **Narration:**
 > Tan Wei Ming will retire. With Keystone, his judgement stays, and it stays governed, tested and owned by the organisation. This is Keystone, for Keppel's AI HARVEST challenge.
 
-**Total: about 7:00.**
+**Total: about 7:25.**
 
 ---
 
@@ -146,20 +154,22 @@
 | 10 | 3:15 | Why drawer, Hear the expert (00:14:32), What would change the decision | Incident room | Make sure audio is captured. |
 | 11 | 3:45 | Escalate to Rahul Menon | Incident room | Show the confirmation or audit line. |
 | 12 | 3:55 | Apply to Harbourfront DC1 overlay | Incident room | Steven Wong (CFM) as the escalation target. |
-| 13 | 4:20 | Learning steps 1 to 3: outcome, correction 15 → 10, diff | `/learning/technical-services-chilled-water-leak` | |
-| 14 | 4:40 | Learning step 4: eval replay | same | v1.2.0 passes 5/6; the correction fixes the failing case. |
-| 15 | 4:55 | Learning steps 5 and 6: hand-off to Priya, shadow 6/6, Priya refused approval, switch to Goh Boon Kheng, approve | same | Three different people: author, steward, approver. Hold on the "Separation of duties" refusal. |
-| 16 | 5:10 | Learning step 7: Goh rolls back with a reason (v1.4.0), history and audit kept | same | |
-| 17 | 5:20 | Split: vitest (590+ passing), and the Technician view with masking | terminal + app | |
-| 18 | 5:45 | CodeBuddy proof screenshots 01a, 01b, 01c, 02c, 03a | `docs/proof/` | Ken Burns pan, about 4 s each. |
-| 19 | 6:10 | CodeBuddy skill run: same TS-07 decision | live CodeBuddy, or `docs/proof/04a`, `04b` | |
-| 20 | 6:45 | Landing hero, then the cover card with the URL | `/`, `docs/submission/cover.png` | End card for 3 s. |
+| 13 | 4:20 | Rajesh on `/c/AHU-23-01`: consent, demo note, read-back chips, Draft rule | `/c/AHU-23-01` | Use the labelled demo note; do not propose it in this profile. |
+| 14 | 4:38 | Peer gate blocks Shadow, then Hafiz confirms | `docs/capture/screens/c7…`, `c8…` | Screenshots, about 3 s each. |
+| 15 | 4:45 | Learning steps 1 to 3: outcome, correction 15 → 10, diff | `/learning/technical-services-chilled-water-leak` | |
+| 16 | 5:05 | Learning step 4: eval replay | same | v1.2.0 passes 5/6; the correction fixes the failing case. |
+| 17 | 5:20 | Learning steps 5 and 6: hand-off to Priya, shadow 6/6, Priya refused approval, switch to Goh Boon Kheng, approve | same | Three different people: author, steward, approver. Hold on the "Separation of duties" refusal. |
+| 18 | 5:35 | Learning step 7: Goh rolls back with a reason (v1.4.0), history and audit kept | same | |
+| 19 | 5:45 | Split: vitest (700+ passing), and the Technician view with masking | terminal + app | |
+| 20 | 6:10 | CodeBuddy proof screenshots 01a, 01b, 01c, 02c, 03a | `docs/proof/` | Ken Burns pan, about 4 s each. |
+| 21 | 6:35 | CodeBuddy skill run: same TS-07 decision | live CodeBuddy, or `docs/proof/04a`, `04b` | |
+| 22 | 7:10 | Landing hero, then the cover card with the URL | `/`, `docs/submission/cover.png` | End card for 3 s. |
 
 ---
 
 ## 60-second backup cut
 
-Use this if the full video can't be recorded, or as a teaser. It reuses shots 1, 6, 9, 10, 12, 14 to 16 and 19.
+Use this if the full video can't be recorded, or as a teaser. It reuses shots 1, 6, 9, 10, 12, 16 to 18 and 21.
 
 | Time | On screen | Narration |
 |------|-----------|-----------|
@@ -176,7 +186,11 @@ Use this if the full video can't be recorded, or as a teaser. It reuses shots 1,
 
 | Claim | Source in the repo |
 |---|---|
-| Over 590 tests (last run: 38 files, 593 tests, all passing) | `npx vitest run`, run 12 Oct 2026 |
+| Over 700 tests (last run: 46 files, 712 tests, all passing) | `npx vitest run`, run 12 Oct 2026 |
+| A gate block asks the technician "why, in twenty seconds" | `components/incident/captureTasks.ts`, `components/incident/IncidentRoom.tsx` ("Tell us why — 20 seconds") |
+| QR page for AHU-23-01; consent notice before recording; demo note labelled | `app/c/[assetId]/page.tsx`, `components/capture/ConsentNotice.tsx`, `data/fixtures/capture/qr-ahu-23-01.json` |
+| Every number, tag and role is checked (read-back) | `lib/capture/contract.ts` (`READ_BACK_KINDS`, `draftProposalReadiness`) |
+| A colleague who neither said it nor proposed it must confirm before Shadow | `lib/capture/contract.ts` (`peerConfirmAuthority`, `peerGate`); `lib/governance/store.ts` `promoteToShadow`; `docs/capture/screens/c7`, `c8` |
 | Adversarial and property-based tests | `lib/governance/__tests__/adversarial.property.test.ts`, `lib/engine/__tests__/properties.test.ts` (fast-check) |
 | TS-07 quote at 00:14:32 | `pills/technical-services/chilled-water-leak/provenance.json` |
 | Contradiction at 00:06:30 vs 00:22:15, resolved at 00:23:30, marker at 00:23:10 | `README.md` demo path; `components/capture/CallPanel.tsx` |

@@ -9,9 +9,14 @@ Two views:
 
 Implemented today: the deterministic engine, both pills, the governance layer, the data
 model, the landing page, demo sign-in with a signed server session and server-side
-redaction, and all seven app screens. The opt-in LLM path runs Hunyuan via the CodeBuddy
-Agent SDK where CodeBuddy credentials exist (local); the public Vercel deployment falls
-back to OpenAI gpt-5.4-mini; the TokenHub adapter is built but has not answered live.
+redaction, the seven app screens, and frontline capture (capture tasks, the QR
+tap-to-teach page, voice capture with read-back, and the peer gate). The opt-in LLM
+path runs Hunyuan via the CodeBuddy Agent SDK where CodeBuddy credentials exist
+(local); the public Vercel deployment runs Hunyuan hy4-preview via TokenHub on a
+dedicated ap-singapore endpoint, with OpenAI gpt-5.4-mini and then recorded output as
+fallbacks. Speech recognition today is the browser's Web Speech API; the Tencent Cloud
+ASR adapter is not configured, and recognition of real Singapore-accented speech is
+untested.
 Proposed / production-only: live BMS/iBMS/DCIM integration, the TRTC live voice call,
 a server-side (e.g. Postgres) governance store, enterprise SSO, and the EdgeOne
 deployment.
@@ -26,18 +31,21 @@ flowchart TD
         EXP["Retiring Chief Engineer<br/>(Tan Wei Ming · 18 yrs M&E)"]
         IV["Expert Onboarding Call (scripted in demo)<br/>CDM + ACTA probes ·<br/>contradiction probe · coverage audit"]
         EXP -->|"speaks, is probed"| IV
+        FL["Frontline capture<br/>gate block · close-out · QR tap-to-teach →<br/>short voice or typed note"]
     end
 
     subgraph P3["③ How it becomes reusable"]
         EXT["Schema-constrained extraction<br/>rule candidates + transcript span"]
         CAN["Decision Canvas<br/>expert confirms / edits / rejects"]
         PILL["Intelligence Pill (plain text)<br/>SKILL.md · rules.yaml · evidence.yaml<br/>provenance.json · evals/ · CHANGELOG.md"]
+        RB["Read-back chips (deterministic)<br/>speaker confirms or corrects"]
         IV --> EXT --> CAN --> PILL
+        FL --> RB --> EXT
     end
 
     subgraph P4["④ Registry · governance"]
         REG["Pill Registry<br/>versions · owner / steward / approver ·<br/>evals · shadow badge · coverage"]
-        GOV["Governance<br/>Draft→Shadow→Approved→Retired ·<br/>diff · separation of duties · audit log"]
+        GOV["Governance<br/>Draft→Shadow→Approved→Retired ·<br/>diff · separation of duties · audit log ·<br/>peer gate for rules from frontline notes"]
         PILL --> REG --> GOV
     end
 
@@ -63,6 +71,7 @@ flowchart TD
     end
 
     HUMAN -->|"outcome + correction"| OUT
+    HUMAN -.->|"gate block raises a capture task"| FL
     ROLL -->|"new approved version"| REG
 
     subgraph P7["⑦ Extend to multi-asset / BU / enterprise"]
@@ -73,7 +82,7 @@ flowchart TD
     PILL --> DIST
 
     subgraph P8["⑧ Credible implementation path (Tencent Cloud)"]
-        TC["Today: CodeBuddy skill · CodeBuddy SDK → Hunyuan (local) ·<br/>TokenHub adapter (pending)<br/>Proposed: WorkBuddy Experts · ADP distribution ·<br/>TRTC voice · EdgeOne / Lighthouse hosting ·<br/>iBMS + CMMS integration"]
+        TC["Today: CodeBuddy skill · CodeBuddy SDK → Hunyuan (local) ·<br/>TokenHub → Hunyuan hy4-preview (live, ap-singapore)<br/>Proposed: Tencent Cloud ASR (adapter not configured) · WorkBuddy Experts · ADP distribution ·<br/>TRTC voice · EdgeOne / Lighthouse hosting ·<br/>iBMS + CMMS integration"]
     end
     DIST --> TC
     ENG -.->|"language work only"| TC
@@ -108,6 +117,7 @@ flowchart LR
         TR["transcripts/*.json"]
         ROLES["roles.json"]
         FIX["fixtures/llm/*.json<br/>(recorded LLM fallbacks)"]
+        CFIX["fixtures/capture/*.json<br/>(labelled demo notes)"]
     end
 
     subgraph LOAD["Loaders"]
@@ -123,8 +133,13 @@ flowchart LR
     end
 
     subgraph LLM["lib/llm — provider chain"]
-        CLIENT["CodeBuddy Agent SDK → Hunyuan hy4-preview<br/>→ TokenHub (AI SDK 7, pending)<br/>→ OpenAI gpt-5.4-mini (AI SDK 7)"]
-        USE["live (opt-in): extraction · tenant message<br/>recorded only: probes · contradiction ·<br/>incident summary"]
+        CLIENT["CodeBuddy Agent SDK → Hunyuan hy4-preview<br/>→ TokenHub hy4-preview, ap-singapore endpoint (AI SDK 7)<br/>→ OpenAI gpt-5.4-mini (AI SDK 7) → fixtures"]
+        USE["live (opt-in): extraction (transcript or frontline note) ·<br/>tenant message<br/>recorded only: probes · contradiction ·<br/>incident summary"]
+    end
+
+    subgraph CAPT["lib/capture — frontline capture"]
+        CONTRACT["contract<br/>capture tasks · voice notes · read-back ·<br/>drafts from notes · peerGate()"]
+        ASR["ASR chain (server-only)<br/>Tencent ap-singapore: not configured ·<br/>OpenAI: opt-in, never run live<br/>browser Web Speech en-SG (client)"]
     end
 
     subgraph AUTH["lib/auth + middleware"]
@@ -137,10 +152,10 @@ flowchart LR
         APP["approval<br/>three-person separation of duties ·<br/>eval-regression gate"]
         ACC["access<br/>role/sensitivity RBAC · redaction"]
         AUD["audit"]
-        STORE["store<br/>zustand + localStorage"]
+        STORE["store<br/>zustand + localStorage ·<br/>capture actions (audited)"]
     end
 
-    subgraph UI["components/ + app/ — 9 pages"]
+    subgraph UI["components/ + app/ — 11 pages"]
         LAND["/ Landing"]
         SIGN["/sign-in"]
         PULSE["/pulse Portfolio Pulse"]
@@ -150,6 +165,7 @@ flowchart LR
         INCR["/incident/[id] Incident Room"]
         APPRO["/approvals"]
         LEARN["/learning/[pillId] Outcome & Learning"]
+        QR["/c/[assetId] QR tap-to-teach<br/>/c/[assetId]/qr printable label"]
     end
 
     PILLS --> PLOAD
@@ -167,6 +183,10 @@ flowchart LR
     AUTH --> UI
     AUTH --> LLM
     RL --> LLM
+    CONTRACT --> GOV
+    CFIX --> UI
+    UI -->|"Draft rule"| LLM
+    ASR --> UI
 
     style ENGINE fill:#e8f5e9,stroke:#2e7d32
     style GOV fill:#e3f2fd,stroke:#1565c0
@@ -181,7 +201,14 @@ flowchart LR
   and evidence it always returns the same actions and trace, and it takes no model
   input — so changing the LLM cannot change a decision.
 - **`lib/llm` is confined to language work**, and every call site has a recorded
-  fallback in `data/fixtures/llm/`, so the app runs fully offline.
+  fallback in `data/fixtures/llm/`, so the app runs fully offline. For frontline notes,
+  only the labelled demo notes in `data/fixtures/capture/` have recorded drafts; any
+  other note drafted offline is saved as a note without drafts.
+- **Frontline capture adds a peer gate.** A version proposed from a frontline note
+  cannot enter Shadow until someone who is neither the note's speaker nor the
+  version's proposer, with a role allowed to edit the pill, confirms it, and not while
+  an eligible dispute stands (`lib/capture/contract.ts` `peerGate`). Read-back chips
+  are computed deterministically from the note; the LLM never produces them.
 - **Separation of duties is three people.** The author cannot put a version into
   Shadow; neither the author nor the Shadow promoter can approve it; only Shadow
   versions can be approved; rollback follows the same identity rules

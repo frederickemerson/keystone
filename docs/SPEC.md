@@ -8,11 +8,15 @@ Research backing every decision: `docs/research/*.md`.
 > Where the build diverged, the current truth is in `README.md`, `docs/ARCHITECTURE.md` and
 > `docs/DECISIONS.md`. Main differences: `/` is a landing page and Portfolio Pulse is at
 > `/pulse`; a demo sign-in with server-side redaction replaced the free role switcher (D1);
-> the LLM path is CodeBuddy Agent SDK → Hunyuan hy4-preview (local), then TokenHub (wired,
-> not yet answered live), then OpenAI gpt-5.4-mini (the live provider on the Vercel
-> deployment); only extraction and tenant drafting have live endpoints; the call's audio
-> is browser text-to-speech (no recorded clips); there is no model-swap control; the
-> engine core is ~500 lines; the hosting is Vercel (EdgeOne proposed).
+> the LLM path is CodeBuddy Agent SDK → Hunyuan hy4-preview (local), then TokenHub →
+> hy4-preview on a dedicated ap-singapore endpoint (live, and first on the Vercel
+> deployment; D10), then OpenAI gpt-5.4-mini, then recorded fixtures; only extraction
+> and tenant drafting have live endpoints; the call's audio is browser text-to-speech
+> (no recorded clips); there is no model-swap control; the engine core is ~500 lines;
+> the hosting is Vercel (EdgeOne proposed). Frontline capture (not in this plan) was
+> added later: capture tasks, `/c/[assetId]` QR pages, voice notes with read-back and a
+> peer gate before Shadow (`docs/capture/PLAN.md`). Its speech recognition is the
+> browser's Web Speech API; real Singapore-accented speech is untested.
 
 Blurb (<10 words): **Turn expert judgement into governed, versioned Intelligence Pills.**
 

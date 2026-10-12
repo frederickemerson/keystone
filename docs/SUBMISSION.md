@@ -33,6 +33,10 @@ experienced judgement is not written down and must be reused across a portfolio:
 - **Capture** — a retiring Chief Engineer's incident-response know-how, elicited through
   a structured onboarding interview (scripted and simulated in the demo), turned into
   governed decision rules.
+- **Capture from the frontline** — when a gate blocks a technician, at job close-out,
+  or from a QR code on equipment, the worker leaves a short voice or typed note. It
+  becomes a draft rule only after the speaker checks a read-back of its numbers, tags
+  and roles, and it cannot enter Shadow until an eligible peer confirms it.
 - **Apply** — a live chilled-water leak in a Grade A office tower, where an AI proposal
   (recorded in the demo) is blocked by a deterministic safety gate and escalated to a
   named human.
@@ -117,7 +121,7 @@ contractor**, with the AOM at the manager layer and the Chief Engineer at the FM
 | Core problem | How Keystone addresses it |
 |---|---|
 | Knowledge concentrated in one expert | Structured CDM/ACTA interview (scripted in the demo) yields rules, each with a transcript span |
-| Undocumented tacit knowledge | Incident-anchored probing + contradiction detection (both recorded in the demo) surface judgement that was never written down |
+| Undocumented tacit knowledge | Incident-anchored probing + contradiction detection (both recorded in the demo) surface judgement that was never written down; frontline capture asks "why?" at the moment a gate blocks someone |
 | Inconsistent application across assets | One governed pill + per-asset-type overrides; the registry shows coverage and gaps |
 | Knowledge lost on retirement | The pill is a portable file the organisation owns, independent of the person and the model |
 | AI that cannot be trusted to act safely | Deterministic gates, named-human escalation, evidence preconditions; no AI proposal executes, every one is held for a named human |
@@ -161,9 +165,12 @@ Next.js 15 (App Router, TS) · React 19 · Tailwind v4
 │                         counterfactual() · runEvals() · conditions · schema
 ├─ lib/llm/               CodeBuddy Agent SDK → Hunyuan hy4-preview (primary, opt-in,
 │                         needs CodeBuddy credentials) → TokenHub → Hunyuan
-│                         hy4-preview (live; first on the Vercel deployment) →
-│                         OpenAI gpt-5.4-mini (final live fallback)
+│                         hy4-preview (live on a dedicated ap-singapore endpoint;
+│                         first on the Vercel deployment) → OpenAI gpt-5.4-mini
 │                         → recorded fixtures (default view and last resort)
+├─ lib/capture/           frontline capture contract: capture tasks, voice notes,
+│                         deterministic read-back, drafts from notes, peer gate;
+│                         server ASR chain
 ├─ lib/auth/ + middleware demo sign-in; signed HTTP-only session cookie (jti);
 │                         default-deny middleware with a public allowlist; CSRF
 │                         (same-origin) checks on auth routes; security headers
@@ -176,16 +183,17 @@ Next.js 15 (App Router, TS) · React 19 · Tailwind v4
 └─ data/                  mock assets, incidents, timelines, transcripts, roles, fixtures
 ```
 
-Nine pages ship: `/` (landing), `/sign-in`, `/pulse` (Portfolio Pulse), `/capture`,
+Eleven pages ship: `/` (landing), `/sign-in`, `/pulse` (Portfolio Pulse), `/capture`,
 `/canvas/[pillId]`, `/registry`, `/incident/[id]`, `/approvals`, `/learning/[pillId]`,
-plus API routes for auth, LLM and Jev. Full Mermaid diagrams in `docs/ARCHITECTURE.md`.
+`/c/[assetId]` (QR tap-to-teach) and `/c/[assetId]/qr` (printable label), plus API
+routes for auth, LLM, Jev and capture transcription. Full Mermaid diagrams in `docs/ARCHITECTURE.md`.
 
 ### 5.3 How prompts drive AI generation
 
-The LLM is confined to **language work**. Extraction and tenant drafting have
-opt-in live endpoints: Hunyuan hy4-preview via the **CodeBuddy Agent SDK** when a
+The LLM is confined to **language work**. Extraction (from the onboarding transcript
+or a frontline note) and tenant drafting have opt-in live endpoints: Hunyuan hy4-preview via the **CodeBuddy Agent SDK** when a
 CodeBuddy key or local login exists, otherwise Hunyuan hy4-preview via TokenHub, with
-OpenAI (gpt-5.4-mini) as the final fallback; the public Vercel deployment tries TokenHub first. Interviewer probes and
+OpenAI (gpt-5.4-mini) as a fallback; the public Vercel deployment tries TokenHub first. Interviewer probes and
 contradiction detection remain scripted/recorded, not live inference. All screens
 default to recorded fixtures in `data/fixtures/llm/`. The prompts below describe the
 design; items 1 and 3 run as recorded output in the demo:
@@ -215,23 +223,26 @@ design; items 1 and 3 run as recorded output in the demo:
 Agent SDK → Hunyuan hy4-preview, TokenHub, OpenAI gpt-5.4-mini — each with its own
 timeout, falling through on error, timeout, invalid JSON or safety rejection, within
 an overall time budget (values in `README.md`); if none succeeds it returns the recorded fixture with a reason.
-**TokenHub is live in Singapore:** Hunyuan hy4-preview via a dedicated TokenHub inference service in ap-singapore (expert data stays in Singapore; ~3.9 s per extraction), with
-thinking disabled and strict `json_schema` output. Output badges name the provider
+**TokenHub is live in Singapore.** Requests go to the international host
+(`https://tokenhub-intl.tencentcloudmaas.com/v1`) and are routed to a dedicated
+hy4-preview inference service in ap-singapore (`TOKENHUB_ENDPOINT_ID`; see
+`tokenhubTarget()` in `lib/llm/client.ts`), so inference on expert text happens in
+Singapore. Thinking is disabled and output is strict `json_schema`. Output badges name the provider
 and model that actually answered (on the deployed site, for example,
 `Live · hy4-preview via TokenHub`) or show `Recorded output`. The CodeBuddy
 SDK has no tools, one model turn, plan permission mode and no session persistence.
 Live extraction decodes against the wire schema (strict structured output on TokenHub
-and OpenAI), and all extraction output still passes the DRAFT-only guard. In a 12 Oct
-app-path run with TokenHub first, 10 of 10 live extractions were answered by Hunyuan
-via TokenHub (p50 11.4 s, p95 12.9 s); OpenAI stays the final fallback. The provider
-chain has a 35 s budget and the browser waits up to 40 s with a progress counter and a
+and OpenAI), and all extraction output still passes the DRAFT-only guard. Measured
+through the app route on 12 Oct: 5 of 5 extractions answered live by TokenHub on the
+Singapore endpoint at about 3.9 s each, against p50 11.4 s on the earlier Guangzhou
+endpoint (`docs/DECISIONS.md` D9, D10). The provider chain has a 35 s budget and the browser waits up to 40 s with a progress counter and a
 badge that says truthfully whether the result is live or recorded.
 
 **Where each provider runs.** CodeBuddy API keys require a Pro plan, and Vercel
 never inspects a local CLI login, so Hunyuan via CodeBuddy runs locally (CodeBuddy
 credits and login). The public Vercel deployment has a TokenHub key and no CodeBuddy
-key; its live calls go to Hunyuan hy4-preview via TokenHub, then OpenAI gpt-5.4-mini
-(the final fallback), then the recorded fixture. With no provider credentials at all, the API selects recorded
+key; its live calls go to Hunyuan hy4-preview via TokenHub (Singapore), then OpenAI
+gpt-5.4-mini, then the recorded fixture. With no provider credentials at all, the API selects recorded
 fixtures without spawning the SDK or attempting inference. Do not set
 `CODEBUDDY_INTERNET_ENVIRONMENT` (the integration uses the international edition).
 The LLM and Jev endpoints require a signed demo session, and one shared passcode
@@ -258,10 +269,57 @@ Everything that decides an action is deterministic and LLM-free:
   Shadow promoter ≠ approver; only Shadow versions can be approved) and role authority
   are code, not prose.
 - **Rollback** — appends a new approved version; history is never deleted.
+- **Read-back chips** — numbers, times, asset tags and roles in a frontline note are
+  found by regex and the asset and role registers, never by the LLM. A draft's quote
+  must be a verbatim span of the note, and it cannot be proposed until the speaker has
+  confirmed every chip.
+- **Peer gate** — a version proposed from a note enters Shadow only with a confirm from
+  someone who is neither the speaker nor the proposer and whose role may edit the pill,
+  and never while an eligible dispute stands.
 
 Because the engine takes no model input, changing the LLM cannot change a gate
 decision. This holds by construction; the app has no model-swap control. The model
 changes the language; it cannot change the safety outcome.
+
+### 5.5 Frontline capture
+
+The onboarding call reaches one expert. Frontline capture reaches the people doing the
+work, at a moment they already have (design and acceptance criteria:
+`docs/capture/PLAN.md`):
+
+- **Capture tasks.** When TS-07 blocks a technician and he escalates, or a
+  requires-approval recommendation is rejected, the Incident Room raises one task for
+  the acting role: *"Tell us why — 20 seconds"*. **Close out job** raises a close-out
+  task. Open tasks are listed on `/pulse`, where they can be answered or dismissed
+  with a reason.
+- **QR tap-to-teach.** `/c/AHU-23-01` shows the equipment, site, location and the pills
+  that cover it, and opens capture bound to that asset. `/c/AHU-23-01/qr` prints the
+  label. Both need sign-in.
+- **Voice capture.** A PDPA purpose notice and consent come before the microphone opens.
+  Named credit is opt-in. Recording is hold-to-talk only, capped at 120 s. Audio is not
+  kept by Keystone. Typing and labelled demo notes are always available.
+- **Read-back, draft, propose, confirm.** The speaker checks the chips, then **Draft
+  rule** calls the same extraction endpoint. Draft ids are server-assigned `DRAFT-NN`
+  ids in a reserved namespace. Technicians are read-only on the chilled-water pill, so
+  the Chief Engineer proposes the draft as a new rule (TS-14 in v1.3.0 in the demo).
+  The AOM cannot promote it until a peer confirms; in the demo that is Muhammad Hafiz,
+  Technical Services Lead.
+
+**Speech recognition.** Hold-to-talk uses the browser's Web Speech API (`en-SG`). In
+most browsers the audio goes to the browser vendor's speech service, and every note
+records and shows which service produced its text. The server route
+`/api/capture/transcribe` has a Tencent Cloud ASR (ap-singapore) adapter that reports
+"not configured", because there are no credentials and it has not been verified
+against the live API. An OpenAI transcription path exists behind an explicit opt-in
+and has never been run live. **Recognition of real Singapore-accented speech from a
+microphone is untested**; the browser check of the demo path used typed notes
+(`docs/capture/screens/`).
+
+**Where this sits in the research.** `docs/research/elicitation-feasibility.md`
+recommends four steps: draft rules from work orders and SOPs; short AI interviews with
+a few critical experts; event-triggered voice notes under a minute; and confirmation
+one rule at a time. Frontline capture implements steps 3 and 4. Step 1 is not built,
+and step 2 is represented only by the scripted onboarding call.
 
 ---
 
@@ -349,6 +407,12 @@ novice-error probes, and a coverage audit that surfaces what he has *not* said. 
 contradiction probe is what extracts the tacit rule: the two statements about riser
 isolation are reconciled into the distinguishing condition that becomes TS-02.
 
+Knowledge also sits with the people on the floor. **Frontline capture** (§5.5) asks a
+technician *why* at the moment a gate blocks him, at job close-out, or from a QR code on
+the equipment, and turns a short note into a draft rule that the speaker checks and a
+peer confirms. In the demo, Rajesh Kumar (Technician) explains a drain-trap step on
+AHU-23-01 after TS-07 blocks him; it becomes TS-14 in v1.3.0.
+
 ### 7.3 How the captured expertise becomes reusable rather than a one-off
 
 It is **compiled into a pill** — a plain-text package (`SKILL.md`, `rules.yaml`,
@@ -397,6 +461,13 @@ audited. The audit log reads `version_proposed` (Tan) → `version_shadowed` (Pr
 concretely: **evals pass + sign-off by an authorised approver who neither wrote nor
 shadowed the version**.
 
+New expertise from the frontline goes through the same lifecycle with one more gate:
+a version proposed from a frontline note needs a **peer confirmation** before Shadow,
+from someone who is neither the note's speaker nor the version's proposer and whose
+role may edit the pill. An eligible peer's dispute holds it until that person's latest
+verdict is a confirm. In the demo, Priya's **Promote to Shadow** is refused until
+Muhammad Hafiz (Technical Services Lead) confirms.
+
 ### 7.7 How the concept extends to multiple assets, business units or enterprise environments
 
 Three mechanisms: (1) **asset-type overrides** in the pill change gates per
@@ -413,7 +484,7 @@ TokenHub for models, WorkBuddy Experts/Skills, ADP for governed enterprise
 distribution, TRTC for the voice interview, EdgeOne Pages / Lighthouse for hosting,
 with iBMS + CMMS as evidence feeds. Integrated today: the CodeBuddy skill (verified)
 the CodeBuddy Agent SDK path to Hunyuan (runs locally) and Hunyuan hy4-preview via
-TokenHub (live, including on the deployment).
+TokenHub on a dedicated ap-singapore endpoint (live, including on the deployment).
 
 ---
 
@@ -421,13 +492,13 @@ TokenHub (live, including on the deployment).
 
 | # | Property | Where it shows in the product |
 |---|----------|-------------------------------|
-| 1 | **Human-supervised** | Decision Canvas (expert confirms/edits/rejects every tile, each showing his recorded quote; reviews audited and limited to the pill's owner, steward, approver or `access.roles_allowed`); every action chip carries an `action_class`; the Approval Panel and `/approvals` queue; **nothing executes without a named human**. |
+| 1 | **Human-supervised** | Decision Canvas (expert confirms/edits/rejects every tile, each showing his recorded quote; reviews audited and limited to the pill's owner, steward, approver or `access.roles_allowed`); every action chip carries an `action_class`; the Approval Panel and `/approvals` queue; frontline notes need the speaker's read-back and a peer's confirmation; **nothing executes without a named human**. |
 | 2 | **Transparent** | The Why drawer: rule id + version, evidence used vs missing, transcript quote + timestamp, risk if ignored; "Hear the expert" reads the exact quote aloud (synthetic browser voice reading his recorded words, not his voice); the counterfactual "what would change the decision?". |
 | 3 | **Accountable** | Per-pill RACI (Owner / Steward / Approver) in `SKILL.md`; per-action owner + deadline; append-only audit log (who / when / pill version / action / outcome), browser-local in the demo; production would persist it server-side. |
 | 4 | **Reliable** | Pills compile into evals; "Replay" runs the pill against past incidents and reports agreement; approval is **blocked if evals regress** (unless the approver overrides with a reason); shadow mode replays the evals through the candidate version before promotion. |
 | 5 | **Reusable** | The pill package; the same Technical Services pill applied to a second asset type (DC overlay) with gates that change but logic that does not. |
 | 6 | **Scalable** | Asset-profile overrides + registry coverage per asset type; the pill is a distributable skill; Portfolio Pulse shows portfolio-wide posture. |
-| 7 | **Governed** | Draft → Shadow → Approved → Retired lifecycle; "validate" = evals pass + authorised sign-off; separation of duties across three people (author ≠ Shadow promoter ≠ approver, enforced in code and audited); reason required on proposal, override and rollback. |
+| 7 | **Governed** | Draft → Shadow → Approved → Retired lifecycle; "validate" = evals pass + authorised sign-off; separation of duties across three people (author ≠ Shadow promoter ≠ approver, enforced in code and audited); a peer gate before Shadow for rules from frontline notes; reason required on proposal, override and rollback. |
 | 8 | **Portable** | Plain text (YAML/JSON/Markdown) with no vendor lock-in; installs unchanged as a CodeBuddy skill (verified) and follows the SKILL.md convention used by WorkBuddy/ADP (designed for, untested); the engine takes no model input, so changing the LLM cannot change a gate. |
 | 9 | **Version-controlled** | Semantic versions + CHANGELOG; jsondiffpatch diff for approval; **one-click rollback**; history is append-only (rollback adds a version, never deletes one). |
 | 10 | **Secure** | Sensitivity labels (`public`/`internal`/`tenant_pii`/`commercial`) on rules, incidents and evidence; demo sign-in and "Switch user" (Technician / AOM / Tenant Experience / Executive / …) with server-side PII and lease-term masking (one shared demo passcode — not identity proofing); default-deny middleware, CSRF checks on auth routes, security headers (CSP, `frame-ancestors 'none'`, nosniff, referrer policy), `noindex`, and per-session/per-IP rate limits on paid routes (in memory per instance); a pill's `access` block (RACI roles plus `roles_allowed`; `denied` and `roles_read_only` always lose) decides who may change its content: review Canvas tiles, record an outcome, propose a version. |
@@ -463,8 +534,10 @@ model input), Safety (evidence gates; no AI proposal executes) and Data Governan
 **Responsible-AI evidence checklist.** In the product: action class on every rule;
 deterministic gates with evidence preconditions; named approver + timestamp on
 approve-tier actions; override reasons recorded on approval; provenance per rule;
-version history with rollback; server-side role-based redaction; an explicit **"no
-autonomous control of building systems"** statement. Proposed for a pilot: an
+version history with rollback; server-side role-based redaction; a PDPA purpose
+notice and consent before any recording, with named credit opt-in and the speech
+service recorded on every note; an explicit **"no autonomous control of building
+systems"** statement. Proposed for a pilot: an
 override-rate KPI, an incident-report pipeline, server-side enforcement of pill-level
 access (today it is enforced in the browser governance store), and AI Verify process
 checks.
@@ -480,14 +553,15 @@ control of building systems anywhere in the design.
 Current state: mock incident data and recorded defaults. Opt-in live extraction and
 bounded tenant drafting run on Hunyuan via the CodeBuddy Agent SDK where CodeBuddy
 credentials exist (local); the public deployment runs them on Hunyuan hy4-preview via
-TokenHub, with OpenAI gpt-5.4-mini as the final fallback. Rows marked
+TokenHub in ap-singapore, with OpenAI gpt-5.4-mini as a fallback. Rows marked
 *proposed* are the production path, not completed integrations.
 
 | Layer | Tencent product | Role in Keystone |
 |---|---|---|
 | **Models (built, runs locally)** | **CodeBuddy Agent SDK → Hunyuan `hy4-preview`** | Opt-in extraction and tenant drafts; local CLI login (with CodeBuddy credits) or Pro API key. Recorded defaults and fallback. No autonomous approvals or tool use. |
-| **Models (built, live)** | **TokenHub → Hunyuan `hy4-preview`** (`https://tokenhub-intl.tencentcloudmaas.com/v1`, dedicated ap-singapore endpoint) | OpenAI-compatible adapter, thinking disabled, strict `json_schema` output; first live provider on the Vercel deployment (10 of 10 app-path extractions, p50 11.4 s). |
-| Models (fallback, non-Tencent) | OpenAI `gpt-5.4-mini` | Final live fallback. |
+| **Models (built, live)** | **TokenHub → Hunyuan `hy4-preview`** (`https://tokenhub-intl.tencentcloudmaas.com/v1`, dedicated ap-singapore endpoint) | OpenAI-compatible adapter, thinking disabled, strict `json_schema` output; first live provider on the Vercel deployment. Inference runs in Singapore: 5 of 5 app-route extractions at about 3.9 s (p50 11.4 s on the earlier Guangzhou endpoint; D9, D10). |
+| Models (fallback, non-Tencent) | OpenAI `gpt-5.4-mini` | Fallback after TokenHub. |
+| **Speech recognition (adapter only)** | **Tencent Cloud ASR**, `asr.ap-singapore.tencentcloudapi.com` | The only option found with documented Singapore-region processing. The adapter in `lib/capture/asr.ts` reports "not configured": no credentials, not verified against the live API. Today hold-to-talk uses the browser's Web Speech API (audio processed by the browser vendor). Singapore-accented speech is untested. |
 | **Builder skills (verified)** | **CodeBuddy** — `.codebuddy/skills/<name>/SKILL.md` | The same pill loads as a CodeBuddy skill (`docs/proof/04a`, `04b`); `rules.yaml` and `evals/` are executed only by the Keystone engine. |
 | **Expert host (proposed)** | **WorkBuddy** — Skills & Expert Center, Experts, Expert Teams | A pill would become a Skill; a domain pill + persona an Expert; the Asset Ops orchestrator an Expert Team leader. WorkBuddy documents a security scan before install; `access` could map to its RBAC. |
 | **Enterprise governance (proposed)** | **ADP** (Agent Development Platform) — custom skills as a ZIP with `SKILL.md` at the root, YAML metadata, semantic versioning, sandbox security review, **Approval Center** for enterprise sharing | The governed distribution path for pills across business units. |
@@ -589,6 +663,8 @@ Replace each placeholder before submitting. Copy-paste-ready answers for every f
 ### Open TODOs to resolve before submission
 
 - [ ] Verify the demo path end-to-end on the live Vercel URL (EdgeOne Pages remains the proposed Tencent Cloud host).
+- [ ] Walk the frontline capture path on the live URL from a fresh browser profile (Rajesh → read-back → draft → Tan proposes TS-14 → Priya refused → Hafiz confirms → Priya promotes).
+- [ ] Do not claim speech recognition works on real Singapore-accented speech: it is untested.
 - [ ] Publish the GitHub repository and paste the URL.
 - [ ] Record the 5–8 min video from `docs/submission/video-script.md` (overview → core agent
       features → CodeBuddy reflection) and paste the link.

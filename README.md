@@ -53,6 +53,40 @@ His judgement stays — governed."*
 | 6 | **Learning** `/learning/technical-services-chilled-water-leak` | Capture the outcome (isolated in 7 min). The Chief Engineer corrects TS-02's deadline **15 → 10 min**. Propose v1.3.0 → see the **diff** → **validate against every past incident** (evals: 5 pass, 1 flagged) → **shadow mode** → **approval** → **rollback**, with separation of duties across **three different people**, enforced in code: **Tan Wei Ming** (Chief Engineer) proposes v1.3.0; **Priya Nair** (Asset Operations Manager) promotes it to Shadow and replays the 6 closed incidents through both versions (6/6 agreements); she is then refused approval of her own Shadow (*"Separation of duties: …"*) and offered **Switch user to Goh Boon Kheng · Head of Technical Services**; **Goh Boon Kheng** approves, and later rolls back with a reason, which appends **v1.4.0** restoring the v1.2.0 rules and marks v1.3.0 Retired. Audit: `version_proposed` (Tan) → `version_shadowed` (Priya) → `version_approved` (Goh) → `version_rolled_back` (Goh). |
 | 7 | **Apply to DC1** | Click **Apply to Harbourfront DC1** in the Incident Room. The *same* pills run against a colocation data-centre profile: the tenant first-notice action **disappears**, a **client-SLA notice via the Critical Facilities Manager** appears, and TS-07 escalates to the **CFM** instead of the duty LEW. The engine takes no model input, so changing the LLM cannot change a gate decision (true by construction; there is no model-swap control in the app). |
 
+### The frontline capture path
+
+The onboarding call captures one expert. Frontline capture collects judgement from the
+people doing the work, at a moment they already have: a gate block, a job close-out or
+a QR scan. Start from a fresh browser profile (or **Reset demo**), because this path
+proposes v1.3.0 just as the Learning path does.
+
+| # | Who | What happens |
+|---|-----|--------------|
+| 1 | **Rajesh Kumar** (Technician) | In `/incident/INC-2026-1011` at step 10, TS-07 blocks the re-energise proposal. Rajesh escalates to the duty LEW, and the engine's `blocked` status raises a capture task for his role: **"Tell us why — 20 seconds"**. It also waits on `/pulse` under open capture tasks. |
+| 2 | Rajesh | **Answer now** opens voice capture. A PDPA purpose notice and a consent box come first; named credit is opt-in and off by default. He records a note by hold-to-talk, types it, or picks a recorded demo note (labelled as such). |
+| 3 | Rajesh | **Read-back.** Numbers, times, asset tags and roles in the note are highlighted as chips, found by regex and the asset and role registers, never by the LLM. He marks each chip right or wrong. A corrected value amends the note and the draft is extracted again from the corrected text. |
+| 4 | Rajesh | **Draft rule** sends the note to `/api/llm/extract`. Each draft keeps a server-assigned `DRAFT-NN` id (that namespace is reserved, so no pill rule can use it), and its quote must be a verbatim span of the note. |
+| 5 | **Tan Wei Ming** (Chief Engineer) | Technicians are read-only on this pill, so the Chief Engineer proposes the draft on the Decision Canvas as **TS-14** in **v1.3.0**. |
+| 6 | **Priya Nair** (AOM) | On `/approvals`, **Promote to Shadow** is refused by the peer gate. A capture-derived version needs a confirmation from someone who is neither the note's speaker nor the version's proposer, and whose role may edit the pill. |
+| 7 | **Muhammad Hafiz** (Technical Services Lead) | Confirms as peer. Any eligible peer can dispute instead, and a dispute holds the version until that person's latest verdict is a confirm. |
+| 8 | Priya | Promotes v1.3.0 to Shadow. From here the usual eval, Shadow and approval rules apply. |
+
+This path was checked end to end in a browser before merge (screens in
+`docs/capture/screens/`). The same capture panel opens from **Close out job** in the
+Incident Room (a `job_closeout` task), and from a QR code on equipment: `/c/AHU-23-01`
+shows the asset, its site and location, and the pills that cover it, and
+`/c/AHU-23-01/qr` prints the label. Both pages need sign-in.
+
+**Speech recognition, honestly.** Hold-to-talk uses the browser's Web Speech API with
+`lang = en-SG`. In most browsers that sends audio to the browser vendor's speech
+service, and the app says so on the notice and on every transcript. A server route,
+`/api/capture/transcribe`, has a Tencent Cloud ASR (ap-singapore) adapter that reports
+"not configured" (there are no credentials, and it has not been verified against the
+live API), and an OpenAI transcription path that is off unless `CAPTURE_SERVER_ASR=openai`
+is set and has never been run live. **Recognition of real Singapore-accented speech
+from a microphone is untested.** The read-back step exists because recognition will
+mishear numbers and tags.
+
 ### Screenshots
 
 | Expert Call — contradiction detected | Decision Canvas — resolved + confirm |
@@ -85,9 +119,13 @@ Next.js 15 (App Router, TS) + React 19 + Tailwind v4 + shadcn-style components
 │                                 counterfactual(); runEvals(); schema; conditions
 ├─ lib/llm/                       CodeBuddy Agent SDK → Hunyuan hy4-preview (primary,
 │                                 needs CodeBuddy credentials; local today). Falls
-│                                 through to TokenHub → Hunyuan hy4-preview (live), then OpenAI.
-│                                 Opt-in extraction + tenant drafts; recorded fallback.
+│                                 through to TokenHub → Hunyuan hy4-preview (live, on a
+│                                 dedicated ap-singapore endpoint), then OpenAI, then
+│                                 recorded fixtures. Opt-in extraction + tenant drafts.
 │                                 Probes, contradictions and summaries remain recorded.
+├─ lib/capture/                   frontline capture contract: capture tasks, voice notes,
+│                                 deterministic read-back chips, drafts from notes, the
+│                                 peer gate; ASR provider chain (server-only)
 ├─ lib/auth/ + middleware.ts      demo sign-in, signed HTTP-only session cookie (with jti),
 │                                 default-deny routing with a public allowlist,
 │                                 same-origin (CSRF) checks on auth routes
@@ -96,6 +134,7 @@ Next.js 15 (App Router, TS) + React 19 + Tailwind v4 + shadcn-style components
 │                                 approval (three-person separation of duties:
 │                                 author ≠ Shadow promoter ≠ approver; eval gate),
 │                                 access + scope (server-side redaction per role), audit
+├─ app/c/[assetId]/               QR tap-to-teach page and printable QR label
 ├─ components/                    mosaic (shared), capture, canvas, incident,
 │                                 learning, registry, pulse, approvals, shell
 └─ data/                          mock assets, incidents, timelines, transcripts,
@@ -186,28 +225,31 @@ npm run build      # production build
 ### Environment variables (all optional)
 
 **Every screen opens on recorded output, even when credentials are present.**
-Only **re-extract live** on `/capture`, **draft live** in the Incident Room, and the
-on-demand Jev evidence suggestions make outbound requests. The scripted voice call
-stays offline.
+Only **re-extract live** on `/capture`, **draft live** in the Incident Room, **Draft
+rule** in frontline voice capture, and the on-demand Jev evidence suggestions make
+outbound model requests. Hold-to-talk uses the browser's own speech service (see "The
+frontline capture path"). The scripted voice call stays offline.
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `MOSAIC_LLM_PROVIDER` | `auto` | `auto`, `codebuddy`, `tokenhub`, `openai`, or `fixtures` (a provider name forces only that provider) |
 | `CODEBUDDY_API_KEY` | _(unset)_ | CodeBuddy international API key; requires a **Pro plan** |
-| `TOKENHUB_API_KEY` | _(unset)_ | TokenHub → Hunyuan `hy4-preview` (verified live, 12 Oct) |
+| `TOKENHUB_API_KEY` | _(unset)_ | TokenHub → Hunyuan `hy4-preview` (live on the Singapore endpoint, 12 Oct) |
 | `TOKENHUB_BASE_URL` | `https://tokenhub-intl.tencentcloudmaas.com/v1` | TokenHub Singapore (ap-singapore) host. Expert data is processed in Singapore. |
 | `TOKENHUB_ENDPOINT_ID` | e.g. `ep-…` | Dedicated Singapore inference service for hy4-preview (requests are routed to it; badges still show the served model, `hy4-preview`). Measured: 5/5 live extractions, ~3.9 s each. |
 | `MOSAIC_MODEL` | `hy4-preview` | TokenHub model only; CodeBuddy always requests Hunyuan `hy4-preview` |
 | `OPENAI_API_KEY` | _(unset)_ | OpenAI, the final live fallback |
 | `OPENAI_MODEL` | `gpt-5.4-mini` | OpenAI model id |
 | `JEV_API_KEY` | _(unset)_ | TypeSafe Jev key (server-only) for evidence suggestions; unset → suggestions unavailable |
+| `TENCENT_ASR_SECRET_ID`, `TENCENT_ASR_SECRET_KEY` | _(unset)_ | Tencent Cloud ASR (ap-singapore). The adapter is not verified against the live API, so it is never used; with these set it reports "not verified" |
+| `CAPTURE_SERVER_ASR` | _(unset)_ | `openai` allows server transcription with OpenAI `gpt-4o-mini-transcribe` (audio processed outside Singapore; never run live) |
 
 `auto` tries, in order, each provider that has credentials, falling through to the
 next on an error, timeout, invalid JSON or schema/safety rejection:
 
 1. **CodeBuddy Agent SDK → Hunyuan hy4-preview** (CodeBuddy key or local saved CLI login; 15 s)
 2. **TokenHub → Hunyuan hy4-preview** (`TOKENHUB_API_KEY`; 22 s)
-3. **OpenAI** (`OPENAI_API_KEY`; 15 s) — final live fallback
+3. **OpenAI** (`OPENAI_API_KEY`; 15 s), the final live fallback
 4. **Recorded fixtures**
 
 Each timeout is capped by a 35-second budget for the whole chain (enough for a
@@ -218,9 +260,17 @@ decodes against the wire schema with strict structured output (`json_schema`) on
 both TokenHub and OpenAI, and the DRAFT-only guard still validates every result.
 `hy4-preview` is a thinking model: left on, it spent all 6,000 output tokens on
 reasoning without answering, so the TokenHub request sends `thinking: {type:
-"disabled"}`. In our 12 Oct app-path run (TokenHub first, as on Vercel), 10 of 10
-live extractions were answered by TokenHub, p50 11.4 s, p95 12.9 s; tenant drafts
-2 of 2 (3–6 s). An earlier run had 6 of 6 OpenAI extractions at p50 5.7 s. A forced provider that fails goes to the fixture.
+"disabled"}`.
+
+**TokenHub runs in Singapore.** Requests go to the international host
+(`https://tokenhub-intl.tencentcloudmaas.com/v1`) and are routed to a dedicated
+inference service deployed in ap-singapore: `tokenhubTarget()` in `lib/llm/client.ts`
+sends `TOKENHUB_ENDPOINT_ID` as the model id when it is set, and badges still show the
+served model, `hy4-preview`. Inference on captured expert text therefore happens in
+Singapore. Measured through the app route on 12 Oct: 5 of 5 extractions answered live
+by TokenHub at about 3.9 s each, against p50 11.4 s (10 of 10) on the earlier
+Guangzhou endpoint (`docs/DECISIONS.md` D9, D10). A forced provider that fails goes
+to the fixture.
 Local login detection reads only the installed SDK's shared auth-cache shape and
 logout marker, without spawning a CLI or decrypting credentials. The SDK handles
 actual login reuse/refresh; a stale login fails safely to recorded output.
@@ -229,8 +279,8 @@ actual login reuse/refresh; a stale login fails safely to recorded output.
 (or a CodeBuddy Pro API key), live calls run on Hunyuan `hy4-preview` through the
 CodeBuddy Agent SDK. The public Vercel deployment has a TokenHub key but no
 CodeBuddy key (API-key access requires Pro, and Vercel/CI never inspect a local CLI
-login), so its live calls go to Hunyuan `hy4-preview` via TokenHub first; OpenAI
-`gpt-5.4-mini` is the final fallback, then recorded output. The output badge always
+login), so its live calls go to Hunyuan `hy4-preview` via TokenHub (Singapore) first,
+then OpenAI `gpt-5.4-mini` as a fallback, then recorded output. The output badge always
 names the provider that actually answered. With no CodeBuddy, TokenHub or OpenAI credentials, the API
 selects recorded fixtures without any SDK spawn or network attempt. Explicit `codebuddy` with neither a key nor a local login also falls
 back without spawning. Set `MOSAIC_LLM_PROVIDER=fixtures` to force offline mode.
@@ -277,7 +327,7 @@ Session tokens carry a `jti`, so sessions issued before 12 Oct need one re-sign-
 
 ## Tests
 
-`npm test` runs the regression suite (593 tests in 38 files, 12 Oct 2026) across the deterministic core, LLM boundary and governance layer,
+`npm test` runs the regression suite (712 tests in 46 files, 12 Oct 2026) across the deterministic core, LLM boundary, governance layer and frontline capture,
 including the safety invariants that make the demo defensible:
 
 - **Evidence can never be faked open** — a required item counts only when it is
@@ -295,13 +345,38 @@ including the safety invariants that make the demo defensible:
   a recorded reason.
 - **Rollback never deletes history** — it appends a new approved version carrying the
   restored rules and marks the rolled-back version Retired.
+- **Peer gate before Shadow** — a version proposed from a frontline note cannot enter
+  Shadow without a confirm from an eligible person who is neither the note's speaker
+  nor the version's proposer, and not while an eligible dispute stands.
+- **Read-back is deterministic** — chips are computed by the store from the note, a
+  draft's quote must be a verbatim span of its note, and a draft cannot be proposed
+  until every chip is confirmed.
 
 Coverage spans `lib/engine` (conditions, evaluate, counterfactual, evals, schema,
-real-pill conformance), `lib/governance` (versions, approval, access, audit, store),
+real-pill conformance), `lib/governance` (versions, approval, access, audit, store,
+capture store actions), `lib/capture` (contract, read-back, peer gate, ASR chain),
 `lib/data` (schema + cross-file consistency), `lib/pills` (package loading), and
 `lib/llm` (mocked SDK/provider selection, no-spawn fallback, timeout, malformed JSON,
 injected controls, bounded HTTP inputs, and TE-02/TE-03 rejection). Tests make no
 inference requests.
+
+---
+
+## Where capture goes next
+
+`docs/research/elicitation-feasibility.md` recommends a four-step capture flow:
+
+1. Draft rules from existing records (work orders, SOPs) so interviews target gaps.
+2. Short, incident-anchored AI interviews with a few critical experts.
+3. Event-triggered voice notes from the frontline, under a minute each.
+4. Confirmation one rule at a time, each tile grounded in a quote.
+
+The frontline capture features implement steps 3 and 4: capture tasks raised by gate
+blocks, overrides, close-outs and QR scans; short voice or typed notes; read-back; and
+peer confirmation. Step 1 is not built. Step 2 is shown only by the scripted,
+simulated onboarding call on `/capture`; live adaptive interviewing is not built.
+Before any pilot, speech recognition needs a test on recorded Singapore-English field
+speech, and the Tencent Cloud ASR adapter needs credentials and verification.
 
 ---
 
