@@ -33,7 +33,7 @@ describe("transcript source labels", () => {
       [webSpeechSource(false), "browser-vendor", /browser vendor's service/],
       [webSpeechSource(true), "on-device", /on this device/],
       [typedSource(), "no-audio", /no audio recorded/],
-      [fixtureSource("capture-qr-ahu-23-01"), "no-audio", /Recorded demo transcript · capture-qr-ahu-23-01 · no audio/],
+      [fixtureSource("capture-qr-ahu-23-01"), "no-audio", /^Recorded demo transcript · no audio$/],
       [{ provider: "openai_transcribe", model: "gpt-4o-mini-transcribe", region: "us", languageHint: "en-SG" }, "us", /offshore \(us\)/],
       [{ provider: "tencent_asr", model: "16k_en", region: "ap-singapore", languageHint: "en-SG" }, "ap-singapore", /processed in ap-singapore/],
     ] as const;

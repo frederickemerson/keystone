@@ -16,7 +16,7 @@ import {
   type DraftFromNote,
   type VoiceNote,
 } from '@/lib/capture';
-import { transcriptSourceLabel } from '@/lib/capture/asr-sources';
+import { noAudioReason, transcriptSourceLabel } from '@/lib/capture/asr-sources';
 import { nextRuleId } from '@/lib/capture/note-flow';
 import { pillEditAuthority, roleLabel, type PillEditPolicy } from '@/lib/governance/access';
 import { MarkedTranscript, ReadBackChips } from './ReadBackChips';
@@ -64,9 +64,7 @@ export function DraftFromNoteTile({ draft, note, origin, actingRole, isSpeaker, 
   const authority = pill ? pillEditAuthority(actingRole, pill.policy) : { allowed: false, reason: 'No pill covers this asset.' };
   const blockedReason = !readiness.allowed ? readiness.reason : !authority.allowed ? authority.reason : undefined;
   const audio = audioExpired(note, note.recordedAt)
-    ? note.transcriptSource.provider === 'typed' || note.transcriptSource.provider === 'fixture'
-      ? 'No audio recorded'
-      : 'Audio not kept · discarded after transcription'
+    ? (noAudioReason(note.transcriptSource) ?? 'Audio not kept · discarded after transcription')
     : `Audio kept until ${new Date(note.audio.expiresAt ?? '').toLocaleDateString('en-SG')}`;
 
   function propose() {
