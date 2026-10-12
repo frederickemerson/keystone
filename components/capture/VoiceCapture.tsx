@@ -29,6 +29,7 @@ import {
   typedSource,
   type CaptureMode,
 } from '@/lib/capture/asr-sources';
+import { forgetConsent, recallConsent, rememberConsent, sessionStore } from '@/lib/capture/consent-session';
 import { CAPTURE_FIXTURES, fixturesForTask } from '@/lib/capture/fixtures';
 import {
   carriedAnswers,
@@ -85,8 +86,6 @@ function message(err: unknown, fallback: string): string {
   return err instanceof Error && err.message ? err.message : fallback;
 }
 
-// Consent given in this tab, per speaker (the notice is shown before the first recording).
-const consentBySpeaker = new Map<string, Consent>();
 const NO_DRAFTS: DraftFromNote[] = [];
 
 /** A "recorded" generation result: no model was called. */
@@ -99,6 +98,8 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
   const signedIn = actor.role !== UNRESOLVED_ROLE;
   const speaker = roleLabel(actor.role);
   const [consent, setConsent] = useState<Consent | null>(null);
+  // The stored decision is read after mount; until then show neither the notice nor the recorder.
+  const [consentRead, setConsentRead] = useState(false);
   const [modes, setModes] = useState<CaptureMode[]>(['typed', 'fixture']);
   const [mode, setMode] = useState<CaptureMode>('typed');
   const [captured, setCaptured] = useState<Captured | null>(null);
@@ -115,7 +116,9 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
   const incidentId = useGovernanceStore((s) => (taskId ? s.captureTasks[taskId]?.incidentId : undefined));
 
   useEffect(() => {
-    if (signedIn) setConsent(consentBySpeaker.get(actor.name) ?? null);
+    // Asked once per person per session; the stored decision is shown and can be withdrawn.
+    if (signedIn) setConsent(recallConsent(sessionStore(), actor.name));
+    setConsentRead(true);
   }, [signedIn, actor.name]);
 
   // Which capture modes this device offers (server ASR only when the server says it is ready).
@@ -277,13 +280,14 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
   if (!signedIn) {
     return <p className="text-sm text-ink-muted">Sign in to record a note.</p>;
   }
+  if (!consentRead) return null;
   if (!consent) {
     return (
       <ConsentNotice
         speakerName={actor.name}
         speakerRole={speaker}
         onConsent={(c) => {
-          consentBySpeaker.set(actor.name, c);
+          rememberConsent(sessionStore(), actor.name, c);
           setConsent(c);
         }}
       />
@@ -295,6 +299,23 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
 
   return (
     <div className="space-y-5">
+      {!captured ? (
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-muted">
+          <span>
+            {actor.name} agreed to recording this session · credited {consent.namedCredit ? 'by name' : `as ${speaker}`}.
+          </span>
+          <button
+            type="button"
+            className="underline underline-offset-2 hover:text-ink"
+            onClick={() => {
+              forgetConsent(sessionStore(), actor.name);
+              setConsent(null);
+            }}
+          >
+            Withdraw consent
+          </button>
+        </p>
+      ) : null}
       {!captured ? (
         <CaptureInput assetId={assetId} incidentId={incidentId} modes={modes} mode={mode} onMode={setMode} onCaptured={accept} onError={setError} />
       ) : null}
