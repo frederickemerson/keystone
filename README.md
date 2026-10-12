@@ -68,7 +68,7 @@ proposes v1.3.0 just as the Learning path does.
 | 4 | Rajesh | **Draft rule** sends the note to `/api/llm/extract`. Each draft keeps a server-assigned `DRAFT-NN` id (that namespace is reserved, so no pill rule can use it), and its quote must be a verbatim span of the note. |
 | 5 | **Tan Wei Ming** (Chief Engineer) | Technicians are read-only on this pill, so the Chief Engineer proposes the draft on the Decision Canvas as **TS-14** in **v1.3.0**. |
 | 6 | **Priya Nair** (AOM) | On `/approvals`, **Promote to Shadow** is refused by the peer gate. A capture-derived version needs a confirmation from someone who is neither the note's speaker nor the version's proposer, and whose role may edit the pill. |
-| 7 | **Muhammad Hafiz** (Technical Services Lead) | Confirms as peer. Any eligible peer can dispute instead, and a dispute holds the version until that person's latest verdict is a confirm. |
+| 7 | **Muhammad Hafiz** (Technical Services Lead) | Confirms as peer. A fellow technician, **Siti Rahmah** (Senior Technician), could confirm instead: the pill grants technicians confirm-only rights (`access.roles_peer_confirm`) while they stay read-only on its rules. Any eligible peer can dispute instead, and a dispute holds the version until that person's latest verdict is a confirm. |
 | 8 | Priya | Promotes v1.3.0 to Shadow. From here the usual eval, Shadow and approval rules apply. |
 
 This path was checked end to end in a browser before merge (screens in

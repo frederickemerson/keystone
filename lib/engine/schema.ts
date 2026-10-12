@@ -340,6 +340,8 @@ const manifestSchema: z.ZodType<PillManifest> = z.strictObject({
   access: z.strictObject({
     roles_allowed: z.array(z.string()).optional(),
     roles_read_only: z.array(z.string()).optional(),
+    /** Roles that may peer-confirm a frontline note's rule without edit rights (lib/capture peerConfirmAuthority). */
+    roles_peer_confirm: z.array(z.string()).optional(),
     denied: z.array(z.string()).optional(),
     sensitivity_default: z.string().optional(),
   }),

@@ -297,7 +297,12 @@ export interface PillEditPolicy {
   owner: string;
   steward: string;
   approver: string;
-  access: { roles_allowed?: readonly string[]; roles_read_only?: readonly string[]; denied?: readonly string[] };
+  access: {
+    roles_allowed?: readonly string[];
+    roles_read_only?: readonly string[];
+    roles_peer_confirm?: readonly string[];
+    denied?: readonly string[];
+  };
 }
 
 /**

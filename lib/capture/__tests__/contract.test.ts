@@ -378,8 +378,16 @@ describe("peer confirmation", () => {
     expect(peerConfirmAuthority(hafiz, rajesh, CWL_POLICY).allowed).toBe(true);
     expect(peerConfirmAuthority(rajesh, rajesh, CWL_POLICY).allowed).toBe(false);
     expect(peerConfirmAuthority({ name: " rajesh  KUMAR ", role: "technical_services_lead" }, rajesh, CWL_POLICY).allowed).toBe(false);
-    // Technicians are read-only on this pill: a second technician cannot peer-confirm.
+    // Read-only without a confirm-only grant: cannot peer-confirm.
     expect(peerConfirmAuthority({ name: "Another Tech", role: "technician" }, rajesh, CWL_POLICY).allowed).toBe(false);
+    // access.roles_peer_confirm grants confirm without edit; denied still wins.
+    const granted = { ...CWL_POLICY, access: { ...CWL_POLICY.access, roles_peer_confirm: ["technician", "senior_technician"] } };
+    expect(peerConfirmAuthority({ name: "Siti Rahmah", role: "senior_technician" }, rajesh, granted).allowed).toBe(true);
+    expect(peerConfirmAuthority({ name: "Another Tech", role: "technician" }, rajesh, granted).allowed).toBe(true);
+    expect(peerConfirmAuthority(rajesh, rajesh, granted).allowed).toBe(false);
+    expect(peerConfirmAuthority({ name: "Rahul Menon", role: "duty_lew" }, rajesh, granted).allowed).toBe(false);
+    const deniedToo = { ...granted, access: { ...granted.access, denied: ["senior_technician"] } };
+    expect(peerConfirmAuthority({ name: "Siti Rahmah", role: "senior_technician" }, rajesh, deniedToo).allowed).toBe(false);
     expect(peerConfirmAuthority({ name: "Rahul Menon", role: "duty_lew" }, rajesh, CWL_POLICY).allowed).toBe(false);
   });
 

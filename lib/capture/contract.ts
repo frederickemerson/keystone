@@ -701,8 +701,10 @@ export type PeerConfirmation = z.infer<typeof peerConfirmationSchema>;
 /**
  * May `confirmer` peer-confirm a rule written by `author` on a pill with this
  * access policy? A different person (identity key, not display string) whose
- * role the pill lets edit it: owner, steward, approver or access.roles_allowed
- * — denied / roles_read_only always lose (same policy as pillEditAuthority).
+ * role the pill either lets edit it (pillEditAuthority: owner, steward,
+ * approver or access.roles_allowed) or names in access.roles_peer_confirm —
+ * a confirm-only grant, so a fellow technician can vouch for a colleague's
+ * note while staying read-only on the pill. `denied` always loses.
  * Once the rule is proposed as a version, its `proposer` is excluded too: the
  * proposer already vouched for it, so their confirmation is not independent.
  */
@@ -718,6 +720,10 @@ export function peerConfirmAuthority(
   if (proposer && identityKey(confirmer.name) === identityKey(proposer.name)) {
     return { allowed: false, reason: `${confirmer.name} proposed this version, so an independent peer must confirm it.` };
   }
+  if (policy.access.denied?.includes(confirmer.role)) {
+    return { allowed: false, reason: `${roleLabel(confirmer.role)} is denied access to this pill.` };
+  }
+  if (isKnownRole(confirmer.role) && policy.access.roles_peer_confirm?.includes(confirmer.role)) return { allowed: true };
   const edit = pillEditAuthority(confirmer.role, policy);
   if (!edit.allowed) {
     return { allowed: false, reason: `${roleLabel(confirmer.role)} cannot peer-confirm on this pill: ${edit.reason ?? ""}`.trim() };

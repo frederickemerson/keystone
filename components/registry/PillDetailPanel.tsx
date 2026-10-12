@@ -115,6 +115,8 @@ export function PillDetailPanel({
           <dd className="text-ink">{roleList(manifest.access.roles_allowed)}</dd>
           <dt className="text-ink-muted">Read-only</dt>
           <dd className="text-ink">{roleList(manifest.access.roles_read_only)}</dd>
+          <dt className="text-ink-muted">Peer confirm only</dt>
+          <dd className="text-ink">{roleList(manifest.access.roles_peer_confirm)}</dd>
           <dt className="text-ink-muted">Denied</dt>
           <dd className="text-ink">{roleList(manifest.access.denied)}</dd>
           <dt className="text-ink-muted">Asset types</dt>

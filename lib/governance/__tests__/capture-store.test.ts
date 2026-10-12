@@ -18,7 +18,7 @@ import { PILL_ID, pill, rule } from "./fixtures";
 
 const clock = () => "2026-10-12T01:00:00.000Z";
 
-/** The chilled-water-leak access block: technicians, FCC operators and the Duty LEW are read-only. */
+/** The chilled-water-leak access block: technicians, FCC operators and the Duty LEW are read-only; technicians may peer-confirm. */
 function cwlPill() {
   const p = pill();
   return {
@@ -36,7 +36,8 @@ function cwlPill() {
           "fire_safety_manager",
           "dc_critical_facilities_manager",
         ],
-        roles_read_only: ["technician", "security_fcc_operator", "duty_lew"],
+        roles_read_only: ["technician", "senior_technician", "security_fcc_operator", "duty_lew"],
+        roles_peer_confirm: ["technician", "senior_technician"],
       },
     },
   };
@@ -439,6 +440,15 @@ describe("peerConfirm and the Shadow peer gate", () => {
     refused("peer_confirm_blocked", () => s().peerConfirm({ ...target, noteId: "VN-0002", verdict: "confirm" }), /came from VN-0001/);
     refused("peer_confirm_blocked", () => s().peerConfirm({ ...target, pillVersion: "9.9.9", verdict: "confirm" }), /Unknown version/);
     expect(s().peerConfirmations).toEqual([]);
+  });
+
+  it("a fellow technician peer-confirms without edit rights, and that satisfies the gate", () => {
+    s().setRole("senior_technician");
+    refused("version_proposal_blocked", () => s().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], "x"), /read-only/);
+    const c = oneEvent("peer_confirmed", () => s().peerConfirm({ ...target, verdict: "confirm" }));
+    expect(c).toMatchObject({ confirmer: { name: "Siti Rahmah", role: "senior_technician" } });
+    s().setRole("asset_operations_manager");
+    oneEvent("version_shadowed", () => s().promoteToShadow(PILL_ID, "1.3.0"));
   });
 
   it("Shadow needs one eligible confirm and no outstanding dispute (refusals audited with the gate's reason)", () => {

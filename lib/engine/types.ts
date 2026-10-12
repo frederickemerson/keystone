@@ -18,6 +18,7 @@ export interface ScopeObject {
 export interface AccessObject {
   roles_allowed?: string[];
   roles_read_only?: string[];
+  roles_peer_confirm?: string[];
   denied?: string[];
   sensitivity_default?: string;
 }
@@ -40,7 +41,7 @@ export interface PillManifest {
   status: PillStatus;
   /** Authored OBJECT: { asset_types[], incident_types[], systems[], geographic_scope, standards[] }. */
   scope: ScopeObject;
-  /** Authored OBJECT: { roles_allowed[], roles_read_only[], denied[], sensitivity_default }. */
+  /** Authored OBJECT: { roles_allowed[], roles_read_only[], roles_peer_confirm[], denied[], sensitivity_default }. */
   access: AccessObject;
   review_cadence?: ReviewCadence;
 }

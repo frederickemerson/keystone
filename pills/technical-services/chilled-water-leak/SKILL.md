@@ -51,8 +51,13 @@ access:
     - dc_critical_facilities_manager
   roles_read_only:
     - technician
+    - senior_technician
     - security_fcc_operator
     - duty_lew
+  # Confirm-only grant: a fellow technician may peer-confirm a colleague's frontline note.
+  roles_peer_confirm:
+    - technician
+    - senior_technician
   sensitivity_default: internal
 review_cadence:
   interval_months: 6
