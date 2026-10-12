@@ -322,7 +322,7 @@ export function DecisionCanvas({ pill, focusRule }: { pill: PillBundle; focusRul
       ) : null}
 
       {/* Sticky footer */}
-      <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-canvas/95 backdrop-blur md:left-64">
+      <footer className="fixed inset-x-0 z-20 border-t border-line bg-canvas/95 backdrop-blur md:left-64" style={{ bottom: 'var(--guide-bar-h, 0px)' }}>
         <div className="flex flex-wrap items-center gap-3 px-4 py-3 md:px-8">
           <p className="text-[13px] tabular-nums text-ink">
             <span className="font-medium text-recommend">{counts.confirmed} confirmed</span>

@@ -21,6 +21,7 @@ export function ProposalBanner({
   record,
   captureTask,
   activeTaskId,
+  anchorId,
   onAnswerTask,
   onWhy,
   onEscalate,
@@ -34,7 +35,10 @@ export function ProposalBanner({
   record: ActionDecisionRecord | undefined;
   /** The signed-in role's capture task about this gate, if any. */
   captureTask: CaptureTask | undefined;
+  /** The task already shown in the room's capture panel (its row here is then hidden). */
   activeTaskId: string | null;
+  /** DOM id for in-app links (#blocked-gate), on one banner only. */
+  anchorId?: string;
   onAnswerTask: (taskId: string) => void;
   onWhy: (item: BoardItem) => void;
   onEscalate: (item: BoardItem) => void;
@@ -82,7 +86,8 @@ export function ProposalBanner({
   const perms = withRecordedDecision(actionPermissions(item.action, role, target.role), record, formatSgtClock);
   return (
     <div
-      className="overflow-hidden rounded-xl border-[1.5px] border-blocked/70 bg-blocked-tint shadow-card"
+      id={anchorId}
+      className="scroll-mt-24 overflow-hidden rounded-xl border-[1.5px] border-blocked/70 bg-blocked-tint shadow-card"
       role="alert"
     >
       <div className="p-5">

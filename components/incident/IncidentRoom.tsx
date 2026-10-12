@@ -73,7 +73,7 @@ import { useExpertVoice } from './useExpertVoice';
 import { CaptureTaskCard } from '@/components/pulse/CaptureTaskCard';
 import type { CaptureTask, VoiceNote } from '@/lib/capture';
 import { findOpenCaptureTask } from '@/lib/capture';
-import { buildCloseoutTask, buildGateTask, gateTaskKind, latestTask } from './captureTasks';
+import { buildCloseoutTask, buildGateTask, gateTaskKind, latestTask, openTasksFor } from './captureTasks';
 import { ensureTaskAnswered, useCaptureActions, useCaptureView } from './useCapture';
 import { proposablePill } from '@/components/canvas/noteDraftUtils';
 import { sourceLabel } from '@/lib/connectors/registry';
@@ -419,6 +419,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
     (task: CaptureTask, reason: string) => {
       try {
         captureActions.dismissCaptureTask(task.id, reason);
+        setActiveTaskId((id) => (id === task.id ? null : id));
         setAnnouncement('Task dismissed. Reason recorded in the audit log.');
       } catch (err) {
         setAnnouncement(`Not recorded: ${(err as Error).message}`);
@@ -444,7 +445,16 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
     requestAnimationFrame(() => capturePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }, []);
   const activeTask = activeTaskId ? captureView.tasks.find((t) => t.id === activeTaskId) : undefined;
-  const panelTask = activeTask ?? closeoutTask;
+  // One task card at the top of the decisions column (#capture-task): the one
+  // being answered, else this role's open "Tell us why" here, else an open
+  // close-out. A dismissed task leaves the panel.
+  const openGateTask = openTasksFor(captureView.tasks, role).find(
+    (t) => t.incidentId === incidentId && (t.kind === 'gate_blocked' || t.kind === 'gate_override'),
+  );
+  const panelTask =
+    (activeTask && activeTask.status !== 'dismissed' ? activeTask : undefined) ??
+    openGateTask ??
+    (closeoutTask?.status === 'open' ? closeoutTask : undefined);
   const startCloseout = useCallback(() => {
     const task = buildCloseoutTask({ incidentId, assetId: scenario.incident.asset_id, role, at: new Date().toISOString() });
     const existing = findOpenCaptureTask(captureView.tasks, task);
@@ -563,6 +573,11 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
 
   // The model proposes only once its triggering event has been replayed.
   const proposals = scenario.aiProposals.filter((p) => step >= p.afterStep);
+  // #blocked-gate: the AI proposal a gate is holding, else the first blocked action.
+  const blockedProposalId = proposals.find(
+    (p) => items.find((i) => i.rule.id === p.ruleId)?.action.status === 'blocked',
+  )?.proposalId;
+  const firstBlocked = items.find((i) => i.action.status === 'blocked');
   const asset = scenario.asset;
   const people = asset.people;
   const affectedParty = scenario.incident.affected_tenant
@@ -596,7 +611,11 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
       createdFor: role,
     });
     return (
-      <div key={`${item.entry.bundle.id}:${item.rule.id}`} className={cn('rounded-xl', blocked && 'shadow-card')}>
+      <div
+        key={`${item.entry.bundle.id}:${item.rule.id}`}
+        id={!blockedProposalId && item === firstBlocked ? 'blocked-gate' : undefined}
+        className={cn('rounded-xl', blocked && 'scroll-mt-24 shadow-card')}
+      >
         {blocked ? (
           <p className="flex items-center gap-1.5 rounded-t-xl border border-b-0 border-blocked/45 bg-blocked-tint px-4 py-2 text-[13px] font-semibold text-blocked">
             <Ban className="size-3.5 shrink-0" aria-hidden="true" />
@@ -647,7 +666,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                 onRequestEvidence={(keys) => requestEvidence(item, keys)}
               />
             ) : null}
-            {task ? (
+            {task && task.id !== panelTask?.id ? (
               <CaptureTaskCard
                 task={task}
                 role={role}
@@ -833,15 +852,18 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
 
         {/* ---------------------------------------------------- Centre */}
         <section aria-label="Decisions" className="min-w-0 space-y-4">
-          <div ref={capturePanelRef} className="scroll-mt-4">
+          <div ref={capturePanelRef} id={panelTask ? 'capture-task' : undefined} className="scroll-mt-24">
             {panelTask ? (
               <CaptureTaskCard
-                key={panelTask.id}
+                // Answering makes it the active task, so the card stays here
+                // (for the read-back) after the note answers it.
+                key={`${panelTask.id}:${panelTask.id === activeTaskId}`}
                 task={panelTask}
                 role={role}
                 startAnswering={panelTask.id === activeTaskId}
                 onAnswer={(t, note) => answerTask(t, note)}
                 onDismiss={dismissTask}
+                onAnswerElsewhere={panelTask.id === activeTaskId ? undefined : (t) => openTask(t.id)}
                 pills={proposable}
               />
             ) : null}
@@ -861,7 +883,8 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                 ruleId: p.ruleId,
                 createdFor: role,
               })}
-              activeTaskId={activeTaskId}
+              activeTaskId={panelTask?.id ?? null}
+              anchorId={p.proposalId === blockedProposalId ? 'blocked-gate' : undefined}
               onAnswerTask={openTask}
               onWhy={(item) =>
                 setDrawer({
@@ -976,7 +999,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
       {/* ------------------------------------------------------- Footer */}
       {/* Compact audit status for this incident. The full log is the app-shell
           "Audit log" drawer; this opens that same drawer. */}
-      <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-canvas/95 backdrop-blur md:left-64">
+      <footer className="fixed inset-x-0 z-40 border-t border-line bg-canvas/95 backdrop-blur md:left-64" style={{ bottom: 'var(--guide-bar-h, 0px)' }}>
         <button
           type="button"
           onClick={() => setAuditOpen(true)}
