@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Ban, ChevronDown, Clock, ScrollText, Server, Building2, Mic } from 'lucide-react';
+import Link from 'next/link';
+import { Ban, ChevronDown, Clock, FileText, ScrollText, Server, Building2, Mic } from 'lucide-react';
+import { routes } from '@/lib/journey/routes';
 import {
   ActionCard,
   CHIP_BASE,
@@ -752,6 +754,10 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
               <Mic className="size-3.5 shrink-0" aria-hidden="true" />
               Close out job · add a 10-second note
             </button>
+            <Link href={routes.incidentRecord(incidentId)} className={cn('btn-pill text-xs', WRAPPING_PILL)}>
+              <FileText className="size-3.5 shrink-0" aria-hidden="true" />
+              Decision record
+            </Link>
             <ResetDemoControl onConfirm={resetAll} />
           </div>
         }
