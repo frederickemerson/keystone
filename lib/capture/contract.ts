@@ -703,14 +703,20 @@ export type PeerConfirmation = z.infer<typeof peerConfirmationSchema>;
  * access policy? A different person (identity key, not display string) whose
  * role the pill lets edit it: owner, steward, approver or access.roles_allowed
  * — denied / roles_read_only always lose (same policy as pillEditAuthority).
+ * Once the rule is proposed as a version, its `proposer` is excluded too: the
+ * proposer already vouched for it, so their confirmation is not independent.
  */
 export function peerConfirmAuthority(
   confirmer: { name: string; role: string },
   author: { name: string },
   policy: PillEditPolicy,
+  proposer?: { name: string },
 ): DecisionAuthority {
   if (identityKey(confirmer.name) === identityKey(author.name)) {
     return { allowed: false, reason: `${confirmer.name} recorded this note, so someone else must confirm it.` };
+  }
+  if (proposer && identityKey(confirmer.name) === identityKey(proposer.name)) {
+    return { allowed: false, reason: `${confirmer.name} proposed this version, so an independent peer must confirm it.` };
   }
   const edit = pillEditAuthority(confirmer.role, policy);
   if (!edit.allowed) {
@@ -729,7 +735,7 @@ export interface PeerGate extends DecisionAuthority {
 /**
  * Peer gate for one rule of one pill version: satisfied with ≥1 eligible
  * confirm and no outstanding eligible dispute (each person's LATEST verdict
- * counts; ineligible verdicts — the author, read-only roles — are ignored).
+ * counts; ineligible verdicts — the author, the proposer, read-only roles — are ignored).
  * Shadow promotion of a capture-derived version requires `allowed`.
  */
 export function peerGate(
@@ -737,6 +743,7 @@ export function peerGate(
   target: { pillId: string; pillVersion: string; ruleId: string; noteId?: string },
   author: { name: string },
   policy: PillEditPolicy,
+  proposer?: { name: string },
 ): PeerGate {
   const latest = new Map<string, PeerConfirmation>();
   const relevant = confirmations
@@ -747,7 +754,7 @@ export function peerGate(
         c.ruleId === target.ruleId &&
         (target.noteId === undefined || c.noteId === target.noteId),
     )
-    .filter((c) => peerConfirmAuthority(c.confirmer, author, policy).allowed)
+    .filter((c) => peerConfirmAuthority(c.confirmer, author, policy, proposer).allowed)
     .sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   for (const c of relevant) latest.set(identityKey(c.confirmer.name), c);
   const confirmers = [...latest.values()].filter((c) => c.verdict === "confirm").map((c) => c.confirmer.name);
@@ -756,7 +763,7 @@ export function peerGate(
     return { allowed: false, reason: `Disputed by ${disputers.join(", ")} — resolve before Shadow.`, confirmers, disputers };
   }
   if (confirmers.length === 0) {
-    return { allowed: false, reason: "Needs one peer confirmation from someone other than the author.", confirmers, disputers };
+    return { allowed: false, reason: "Needs one peer confirmation from someone other than the author and the proposer.", confirmers, disputers };
   }
   return { allowed: true, confirmers, disputers };
 }

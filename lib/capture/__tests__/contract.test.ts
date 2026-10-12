@@ -383,6 +383,14 @@ describe("peer confirmation", () => {
     expect(peerConfirmAuthority({ name: "Rahul Menon", role: "duty_lew" }, rajesh, CWL_POLICY).allowed).toBe(false);
   });
 
+  it("authority and gate: the version's proposer is not an independent peer", () => {
+    const tan = { name: "Tan Wei Ming", role: "chief_engineer" };
+    expect(peerConfirmAuthority(tan, rajesh, CWL_POLICY).allowed).toBe(true);
+    expect(peerConfirmAuthority(tan, rajesh, CWL_POLICY, tan).reason).toMatch(/proposed this version/);
+    expect(peerGate([pc({ confirmer: tan })], target, rajesh, CWL_POLICY, tan).allowed).toBe(false);
+    expect(peerGate([pc({ confirmer: tan }), pc({})], target, rajesh, CWL_POLICY, tan)).toMatchObject({ allowed: true, confirmers: [hafiz.name] });
+  });
+
   it("gate: needs one eligible confirm, ignores ineligible ones", () => {
     expect(peerGate([], target, rajesh, CWL_POLICY).allowed).toBe(false);
     expect(peerGate([pc({ confirmer: rajesh })], target, rajesh, CWL_POLICY).allowed).toBe(false);

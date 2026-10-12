@@ -71,7 +71,7 @@ export function PillApprovalCard({
     : undefined;
   // The version carries who said it (capture.author): the gate needs nothing else from this device.
   const gate =
-    capture && peerTarget ? peerGateFor(captureView.peerConfirmations, peerTarget, capture.author, policy) : undefined;
+    capture && peerTarget ? peerGateFor(captureView.peerConfirmations, peerTarget, capture.author, policy, version.createdBy) : undefined;
   const peerBlocker = capture && version.status === "Draft" && gate && !gate.allowed ? gate.reason : undefined;
   const canPromote = promotion.allowed && !peerBlocker;
   const authorityBlocker = promotion.allowed
@@ -171,6 +171,7 @@ export function PillApprovalCard({
           pillVersion={version.version}
           versionStatus={version.status}
           capture={capture}
+          proposer={version.createdBy}
           note={captureNote}
           draft={captureDraft}
           policy={policy}

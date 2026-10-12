@@ -393,6 +393,26 @@ describe("proposeFromNote", () => {
     refused("voice_note_blocked", () => s().amendNoteFromReadBack("VN-0001", "DRAFT-01"));
   });
 
+  it("a second draft from the same note proposes alongside the first (stale-base checks guard approval)", () => {
+    store = setup();
+    s().setRole("technician");
+    s().createCaptureTask(TASK);
+    s().recordVoiceNote(noteInput());
+    s().recordDraftsFromNote("VN-0001", [
+      { rule: DRAFT_RULE, quoteSpan: QUOTE_SPAN },
+      { rule: { ...DRAFT_RULE, id: "DRAFT-02", title: "Second rule from the same note" }, quoteSpan: QUOTE_SPAN },
+    ]);
+    for (const d of s().draftsFromNotes["VN-0001"]) {
+      d.readBack.forEach((_, i) => s().confirmReadBack("VN-0001", d.rule.id, i, { confirmed: true }));
+    }
+    s().setRole("chief_engineer");
+    s().proposeFromNote(input);
+    const second = oneEvent("draft_from_note_proposed", () =>
+      s().proposeFromNote({ ...input, draftRuleId: "DRAFT-02", ruleId: "TS-15" }),
+    );
+    expect(second).toMatchObject({ version: "1.4.0", parentVersion: "1.2.0", capture: { draftRuleId: "DRAFT-02" } });
+  });
+
   it("goes through the pill's edit policy: a read-only technician cannot propose", () => {
     confirmAllChips();
     refused("draft_from_note_blocked", () => s().proposeFromNote(input), /read-only/);
@@ -429,14 +449,14 @@ describe("peerConfirm and the Shadow peer gate", () => {
     s().setRole("technical_services_lead");
     const c = oneEvent("peer_confirmed", () => s().peerConfirm({ ...target, verdict: "confirm" }));
     expect(c).toMatchObject({ confirmer: { name: "Muhammad Hafiz" }, noteId: "VN-0001", at: clock() });
+    // The proposer already vouched for the rule: their verdict is not an independent peer's.
     s().setRole("chief_engineer");
+    refused("peer_confirm_blocked", () => s().peerConfirm({ ...target, verdict: "confirm" }), /proposed this version/);
+    s().setRole("asset_operations_manager");
     oneEvent("peer_disputed", () => s().peerConfirm({ ...target, verdict: "dispute", note: "15 min is too long for a tripped DB" }));
 
-    s().setRole("asset_operations_manager");
-    refused("version_shadow_blocked", () => s().promoteToShadow(PILL_ID, "1.3.0"), /Disputed by Tan Wei Ming/);
-    s().setRole("chief_engineer");
+    refused("version_shadow_blocked", () => s().promoteToShadow(PILL_ID, "1.3.0"), /Disputed by Priya Nair/);
     s().peerConfirm({ ...target, verdict: "confirm" }); // latest verdict counts
-    s().setRole("asset_operations_manager");
     oneEvent("version_shadowed", () => s().promoteToShadow(PILL_ID, "1.3.0"));
     expect(s().versions[PILL_ID][1]).toMatchObject({ status: "Shadow", shadowedBy: { name: "Priya Nair" } });
 

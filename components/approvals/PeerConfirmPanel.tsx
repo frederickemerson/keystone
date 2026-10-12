@@ -33,8 +33,9 @@ export function peerGateFor(
   target: PeerTarget,
   author: { name: string },
   policy: PillEditPolicy,
+  proposer: { name: string },
 ): PeerGate {
-  return peerGate(confirmations, target, author, policy);
+  return peerGate(confirmations, target, author, policy, proposer);
 }
 
 export function PeerBadge({ gate }: { gate: PeerGate }) {
@@ -65,6 +66,7 @@ export function PeerBadge({ gate }: { gate: PeerGate }) {
 export function PeerConfirmPanel({
   target,
   author,
+  proposer,
   authorCredit,
   versionStatus,
   policy,
@@ -75,6 +77,8 @@ export function PeerConfirmPanel({
   target: PeerTarget;
   /** Who recorded the note the rule came from (the gate excludes them). */
   author: { name: string; role: string };
+  /** Who proposed the version (the gate excludes them too). */
+  proposer: { name: string };
   /** How the speaker is credited on screen (by name only with their opt-in). */
   authorCredit: string;
   /** Verdicts count only while the version is a Draft (the store refuses them after). */
@@ -90,9 +94,9 @@ export function PeerConfirmPanel({
   const reasonId = useId();
   const noteId = useId();
 
-  const gate = peerGateFor(confirmations, target, author, policy);
+  const gate = peerGateFor(confirmations, target, author, policy, proposer);
   const open = versionStatus === 'Draft';
-  const policyAuthority = peerConfirmAuthority(currentActor, author, policy);
+  const policyAuthority = peerConfirmAuthority(currentActor, author, policy, proposer);
   const authority = open
     ? policyAuthority
     : { allowed: false, reason: `Peer verdicts close when v${target.pillVersion} leaves Draft (it is ${versionStatus}).` };

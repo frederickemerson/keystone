@@ -151,6 +151,7 @@ function ProposedDraft({
         pillVersion={version.version}
         versionStatus={version.status}
         capture={version.capture}
+        proposer={version.createdBy}
         note={note}
         draft={draft}
         policy={policy}

@@ -572,6 +572,7 @@ export function createGovernanceStore(
                     { pillId, pillVersion: version, ruleId: target.capture.ruleId, noteId: target.capture.noteId },
                     target.capture.author,
                     policy,
+                    target.createdBy,
                   )
                 : { allowed: false, reason: `Unknown pill ${pillId}` };
               if (!gate.allowed) {
@@ -1115,6 +1116,7 @@ export function createGovernanceStore(
             if (!version) return refuse(`Unknown version ${pillId}@${String(raw.pillVersion)}`);
             const ruleId = String(raw.ruleId);
             let author: Actor;
+            let proposer: Actor | undefined;
             let noteId: string;
             if (isDraftRuleId(ruleId)) {
               const note = raw.noteId !== undefined && Object.hasOwn(get().voiceNotes, raw.noteId) ? get().voiceNotes[raw.noteId] : undefined;
@@ -1130,10 +1132,11 @@ export function createGovernanceStore(
               if (raw.noteId !== undefined && raw.noteId !== capture.noteId) return refuse(`${ruleId} came from ${capture.noteId}, not ${String(raw.noteId)}`);
               if (version.status !== "Draft") return refuse(`v${version.version} is ${version.status}; peer review happens while it is a Draft`);
               author = capture.author;
+              proposer = version.createdBy;
               noteId = capture.noteId;
             }
             const actor = actorRecord();
-            const authority = peerConfirmAuthority(actor, author, policy);
+            const authority = peerConfirmAuthority(actor, author, policy, proposer);
             if (!authority.allowed) return refuse(authority.reason ?? "Not authorised");
             const parsed = peerConfirmationSchema.safeParse({
               pillId,

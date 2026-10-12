@@ -13,7 +13,7 @@ This plan covers five features. Each one turns a moment the worker already has (
 | `ReadBackItem` | A chip for one number, asset tag, role or time in a transcript | Extracted by `extractReadBack()` using regex plus the register/roles.json glossary, **never by the LLM**. Spans are `[start, end)` offsets into the note transcript. `confirmed` is `null`, `true` or `false`. A `correctedText` implies `confirmed: true`. `canonical` holds the register id, role id, ISO duration (`PT15M`), `HH:MM` or a decimal. An asset tag without a `canonical` is not in the register, and the UI must flag it. |
 | `DraftFromNote` | An existing `DRAFT-` candidate plus `noteId`, `quoteSpan` and `readBack` | Keeps its `DRAFT-` id and is identified by (noteId, rule.id). `draftProposalReadiness()` checks three things: the quote is a verbatim span of the note, the chips are exactly the deterministic extraction over the quote, and every chip is confirmed. |
 | `PeerConfirmation` | One person's `confirm` or `dispute` on (pillId, pillVersion, ruleId[, noteId]) | A `DRAFT-` ruleId needs a `noteId`. A dispute needs a `note`. |
-| `peerConfirmAuthority` / `peerGate` | The Draft→Shadow peer gate for capture-derived versions | The confirmer must be a different identity (`identityKey`) from the author, and `pillEditAuthority` must allow the confirmer's role on the pill (owner, steward, approver or `roles_allowed`; `denied`/`roles_read_only` lose). The gate needs at least one eligible confirm and **no outstanding eligible dispute**. Each person's latest verdict counts. |
+| `peerConfirmAuthority` / `peerGate` | The Draft→Shadow peer gate for capture-derived versions | The confirmer must be a different identity (`identityKey`) from the author and, once the rule is proposed as a version, from that version's proposer (`createdBy`, who already vouched for it); and `pillEditAuthority` must allow the confirmer's role on the pill (owner, steward, approver or `roles_allowed`; `denied`/`roles_read_only` lose). The gate needs at least one eligible confirm and **no outstanding eligible dispute**. Each person's latest verdict counts. |
 | `CAPTURE_AUDIT_ACTIONS` | New audit names, already spread into `AUDIT_ACTIONS` (`lib/capture/audit-actions.ts`) | `capture_task_created/answered/dismissed/blocked`, `voice_note_recorded/blocked`, `readback_confirmed/corrected/blocked`, `draft_from_note_proposed/blocked`, `peer_confirmed/disputed/confirm_blocked` |
 | `CaptureStoreActions` | Implemented in `lib/governance/store.ts`: `createCaptureTask`, `answerCaptureTask`, `dismissCaptureTask`, `recordVoiceNote`, `recordDraftsFromNote`, `amendNoteFromReadBack`, `confirmReadBack`, `proposeFromNote`, `peerConfirm` (see "Contract changes") | Same conventions as the existing store: the actor is the session's `currentActor`, every call is audited, and a refusal is audited as `…_blocked` before `GovernanceError` is thrown. |
 
@@ -75,10 +75,10 @@ Every number, asset tag, role and time inside a draft's quote is shown as a chip
 - [ ] Only the note's author answers chips (`readback_blocked` otherwise).
 
 ### F4: Peer confirmation before Shadow
-A version proposed from a note cannot enter Shadow until a different, eligible person confirms it, and while any eligible peer disputes it.
+A version proposed from a note cannot enter Shadow until an eligible person other than the speaker and the proposer confirms it, and while any eligible peer disputes it.
 - [x] `PillVersion` gains `capture?: { noteId: string; draftRuleId: string; ruleId: string }` (plus `quoteSpan`, `author`). The snapshot schema validates it, and `GOVERNANCE_STORE_VERSION` bumps to 4.
 - [x] For a version with `capture`, `promoteToShadow` requires `peerGate(...).allowed` in addition to `shadowPromotionAuthority`. A refusal is audited as `version_shadow_blocked` and carries the gate's reason.
-- [x] `peerConfirm` refuses the author, read-only roles and denied roles (`peer_confirm_blocked`). A dispute requires a note.
+- [x] `peerConfirm` refuses the author, the version's proposer, read-only roles and denied roles (`peer_confirm_blocked`). A dispute requires a note.
 - [ ] The Canvas or approvals view shows the badge "Peer-confirmed by …" or "Disputed by …".
 - [x] Versions that did not come from capture behave exactly as before. The existing governance tests stay green unchanged.
 

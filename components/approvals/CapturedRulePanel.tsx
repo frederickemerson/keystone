@@ -34,6 +34,7 @@ export function CapturedRulePanel({
   pillVersion,
   versionStatus,
   capture,
+  proposer,
   note,
   draft,
   policy,
@@ -46,6 +47,8 @@ export function CapturedRulePanel({
   pillVersion: string;
   versionStatus: VersionStatus;
   capture: CaptureProvenance;
+  /** Who proposed this version (cannot also be its peer). */
+  proposer: { name: string };
   /** The note and its draft, when this device holds them (persisted governance state). */
   note: VoiceNote | undefined;
   draft: DraftFromNote | undefined;
@@ -101,6 +104,7 @@ export function CapturedRulePanel({
       <PeerConfirmPanel
         target={target}
         author={capture.author}
+        proposer={proposer}
         authorCredit={credit}
         versionStatus={versionStatus}
         policy={policy}
