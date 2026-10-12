@@ -2,7 +2,7 @@
 // Pure (no fs) so client-safe modules (lib/governance/access.ts) can validate
 // statically imported JSON. Shapes are derived from the actual files in data/.
 
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { conditionSchema, ruleExceptionSchema } from "../engine/schema";
 
 export const sensitivityLevelSchema = z.enum(["public", "internal", "tenant_pii", "commercial"]);

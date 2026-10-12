@@ -300,7 +300,7 @@ describe('fall-through chain with truthful attribution', () => {
 
   it('structured output that passes the wire contract but fails the engine guard is still rejected', async () => {
     vi.stubEnv('MOSAIC_LLM_PROVIDER', 'openai');
-    const base = sample.structured.output.rule_candidates[0];
+    const { rule_id: _modelId, ...base } = sample.structured.output.rule_candidates[0];
     // Allowed and forbidden at once: expressible on the wire, refused by the engine rule schema.
     const clash = { ...base, allowed_actions: [...base.allowed_actions, base.forbidden_actions[0]] };
     const output = { rule_candidates: [clash] };

@@ -14,7 +14,7 @@
 //  - cross-file references (rule ids, evidence keys) must resolve.
 
 import * as yaml from "js-yaml";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import type {
   ActionClass,
   ActionStatus,
@@ -297,11 +297,23 @@ const ruleSchema: z.ZodType<Rule> = z
   })
   .superRefine(refineRule);
 
-/** rules.yaml: a list of rules with unique ids. */
+/**
+ * Rule ids starting with this prefix are reserved for unreviewed extraction
+ * drafts (assigned server-side in lib/llm/candidates, never by the model). No
+ * pill rule may use it, so a draft id can never equal a real rule id.
+ */
+export const DRAFT_RULE_ID_PREFIX = "DRAFT-";
+
+export function isDraftRuleId(id: string): boolean {
+  return id.startsWith(DRAFT_RULE_ID_PREFIX);
+}
+
+/** rules.yaml: a list of rules with unique ids, none in the reserved draft namespace. */
 const rulesFileSchema = z.array(ruleSchema).superRefine((rules, ctx) => {
   const seen = new Set<string>();
   rules.forEach((rule, i) => {
     if (seen.has(rule.id)) ctx.addIssue({ code: "custom", path: [i, "id"], message: `duplicate rule id "${rule.id}"` });
+    if (isDraftRuleId(rule.id)) ctx.addIssue({ code: "custom", path: [i, "id"], message: `rule id "${rule.id}" uses the reserved draft prefix "${DRAFT_RULE_ID_PREFIX}"` });
     seen.add(rule.id);
   });
 });

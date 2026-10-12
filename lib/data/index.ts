@@ -4,7 +4,7 @@
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { z } from "zod";
+import type { z } from "@/lib/zod";
 import {
   aiProposalFixtureSchema,
   assetsSchema,

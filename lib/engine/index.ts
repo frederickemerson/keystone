@@ -51,6 +51,8 @@ export {
 export {
   conditionSchema,
   ruleSchema,
+  DRAFT_RULE_ID_PREFIX,
+  isDraftRuleId,
   manifestSchema,
   provenanceSchema,
   evalCaseSchema,

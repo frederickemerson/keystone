@@ -7,11 +7,12 @@
 // navigation and reload, and are allowed only for roles the pill's SKILL.md
 // `access` block lets change it.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Check, X, ArrowRight, FileCheck2, Lock } from 'lucide-react';
 import { RuleTile, EmptyState, ActionClassChip, CHIP_BASE, TONE_CHIP } from '@/components/mosaic';
 import { useMounted } from '@/components/mosaic/useMounted';
+import { useModalDialog } from '@/components/mosaic/useModalDialog';
 import { expertQuoteFor } from '@/components/incident/provenance';
 import { cn } from '@/lib/ui/cn';
 import type { ActionClass, Rule } from '@/lib/engine/types';
@@ -341,6 +342,10 @@ function EditOverlay({
   onCancel: () => void;
 }) {
   const [text, setText] = useState(initial);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useModalDialog({ open: true, onClose: onCancel, panelRef, initialFocusRef: textareaRef });
+  const titleId = `rule-edit-title-${rule.id}`;
   return (
     <div
       className="fixed inset-0 z-30 flex items-center justify-center bg-cocoa-ink/30 p-4"
@@ -349,10 +354,12 @@ function EditOverlay({
       }}
     >
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={`Edit rule ${rule.id}`}
-        className="w-full max-w-lg rounded-xl border border-line-strong bg-canvas p-6 shadow-lift"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="w-full outline-none max-w-lg rounded-xl border border-line-strong bg-canvas p-6 shadow-lift"
       >
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="font-mono text-[11px] text-ink-muted">{rule.id}</p>
@@ -365,12 +372,13 @@ function EditOverlay({
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
-        <h3 className="font-display-soft text-[20px] font-semibold leading-tight text-heading">{rule.title}</h3>
+        <h3 id={titleId} className="font-display-soft text-[20px] font-semibold leading-tight text-heading">{rule.title}</h3>
         <label htmlFor="rule-edit" className="mt-4 block text-[13px] font-medium text-ink-muted">
           Decision (editable)
         </label>
         <textarea
           id="rule-edit"
+          ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={5}

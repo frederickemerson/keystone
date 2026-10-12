@@ -6,7 +6,7 @@
 // session (none, expired, tampered) the caller must go through /sign-in.
 
 import { NextResponse, type NextRequest } from "next/server";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { isKnownRole, personaFor } from "@/lib/governance/access";
 import { SESSION_COOKIE, sessionCookieOptions, sessionSecret } from "@/lib/auth/config";
 import { crossSiteRejected, isSameOriginRequest } from "@/lib/auth/csrf";

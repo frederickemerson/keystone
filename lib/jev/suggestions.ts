@@ -5,7 +5,7 @@
 // becomes evidence only when a human with the key's `confirmable_by` grant
 // confirms it through the governance store (confirmEvidence → audit).
 
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 import type { ConditionContext } from '@/lib/engine/conditions';
 import { evaluateRule } from '@/lib/engine/evaluate';
 import type { EvidenceCatalog, Pill } from '@/lib/engine/types';

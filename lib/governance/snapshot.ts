@@ -12,7 +12,7 @@
 // The acting identity is never read from the snapshot: it comes from the
 // signed session (lib/auth). A `currentActor` left by an older build is ignored.
 
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { ruleSchema } from "@/lib/engine";
 import { isKnownRole, sameIdentity } from "./access";
 import { AUDIT_ACTIONS, auditId, type AuditEvent } from "./audit";

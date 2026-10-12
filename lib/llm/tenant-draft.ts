@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 import fixture from '@/data/fixtures/llm/tenant-message-INC-2026-1011.json';
 
 const recorded = fixture.drafts[0];

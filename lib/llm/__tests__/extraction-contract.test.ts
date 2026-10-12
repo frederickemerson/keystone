@@ -9,8 +9,19 @@
 import { asSchema } from 'ai';
 import { describe, expect, it } from 'vitest';
 import { loadExtractionFixture } from '@/lib/data';
-import { draftExtractionSchema, extractionWireSchema, toDraftCandidates } from '../candidates';
-import sample from './fixtures/openai-extract-sample.json';
+import draftExtractionFixture from '@/data/fixtures/llm/extraction.json';
+import { draftExtractionSchema, draftRuleId, extractionWireSchema, toDraftCandidates } from '../candidates';
+import { listPillRefs, loadPill } from '@/lib/pills/load';
+import { applyRuleChanges } from '@/lib/governance/versions';
+import recordedSample from './fixtures/openai-extract-sample.json';
+
+// The recorded response predates server-assigned draft ids: it carries a
+// model-chosen rule_id, which the wire contract no longer offers.
+const withoutRuleId = <T extends { rule_id?: unknown }>({ rule_id: _drop, ...rest }: T) => rest;
+const sample = {
+  ...recordedSample,
+  structured: { output: { rule_candidates: recordedSample.structured.output.rule_candidates.map(withoutRuleId) } },
+};
 
 type JsonSchema = {
   type?: string | string[];
@@ -103,5 +114,28 @@ describe('extraction structured-output contract', () => {
     const guarded = draftExtractionSchema.safeParse(hostile);
     expect(guarded.success).toBe(true);
     expect(JSON.stringify(guarded.data)).not.toMatch(/approvedBy|"approved"/);
+  });
+
+  it('draft ids are assigned server-side in the reserved DRAFT- namespace, never taken from the model', () => {
+    const base = sample.structured.output.rule_candidates[0];
+    const withModelId = { rule_candidates: [{ ...base, rule_id: 'TS-01' }, { ...base, rule_id: 'TS-01', title: 'second' }] };
+    // The model cannot emit an id on the wire...
+    expect(extractionWireSchema.safeParse(withModelId).success).toBe(false);
+    // ...and any id a non-strict provider sends is overwritten by the guard.
+    const guarded = draftExtractionSchema.safeParse(withModelId);
+    expect(guarded.success).toBe(true);
+    if (!guarded.success) return;
+    expect(guarded.data.candidates.map((c) => c.rule.id)).toEqual(['DRAFT-01', 'DRAFT-02']);
+    expect(draftRuleId(9)).toBe('DRAFT-10');
+  });
+
+  it('a draft id can never equal a real pill rule id', () => {
+    const pills = listPillRefs().map((r) => loadPill(r.id)!.pill);
+    expect(pills.length).toBeGreaterThan(0);
+    const guarded = draftExtractionSchema.parse(draftExtractionFixture);
+    const pillIds = new Set(pills.flatMap((p) => p.rules.map((r) => r.id)));
+    for (const c of guarded.candidates) expect(pillIds.has(c.rule.id)).toBe(false);
+    // The namespace is reserved: a draft cannot be proposed into a pill under its draft id.
+    expect(() => applyRuleChanges(pills[0].rules, [{ op: 'add', rule: guarded.candidates[0].rule }])).toThrow(/draft id/);
   });
 });

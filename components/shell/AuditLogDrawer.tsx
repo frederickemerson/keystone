@@ -3,10 +3,11 @@
 // Top-bar audit drawer: the governance store's append-only log, newest first.
 // Lives in the shared AppShell so every screen can inspect who did what.
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { X } from 'lucide-react';
 import { useGovernanceStore } from '@/lib/governance/store';
 import { roleLabel } from '@/lib/governance/access';
+import { useModalDialog } from '@/components/mosaic/useModalDialog';
 
 // Deterministic wall-clock in Singapore, identical on server and client.
 // (en-GB renders 24-hour time by default.)
@@ -25,9 +26,6 @@ function actionLabel(action: string): string {
   return action.replace(/_/g, ' ');
 }
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
 /**
  * Modal dialog: focus moves into the panel on open, Tab / Shift+Tab cycle
  * inside it, Escape closes, and focus returns to whatever opened it.
@@ -36,41 +34,7 @@ export function AuditLogDrawer({ open, onClose }: { open: boolean; onClose: () =
   const audit = useGovernanceStore((s) => s.audit);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-
-  useEffect(() => {
-    if (!open) return;
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeRef.current?.focus();
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onCloseRef.current();
-        return;
-      }
-      if (event.key !== 'Tab' || !panelRef.current) return;
-      const focusables = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
-      const inside = active instanceof Node && panelRef.current.contains(active);
-      if (event.shiftKey && (active === first || !inside)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && (active === last || !inside)) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      // Return focus to the opener (if it is still on the page).
-      if (opener?.isConnected) opener.focus();
-    };
-  }, [open]);
+  useModalDialog({ open, onClose, panelRef, initialFocusRef: closeRef });
 
   if (!open) return null;
 

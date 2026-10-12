@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { z } from 'zod';
+import type { z } from '@/lib/zod';
 import { loadTenantMessageFixture } from '@/lib/data';
 import type { Generation } from '@/lib/llm/attribution';
 import { generateJson } from '@/lib/llm/providers';

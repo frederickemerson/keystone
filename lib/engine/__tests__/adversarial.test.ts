@@ -285,6 +285,10 @@ describe("rules.yaml is strict", () => {
     expect(() => parsePill(files({ rulesYaml: ruleYaml("R-1") + ruleYaml("R-1") }))).toThrow(/duplicate rule id "R-1"/);
   });
 
+  it("rejects rule ids in the reserved extraction-draft namespace", () => {
+    expect(() => parsePill(files({ rulesYaml: ruleYaml("DRAFT-01") }))).toThrow(/reserved draft prefix/);
+  });
+
   it.each([
     ["gt with a string", "{ path: evidence.wet, op: gt, value: '5' }"],
     ["lt with no value", "{ path: evidence.wet, op: lt }"],

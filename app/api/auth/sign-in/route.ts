@@ -5,7 +5,7 @@
 // wrong passcodes → JSON-only, size-capped body → constant-time passcode check.
 
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { isKnownRole } from "@/lib/governance/access";
 import { demoPasscode, SESSION_COOKIE, sessionCookieOptions, sessionSecret } from "@/lib/auth/config";
 import { crossSiteRejected, isSameOriginRequest } from "@/lib/auth/csrf";

@@ -5,7 +5,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import type { query } from '@tencent-ai/agent-sdk';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
-import type { z } from 'zod';
+import type { z } from '@/lib/zod';
 import extraction from '@/data/fixtures/llm/extraction.json';
 import { extractionWireSchema } from './candidates';
 import tenantMessage from '@/data/fixtures/llm/tenant-message-INC-2026-1011.json';

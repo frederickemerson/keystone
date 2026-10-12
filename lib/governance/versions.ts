@@ -2,8 +2,8 @@
 // Pure + client-safe. History is append-only: rollback creates a new version.
 
 import { create as createDiffPatcher, type ArrayDelta, type Delta, type ObjectDelta } from "jsondiffpatch";
-import { z } from "zod";
-import { ruleSchema, type Pill, type Rule } from "@/lib/engine";
+import { z } from "@/lib/zod";
+import { isDraftRuleId, ruleSchema, type Pill, type Rule } from "@/lib/engine";
 
 export type VersionStatus = "Draft" | "Shadow" | "Approved" | "Retired";
 
@@ -155,6 +155,7 @@ export function applyRuleChanges(rules: readonly Rule[], changes: readonly RuleC
   const ids = new Set<string>();
   for (const r of next) {
     if (ids.has(r.id)) throw new Error(`Duplicate rule id ${r.id}`);
+    if (isDraftRuleId(r.id)) throw new Error(`Rule id ${r.id} is a draft id; assign a real rule id before proposing it`);
     ids.add(r.id);
   }
   const parsed = proposedRulesSchema.safeParse(next);

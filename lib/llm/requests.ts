@@ -1,5 +1,5 @@
 import 'server-only';
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 
 export const extractRequestSchema = z.object({
   interviewId: z.string().regex(/^[a-zA-Z0-9-]{1,80}$/).default('ce-interview-2026-10-02'),

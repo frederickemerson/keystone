@@ -9,9 +9,9 @@
 // governance store (proposeVersion → Draft → canApprove by a different,
 // authorised human).
 
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { ruleCandidateSchema, type RuleCandidate } from "@/lib/data/schemas";
-import { ruleSchema, type Rule } from "@/lib/engine";
+import { DRAFT_RULE_ID_PREFIX, ruleSchema, type Rule } from "@/lib/engine";
 
 export interface DraftCandidate {
   readonly status: "draft";
@@ -77,8 +77,9 @@ const wireCondition = z.union([
   z.strictObject({ path: wirePath, op: z.literal("in"), value: z.array(wireScalar).min(1) }),
   z.strictObject({ path: wirePath, op: z.literal("exists") }),
 ]);
+// No rule_id: a draft's id is assigned server-side (draftRuleId), never by the
+// model, so it cannot borrow — and collide with — a real pill rule id.
 const wireCandidate = z.strictObject({
-  rule_id: z.string().regex(/^[A-Z]{2,5}-\d{2,3}$/),
   title: z.string(),
   trigger: z.strictObject({ incident_type: z.string(), all: z.array(wireCondition), any: z.array(wireCondition) }),
   required_evidence: z.array(z.string()),
@@ -107,9 +108,24 @@ const wireCandidate = z.strictObject({
  */
 export const extractionWireSchema = z.strictObject({ rule_candidates: z.array(wireCandidate).max(4) });
 
-/** Use the existing field-by-field guard for both provider output and fixtures. */
+/** Server-assigned id for the i-th (0-based) extracted draft: DRAFT-01, DRAFT-02, … */
+export function draftRuleId(index: number): string {
+  return `${DRAFT_RULE_ID_PREFIX}${String(index + 1).padStart(2, "0")}`;
+}
+
+/**
+ * The guard for extractor output (live provider or recorded fallback). Every
+ * candidate's id is overwritten with a server-assigned draft id before the
+ * field-by-field guard runs — whatever rule_id the model emitted is discarded —
+ * so a draft id is always in the reserved DRAFT- namespace, which no pill rule
+ * may use (engine rulesFileSchema, governance applyRuleChanges).
+ */
 export const draftExtractionSchema = extractionOutputSchema.transform((raw, ctx) => {
-  const parsed = toDraftCandidates(raw);
+  const parsed = toDraftCandidates({
+    rule_candidates: raw.rule_candidates.map((item, i) =>
+      typeof item === "object" && item !== null && !Array.isArray(item) ? { ...item, rule_id: draftRuleId(i) } : item,
+    ),
+  });
   const ids = parsed.candidates.map((c) => c.rule.id);
   if (parsed.rejected.length || new Set(ids).size !== ids.length) {
     ctx.addIssue({ code: 'custom', message: 'Invalid or duplicate rule candidates.' });

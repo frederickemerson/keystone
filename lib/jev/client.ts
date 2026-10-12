@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { z } from 'zod';
+import { z } from '@/lib/zod';
 
 /**
  * Typed client for TypeSafe AI's Jev "System One" decision model
