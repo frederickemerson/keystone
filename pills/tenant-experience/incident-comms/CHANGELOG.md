@@ -11,7 +11,7 @@
 **Why this version was promoted:**
 
 - Tenant Experience Manager onboarding interview completed (Lim Hui Fen,
-  `te-interview-2026-10-03`, CDM/ACTA probes). All 6 rules confirmed on the
+  `te-interview-2026-10-03`, CDM/ACTA probes). All 7 rules confirmed on the
   Decision Canvas; each rule's provenance resolves to a verbatim quote.
 - TE-01 (first notice within 30 minutes) confirmed as `requires_approval`:
   a named human (Tenant Experience Manager or delegate) approves before

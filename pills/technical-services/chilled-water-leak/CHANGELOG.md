@@ -11,7 +11,7 @@
 **Why this version was promoted:**
 
 - Chief Engineer onboarding interview completed (Tan Wei Ming,
-  `ce-interview-2026-10-02`, CDM/ACTA probes, 35 min). All 12 rules
+  `ce-interview-2026-10-02`, CDM/ACTA probes, 35 min). All 13 rules
   confirmed (TS-02 edited) on the Decision Canvas. Every rule's provenance
   resolves to the expert turn it was extracted from, with a verbatim quote.
 - TS-07 (LEW re-energisation gate) confirmed as `must_escalate`,
@@ -39,9 +39,10 @@
   `eval-2025-09-tenant-area-isolation-deadline` expects TS-02
   `deadline_minutes` 10; v1.2.0 carries 15 (taken from the interview,
   00:11:35). All status expectations pass. Flagged for v1.3.0.
-- Shadow badge: 5/6 agreements (1 flagged). Head of Technical Services
-  approved promotion with the flagged eval documented and the v1.3.0
-  correction scheduled.
+- Shadow badge: 6/6 agreements. Shadow compares decision statuses, and the
+  flagged eval is a deadline value, not a status, so it does not show as a
+  disagreement. Head of Technical Services approved promotion with the
+  flagged eval documented and the v1.3.0 correction scheduled.
 
 **Pre-release content correction (part of the authored 1.2.0 content, not a
 governed runtime change — version unchanged):**

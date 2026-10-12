@@ -171,8 +171,10 @@ the rules in `rules.yaml` are.
 
 - Water in a lift pit or shaft → take the lift out of service immediately
   via the FCC. Park at an upper landing. Call the lift contractor. Do not
-  run the lift to "test". If a safety incident occurred, BCA must be called
-  within 6 hours under the Reportable Matters Regulations 2025.
+  run the lift to "test". If a reportable safety incident occurred, the owner (or last
+  maintenance contractor) must call BCA within 6 hours under the Building
+  Control (Reportable Matters) Regulations 2025 (per BCA's published
+  summary; source: `docs/research/research_domain.md` §2.1).
 
 ### Evidence preservation for insurer
 
@@ -266,5 +268,6 @@ When `asset.type == data_centre`:
 - Any situation exceeding pill scope (unknown water source, structural
   damage, chemical contamination) — escalate to Duty Manager and
   Head of Technical Services
-- BCA reportable lift incident — escalate and file within 6 hours
+- BCA reportable lift incident — escalate and call BCA within 6 hours
+  (Reportable Matters Regulations 2025, per BCA's published summary)
 - SCDF escalation when structural or electrical injury risk exists

@@ -11,8 +11,8 @@
 - Use a fresh browser profile, or clear the site's localStorage, so the governance store starts at v1.2.0 with nothing approved.
 - Browser at 1440 x 900, zoom 110 %, cursor highlight on, notifications off.
 - Have CodeBuddy Code open in a terminal in the repo, with `.codebuddy/skills/chilled-water-leak/` present, for the reflection section. The screenshots `docs/proof/04a-codebuddy-skill-invoked.png` and `04b-codebuddy-skill-ts07-answer.png` are the fallback if a live run is not possible.
-- Have `npx vitest run` ready in a second terminal. Last verified run (12 Oct 2026): **33 test files, 515 tests, all passing.** Re-run before recording; the narration says "over 500 tests".
-- Live AI on the Vercel deployment is OpenAI gpt-5.4-mini (the fallback) or recorded output, and the badge says which. This script does not show a live AI call. If you record one locally with CodeBuddy credentials, the badge will read Hunyuan hy4-preview via CodeBuddy; narrate whatever the badge shows.
+- Have `npx vitest run` ready in a second terminal. Last verified run (12 Oct 2026): **38 test files, 593 tests, all passing.** Re-run before recording; the narration says "over 590 tests".
+- Live AI on the Vercel deployment is OpenAI gpt-5.4-mini (the fallback) or recorded output, and the badge says which. Sign in once more if you have an older session (tokens now carry a `jti`). This script does not show a live AI call. If you record one locally with CodeBuddy credentials, the badge will read Hunyuan hy4-preview via CodeBuddy; narrate whatever the badge shows.
 
 ---
 
@@ -52,11 +52,11 @@
 
 ### 2:05 to 2:35 · Decision Canvas: the expert stays in charge
 
-**On screen:** Open `/canvas/technical-services-chilled-water-leak`. Show the resolved contradiction with its distinguishing condition (00:23:30), which becomes TS-02. Hover over one tile to show its transcript quote and timestamp. Click **Confirm** on one tile and **Edit** on another.
+**On screen:** Open `/canvas/technical-services-chilled-water-leak`. Show the resolved contradiction with its distinguishing condition (00:23:30), which becomes TS-02. Hover over one tile, or click its quote button, to show the expert's recorded quote and timestamp. Click **Confirm** on one tile and **Edit** on another.
 
 **Narration:**
 > His answer becomes the distinguishing condition: isolate the sub-valve when it's accessible and actually stops the flow, and isolate the riser when it isn't. That's rule TS-02.
-> On the Decision Canvas, every candidate rule comes with the quote and timestamp it came from. The expert confirms it, edits it or rejects it. Nothing goes into the pill until he has signed off.
+> On the Decision Canvas, every candidate rule shows the expert's own words and the timestamp they came from. Hover or click the quote button to read it. The expert confirms it, edits it or rejects it, and every review is audited. Nothing goes into the pill until he has signed off.
 
 ### 2:35 to 2:50 · Switch user to the Asset Operations Manager
 
@@ -91,24 +91,23 @@
 2. **Expert correction**, as Tan Wei Ming (switch user if needed): change the TS-02 deadline from **15 to 10 minutes**, with a reason.
 3. **Diff:** v1.2.0 → v1.3.0.
 4. **Validate evals:** v1.2.0 passes 5 of 6 replayed incidents. The one that fails is the tenant-area isolation deadline, the same thing the expert just corrected. Show that the proposed version fixes it and that there are no regressions.
-5. **Shadow:** as the author, Tan Wei Ming can't promote it. Click the one-click hand-off **Switch user to Priya Nair · Asset Operations Manager** (exact label comes from the persona), start Shadow and show the agreements.
-6. **Approve:** use **Switch user** to choose **Goh Boon Kheng · Head of Technical Services**, the pill's approver of record. Approve.
-7. **Roll back:** click **Roll back to v1.2.0**, enter a reason, and show that the history keeps every version, with v1.3.0 marked Retired.
+5. **Shadow:** as the author, Tan Wei Ming can't promote it. Click the one-click hand-off **Switch user to Priya Nair · Asset Operations Manager** (exact label comes from the persona), click **Promote to Shadow**, then **Replay 6 closed incidents** and show **6/6 agreements**.
+6. **Approve:** still as Priya, show that approval is refused with *"Separation of duties: Priya Nair put v1.3.0 into Shadow, so someone else must approve it"*. Click the hand-off **Switch user to Goh Boon Kheng · Head of Technical Services**, the pill's approver of record. Approve.
+7. **Roll back:** as Goh Boon Kheng, click **Roll back to v1.2.0**, enter a reason, and show that the history keeps every version: v1.4.0 restores the v1.2.0 rules and v1.3.0 is marked Retired. Open the audit log: `version_proposed` (Tan) → `version_shadowed` (Priya) → `version_approved` (Goh) → `version_rolled_back` (Goh).
 
 **Narration:**
 > A pill also has to learn, under governance. The outcome is captured: the leak was isolated in seven minutes. Tan Wei Ming corrects TS-02's deadline from fifteen minutes to ten. That creates a new draft version, and we can see exactly what changed.
 > Before anyone approves it, we replay it against every past incident in the pill's evals. The current version fails one case, and it's the very deadline he just corrected. The new version passes it, with no regressions.
-> He wrote the change, so he can't promote it. Priya puts it into shadow mode, which replays the past incidents through both versions and shows they agree.
-> Then the approver of record, Goh Boon Kheng, Head of Technical Services, signs it off. The author can never approve his own change, and the code enforces that.
-<!-- TODO(coordinator): if the three-person separation-of-duties fix (author ≠ shadow promoter ≠ approver) lands, restore: "Author, steward and approver are three different people, and the code enforces that separation of duties." Same for the 60-second cut and shot 15. -->
-> If it turns out to be wrong, rollback is one click. The rollback adds a new version and deletes nothing, so the audit trail stays complete.
+> He wrote the change, so he can't promote it. Priya puts it into shadow mode, which replays the six closed incidents through both versions: six of six agree.
+> She can't approve what she shadowed either. The approver of record, Goh Boon Kheng, Head of Technical Services, signs it off. Author, steward and approver are three different people, and the code enforces that separation of duties.
+> If it turns out to be wrong, Goh rolls it back with a reason. The rollback adds a new version, v1.4.0, with the old rules, and deletes nothing, so the audit trail stays complete.
 
 ### 5:20 to 5:45 · Responsible AI, briefly
 
-**On screen:** Split screen. On the left, the terminal runs `npx vitest run` and ends on the "Test Files … passed · Tests … passed" summary (last run: 33 files, 515 tests). On the right, use **Switch user** to choose **Rajesh Kumar · Technician** and show that the incident's tenant name is masked.
+**On screen:** Split screen. On the left, the terminal runs `npx vitest run` and ends on the "Test Files … passed · Tests … passed" summary (last run: 38 files, 593 tests). On the right, use **Switch user** to choose **Rajesh Kumar · Technician** and show that the incident's tenant name is masked.
 
 **Narration:**
-> Here's the responsible-AI part in one breath. Gates are deterministic and evidence counts only when it's confirmed true. Redaction happens on the server, so a technician's browser never receives the tenant's name. Every decision is audited. And it's all tested: over 500 tests, including adversarial and property-based tests on the gates and the governance rules. The language model handles language. It never decides on a safety action.
+> Here's the responsible-AI part in one breath. Gates are deterministic and evidence counts only when it's confirmed true. Redaction happens on the server, so a technician's browser never receives the tenant's name. Every decision is audited. And it's all tested: over 590 tests, including adversarial and property-based tests on the gates and the governance rules. The language model handles language. It never decides on a safety action.
 
 ### 5:45 to 6:45 · Reflection: how we built it with CodeBuddy
 
@@ -149,9 +148,9 @@
 | 12 | 3:55 | Apply to Harbourfront DC1 overlay | Incident room | Steven Wong (CFM) as the escalation target. |
 | 13 | 4:20 | Learning steps 1 to 3: outcome, correction 15 → 10, diff | `/learning/technical-services-chilled-water-leak` | |
 | 14 | 4:40 | Learning step 4: eval replay | same | v1.2.0 passes 5/6; the correction fixes the failing case. |
-| 15 | 4:55 | Learning steps 5 and 6: hand-off to Priya, shadow, switch to Goh Boon Kheng, approve | same | Point out separation of duties. |
-| 16 | 5:10 | Learning step 7: roll back, history kept | same | |
-| 17 | 5:20 | Split: vitest (500+ passing), and the Technician view with masking | terminal + app | |
+| 15 | 4:55 | Learning steps 5 and 6: hand-off to Priya, shadow 6/6, Priya refused approval, switch to Goh Boon Kheng, approve | same | Three different people: author, steward, approver. Hold on the "Separation of duties" refusal. |
+| 16 | 5:10 | Learning step 7: Goh rolls back with a reason (v1.4.0), history and audit kept | same | |
+| 17 | 5:20 | Split: vitest (590+ passing), and the Technician view with masking | terminal + app | |
 | 18 | 5:45 | CodeBuddy proof screenshots 01a, 01b, 01c, 02c, 03a | `docs/proof/` | Ken Burns pan, about 4 s each. |
 | 19 | 6:10 | CodeBuddy skill run: same TS-07 decision | live CodeBuddy, or `docs/proof/04a`, `04b` | |
 | 20 | 6:45 | Landing hero, then the cover card with the URL | `/`, `docs/submission/cover.png` | End card for 3 s. |
@@ -168,7 +167,7 @@ Use this if the full video can't be recorded, or as a teaser. It reuses shots 1,
 | 0:08 to 0:18 | `/capture`, contradiction at 00:23:10 | "A simulated onboarding call shows how the interview draws out what was never written down and catches contradictions, and the expert confirms every rule." |
 | 0:18 to 0:33 | Incident room, step 10, TS-07 Blocked, then Why drawer with the quote read aloud | "On a live leak, an AI proposal says restore power. Rule TS-07 blocks it: no LEW sign-off. It's a deterministic gate the model can't talk past, and here are the expert's own words, read back by the app." |
 | 0:33 to 0:40 | Escalate to Rahul Menon, then Apply to Harbourfront DC1 | "It escalates to a named person. The same pill runs at a data centre with different escalation, without a rewrite." |
-| 0:40 to 0:52 | Learning: correction 15 → 10, eval replay, shadow, approve, rollback | "Corrections are replayed against past incidents, shadowed, approved by someone other than the author, and can be rolled back in one click." |
+| 0:40 to 0:52 | Learning: correction 15 → 10, eval replay, shadow, approve, rollback | "Corrections are replayed against past incidents and shadowed. Author, steward and approver are three different people, enforced in code, and a rollback deletes nothing." |
 | 0:52 to 1:00 | CodeBuddy skill answer, then the cover card | "Built with CodeBuddy, and the pill runs as a native CodeBuddy skill. Keystone: expert judgement, governed." |
 
 ---
@@ -177,7 +176,7 @@ Use this if the full video can't be recorded, or as a teaser. It reuses shots 1,
 
 | Claim | Source in the repo |
 |---|---|
-| Over 500 tests (last run: 33 files, 515 tests, all passing) | `npx vitest run`, run 12 Oct 2026 |
+| Over 590 tests (last run: 38 files, 593 tests, all passing) | `npx vitest run`, run 12 Oct 2026 |
 | Adversarial and property-based tests | `lib/governance/__tests__/adversarial.property.test.ts`, `lib/engine/__tests__/properties.test.ts` (fast-check) |
 | TS-07 quote at 00:14:32 | `pills/technical-services/chilled-water-leak/provenance.json` |
 | Contradiction at 00:06:30 vs 00:22:15, resolved at 00:23:30, marker at 00:23:10 | `README.md` demo path; `components/capture/CallPanel.tsx` |
@@ -186,7 +185,9 @@ Use this if the full video can't be recorded, or as a teaser. It reuses shots 1,
 | Escalation to Rahul Menon (duty LEW); DC1 escalation to Steven Wong (CFM) | `data/roles.json`; `README.md` step 7 |
 | TS-02 correction 15 → 10; v1.2.0 fails only the deadline eval | `evals/eval-2025-09-tenant-area-isolation-deadline.yaml` |
 | Author can't promote; hand-off to Priya | `docs/DECISIONS.md` D2 |
-| Author can't approve (separation of duties) | `lib/governance/approval.ts` |
+| Shadow 6/6 agreements over 6 closed incidents | `components/learning/learning-utils.ts` (one shadow run per eval case); `docs/review/demo-path-audit.md` |
+| Three people: author can't shadow; author and Shadow promoter can't approve; rollback same rules | `lib/governance/approval.ts` (`shadowPromotionAuthority`, `canApprove`, `rollbackAuthority`); `docs/DECISIONS.md` D2 amendment |
+| Rollback appends v1.4.0 restoring v1.2.0 rules | `lib/governance/versions.ts` |
 | "Hear the expert" is a synthetic voice reading the quote | `components/incident/useExpertVoice.ts` (browser speech synthesis) |
 | The step-10 AI proposal is recorded | `data/fixtures/llm/ai-proposals-INC-2026-1011.json` |
 | Approver of record is Head of Technical Services (Goh Boon Kheng) | `SKILL.md` `approver: head_technical_services`; `data/roles.json` |

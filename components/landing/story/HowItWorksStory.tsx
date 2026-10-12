@@ -69,7 +69,7 @@ function stepCopy(hero: HeroFacts, story: StoryFacts): StepCopy[] {
       title: STEP_TITLES[0],
       body: (
         <>
-          An AI interview surfaces the cues, exceptions and contradictions behind a call. {hero.expert} says it once, in
+          A structured interview surfaces the cues, exceptions and contradictions behind a call. The demo call is a scripted transcript read by a synthetic voice; live AI extraction runs on demand. {hero.expert} says it once, in
           his own words, at <span className="font-mono text-[0.9em]">{hero.timestamp}</span> of the onboarding
           interview.
         </>

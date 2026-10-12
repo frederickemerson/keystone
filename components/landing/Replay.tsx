@@ -81,7 +81,7 @@ function RequestCard({
           <div className="flex items-center justify-between gap-3 text-[13px] text-ink-muted">
             <span className="flex items-center gap-2">
               <time className="font-mono text-[12px] text-ink">{facts.at}</time>
-              <span className="font-medium">AI proposal</span>
+              <span className="font-medium">Recorded AI proposal</span>
             </span>
             {/* Its state, swapped in place: waiting for the gate, then held by it. */}
             <span className="relative inline-grid justify-items-end text-[12px] font-medium">
@@ -370,7 +370,7 @@ export function Replay({ facts }: { facts: ReplayFacts }) {
                   Same moment, opposite outcome.
                 </h2>
                 <p className="mt-5 max-w-[28rem] text-[17px] leading-[1.55] text-ink-muted sm:text-[18px]">
-                  At <time className="tabular-nums">{facts.at}</time> the AI proposes putting the power back on.
+                  At <time className="tabular-nums">{facts.at}</time> the recorded AI proposal is to put the power back on.
                   Keystone checks the proposal against his rule before anyone acts.
                 </p>
               </div>

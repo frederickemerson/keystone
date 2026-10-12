@@ -46,11 +46,11 @@ His judgement stays — governed."*
 | # | Screen | What happens |
 |---|--------|--------------|
 | 1 | **Expert Call** `/capture` | A simulated onboarding call with **Tan Wei Ming, Chief Engineer** (a scripted transcript tagged with CDM + ACTA probes, timed captions, read aloud with browser text-to-speech). Rule candidates appear as he speaks. The interviewer surfaces one **contradiction**: he says *"always isolate the whole riser"* (00:06:30) but later *"for an AHU branch leak, isolate the sub-valve and leave the riser open"* (00:22:15). |
-| 2 | **Decision Canvas** `/canvas/technical-services-chilled-water-leak` | The contradiction is **resolved with a distinguishing condition** rather than dropping either statement (00:23:30). The expert confirms/edits/rejects each of the 13 candidate tiles; every tile carries its transcript quote + timestamp. Publish as **v1.3.0 draft** (a UI confirmation in the demo; the governed draft is created on `/learning`). |
+| 2 | **Decision Canvas** `/canvas/technical-services-chilled-water-leak` | The contradiction is **resolved with a distinguishing condition** rather than dropping either statement (00:23:30). The expert confirms/edits/rejects each of the 13 candidate tiles; every tile shows the expert's recorded quote + timestamp (hover or click the quote button). Tile reviews are audited and restricted to the pill's owner, steward, approver or `access.roles_allowed`. Publish as **v1.3.0 draft** (a UI confirmation in the demo; the governed draft is created on `/learning`). |
 | 3 | **Incident Room** `/incident/INC-2026-1011` | A chilled-water riser/AHU leak on **L23 of Harbourfront One** above a bank tenant's ceiling. Replay the evidence timeline to **step 10 of 17** (T+08:42). A recorded AI proposal (fixture labelled hy4-preview) suggests *"Re-energise AHU-23-01 / DB-23A"*. |
 | 4 | **Blocked** | Gate **TS-07 v1.2.0 — LEW sign-off missing (+2 more)** fires red: `lew_signoff`, `insulation_resistance_ok`, `area_dry`. The gate is deterministic; no LLM output can open it. |
 | 5 | **Why / Hear the expert** | Open the Why drawer: evidence used vs missing, the rule + version, the risk if ignored, and **Hear the expert**, which reads the 00:14:32 provenance quote aloud with a synthetic browser voice (his recorded words, not his voice). Then **Escalate to Duty LEW · Rahul Menon** (a named human). |
-| 6 | **Learning** `/learning/technical-services-chilled-water-leak` | Capture the outcome (isolated in 7 min). The Chief Engineer corrects TS-02's deadline **15 → 10 min**. Propose v1.3.0 → see the **diff** → **validate against every past incident** (evals: 5 pass, 1 flagged) → **shadow mode** (replays the 6 evals through both versions: 6/6 agreements) → **approval** (separation of duties: the author cannot approve) → **one-click rollback** to v1.2.0. |
+| 6 | **Learning** `/learning/technical-services-chilled-water-leak` | Capture the outcome (isolated in 7 min). The Chief Engineer corrects TS-02's deadline **15 → 10 min**. Propose v1.3.0 → see the **diff** → **validate against every past incident** (evals: 5 pass, 1 flagged) → **shadow mode** → **approval** → **rollback**, with separation of duties across **three different people**, enforced in code: **Tan Wei Ming** (Chief Engineer) proposes v1.3.0; **Priya Nair** (Asset Operations Manager) promotes it to Shadow and replays the 6 closed incidents through both versions (6/6 agreements); she is then refused approval of her own Shadow (*"Separation of duties: …"*) and offered **Switch user to Goh Boon Kheng · Head of Technical Services**; **Goh Boon Kheng** approves, and later rolls back with a reason, which appends **v1.4.0** restoring the v1.2.0 rules and marks v1.3.0 Retired. Audit: `version_proposed` (Tan) → `version_shadowed` (Priya) → `version_approved` (Goh) → `version_rolled_back` (Goh). |
 | 7 | **Apply to DC1** | Click **Apply to Harbourfront DC1** in the Incident Room. The *same* pills run against a colocation data-centre profile: the tenant first-notice action **disappears**, a **client-SLA notice via the Critical Facilities Manager** appears, and TS-07 escalates to the **CFM** instead of the duty LEW. The engine takes no model input, so changing the LLM cannot change a gate decision (true by construction; there is no model-swap control in the app). |
 
 ### Screenshots
@@ -88,9 +88,13 @@ Next.js 15 (App Router, TS) + React 19 + Tailwind v4 + shadcn-style components
 │                                 through to TokenHub (pending), then OpenAI, per credentials.
 │                                 Opt-in extraction + tenant drafts; recorded fallback.
 │                                 Probes, contradictions and summaries remain recorded.
-├─ lib/auth/ + middleware.ts      demo sign-in, signed HTTP-only session cookie
+├─ lib/auth/ + middleware.ts      demo sign-in, signed HTTP-only session cookie (with jti),
+│                                 default-deny routing with a public allowlist,
+│                                 same-origin (CSRF) checks on auth routes
+├─ lib/ratelimit/                 per-session / per-IP / per-instance quotas (in memory)
 ├─ lib/governance/                versions (semver + jsondiffpatch + rollback),
-│                                 approval (separation of duties + eval gate),
+│                                 approval (three-person separation of duties:
+│                                 author ≠ Shadow promoter ≠ approver; eval gate),
 │                                 access + scope (server-side redaction per role), audit
 ├─ components/                    mosaic (shared), capture, canvas, incident,
 │                                 learning, registry, pulse, approvals, shell
@@ -200,13 +204,17 @@ stays offline.
 `auto` tries, in order, each provider that has credentials, falling through to the
 next on an error, timeout, invalid JSON or schema/safety rejection:
 
-1. **CodeBuddy Agent SDK → Hunyuan hy4-preview** (CodeBuddy key or local saved CLI login; 25 s)
-2. **TokenHub** (`TOKENHUB_API_KEY`; 15 s)
-3. **OpenAI** (`OPENAI_API_KEY`; 20 s) — final live fallback
+1. **CodeBuddy Agent SDK → Hunyuan hy4-preview** (CodeBuddy key or local saved CLI login; 15 s)
+2. **TokenHub** (`TOKENHUB_API_KEY`; 10 s)
+3. **OpenAI** (`OPENAI_API_KEY`; 15 s) — final live fallback
 4. **Recorded fixtures**
 
-Each timeout is capped by a 45-second budget for the whole chain; providers left
-when under 3 s remain are skipped. A forced provider that fails goes to the fixture.
+Each timeout is capped by a 20-second budget for the whole chain; providers left
+when under 3 s remain are skipped. The browser waits up to 25 s, showing an
+elapsed-time counter, then reports the outcome truthfully (live, or recorded with
+the reason). Live extraction decodes against the wire schema: on OpenAI it uses
+strict structured output (`json_schema`), and the DRAFT-only guard still validates
+every result. In our 12 Oct run, 6 of 6 live OpenAI extractions succeeded, p50 5.7 s. A forced provider that fails goes to the fixture.
 Local login detection reads only the installed SDK's shared auth-cache shape and
 logout marker, without spawning a CLI or decrypting credentials. The SDK handles
 actual login reuse/refresh; a stale login fails safely to recorded output.
@@ -225,7 +233,7 @@ Do **not** set `CODEBUDDY_INTERNET_ENVIRONMENT`; this integration uses the
 international edition. Keep all credentials server-side (never `NEXT_PUBLIC_*`).
 
 The Node routes `/api/llm/extract` and `/api/llm/tenant-message` have a 60-second
-platform budget and the 45-second provider-chain budget above. Requests are limited to 64 KB;
+platform budget and the 20-second provider-chain budget above. Requests are limited to 64 KB;
 extraction permits at most 100 turns of 4,000 characters each. Results include
 `data`, `source`, `provider`, `model`, `latencyMs`, `attempts` (earlier providers that
 failed, with an outcome only) and a safe `reason`. `provider`/`model` always name
@@ -249,15 +257,22 @@ incidents and DC clients do not receive the office fixture (DC uses the CFM SLA 
 
 The bundled CLI is externalized and its headless assets traced for Node deployment.
 Hunyuan via CodeBuddy has not been run on Vercel. The LLM and Jev APIs require a
-signed demo session, but one shared, published passcode unlocks it and there is no
-rate limiting, while `OPENAI_API_KEY` is set on the public deployment. Add real
-identity and distributed rate limiting before running billable inference publicly.
+signed demo session, and one shared, published passcode unlocks it, so the paid
+routes are rate-limited (`docs/DECISIONS.md` D7): LLM 10/min and 40/day per session
+(plus per-IP and per-instance ceilings; over quota the route returns the recorded
+fixture), Jev 60/min per session, and failed sign-ins 10/min per IP. The windows are
+**in memory, per serverless instance**, so they stop one client hammering the demo
+but are not a deployment-wide quota; production would use a shared store (e.g.
+Redis) or a WAF rule, plus real identity. Middleware is default-deny with an explicit
+public allowlist; responses carry security headers (CSP with `frame-ancestors 'none'`,
+`X-Content-Type-Options: nosniff`, a referrer policy) and the site is `noindex`.
+Session tokens carry a `jti`, so sessions issued before 12 Oct need one re-sign-in.
 
 ---
 
 ## Tests
 
-`npm test` runs the regression suite across the deterministic core, LLM boundary and governance layer,
+`npm test` runs the regression suite (593 tests in 38 files, 12 Oct 2026) across the deterministic core, LLM boundary and governance layer,
 including the safety invariants that make the demo defensible:
 
 - **Evidence can never be faked open** — a required item counts only when it is
@@ -267,7 +282,10 @@ including the safety invariants that make the demo defensible:
   `must_escalate` and `requires_approval`; the escalation target is still populated.
 - **Exceptions never relax a gate** — an exception may add required evidence, never
   remove it.
-- **Separation of duties** — the author of a version can never approve it.
+- **Separation of duties** — three different people: the author cannot put a version
+  into Shadow; neither the author nor the Shadow promoter can approve it; only Shadow
+  versions can be approved; rollback follows the same identity rules. Every refusal is
+  audited.
 - **Eval regression blocks approval** — only the pill's approver role may override, with
   a recorded reason.
 - **Rollback never deletes history** — it appends a new approved version carrying the

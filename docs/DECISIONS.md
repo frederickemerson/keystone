@@ -210,3 +210,28 @@ stops one client hammering the demo; it is not a deployment-wide quota.
 Production would back the same policy with a shared store (Upstash Redis or
 Vercel KV through `@upstash/ratelimit`) or a Vercel WAF rate-limit rule on
 `/api/llm/` and `/api/jev/`, and would set a hard budget on the provider keys.
+
+## D8 — Public wording after the three-person rule, rate limits and strict extraction (12 Oct 2026)
+
+**Decision.** This supersedes two items of fixed wording in D6.
+
+- Separation of duties is now described as **three different people,
+  enforced in code** (D2 amendment): the author (Tan Wei Ming) proposes; the
+  steward (Priya Nair) promotes to Shadow and replays the 6 closed incidents
+  (6/6 agreements) and is refused approval of her own Shadow; the approver of
+  record (Goh Boon Kheng) approves and later rolls back with a reason, which
+  appends v1.4.0 restoring the v1.2.0 rules. "The author cannot approve" alone
+  is no longer used.
+- "There is no rate limiting" is no longer true (D7). Public docs state the
+  limits and that they are held in memory per serverless instance.
+- Live extraction on OpenAI uses strict structured output against the wire
+  schema (6/6 live successes, p50 5.7 s in a 12 Oct run); the provider chain
+  budget is 20 s (CodeBuddy 15 s, TokenHub 10 s, OpenAI 15 s) and the client
+  waits up to 25 s. Public docs no longer quote the old 45 s budget.
+- The landing page says "the recorded AI proposal" for the step-10 proposal,
+  and describes the demo call as a scripted transcript read by a synthetic
+  voice, with live extraction on demand.
+- Test counts are quoted as "590+" (593 tests, 38 files, 12 Oct 2026).
+
+**Rationale.** D6's rule stands: every public claim must match what the code
+does today.

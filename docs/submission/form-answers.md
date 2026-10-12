@@ -10,7 +10,7 @@ The code blocks below contain only claims backed by this repository or by a cite
 - [ ] **[verify]** About 40% of Singapore's Built Environment PMETs are aged 50+ (MND, 2022). If confirmed, you may add: `• About 40% of Singapore's Built Environment PMETs are aged 50+ (MND, 2022).`
 - [ ] **[verify]** No pilot cost has been estimated, so the answers do not claim that one avoided flood "pays for the pilot". Add that only with a cost estimate.
 - [ ] **[verify]** The GitHub repository is private. Grant the judges access, or make it public.
-- [ ] **[verify]** Re-run `npx vitest run` just before submitting. The answers say "500+ automated tests"; the last run (12 Oct 2026) was 33 files, 515 tests, all passing.
+- [ ] **[verify]** Re-run `npx vitest run` just before submitting. The answers say "590+ automated tests"; the last run (12 Oct 2026) was 38 files, 593 tests, all passing.
 - [ ] **[verify]** Sign in on the live URL and check that the live drafting badge reads `Live · gpt-5.4-mini via OpenAI` (or `Recorded output`), as described below.
 
 ---
@@ -41,12 +41,12 @@ Challenge: Keppel · Real Estate Track · AI HARVEST: Turning Expert Know-How in
 Target scenarios
 • Capture: a retiring Chief Engineer's incident-response know-how, drawn out in a structured onboarding interview (scripted and simulated in the demo) and turned into governed decision rules.
 • Apply: a live chilled-water leak above a bank tenant in a Grade A office tower. An AI proposal (recorded in the demo) is to restore power. A deterministic safety gate (TS-07) blocks it and escalates to a named Licensed Electrical Worker.
-• Learn: an operational outcome and an expert correction (isolation deadline 15 to 10 minutes) go through a version diff, an eval replay against past incidents, shadow mode, approval by someone other than the author, and one-click rollback.
+• Learn: an operational outcome and an expert correction (isolation deadline 15 to 10 minutes) go through a version diff, an eval replay against past incidents, shadow mode, approval and rollback. Author, steward and approver must be three different people, and the code enforces it.
 • Reuse: the same pill runs at a colocation data centre through asset overrides. The escalation goes to the Critical Facilities Manager and the notice becomes a client-SLA notice. The pill also installs unchanged as a native CodeBuddy skill (verified).
 
 Users
 • The domain expert and pill owner: Tan Wei Ming, Chief Engineer, 18 years of M&E experience, retiring. He confirms, edits or rejects every extracted rule and corrects the rules later.
-• The Asset Operations Manager and pill steward: Priya Nair. She supervises AI recommendations in the Incident Room, approves actions that need approval, escalates, and stewards new versions through shadow mode.
+• The Asset Operations Manager and pill steward: Priya Nair. She supervises AI recommendations in the Incident Room, approves actions that need approval, escalates, and promotes new versions into shadow mode. She cannot approve a version she shadowed.
 • Supporting roles (14 personas in data/roles.json): Head of Technical Services (approver of record), duty Licensed Electrical Worker, DC Critical Facilities Manager, Tenant Experience Manager, Technician, Executive and others.
 
 Value proposition
@@ -79,6 +79,7 @@ Core problems solved
 ```
 Business architecture (see docs/submission/solution-diagram.png)
 Expert onboarding call → Decision Canvas (expert confirms) → Pill Registry (versions, owners, evals, shadow, health) → Incident Decision Room (the AOM supervises; gates block; named-human escalation) → Outcome & Learning (correction, diff, eval replay, shadow, approval, rollback) → back to the registry.
+Separation of duties is three people, enforced in code: the Chief Engineer proposes, the Asset Operations Manager puts the version into Shadow and replays 6 closed incidents (6/6 agreements), and the Head of Technical Services approves and, if needed, rolls back with a reason. The author cannot shadow or approve, the Shadow promoter cannot approve, and each refusal is audited.
 Each pill names its owner, steward and approver: Chief Engineer, Asset Operations Manager and Head of Technical Services. It is reviewed every 6 months, and also after any override, new asset type, regulatory change or eval regression.
 
 The Intelligence Pill (the reusable unit)
@@ -87,9 +88,9 @@ pills/technical-services/chilled-water-leak/ contains SKILL.md (frontmatter with
 Technical architecture
 Next.js 15 (App Router, TypeScript), React 19 and Tailwind v4, deployed on Vercel.
 • lib/engine: a deterministic rule engine in pure TypeScript with no LLM. evaluate(pill, asset, incident, evidence) returns actions, evidence coverage (a count, never a made-up percentage) and a trace. It also provides counterfactuals ("what would change the decision?") and runEvals(). Conditions are structured (eq, neq, gt, gte, lt, lte, in, exists); there is no eval() and no string expressions. Status precedence is not_applicable → blocked → escalate → needs_approval → allowed.
-• lib/governance: semantic versions with a JSON diff and append-only rollback; approval with separation of duties and an eval-regression gate; role and sensitivity-based access with server-side redaction; an audit log.
-• lib/auth: demo sign-in with a signed HTTP-only session (one shared demo passcode, so not identity proofing). Each page reads the role from the verified session, and data above that role's clearance is masked on the server before it reaches the browser. Versions, approvals and the append-only audit log live in the browser in this demo; production would persist them server-side.
-• lib/llm: Hunyuan hy4-preview via the CodeBuddy Agent SDK is the primary provider for opt-in live rule extraction and tenant-notice drafting; it runs where CodeBuddy credentials exist (locally). The TokenHub adapter is built but has not answered live (account verification pending). OpenAI gpt-5.4-mini is the final live fallback and is what answers on the public Vercel demo. Every screen opens on recorded output, and the badge always names the provider that actually answered.
+• lib/governance: semantic versions with a JSON diff and append-only rollback; approval with three-person separation of duties (author, Shadow promoter and approver must differ; only Shadow versions can be approved) and an eval-regression gate; role and sensitivity-based access with server-side redaction; an audit log.
+• lib/auth: demo sign-in with a signed HTTP-only session (one shared demo passcode, so not identity proofing). Middleware is default-deny with a public allowlist; auth routes check same-origin (CSRF); responses carry security headers (CSP, frame-ancestors none, nosniff, referrer policy) and the site is noindex. Paid routes are rate-limited (LLM 10/min and 40/day per session plus per-IP limits; Jev 60/min per session; failed sign-ins 10/min per IP), in memory per serverless instance; production would use a shared store or a WAF. Each page reads the role from the verified session, and data above that role's clearance is masked on the server before it reaches the browser. Versions, approvals and the append-only audit log live in the browser in this demo; production would persist them server-side.
+• lib/llm: Hunyuan hy4-preview via the CodeBuddy Agent SDK is the primary provider for opt-in live rule extraction and tenant-notice drafting; it runs where CodeBuddy credentials exist (locally). The TokenHub adapter is built but has not answered live (account verification pending). OpenAI gpt-5.4-mini is the final live fallback and is what answers on the public Vercel demo; live extraction uses strict structured output constrained by the rule schema (6 of 6 live runs succeeded on 12 Oct, median 5.7 s, within a 20 s server budget). Every screen opens on recorded output, and the badge always names the provider that actually answered.
 
 How prompts drive the AI
 The LLM does language work only. It never decides on a safety action.
@@ -100,8 +101,8 @@ The LLM does language work only. It never decides on a safety action.
 The decision path is deterministic and takes no model input, so changing the model cannot change a safety outcome.
 
 Responsible AI
-Every rule has an action class. Evidence counts only when it is confirmed and exactly true. A blocked gate outranks escalate and requires-approval. Exceptions can add required evidence but never remove it. No AI proposal executes: each is held for a named human, and blocked outright when its gate's evidence is missing. The author of a version can't approve it. Rollback never deletes history. Keystone never actuates building systems: it recommends, drafts and escalates.
-These invariants are executable: 500+ automated tests, including adversarial and property-based tests (fast-check) on the engine and the governance layer.
+Every rule has an action class. Evidence counts only when it is confirmed and exactly true. A blocked gate outranks escalate and requires-approval. Exceptions can add required evidence but never remove it. No AI proposal executes: each is held for a named human, and blocked outright when its gate's evidence is missing. The author of a version can't put it into Shadow or approve it, and whoever shadowed it can't approve it. Rollback never deletes history. Keystone never actuates building systems: it recommends, drafts and escalates.
+These invariants are executable: 590+ automated tests, including adversarial and property-based tests (fast-check) on the engine and the governance layer.
 The design is mapped (design alignment, not certification) to the IMDA Model AI Governance Framework (2020 and the 2026 Agentic AI edition), AI Verify, ISO/IEC 42001 and the NIST AI RMF. The mapping is in docs/SUBMISSION.md §9.
 
 Path to production on Tencent Cloud

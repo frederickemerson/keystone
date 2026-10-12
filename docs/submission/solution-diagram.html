@@ -166,15 +166,15 @@
       <span class="badge">6</span>
       <div class="loop-head">
         <h2>Governed learning after deployment</h2>
-        <span class="note">Evals pass + an approver who is not the author signs. History is append-only.</span>
+        <span class="note">Evals pass + an approver who neither wrote nor shadowed it signs. History is append-only.</span>
       </div>
       <div class="steps">
         <div class="step"><b>Feedback</b><span>Outcome captured: isolated in 7 min</span></div>
         <div class="step"><b>Review</b><span>Expert corrects TS-02 deadline 15 → 10 min</span></div>
         <div class="step"><b>Diff</b><span>v1.2.0 → v1.3.0 draft, reason recorded</span></div>
         <div class="step gate"><b>Validate</b><span>Replay evals on past incidents; regressions block</span></div>
-        <div class="step"><b>Shadow</b><span>Replays evals through both versions: 6/6 agree</span></div>
-        <div class="step gate"><b>Approve</b><span>Approver role or steward with the grant; author can't approve</span></div>
+        <div class="step"><b>Shadow</b><span>Steward replays 6 closed incidents on both versions: 6/6 agree</span></div>
+        <div class="step gate"><b>Approve</b><span>Three people: author ≠ steward ≠ approver; enforced in code</span></div>
         <div class="step"><b>Release</b><span>New semver version; one-click rollback</span></div>
       </div>
     </div>

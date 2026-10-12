@@ -56,8 +56,8 @@ flowchart TD
         COR["Expert correction"]
         DIFF["Diff v1.2.0 → v1.3.0"]
         EVAL["Validate: replay evals<br/>v1.2.0: 5 pass · 1 flagged"]
-        SHADOW["Shadow mode<br/>6/6 agreements"]
-        APPR["Approval<br/>(author cannot approve)"]
+        SHADOW["Shadow mode (steward)<br/>6 closed incidents · 6/6 agreements"]
+        APPR["Approval (approver of record)<br/>author ≠ Shadow promoter ≠ approver"]
         ROLL["One-click rollback<br/>(append-only)"]
         OUT --> COR --> DIFF --> EVAL --> SHADOW --> APPR --> ROLL
     end
@@ -128,12 +128,13 @@ flowchart LR
     end
 
     subgraph AUTH["lib/auth + middleware"]
-        SESS["signed session cookie<br/>role → server-side redaction"]
+        SESS["signed session cookie (jti)<br/>role → server-side redaction<br/>default-deny allowlist · CSRF · headers"]
+        RL["lib/ratelimit<br/>per session / IP / instance (in memory)"]
     end
 
     subgraph GOV["lib/governance — pure + client-safe"]
         VER["versions<br/>semver · diff (jsondiffpatch) · rollback"]
-        APP["approval<br/>separation of duties · eval-regression gate"]
+        APP["approval<br/>three-person separation of duties ·<br/>eval-regression gate"]
         ACC["access<br/>role/sensitivity RBAC · redaction"]
         AUD["audit"]
         STORE["store<br/>zustand + localStorage"]
@@ -165,6 +166,7 @@ flowchart LR
     UI -->|"user events"| GOV
     AUTH --> UI
     AUTH --> LLM
+    RL --> LLM
 
     style ENGINE fill:#e8f5e9,stroke:#2e7d32
     style GOV fill:#e3f2fd,stroke:#1565c0
@@ -180,6 +182,14 @@ flowchart LR
   input — so changing the LLM cannot change a decision.
 - **`lib/llm` is confined to language work**, and every call site has a recorded
   fallback in `data/fixtures/llm/`, so the app runs fully offline.
+- **Separation of duties is three people.** The author cannot put a version into
+  Shadow; neither the author nor the Shadow promoter can approve it; only Shadow
+  versions can be approved; rollback follows the same identity rules
+  (`lib/governance/approval.ts`, `docs/DECISIONS.md` D2). Every refusal is audited.
+- **Paid routes are rate-limited** (`lib/ratelimit`, `docs/DECISIONS.md` D7): LLM
+  10/min and 40/day per session plus per-IP and per-instance ceilings, Jev 60/min per
+  session, failed sign-ins 10/min per IP. The windows are in memory per serverless
+  instance; production would use a shared store or a WAF rule.
 - **`lib/governance` is pure and client-safe.** It owns versions, the approval gate,
   role/sensitivity redaction and the audit log. Redaction runs on the server per
   signed-in role (`lib/governance/scope.ts`, `docs/DECISIONS.md` D1). The runtime

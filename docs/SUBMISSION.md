@@ -37,8 +37,8 @@ experienced judgement is not written down and must be reused across a portfolio:
   (recorded in the demo) is blocked by a deterministic safety gate and escalated to a
   named human.
 - **Learn** — an operational outcome and an expert correction feed a version diff, an
-  eval replay, shadow mode, approval by someone other than the author, and one-click
-  rollback.
+  eval replay, shadow mode, approval and rollback, with author, steward and approver
+  enforced in code as three different people.
 - **Reuse** — the same pill re-applied to a colocation data-centre profile with asset
   overrides. The engine takes no model input, so changing the LLM cannot change a gate
   decision (true by construction; not a demo step).
@@ -54,7 +54,8 @@ Two primary users, per the challenge's own roles. Everyone else is a name in the
 2. **The Asset Operations Manager (AOM / steward)** — sits at the REIT-manager layer
    supervising property and facility managers. The primary Incident Room user: she
    supervises and verifies AI recommendations, approves `requires_approval` actions,
-   stewards the pill through shadow → approved, and escalates.
+   promotes a corrected pill version into Shadow and replays it, and escalates. She
+   cannot approve a version she shadowed; the Head of Technical Services does.
 
 Supporting roles (implemented in `data/roles.json`, 14 in total): Head of Technical
 Services (approver of record), Duty Licensed Electrical Worker (electrical-safety
@@ -163,9 +164,12 @@ Next.js 15 (App Router, TS) · React 19 · Tailwind v4
 │                         account verification) → OpenAI gpt-5.4-mini (final live
 │                         fallback; the only live provider on the Vercel deployment)
 │                         → recorded fixtures (default view and last resort)
-├─ lib/auth/ + middleware demo sign-in; signed HTTP-only session cookie
+├─ lib/auth/ + middleware demo sign-in; signed HTTP-only session cookie (jti);
+│                         default-deny middleware with a public allowlist; CSRF
+│                         (same-origin) checks on auth routes; security headers
+├─ lib/ratelimit/         per-session / per-IP / per-instance quotas (in memory)
 ├─ lib/governance/        versions (semver, jsondiffpatch diff, rollback) ·
-│                         approval (separation of duties + eval-regression gate) ·
+│                         approval (three-person separation of duties + eval-regression gate) ·
 │                         access + scope (server-side redaction per role) · audit log
 ├─ components/            mosaic · capture · canvas · incident · learning · registry ·
 │                         pulse · approvals · shell
@@ -215,7 +219,11 @@ an overall time budget (values in `README.md`); if none succeeds it returns the 
 name the provider and model that actually answered (on the deployed site, for
 example, `Live · gpt-5.4-mini via OpenAI`) or show `Recorded output`. The CodeBuddy
 SDK has no tools, one model turn, plan permission mode and no session persistence.
-All extraction output passes the existing DRAFT-only guard.
+Live extraction decodes against the wire schema (on OpenAI, strict structured output),
+and all extraction output still passes the DRAFT-only guard. In a 12 Oct run, 6 of 6
+live OpenAI extractions succeeded (p50 5.7 s); the provider chain has a 20 s budget and
+the browser waits up to 25 s with a progress counter and a badge that says truthfully
+whether the result is live or recorded.
 
 **Where each provider runs.** CodeBuddy API keys require a Pro plan, and Vercel
 never inspects a local CLI login, so Hunyuan via CodeBuddy runs locally (CodeBuddy
@@ -224,9 +232,12 @@ its live calls go to OpenAI gpt-5.4-mini, the final fallback, and to the recorde
 fixture if that fails. With no provider credentials at all, the API selects recorded
 fixtures without spawning the SDK or attempting inference. Do not set
 `CODEBUDDY_INTERNET_ENVIRONMENT` (the integration uses the international edition).
-The LLM and Jev endpoints require a signed demo session, but one shared passcode
-unlocks it and there is no rate limiting; real identity and rate limiting are needed
-before production use with billable credentials.
+The LLM and Jev endpoints require a signed demo session, and one shared passcode
+unlocks it, so they are rate-limited (`docs/DECISIONS.md` D7): LLM 10/min and 40/day
+per session, plus per-IP and per-instance ceilings (over quota, the recorded fixture
+is returned); Jev 60/min per session; failed sign-ins 10/min per IP. The limits are
+held in memory per serverless instance, so they are not a deployment-wide quota;
+production would use a shared store or a WAF rule, plus real enterprise identity.
 
 ### 5.4 What is deliberately deterministic
 
@@ -241,8 +252,9 @@ Everything that decides an action is deterministic and LLM-free:
   its value is exactly `true`. A confirmed *"LEW did not sign off"* never opens a gate.
 - **Confidence** — evidence coverage expressed as a **count** ("2 of 3 required evidence
   items confirmed"), never a fabricated model percentage.
-- **Approval** — the eval-regression gate, separation of duties, and role authority are
-  code, not prose.
+- **Approval** — the eval-regression gate, three-person separation of duties (author ≠
+  Shadow promoter ≠ approver; only Shadow versions can be approved) and role authority
+  are code, not prose.
 - **Rollback** — appends a new approved version; history is never deleted.
 
 Because the engine takes no model input, changing the LLM cannot change a gate
@@ -364,12 +376,24 @@ refuses, and can be rolled back.
 
 The **Outcome & Learning** loop: capture the outcome → expert correction → **diff**
 (v1.2.0 → v1.3.0) → **validate** (replay evals against every past incident; v1.2.0:
-5 pass, 1 flagged; v1.3.0: 6 of 6) → **shadow mode** (replays the 6 evals through the
-approved and the candidate version: "6/6 agreements") → **approval** (separation of
-duties: the author cannot approve; eval regressions block unless the approver role
-overrides with a reason) → **one-click rollback** (append-only; the rolled-back version
-is marked Retired). "Validated" is defined concretely: **evals pass + sign-off by an
-authorised approver**.
+5 pass, 1 flagged; v1.3.0: 6 of 6) → **shadow mode** (replays the 6 closed incidents
+through the approved and the candidate version: "6/6 agreements") → **approval** →
+**rollback** (append-only; the rolled-back version is marked Retired). Eval regressions
+block approval unless the approver role overrides with a reason.
+
+Separation of duties is **three different people, enforced in code**
+(`lib/governance/approval.ts`, `docs/DECISIONS.md` D2): **Tan Wei Ming** (Chief
+Engineer) proposes v1.3.0 and cannot put it into Shadow; **Priya Nair** (Asset
+Operations Manager, steward) promotes it to Shadow and replays the 6 closed incidents
+(6/6), and is then refused approval (*"Separation of duties: Priya Nair put v1.3.0 into
+Shadow, so someone else must approve it"*), with a one-click **Switch user to Goh Boon
+Kheng · Head of Technical Services**; **Goh Boon Kheng** approves, and later rolls back
+with a reason, which appends v1.4.0 restoring the v1.2.0 rules. Rollback follows the
+same identity rules, only Shadow versions can be approved, and every refusal is
+audited. The audit log reads `version_proposed` (Tan) → `version_shadowed` (Priya) →
+`version_approved` (Goh) → `version_rolled_back` (Goh). "Validated" is defined
+concretely: **evals pass + sign-off by an authorised approver who neither wrote nor
+shadowed the version**.
 
 ### 7.7 How the concept extends to multiple assets, business units or enterprise environments
 
@@ -395,16 +419,16 @@ built but has not answered live.
 
 | # | Property | Where it shows in the product |
 |---|----------|-------------------------------|
-| 1 | **Human-supervised** | Decision Canvas (expert confirms/edits/rejects every tile); every action chip carries an `action_class`; the Approval Panel and `/approvals` queue; **nothing executes without a named human**. |
+| 1 | **Human-supervised** | Decision Canvas (expert confirms/edits/rejects every tile, each showing his recorded quote; reviews audited and limited to the pill's owner, steward, approver or `access.roles_allowed`); every action chip carries an `action_class`; the Approval Panel and `/approvals` queue; **nothing executes without a named human**. |
 | 2 | **Transparent** | The Why drawer: rule id + version, evidence used vs missing, transcript quote + timestamp, risk if ignored; "Hear the expert" reads the exact quote aloud (synthetic browser voice reading his recorded words, not his voice); the counterfactual "what would change the decision?". |
 | 3 | **Accountable** | Per-pill RACI (Owner / Steward / Approver) in `SKILL.md`; per-action owner + deadline; append-only audit log (who / when / pill version / action / outcome), browser-local in the demo; production would persist it server-side. |
 | 4 | **Reliable** | Pills compile into evals; "Replay" runs the pill against past incidents and reports agreement; approval is **blocked if evals regress** (unless the approver overrides with a reason); shadow mode replays the evals through the candidate version before promotion. |
 | 5 | **Reusable** | The pill package; the same Technical Services pill applied to a second asset type (DC overlay) with gates that change but logic that does not. |
 | 6 | **Scalable** | Asset-profile overrides + registry coverage per asset type; the pill is a distributable skill; Portfolio Pulse shows portfolio-wide posture. |
-| 7 | **Governed** | Draft → Shadow → Approved → Retired lifecycle; "validate" = evals pass + authorised sign-off; separation of duties (author ≠ approver); reason required on proposal, override and rollback. |
+| 7 | **Governed** | Draft → Shadow → Approved → Retired lifecycle; "validate" = evals pass + authorised sign-off; separation of duties across three people (author ≠ Shadow promoter ≠ approver, enforced in code and audited); reason required on proposal, override and rollback. |
 | 8 | **Portable** | Plain text (YAML/JSON/Markdown) with no vendor lock-in; installs unchanged as a CodeBuddy skill (verified) and follows the SKILL.md convention used by WorkBuddy/ADP (designed for, untested); the engine takes no model input, so changing the LLM cannot change a gate. |
 | 9 | **Version-controlled** | Semantic versions + CHANGELOG; jsondiffpatch diff for approval; **one-click rollback**; history is append-only (rollback adds a version, never deletes one). |
-| 10 | **Secure** | Sensitivity labels (`public`/`internal`/`tenant_pii`/`commercial`) on rules, incidents and evidence; demo sign-in and "Switch user" (Technician / AOM / Tenant Experience / Executive / …) with server-side PII and lease-term masking (one shared demo passcode — not identity proofing); pills declare an access scope (not yet enforced). |
+| 10 | **Secure** | Sensitivity labels (`public`/`internal`/`tenant_pii`/`commercial`) on rules, incidents and evidence; demo sign-in and "Switch user" (Technician / AOM / Tenant Experience / Executive / …) with server-side PII and lease-term masking (one shared demo passcode — not identity proofing); default-deny middleware, CSRF checks on auth routes, security headers (CSP, `frame-ancestors 'none'`, nosniff, referrer policy), `noindex`, and per-session/per-IP rate limits on paid routes (in memory per instance); a pill's `access` block (RACI roles plus `roles_allowed`; `denied` and `roles_read_only` always lose) decides who may change its content: review Canvas tiles, record an outcome, propose a version. |
 | 11 | **Clearly bounded** | Mandatory `action_class` on every rule (Recommend / Requires approval / Must escalate), colour-coded everywhere; forbidden actions listed per rule; "outside approved scope → escalate to a named human" fires live on TS-07. |
 
 ---
@@ -425,7 +449,7 @@ EU high-risk system). Full analysis: `research_domain.md` §3.
 | **Not used** — autonomous control of building systems | Explicitly human-out-of-the-loop, excluded by Keystone | — | — | — | — |
 | **Why drawer** | HITL requires factors, value and weighting be provided | Transparency to end users | A.8.2 | MAP/MEASURE transparency | 14(4)(a),(c) |
 | **Override capture + version diff** | Operations management / audit trail | Human override rate as health metric (proposed for the pilot); audit approvals | A.6.2.8; A.8.4 | MANAGE 4.1 appeals/overrides; MANAGE 4.3 incidents | — |
-| **Role/sensitivity scoping** (server-side redaction of incident data; pill `access` declared, not yet enforced) | — | "Bound risks by design": limit tools, permissions, scope; least privilege | A.10.2 allocation of responsibilities | GOVERN 3.2 | 14(3) proportionality |
+| **Role/sensitivity scoping** (server-side redaction of incident data; pill `access` enforced for content changes in the governance store) | — | "Bound risks by design": limit tools, permissions, scope; least privilege | A.10.2 allocation of responsibilities | GOVERN 3.2 | 14(3) proportionality |
 
 **AI Verify alignment** (design alignment, not an AI Verify assessment — no AI Verify
 test has been run): Keystone is designed to align with Human Agency & Oversight
@@ -439,8 +463,9 @@ deterministic gates with evidence preconditions; named approver + timestamp on
 approve-tier actions; override reasons recorded on approval; provenance per rule;
 version history with rollback; server-side role-based redaction; an explicit **"no
 autonomous control of building systems"** statement. Proposed for a pilot: an
-override-rate KPI, an incident-report pipeline, enforced pill-level access, and AI
-Verify process checks.
+override-rate KPI, an incident-report pipeline, server-side enforcement of pill-level
+access (today it is enforced in the browser governance store), and AI Verify process
+checks.
 
 **Boundary statement.** Keystone never executes a physical action. It recommends,
 drafts and escalates. There is no actuator, no live BMS write path, and no autonomous
