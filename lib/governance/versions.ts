@@ -135,6 +135,19 @@ export function rollbackFrom(history: readonly PillVersion[], version: string): 
   return history.find((v) => v.rollbackOf !== undefined && v.parentVersion === version);
 }
 
+/**
+ * What a rollback of the live version restores: the version it replaced (its
+ * parent), when that one was approved once and is now Retired. Whatever made
+ * the live version — a frontline note, a correction, a Canvas review, an
+ * earlier rollback — this is the one-click "undo" target. Undefined when
+ * nothing earlier was ever live (only the seed, or nothing approved).
+ */
+export function rollbackTarget(history: readonly PillVersion[]): PillVersion | undefined {
+  const live = currentApproved(history);
+  const parent = live?.parentVersion ? findVersion(history, live.parentVersion) : undefined;
+  return parent?.status === "Retired" ? parent : undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Seeding + materialising
 // ---------------------------------------------------------------------------

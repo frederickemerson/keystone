@@ -9,7 +9,7 @@ import { History, Undo2 } from 'lucide-react';
 import { SectionHeader } from '@/components/mosaic';
 
 export function RollbackPanel({
-  baseVersion,
+  restoreVersion,
   approvedVersion,
   canRollback,
   disabledReason,
@@ -17,7 +17,8 @@ export function RollbackPanel({
   handoff,
   onRollback,
 }: {
-  baseVersion: string;
+  /** The previously approved version a rollback restores; null when there is none. */
+  restoreVersion: string | null;
   approvedVersion: string | null;
   canRollback: boolean;
   disabledReason?: string;
@@ -28,7 +29,7 @@ export function RollbackPanel({
   onRollback: (reason: string) => void;
 }) {
   const [reason, setReason] = useState('');
-  const ready = canRollback && reason.trim().length > 0;
+  const ready = canRollback && restoreVersion !== null && reason.trim().length > 0;
 
   return (
     <section aria-labelledby="learn-step-7-title" id="learn-step-7" tabIndex={-1} className="scroll-mt-4">
@@ -70,6 +71,7 @@ export function RollbackPanel({
             {disabledReason ? <p className="text-xs text-ink-muted">{disabledReason}</p> : null}
             {handoff}
 
+            {restoreVersion === null ? null : (
             <button
               type="button"
               onClick={() => onRollback(reason)}
@@ -77,14 +79,15 @@ export function RollbackPanel({
               title={ready ? undefined : disabledReason ?? 'Enter a reason to roll back'}
               className="inline-flex w-full items-center justify-center gap-2 rounded-pill border-[1.5px] border-blocked/50 bg-blocked-tint px-4 py-3 text-sm font-semibold text-blocked transition-colors hover:bg-blocked-tint/70 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
             >
-              <Undo2 className="size-4" aria-hidden="true" /> Roll back to v{baseVersion}
+              <Undo2 className="size-4" aria-hidden="true" /> Roll back to v{restoreVersion}
             </button>
+            )}
 
-            {disabledReason ? null : (
+            {disabledReason || restoreVersion === null ? null : (
             <p className="text-[11px] text-ink-muted">
               {approvedVersion
-                ? `v${approvedVersion} is live now. Rolling back retires it and restores v${baseVersion}'s rules as a new version.`
-                : `Restores v${baseVersion}'s rules as a new version.`}
+                ? `v${approvedVersion} is live now. Rolling back retires it and restores v${restoreVersion}'s rules as a new version.`
+                : `Restores v${restoreVersion}'s rules as a new version.`}
             </p>
             )}
           </>
