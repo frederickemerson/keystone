@@ -64,6 +64,8 @@ export function SignInForm({
   const [role, setRole] = useState<string | null>(preselected);
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // Passcode problems show next to the field; anything else above the submit button.
+  const [passcodeError, setPasscodeError] = useState<string | null>(null);
   const [busy, setBusy] = useState<'guide' | 'persona' | null>(null);
   const passcodeRef = useRef<HTMLInputElement>(null);
   const guide = personaFor(DEMO_PATH[0].role);
@@ -77,12 +79,14 @@ export function SignInForm({
       return;
     }
     if (passcode.length === 0) {
-      setError('Enter the demo passcode first.');
+      setError(null);
+      setPasscodeError('Enter the demo passcode first.');
       passcodeRef.current?.focus();
       return;
     }
     setBusy(intent.kind);
     setError(null);
+    setPasscodeError(null);
     try {
       const res = await fetch('/api/auth/sign-in', {
         method: 'POST',
@@ -91,7 +95,11 @@ export function SignInForm({
       });
       const body = (await res.json().catch(() => ({}))) as { next?: string; error?: string };
       if (!res.ok) {
-        setError(body.error ?? 'Sign-in failed.');
+        // 401 is the server's "wrong passcode" answer.
+        if (res.status === 401) {
+          setPasscodeError(body.error ?? 'That passcode is not right.');
+          passcodeRef.current?.focus();
+        } else setError(body.error ?? 'Sign-in failed.');
         setBusy(null);
         return;
       }
@@ -131,10 +139,24 @@ export function SignInForm({
           type="password"
           autoComplete="current-password"
           value={passcode}
-          onChange={(e) => setPasscode(e.target.value)}
-          aria-describedby={passcodeHint ? 'passcode-hint' : undefined}
-          className="min-h-11 w-full rounded-lg border border-line bg-surface px-3 text-[15px] text-ink outline-none focus-visible:border-lavender-ink focus-visible:ring-2 focus-visible:ring-lavender/40"
+          onChange={(e) => {
+            setPasscode(e.target.value);
+            if (passcodeError) setPasscodeError(null);
+          }}
+          aria-invalid={passcodeError ? true : undefined}
+          aria-describedby={[passcodeError ? 'passcode-error' : null, passcodeHint ? 'passcode-hint' : null].filter(Boolean).join(' ') || undefined}
+          className={cn(
+            'min-h-11 w-full rounded-lg border bg-surface px-3 text-[15px] text-ink outline-none focus-visible:ring-2',
+            passcodeError
+              ? 'border-blocked focus-visible:border-blocked focus-visible:ring-blocked/30'
+              : 'border-line focus-visible:border-lavender-ink focus-visible:ring-lavender/40',
+          )}
         />
+        {passcodeError ? (
+          <p id="passcode-error" role="alert" className="text-[13px] font-medium text-blocked">
+            {passcodeError}
+          </p>
+        ) : null}
         {passcodeHint ? (
           <p id="passcode-hint" className="text-[13px] text-ink-muted">
             Demo passcode: <span className="font-mono text-ink">{passcodeHint}</span>

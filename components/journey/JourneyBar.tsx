@@ -16,7 +16,7 @@ const NUMERALS = ['I', 'II', 'III', 'IV', 'V'];
 export function JourneyBar({ className }: { className?: string }) {
   const pathname = usePathname();
   const { state, step } = useGuide();
-  const stage = currentStage(pathname, state?.open ? step : undefined);
+  const stage = currentStage(pathname, state?.open && !state.finished ? step : undefined);
 
   return (
     <nav aria-label="The loop" className={cn('min-w-0', className)}>

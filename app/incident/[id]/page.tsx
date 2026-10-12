@@ -89,6 +89,11 @@ function parseStep(raw: string | string[] | undefined): number | 'end' {
   return Number.isInteger(n) && n > 0 ? n : 0;
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return { title: `Incident ${decodeURIComponent(id)} · Keystone` };
+}
+
 export default async function IncidentPage({
   params,
   searchParams,

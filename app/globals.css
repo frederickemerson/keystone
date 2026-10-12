@@ -20,6 +20,10 @@
 :root {
   color-scheme: light;
 
+  /* Shell layout offsets, published at runtime by the app shell (0 until then). */
+  --shell-header-h: 0px;
+  --guide-bar-h: 0px;
+
   /* --- Dusk palette (from components/landing/Hero.tsx) --------------------- */
   --night: #15121f; /* hero button, app sidebar */
   --night-raised: #221c33; /* hover / raised surfaces on night */
@@ -149,6 +153,10 @@
 
 @layer base {
   html {
+    /* Anchors and focused controls land below the sticky header and above the
+       docked guide bar (both heights are published by the shell; 0 when absent). */
+    scroll-padding-top: calc(var(--shell-header-h, 0px) + 0.75rem);
+    scroll-padding-bottom: calc(var(--guide-bar-h, 0px) + 0.75rem);
     background-color: var(--canvas);
     color: var(--ink);
     font-family: var(--font-sans);
@@ -283,9 +291,14 @@ main h1 {
   &:active:not(:disabled) {
     scale: 0.96;
   }
+  /* Disabled reads as unavailable: no fill, dashed outline, muted label
+     (graphite on dew drop is 6.4:1, so the label stays AA), no shadow. */
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.45;
+    background-color: var(--dew-drop);
+    border-style: dashed;
+    border-color: var(--line-strong);
+    color: var(--graphite);
     box-shadow: none;
   }
 }
@@ -299,6 +312,12 @@ main h1 {
   &:hover:not(:disabled) {
     background-color: #000000;
     border-color: #000000;
+  }
+  /* Same unavailable look as btn-pill: a disabled primary must not look filled. */
+  &:disabled {
+    background-color: var(--dew-drop);
+    border-color: var(--line-strong);
+    color: var(--graphite);
   }
 }
 

@@ -64,6 +64,8 @@ function replayAgreement(
   return { passed, total };
 }
 
+export const metadata = { title: 'Portfolio pulse · Keystone' };
+
 export default async function PortfolioPulsePage() {
   const assets = loadAssets();
   const incidents = loadIncidents();

@@ -107,17 +107,21 @@ export function SwitchUser({ actor, className }: { actor: SessionActor; classNam
       <button
         ref={triggerRef}
         type="button"
-        className="btn-pill text-xs max-sm:size-10 max-sm:gap-0 max-sm:px-0"
+        className="btn-pill min-w-0 text-xs max-sm:min-h-10 max-sm:px-2.5"
         aria-haspopup="menu"
         aria-expanded={Boolean(open)}
         aria-controls={open ? 'switch-user-menu' : undefined}
-        aria-label="Switch user"
+        aria-label={`Switch user (signed in as ${actor.name})`}
         onClick={() => (open ? close(false) : setOpen('current'))}
         onKeyDown={onTriggerKeyDown}
       >
-        <UserRound className="size-3.5" aria-hidden="true" />
-        <span className="max-sm:hidden">Switch user</span>
-        <ChevronDown className="size-3.5 max-sm:hidden" aria-hidden="true" />
+        <UserRound className="size-3.5 shrink-0" aria-hidden="true" />
+        {/* Below lg the "Signed in as" line is hidden, so the trigger names the person. */}
+        <span className="min-w-0 max-w-[8rem] truncate lg:hidden" data-testid="signed-in-name">
+          {actor.name}
+        </span>
+        <span className="hidden lg:inline">Switch user</span>
+        <ChevronDown className="size-3.5 shrink-0 max-sm:hidden" aria-hidden="true" />
       </button>
 
       {open ? (

@@ -9,6 +9,13 @@ import { loadPill } from '@/lib/pills/load';
 import { sessionRole } from '@/lib/auth/session';
 import { scopeIncident } from '@/lib/governance/scope';
 import { DEMO_INCIDENT_ID } from '@/lib/journey';
+import { pillTitle } from '@/components/mosaic/pillTitle';
+
+export async function generateMetadata({ params }: { params: Promise<{ pillId: string }> }) {
+  const { pillId } = await params;
+  const pill = loadPill(decodeURIComponent(pillId));
+  return { title: `Learning · ${pill ? pillTitle(pill) : decodeURIComponent(pillId)} · Keystone` };
+}
 
 export default async function LearningPage({
   params,

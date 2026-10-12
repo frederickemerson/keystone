@@ -8,6 +8,12 @@ import { ContradictionCallout } from '@/components/canvas/ContradictionCallout';
 import { DecisionCanvas } from '@/components/canvas/DecisionCanvas';
 import { NoteDrafts } from '@/components/canvas/NoteDrafts';
 
+export async function generateMetadata({ params }: { params: Promise<{ pillId: string }> }) {
+  const { pillId } = await params;
+  const pill = loadPill(decodeURIComponent(pillId));
+  return { title: `Decision canvas · ${pill ? pillTitle(pill) : decodeURIComponent(pillId)} · Keystone` };
+}
+
 export default async function CanvasPage({
   params,
   searchParams,

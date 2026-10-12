@@ -18,6 +18,8 @@ export const dynamic = 'force-dynamic';
 const INTERVIEW_ID = EXPERT_CALL_INTERVIEW_ID;
 const PILL_ID = EXPERT_CALL_PILL_ID;
 
+export const metadata = { title: 'Expert call · Keystone' };
+
 export default async function CapturePage({
   searchParams,
 }: {
