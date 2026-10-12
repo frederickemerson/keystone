@@ -43,17 +43,6 @@ export function latestShadow(
   return null;
 }
 
-/**
- * Eval pass rate for a pill *at a given version* (rules swapped in). Returns
- * pass/total counts — never a percentage (per SPEC §6, no LLM percentages).
- */
-export function evalPassFor(pill: Pill, version: PillVersion): { pass: number; total: number } {
-  const atVersion = pillAtVersion(pill, version);
-  const cases = Object.values(pill.evals);
-  const summary = runEvals(atVersion, cases);
-  return { pass: summary.passed, total: summary.passed + summary.failed };
-}
-
 /** Union of Brick asset references covered by a version's rules. */
 export function assetRefsFor(version: PillVersion): string[] {
   const refs = new Set<string>();

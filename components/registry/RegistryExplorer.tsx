@@ -10,6 +10,7 @@ import { PillCard, EmptyState, KpiStat, PageHeader } from "@/components/mosaic";
 import { routes } from "@/lib/journey/routes";
 import type { PillCardData, PillStatus } from "@/components/mosaic/types";
 import type { PillBundle } from "@/lib/pills/load";
+import { scoreSummary } from "@/lib/governance/evalScore";
 import { assetRefsFor, latestShadow, nextReviewDate } from "./registry-utils";
 
 const STATUSES: PillStatus[] = ["Draft", "Shadow", "Approved", "Retired"];
@@ -51,7 +52,7 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
       const evalPill = focus ? { ...bundle.pill, rules: focus.rules } : bundle.pill;
       const evalCases = Object.values(bundle.pill.evals);
       const summary = runEvals(evalPill, evalCases);
-      const evalPass = { pass: summary.passed, total: summary.passed + summary.failed };
+      const pastIncidents = scoreSummary(evalCases, summary);
 
       const assets = focus ? assetRefsFor(focus) : [];
       const sk = latestShadow(bundle.id, history, shadowRuns)?.summary ?? { agreements: 0, total: 0, label: "No shadow runs" };
@@ -69,7 +70,7 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
         steward: personaFor(bundle.pill.manifest.steward).name,
         approver: personaFor(bundle.pill.manifest.approver).name,
         equipmentClasses: assets,
-        evalPass,
+        pastIncidents,
         shadowAgreements: sk.agreements,
         pendingCorrections,
         nextReviewDate: nextReviewDate(bundle.pill.manifest),

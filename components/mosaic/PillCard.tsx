@@ -1,5 +1,6 @@
 import { CalendarClock, CircleDashed, Eye, BadgeCheck, Archive, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/ui/cn';
+import { formatChecks, formatIncidents, PAST_INCIDENTS_LABEL } from '@/lib/governance/evalScore';
 import type { PillCardData, PillStatus } from './types';
 import { PillLabel } from './PillLabel';
 import { pillDisplayName } from './pillTitle';
@@ -25,8 +26,6 @@ export function equipmentClassesLabel(count: number): string {
 }
 
 export function PillCard({ data, className }: { data: PillCardData; className?: string }) {
-  const evalTotal = data.evalPass.total || 0;
-  const evalPct = evalTotal > 0 ? Math.round((data.evalPass.pass / evalTotal) * 100) : 0;
   const classes = data.equipmentClasses;
   const classList = classes.join(', ');
   const status = STATUS[data.status];
@@ -69,9 +68,9 @@ export function PillCard({ data, className }: { data: PillCardData; className?: 
 
       <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line text-xs">
         <Metric
-          label="Eval pass"
-          value={`${data.evalPass.pass}/${data.evalPass.total}`}
-          hint={`${evalPct}%`}
+          label={PAST_INCIDENTS_LABEL}
+          value={formatIncidents(data.pastIncidents)}
+          hint={formatChecks(data.pastIncidents)}
         />
         <Metric label="Shadow agreements" value={String(data.shadowAgreements)} />
         <Metric

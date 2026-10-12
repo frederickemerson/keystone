@@ -12,6 +12,7 @@ export const STAGE_BY_ROUTE: Readonly<Record<RoutePattern, StageId | null>> = {
   '/capture': 'capture',
   '/c': 'capture',
   '/c/[assetId]': 'capture',
+  '/c/[assetId]/qr': 'capture',
   '/canvas/[pillId]': 'compile',
   '/incidents': 'apply',
   '/incident/[id]': 'apply',

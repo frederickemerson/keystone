@@ -43,6 +43,8 @@ export const routes = {
   /** Equipment index (QR landing pages). */
   equipment: (): string => '/c',
   asset: (assetId: string): string => `/c/${enc(assetId)}`,
+  /** Printable QR label for an asset's teach page. */
+  assetQr: (assetId: string): string => `/c/${enc(assetId)}/qr`,
   connectors: (): string => '/connectors',
   signIn: (): string => '/sign-in',
 } as const;
@@ -61,6 +63,7 @@ export const ROUTE_PATTERNS = [
   '/learning/[pillId]',
   '/c',
   '/c/[assetId]',
+  '/c/[assetId]/qr',
   '/connectors',
   '/sign-in',
 ] as const;

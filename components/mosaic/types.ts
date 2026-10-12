@@ -1,3 +1,4 @@
+import type { PastIncidentScore } from '@/lib/governance/evalScore';
 // Local presentational prop types for Keystone shared UI components.
 // Engine-contract types (ActionClass, ActionStatus, ActionDecision, Rule) are
 // imported directly from "@/lib/engine/types" where needed.
@@ -63,7 +64,8 @@ export interface PillCardData {
   approver: string;
   /** Brick equipment classes covered by the version's rules (registry-utils assetRefsFor). */
   equipmentClasses: string[];
-  evalPass: { pass: number; total: number };
+  /** Past-incident replay score (lib/governance/evalScore): one wording on every screen. */
+  pastIncidents: PastIncidentScore;
   shadowAgreements: number;
   pendingCorrections: number;
   /** Human-readable next review date string. */

@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/mosaic/PageHeader';
 import { AssetQr } from '@/components/capture/AssetQr';
 import { AssetTeachClient } from '@/components/capture/AssetTeachClient';
 import { humanType, requestOrigin, resolveAssetView } from './asset';
+import { routes } from '@/lib/journey/routes';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,7 +69,7 @@ export default async function AssetTeachPage({ params }: { params: Promise<{ ass
           </dl>
         </div>
         <Link
-          href={`/c/${encodeURIComponent(view.assetId)}/qr`}
+          href={routes.assetQr(view.assetId)}
           className="flex w-24 shrink-0 flex-col items-center gap-1 self-start rounded-lg p-1 text-xs text-ink-muted hover:bg-dew-drop"
         >
           <AssetQr url={url} label={`QR code for ${label}`} className="w-full" />

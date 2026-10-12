@@ -48,7 +48,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     label: 'Capture',
     items: [
       { href: routes.capture(), label: 'Expert call', purpose: 'An onboarding interview turned into rules', covers: ['/capture'] },
-      { href: routes.equipment(), label: 'Equipment', purpose: 'Teach a rule from a piece of equipment', covers: ['/c', '/c/[assetId]'] },
+      { href: routes.equipment(), label: 'Equipment', purpose: 'Teach a rule from a piece of equipment', covers: ['/c', '/c/[assetId]', '/c/[assetId]/qr'] },
     ],
   },
   {

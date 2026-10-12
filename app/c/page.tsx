@@ -78,7 +78,7 @@ export default function EquipmentIndexPage() {
                         <Link href={routes.asset(eq.id)} className="mr-3 underline-offset-2 hover:underline">
                           Teach
                         </Link>
-                        <Link href={`${routes.asset(eq.id)}/qr`} className="inline-flex items-center gap-1 underline-offset-2 hover:underline">
+                        <Link href={routes.assetQr(eq.id)} className="inline-flex items-center gap-1 underline-offset-2 hover:underline">
                           <QrCode aria-hidden className="size-3.5" /> QR label
                         </Link>
                       </td>

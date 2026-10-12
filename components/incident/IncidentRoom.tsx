@@ -76,6 +76,7 @@ import { findOpenCaptureTask } from '@/lib/capture';
 import { buildCloseoutTask, buildGateTask, gateTaskKind, latestTask } from './captureTasks';
 import { ensureTaskAnswered, useCaptureActions, useCaptureView } from './useCapture';
 import { proposablePill } from '@/components/canvas/noteDraftUtils';
+import { sourceLabel } from '@/lib/connectors/registry';
 
 // ---------------------------------------------------------------------------
 // Types + helpers
@@ -339,7 +340,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
     // Never read a mask placeholder aloud: say the content is restricted.
     const body = canSee(role, ev.sensitivity) ? `: ${ev.text.slice(0, 160)}` : ` (restricted for your role)`;
     setAnnouncement(
-      `New evidence, event ${step} of ${total}, ${ev.source} ${ev.type}${body}` +
+      `New evidence, event ${step} of ${total}, ${sourceLabel(ev.source)} ${ev.type}${body}` +
         (newlyBlocked.length ? ` Gate now blocking: ${newlyBlocked.join(', ')}.` : ''),
     );
     // Announce only on step / scenario change; role is read for redaction.

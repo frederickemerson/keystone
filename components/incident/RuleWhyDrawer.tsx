@@ -20,6 +20,7 @@ import type { EvidenceState } from './engineInputs';
 import type { ExpertQuote as ExpertQuoteSource } from './provenance';
 import { humanizeKey } from './labels';
 import type { ExpertVoiceState } from './useExpertVoice';
+import { sourceLabel } from '@/lib/connectors/registry';
 
 function Section({ icon, heading, children }: { icon: ReactNode; heading: string; children: ReactNode }) {
   return (
@@ -171,7 +172,7 @@ export function RuleWhyDrawer({
                   <span className="font-mono text-ink">{key}</span>
                   <span className="text-ink-muted">
                     {state}
-                    {e ? ` · ${JSON.stringify(e.value)} · ${e.source}` : ''}
+                    {e ? ` · ${JSON.stringify(e.value)} · ${sourceLabel(e.source)}` : ''}
                   </span>
                 </li>
               );
