@@ -11,6 +11,12 @@ export interface SessionClaims {
   name: string;
 }
 
+/** A verified token: the identity plus this signed session's unique id (JWT `jti`). */
+export interface VerifiedSession extends SessionClaims {
+  /** Per-session rate limits key on it. Server-only bookkeeping — not passed to client props. */
+  sessionId: string;
+}
+
 /** Sign a session for a roles.json role. The name is always that role's persona — never caller-chosen. */
 export async function signSession(role: string, secret: Uint8Array, now: Date = new Date()): Promise<string> {
   if (!isKnownRole(role)) throw new Error(`Role "${role}" is not defined in data/roles.json`);
@@ -21,20 +27,21 @@ export async function signSession(role: string, secret: Uint8Array, now: Date = 
     .setIssuer(SESSION_ISSUER)
     .setAudience(SESSION_AUDIENCE)
     .setIssuedAt(iat)
+    .setJti(crypto.randomUUID())
     .setExpirationTime(iat + SESSION_TTL_SECONDS)
     .sign(secret);
 }
 
 /**
  * Verify a session token. Returns null for anything not issued by us and still
- * valid: bad signature, other algorithm, expired, wrong issuer/audience, or a
- * role/name pair that is not a roles.json persona.
+ * valid: bad signature, other algorithm, expired, wrong issuer/audience, no
+ * session id (jti), or a role/name pair that is not a roles.json persona.
  */
 export async function verifySession(
   token: string | undefined | null,
   secret: Uint8Array | null,
   now: Date = new Date(),
-): Promise<SessionClaims | null> {
+): Promise<VerifiedSession | null> {
   if (!token || !secret) return null;
   try {
     const { payload } = await jwtVerify(token, secret, {
@@ -42,12 +49,14 @@ export async function verifySession(
       issuer: SESSION_ISSUER,
       audience: SESSION_AUDIENCE,
       currentDate: now,
-      requiredClaims: ["exp", "iat"],
+      // A token without a jti predates per-session limits: it must sign in again.
+      requiredClaims: ["exp", "iat", "jti"],
     });
-    const { role, name } = payload;
+    const { role, name, jti } = payload;
     if (typeof role !== "string" || typeof name !== "string" || !isKnownRole(role)) return null;
+    if (typeof jti !== "string" || jti.length === 0 || jti.length > 128) return null;
     if (!sameIdentity(name, personaFor(role).name)) return null;
-    return { role, name: personaFor(role).name };
+    return { role, name: personaFor(role).name, sessionId: jti };
   } catch (err) {
     if (err instanceof errors.JOSEError) return null;
     throw err;

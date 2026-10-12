@@ -29,6 +29,8 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   title: 'Keystone — expert judgement, governed',
   description: 'Keystone turns expert judgement into governed, versioned Intelligence Pills.',
+  // Private demo: never indexed (see also app/robots.ts).
+  robots: { index: false, follow: false },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

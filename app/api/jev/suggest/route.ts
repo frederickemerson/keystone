@@ -4,6 +4,8 @@ import { canSee } from '@/lib/governance/access';
 import { askNoul, type NoulQuestion } from '@/lib/jev/client';
 import { readRequest } from '@/lib/llm/requests';
 import { loadPill } from '@/lib/pills/load';
+import { callerOf, signInRequired } from '@/lib/ratelimit/caller';
+import { retryHeaders, takeJevCall } from '@/lib/ratelimit/policies';
 import {
   isSuggestableKey,
   questionFor,
@@ -22,11 +24,13 @@ export const maxDuration = 10;
 
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
-function reply(body: SuggestResponse, status = 200) {
-  return Response.json(suggestResponseSchema.parse(body), { status, headers: NO_STORE });
+function reply(body: SuggestResponse, status = 200, headers: Record<string, string> = {}) {
+  return Response.json(suggestResponseSchema.parse(body), { status, headers: { ...NO_STORE, ...headers } });
 }
 
 export async function POST(request: Request) {
+  const caller = await callerOf(request);
+  if (!caller) return signInRequired();
   const input = await readRequest(request, suggestRequestSchema);
   if (input instanceof Response) return input;
 
@@ -45,6 +49,10 @@ export async function POST(request: Request) {
   if (!canSee(await sessionRole(), event.sensitivity)) {
     return reply({ available: false, reason: 'Event is above your clearance.' }, 403);
   }
+
+  // Cost guard: each call below is one metered Jev request.
+  const quota = takeJevCall(caller);
+  if (!quota.ok) return reply({ available: false, reason: 'Rate limit' }, 429, retryHeaders(quota));
 
   const questions: Record<string, NoulQuestion> = Object.fromEntries(
     input.keys.map((k) => [k, { type: 'noul', instructions: questionFor(catalog, k) }]),

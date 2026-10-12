@@ -162,3 +162,38 @@ line, not promotion.
   a gate. This holds by construction; there is no model-swap control.
 - Separation of duties is described as "the author cannot approve" until a
   stricter rule is enforced in code.
+
+## D7 — Paid routes are rate-limited per session, per IP and per instance
+
+**Decision.** `/api/llm/*` (live OpenAI/TokenHub/CodeBuddy) and
+`/api/jev/*` (metered Jev) are reachable by anyone holding the public demo
+passcode, so every call now passes a quota first (`lib/ratelimit/`). The
+session token carries a unique id (`jti`) and the limits key on it, on the
+client IP (the first `x-forwarded-for` hop, which Vercel's edge writes) and on
+the instance as a whole:
+
+| Route | Per session | Per IP | Per instance |
+| --- | --- | --- | --- |
+| `/api/llm/*` (shared by extract and tenant-message) | 10/min, 40/day | 20/min, 120/day | 60/min, 500/day |
+| `/api/jev/*` | 60/min | 120/min | 600/min |
+| `/api/auth/sign-in` (failed passcodes only) | — | 10/min, 50/hour | — |
+
+Over quota, the LLM routes answer **429** with the recorded fixture in the
+usual `Generation` shape (`source: "recorded"`, reason "Live rate limit
+reached"), so the demo never breaks; Jev answers **429**
+`{ available: false, reason: "Rate limit" }`. Sign-in answers 429 before the
+passcode is compared, and the comparison stays constant-time. Tokens issued
+before the `jti` existed are no longer accepted: those users sign in again.
+
+**Rationale.** Re-signing in is free and mints a new session, so a
+per-session limit alone is not enough; the per-IP and per-instance windows
+bound that. Counting only failed sign-ins keeps a venue network of honest
+judges from being locked out.
+
+**Honest limitation.** The windows live in each serverless instance's
+memory. Vercel can run several warm instances and a cold start resets them,
+so the real ceiling is the limit times the number of warm instances. This
+stops one client hammering the demo; it is not a deployment-wide quota.
+Production would back the same policy with a shared store (Upstash Redis or
+Vercel KV through `@upstash/ratelimit`) or a Vercel WAF rate-limit rule on
+`/api/llm/` and `/api/jev/`, and would set a hard budget on the provider keys.

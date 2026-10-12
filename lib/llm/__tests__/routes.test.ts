@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetAllLimits } from '@/lib/ratelimit/policies';
 import fixture from '@/data/fixtures/llm/tenant-message-INC-2026-1011.json';
 import extraction from '@/data/fixtures/llm/extraction.json';
 import { POST as extract } from '@/app/api/llm/extract/route';
@@ -7,7 +8,11 @@ import { tenantDraftSchema } from '../tenant-draft';
 
 const mocks = vi.hoisted(() => ({ query: vi.fn(), role: vi.fn(async () => 'asset_operations_manager') }));
 vi.mock('server-only', () => ({}));
-vi.mock('@/lib/auth/session', () => ({ sessionRole: mocks.role }));
+// Each call is a fresh signed session; limits are reset per test (rate limits have their own tests).
+vi.mock('@/lib/auth/session', () => ({
+  sessionRole: mocks.role,
+  getVerifiedSession: vi.fn(async () => ({ role: 'technician', name: 'Test', sessionId: crypto.randomUUID() })),
+}));
 vi.mock('@tencent-ai/agent-sdk', () => ({ query: mocks.query }));
 vi.mock('ai', () => ({ generateText: vi.fn(() => { throw new Error('No network in tests'); }) }));
 
@@ -22,6 +27,7 @@ function request(body: unknown) {
 const draft = fixture.drafts[0];
 
 beforeEach(() => {
+  resetAllLimits();
   vi.clearAllMocks();
   vi.stubEnv('CODEBUDDY_API_KEY', 'mock-key');
   vi.stubEnv('MOSAIC_LLM_PROVIDER', 'codebuddy');

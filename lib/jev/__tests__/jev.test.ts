@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetAllLimits } from '@/lib/ratelimit/policies';
 import { evaluate } from '@/lib/engine/evaluate';
 import { loadAsset, loadIncident, loadTimeline } from '@/lib/data';
 import { createGovernanceStore, GovernanceError, memoryStorage } from '@/lib/governance/store';
@@ -17,7 +18,11 @@ import { suggestionKeys, suggestResponseSchema } from '../suggestions';
 
 const mocks = vi.hoisted(() => ({ role: vi.fn(async () => 'technician') }));
 vi.mock('server-only', () => ({}));
-vi.mock('@/lib/auth/session', () => ({ sessionRole: mocks.role }));
+// Each call is a fresh signed session; limits are reset per test (rate limits have their own tests).
+vi.mock('@/lib/auth/session', () => ({
+  sessionRole: mocks.role,
+  getVerifiedSession: vi.fn(async () => ({ role: 'technician', name: 'Test', sessionId: crypto.randomUUID() })),
+}));
 
 const FAKE_KEY = 'jev:apikey_TEST_SECRET_never_leak_123';
 const PILL_ID = 'technical-services-chilled-water-leak';
@@ -34,6 +39,7 @@ const hangingFetch: typeof fetch = (_url, init) =>
   });
 
 beforeEach(() => {
+  resetAllLimits();
   vi.stubEnv('JEV_API_KEY', FAKE_KEY);
   mocks.role.mockResolvedValue('technician');
 });

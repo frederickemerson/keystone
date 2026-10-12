@@ -9,22 +9,22 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { isKnownRole, personaFor } from "@/lib/governance/access";
 import { SESSION_COOKIE, sessionCookieOptions, sessionSecret } from "@/lib/auth/config";
+import { crossSiteRejected, isSameOriginRequest } from "@/lib/auth/csrf";
 import { signSession, verifySession } from "@/lib/auth/token";
+import { readRequest } from "@/lib/llm/requests";
 
 const bodySchema = z.object({ role: z.string().min(1).max(64) });
 
 export async function POST(request: NextRequest) {
+  if (!isSameOriginRequest(request)) return crossSiteRejected();
   const secret = sessionSecret();
   const current = await verifySession(request.cookies.get(SESSION_COOKIE)?.value, secret);
   if (!current || !secret) {
     return NextResponse.json({ error: "Sign in again to switch user.", reauth: true }, { status: 401 });
   }
-  let json: unknown;
-  try {
-    json = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Expected a JSON body." }, { status: 400 });
-  }
+  // JSON-only (a cross-site form cannot send it) and size-capped.
+  const json = await readRequest(request, z.unknown());
+  if (json instanceof Response) return json;
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success || !isKnownRole(parsed.data.role)) {
     return NextResponse.json({ error: "Unknown person." }, { status: 400 });

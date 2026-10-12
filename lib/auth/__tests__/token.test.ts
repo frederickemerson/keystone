@@ -17,7 +17,25 @@ function tamperPayload(token: string, patch: Record<string, unknown>): string {
 describe("session token", () => {
   it("signs and verifies a session for a roles.json persona", async () => {
     const token = await signSession("technician", SECRET, NOW);
-    expect(await verifySession(token, SECRET, NOW)).toEqual({ role: "technician", name: "Rajesh Kumar" });
+    expect(await verifySession(token, SECRET, NOW)).toEqual({ role: "technician", name: "Rajesh Kumar", sessionId: expect.any(String) });
+  });
+
+  it("gives every signed session its own id (jti) — per-session rate limits key on it", async () => {
+    const a = await verifySession(await signSession("technician", SECRET, NOW), SECRET, NOW);
+    const b = await verifySession(await signSession("technician", SECRET, NOW), SECRET, NOW);
+    expect(a?.sessionId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(a?.sessionId).not.toBe(b?.sessionId);
+  });
+
+  it("rejects a validly signed token without a jti (issued before session ids)", async () => {
+    const legacy = await new SignJWT({ role: "technician", name: "Rajesh Kumar" })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuer("keystone-demo")
+      .setAudience("keystone")
+      .setIssuedAt(Math.floor(NOW.getTime() / 1000))
+      .setExpirationTime(Math.floor(NOW.getTime() / 1000) + 60)
+      .sign(SECRET);
+    expect(await verifySession(legacy, SECRET, NOW)).toBeNull();
   });
 
   it("binds the name to the role's persona — callers cannot choose it", async () => {
@@ -59,7 +77,8 @@ describe("session token", () => {
         .setProtectedHeader({ alg: "HS256" })
         .setIssuer("keystone-demo")
         .setAudience("keystone")
-        .setIssuedAt(Math.floor(NOW.getTime() / 1000));
+        .setIssuedAt(Math.floor(NOW.getTime() / 1000))
+        .setJti("test-session-id");
       if (exp) jwt.setExpirationTime(Math.floor(NOW.getTime() / 1000) + 3600);
       return jwt.sign(SECRET);
     };

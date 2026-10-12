@@ -1,15 +1,21 @@
 import { randomUUID } from 'node:crypto';
+import type { z } from 'zod';
 import { loadTenantMessageFixture } from '@/lib/data';
+import type { Generation } from '@/lib/llm/attribution';
 import { generateJson } from '@/lib/llm/providers';
 import { readRequest, tenantRequestSchema } from '@/lib/llm/requests';
 import { tenantDraftSchema, tenantSentences } from '@/lib/llm/tenant-draft';
 import { sessionRole } from '@/lib/auth/session';
 import { scopeTenantMessageFixture } from '@/lib/governance/scope';
+import { callerOf, signInRequired } from '@/lib/ratelimit/caller';
+import { retryHeaders, takeLlmCall } from '@/lib/ratelimit/policies';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
+  const caller = await callerOf(request);
+  if (!caller) return signInRequired();
   const input = await readRequest(request, tenantRequestSchema);
   if (input instanceof Response) return input;
   // Validated (zod) fixture through the shared loader — typed sensitivity, no raw JSON import.
@@ -19,11 +25,18 @@ export async function POST(request: Request) {
     return Response.json({ error: 'No reviewed tenant first-notice snapshot for this incident. DC clients use the CFM SLA channel.' }, { status: 404 });
   }
   const recorded = fixture.drafts[0];
+  // Cost guard: over quota → the recorded draft (same schema/scoping path as live), status 429.
+  const quota = takeLlmCall(caller);
   const prompt = `Compose a concise DRAFT first notice for incident ${input.incidentId}, using only the reviewed facts at ${fixture.generated_at}. TE-03: no unverified cause or component blamed. TE-02: no completion promise (a next-update time is not a completion time). TE-05: no other tenant information. Nothing is sent or approved.
 Return JSON with subject and body. Subject must be ${JSON.stringify(recorded.subject)}.
 Select and arrange sentences from the following bank VERBATIM, separated by spaces or blank lines. Do not paraphrase or add claims. Include the sentences starting "This is our first notice", "We are investigating", "Next update:" and "Contact:". Include appropriate what-happened and current-action facts. Omit redundant salutations if desired. This is a bounded drafting task, not free-form advice.
 SENTENCE BANK: ${JSON.stringify(tenantSentences)}`;
-  const result = await generateJson('tenant-message-INC-2026-1011', prompt, tenantDraftSchema);
+  const result: Generation<z.output<typeof tenantDraftSchema>> = quota.ok
+    ? await generateJson('tenant-message-INC-2026-1011', prompt, tenantDraftSchema)
+    : {
+        data: tenantDraftSchema.parse(recorded), source: 'recorded', provider: 'fixtures', model: fixture.model,
+        latencyMs: 0, attempts: [], reason: 'Live rate limit reached; showing the recorded fixture.',
+      };
   // Model-supplied identity, routing, sensitivity and approval keys never survive.
   const draft = {
     ...recorded, ...result.data,
@@ -35,6 +48,7 @@ SENTENCE BANK: ${JSON.stringify(tenantSentences)}`;
   // (e.g. a technician hitting this route directly) receives the masked draft.
   const [scoped] = scopeTenantMessageFixture({ ...fixture, drafts: [draft] }, await sessionRole()).drafts;
   return Response.json({ ...result, data: { draft: scoped, snapshotAt: fixture.generated_at } }, {
-    headers: { 'Cache-Control': 'no-store' },
+    status: quota.ok ? 200 : 429,
+    headers: { 'Cache-Control': 'no-store', ...(quota.ok ? {} : retryHeaders(quota)) },
   });
 }

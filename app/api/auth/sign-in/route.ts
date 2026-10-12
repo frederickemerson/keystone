@@ -1,13 +1,19 @@
 // POST /api/auth/sign-in — demo login: pick a roles.json persona + the shared
 // demo passcode. Issues the signed, HTTP-only session cookie.
+//
+// Guards, in order: same-origin (login CSRF) → per-IP lockout after repeated
+// wrong passcodes → JSON-only, size-capped body → constant-time passcode check.
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isKnownRole } from "@/lib/governance/access";
 import { demoPasscode, SESSION_COOKIE, sessionCookieOptions, sessionSecret } from "@/lib/auth/config";
+import { crossSiteRejected, isSameOriginRequest } from "@/lib/auth/csrf";
 import { passcodeMatches } from "@/lib/auth/passcode";
 import { safeNextPath } from "@/lib/auth/redirect";
 import { signSession } from "@/lib/auth/token";
+import { readRequest } from "@/lib/llm/requests";
+import { clientIp, recordSignInFailure, retryHeaders, signInLockout } from "@/lib/ratelimit/policies";
 
 export const runtime = "nodejs";
 
@@ -18,12 +24,21 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  let json: unknown;
-  try {
-    json = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Expected a JSON body." }, { status: 400 });
+  if (!isSameOriginRequest(request)) return crossSiteRejected();
+
+  const ip = clientIp(request.headers);
+  // Checked before the passcode is even read, so a locked-out caller learns
+  // nothing about it; the comparison itself stays constant-time.
+  const lockout = signInLockout(ip);
+  if (!lockout.ok) {
+    return NextResponse.json(
+      { error: "Too many wrong passcodes. Try again shortly." },
+      { status: 429, headers: retryHeaders(lockout) },
+    );
   }
+
+  const json = await readRequest(request, z.unknown());
+  if (json instanceof Response) return json;
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Choose a person and enter the passcode." }, { status: 400 });
   const { role, passcode, next } = parsed.data;
@@ -35,6 +50,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign-in is not configured on this deployment." }, { status: 503 });
   }
   if (!passcodeMatches(passcode, demoPasscode().passcode)) {
+    recordSignInFailure(ip);
     return NextResponse.json({ error: "That passcode is not right." }, { status: 401 });
   }
 
