@@ -7,6 +7,7 @@ import { ActiveIncidentsTable } from '@/components/pulse/ActiveIncidentsTable';
 import { ClosedIncidentsList } from '@/components/pulse/ClosedIncidentsList';
 import { PillCoverageStrip } from '@/components/pulse/PillCoverageStrip';
 import { LiveGovernanceKpis } from '@/components/pulse/LiveGovernance';
+import { OpenCaptureTasks } from '@/components/pulse/OpenCaptureTasks';
 import type { IncidentRecord } from '@/lib/data';
 import { sessionRole } from '@/lib/auth/session';
 import { scopeAssets, scopeIncidents } from '@/lib/governance/scope';
@@ -112,6 +113,12 @@ export default async function PortfolioPulsePage() {
           />
           <KpiStat label="Downtime avoided" value={downtimeAvoided} unit="hrs" />
         </div>
+      </section>
+
+      {/* Questions Keystone is asking the signed-in role (gate blocks, close-outs) */}
+      <section className="space-y-3" aria-label="Open capture tasks">
+        <SectionHeader title="Open capture tasks" />
+        <OpenCaptureTasks sessionRole={role} pills={pills.map(({ id, name, pill }) => ({ id, name, pill }))} />
       </section>
 
       {/* Asset grid */}

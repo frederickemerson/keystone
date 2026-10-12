@@ -14,6 +14,7 @@ import {
   Building2,
   ArrowUpRight,
   Volume2,
+  Mic,
 } from 'lucide-react';
 import {
   ActionCard,
@@ -75,6 +76,12 @@ import { RuleWhyDrawer } from './RuleWhyDrawer';
 import { TenantMessagePanel } from './TenantMessagePanel';
 import type { AiProposal, IncidentRoomProps, IncidentScenario, RoomPill } from './types';
 import { useExpertVoice } from './useExpertVoice';
+import { CaptureTaskCard } from '@/components/pulse/CaptureTaskCard';
+import type { CaptureTask, VoiceNote } from '@/lib/capture';
+import { findOpenCaptureTask } from '@/lib/capture';
+import { buildCloseoutTask, buildGateTask, gateTaskKind, latestTask } from './captureTasks';
+import { ensureTaskAnswered, useCaptureActions, useCaptureView } from './useCapture';
+import { proposablePill } from '@/components/canvas/noteDraftUtils';
 
 // ---------------------------------------------------------------------------
 // Types + helpers
@@ -398,6 +405,88 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
   const [showNa, setShowNa] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
 
+  // Frontline capture (PLAN F1/F2): a decision on a gated action raises one
+  // capture task for the acting role; the store audits it.
+  const captureView = useCaptureView();
+  const captureActions = useCaptureActions();
+  const raiseGateTask = useCallback(
+    (item: BoardItem, outcome: ActionDecisionRecord['outcome']) => {
+      const kind = gateTaskKind(item.action.status, outcome);
+      if (!kind) return;
+      const task = buildGateTask({
+        kind,
+        incidentId,
+        assetId: scenario.incident.asset_id,
+        ruleId: item.rule.id,
+        pillId: item.entry.bundle.id,
+        role,
+        step,
+        at: new Date().toISOString(),
+      });
+      // One open task per (incident, rule, kind): repeating the action reuses it.
+      if (findOpenCaptureTask(captureView.tasks, task)) return;
+      try {
+        captureActions.createCaptureTask(task);
+        setAnnouncement(`Capture task for ${item.rule.id}: tell us why, 20 seconds.`);
+      } catch (err) {
+        setAnnouncement(`Capture task not created: ${(err as Error).message}`);
+      }
+    },
+    [captureActions, captureView.tasks, incidentId, role, scenario.incident.asset_id, step],
+  );
+  const answerTask = useCallback(
+    (task: CaptureTask, note: VoiceNote) => {
+      try {
+        ensureTaskAnswered(captureActions, task.id, note.id);
+        setAnnouncement(`Task answered with note ${note.id}. The draft waits on the pill's canvas.`);
+      } catch (err) {
+        setAnnouncement(`Not recorded: ${(err as Error).message}`);
+      }
+    },
+    [captureActions],
+  );
+  const dismissTask = useCallback(
+    (task: CaptureTask, reason: string) => {
+      try {
+        captureActions.dismissCaptureTask(task.id, reason);
+        setAnnouncement('Task dismissed. Reason recorded in the audit log.');
+      } catch (err) {
+        setAnnouncement(`Not recorded: ${(err as Error).message}`);
+      }
+    },
+    [captureActions],
+  );
+  const proposable = useMemo(
+    () => pills.map((p) => proposablePill(p, mounted ? storeVersions[p.id] : undefined)),
+    [pills, mounted, storeVersions],
+  );
+  const closeoutTask = latestTask(captureView.tasks, {
+    kinds: ['job_closeout'],
+    incidentId,
+    createdFor: role,
+  });
+  // The task being answered opens in one full-width capture panel at the top
+  // of the decisions column (action cards are too narrow to record in).
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const capturePanelRef = useRef<HTMLDivElement>(null);
+  const openTask = useCallback((taskId: string) => {
+    setActiveTaskId(taskId);
+    requestAnimationFrame(() => capturePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }, []);
+  const activeTask = activeTaskId ? captureView.tasks.find((t) => t.id === activeTaskId) : undefined;
+  const panelTask = activeTask ?? closeoutTask;
+  const startCloseout = useCallback(() => {
+    const task = buildCloseoutTask({ incidentId, assetId: scenario.incident.asset_id, role, at: new Date().toISOString() });
+    const existing = findOpenCaptureTask(captureView.tasks, task);
+    if (existing) return openTask(existing.id);
+    try {
+      openTask(captureActions.createCaptureTask(task).id);
+      setAnnouncement('Close-out note opened: 10 seconds.');
+    } catch (err) {
+      setAnnouncement(`Close-out not started: ${(err as Error).message}`);
+    }
+  }, [captureActions, captureView.tasks, incidentId, openTask, role, scenario.incident.asset_id]);
+
   // Actions.
   const decide = useCallback(
     (item: BoardItem, outcome: DirectOutcome) => {
@@ -419,9 +508,12 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
         pillId: item.entry.bundle.id,
         pillVersion: item.entry.version,
       });
-      if (rec) setAnnouncement(`${item.rule.id} ${outcome} by ${rec.actor.name}.`);
+      if (rec) {
+        setAnnouncement(`${item.rule.id} ${outcome} by ${rec.actor.name}.`);
+        raiseGateTask(item, outcome);
+      }
     },
-    [decideAction, decisions, incidentId, scenario.asset.people],
+    [decideAction, decisions, incidentId, scenario.asset.people, raiseGateTask],
   );
 
   const requestEvidence = useCallback(
@@ -438,9 +530,12 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
         pillId: item.entry.bundle.id,
         pillVersion: item.entry.version,
       });
-      if (rec) setAnnouncement(`${item.rule.id}: evidence requested by ${rec.actor.name}.`);
+      if (rec) {
+        setAnnouncement(`${item.rule.id}: evidence requested by ${rec.actor.name}.`);
+        raiseGateTask(item, 'evidence_requested');
+      }
     },
-    [decideAction, incidentId],
+    [decideAction, incidentId, raiseGateTask],
   );
 
   const confirmEvidence = useCallback(
@@ -524,6 +619,12 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
     const showPanel = item.action.status !== 'allowed';
     const blocked = item.action.status === 'blocked';
     const override = item.rule.asset_overrides?.[asset.type];
+    const task = latestTask(captureView.tasks, {
+      kinds: ['gate_blocked', 'gate_override'],
+      incidentId,
+      ruleId: item.rule.id,
+      createdFor: role,
+    });
     return (
       <div key={`${item.entry.bundle.id}:${item.rule.id}`} className={cn('rounded-xl', blocked && 'shadow-card')}>
         {blocked ? (
@@ -566,6 +667,17 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                 missingEvidence={missingOptions(item)}
                 onDecide={(o) => decide(item, o)}
                 onRequestEvidence={(keys) => requestEvidence(item, keys)}
+              />
+            ) : null}
+            {task ? (
+              <CaptureTaskCard
+                task={task}
+                role={role}
+                onAnswer={(t, note) => answerTask(t, note)}
+                onDismiss={dismissTask}
+                pills={proposable}
+                onAnswerElsewhere={(t) => openTask(t.id)}
+                className="shadow-none"
               />
             ) : null}
           </div>
@@ -673,7 +785,21 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
             </div>
           </div>
         }
-        actions={<ResetDemoControl onConfirm={resetAll} />}
+        actions={
+          <div className="flex flex-col items-end gap-2">
+            <button
+              type="button"
+              onClick={startCloseout}
+              disabled={!mounted || role === UNRESOLVED_ACTOR.role}
+              title={role === UNRESOLVED_ACTOR.role ? 'Sign in to close out the job.' : undefined}
+              className={cn('btn-pill text-xs', WRAPPING_PILL)}
+            >
+              <Mic className="size-3.5 shrink-0" aria-hidden="true" />
+              Close out job · add a 10-second note
+            </button>
+            <ResetDemoControl onConfirm={resetAll} />
+          </div>
+        }
       />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)_400px]">
@@ -745,6 +871,19 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
 
         {/* ---------------------------------------------------- Centre */}
         <section aria-label="Decisions" className="min-w-0 space-y-4">
+          <div ref={capturePanelRef} className="scroll-mt-4">
+            {panelTask ? (
+              <CaptureTaskCard
+                key={panelTask.id}
+                task={panelTask}
+                role={role}
+                startAnswering={panelTask.id === activeTaskId}
+                onAnswer={(t, note) => answerTask(t, note)}
+                onDismiss={dismissTask}
+                pills={proposable}
+              />
+            ) : null}
+          </div>
           {proposals.map((p) => (
             <ProposalBanner
               key={p.proposalId}
@@ -754,6 +893,14 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
               people={people}
               role={role}
               record={decisions[p.ruleId]}
+              captureTask={latestTask(captureView.tasks, {
+                kinds: ['gate_blocked', 'gate_override'],
+                incidentId,
+                ruleId: p.ruleId,
+                createdFor: role,
+              })}
+              activeTaskId={activeTaskId}
+              onAnswerTask={openTask}
               onWhy={(item) =>
                 setDrawer({
                   pillId: item.entry.bundle.id,
@@ -954,6 +1101,9 @@ function ProposalBanner({
   people,
   role,
   record,
+  captureTask,
+  activeTaskId,
+  onAnswerTask,
   onWhy,
   onEscalate,
 }: {
@@ -964,6 +1114,10 @@ function ProposalBanner({
   role: string;
   /** Latest recorded human decision on the proposal's gating rule. */
   record: ActionDecisionRecord | undefined;
+  /** The signed-in role's capture task about this gate, if any. */
+  captureTask: CaptureTask | undefined;
+  activeTaskId: string | null;
+  onAnswerTask: (taskId: string) => void;
   onWhy: (item: BoardItem) => void;
   onEscalate: (item: BoardItem) => void;
 }) {
@@ -1040,6 +1194,21 @@ function ProposalBanner({
               by {escalated.actor.name}. The gate stays blocked until the missing evidence is confirmed.
             </span>
           </p>
+        ) : null}
+        {captureTask?.status === 'open' && captureTask.id !== activeTaskId ? (
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line bg-surface px-3 py-2">
+            <p className="flex min-w-0 flex-1 basis-60 items-start gap-2 text-[13px] leading-snug text-ink">
+              <Mic className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <span>
+                <span className="font-semibold">Tell us why — 20 seconds.</span> What did you know that{' '}
+                <span className="font-mono">{item.rule.id}</span> didn&apos;t? It can wait: the question stays on Pulse.
+              </span>
+            </p>
+            <button type="button" onClick={() => onAnswerTask(captureTask.id)} className="btn-pill text-xs">
+              <Mic className="size-3.5" aria-hidden="true" />
+              Answer now
+            </button>
+          </div>
         ) : null}
         <div className="mt-4 flex min-w-0 flex-wrap gap-2">
           {escalated ? null : (

@@ -17,6 +17,10 @@ import { compareVersions, runEvals } from "@/lib/engine";
 import { SectionHeader, DiffView, KpiStat } from "@/components/mosaic";
 import type { PillBundle } from "@/lib/pills/load";
 import { changesToDiffItems } from "../registry/registry-utils";
+import { noteById, useCaptureActions, useCaptureView } from "@/components/incident/useCapture";
+import { policyOf } from "@/components/canvas/noteDraftUtils";
+import { CapturedRulePanel } from "./CapturedRulePanel";
+import { peerGateFor } from "./PeerConfirmPanel";
 
 export function PillApprovalCard({
   bundle,
@@ -32,6 +36,8 @@ export function PillApprovalCard({
   const approveVersion = useGovernanceStore((s) => s.approveVersion);
   const promoteToShadow = useGovernanceStore((s) => s.promoteToShadow);
 
+  const captureView = useCaptureView();
+  const captureActions = useCaptureActions();
   const [overrideReason, setOverrideReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -52,12 +58,32 @@ export function PillApprovalCard({
   });
   // Same policy the store enforces (promoteToShadow refuses + audits otherwise).
   const promotion = shadowPromotionAuthority(version, currentActor);
-  const canPromote = promotion.allowed;
-  const promoteBlockedReason = canPromote
+  // A version proposed from a frontline note also needs its peer gate (PLAN F4);
+  // promoteToShadow enforces the same check and audits a refusal.
+  const capture = version.capture;
+  const captureNote = capture ? noteById(captureView, capture.noteId) : undefined;
+  const captureDraft = capture
+    ? captureView.drafts.find((d) => d.noteId === capture.noteId && d.rule.id === capture.draftRuleId)
+    : undefined;
+  const policy = policyOf(bundle);
+  const peerTarget = capture
+    ? { pillId: bundle.id, pillVersion: version.version, ruleId: capture.ruleId, noteId: capture.noteId }
+    : undefined;
+  // The version carries who said it (capture.author): the gate needs nothing else from this device.
+  const gate =
+    capture && peerTarget ? peerGateFor(captureView.peerConfirmations, peerTarget, capture.author, policy) : undefined;
+  const peerBlocker = capture && version.status === "Draft" && gate && !gate.allowed ? gate.reason : undefined;
+  const canPromote = promotion.allowed && !peerBlocker;
+  const authorityBlocker = promotion.allowed
     ? undefined
     : version.status !== "Draft"
       ? promotion.reason
       : `${roleLabel(currentActor.role)} has no pill-promotion grant — switch user to someone who holds it (e.g. ${roleLabel(version.approverRole)}) to start Shadow.`;
+  // Both blockers are shown: who may promote, and (for a version from a note) the peer gate.
+  const promoteBlockers = [authorityBlocker, peerBlocker ? `Peer gate: ${peerBlocker}` : undefined].filter(
+    (r): r is string => Boolean(r),
+  );
+  const promoteBlockedReason = promoteBlockers.length > 0 ? promoteBlockers.join(" ") : undefined;
 
   const overrideReady =
     comparison.regressions.length > 0 &&
@@ -139,6 +165,22 @@ export function PillApprovalCard({
         </div>
       ) : null}
 
+      {capture ? (
+        <CapturedRulePanel
+          pillId={bundle.id}
+          pillVersion={version.version}
+          versionStatus={version.status}
+          capture={capture}
+          note={captureNote}
+          draft={captureDraft}
+          policy={policy}
+          confirmations={captureView.peerConfirmations}
+          currentActor={currentActor}
+          peerConfirm={captureActions.peerConfirm}
+          now={new Date().toISOString()}
+        />
+      ) : null}
+
       <SectionHeader title="Approval gate" />
       {check.allowed ? (
         <p className="flex items-center gap-1.5 text-xs text-recommend">
@@ -188,8 +230,12 @@ export function PillApprovalCard({
         </button>
       </div>
 
-      {version.status === "Draft" && promoteBlockedReason ? (
-        <p className="text-xs text-ink-muted">{promoteBlockedReason}</p>
+      {version.status === "Draft" && promoteBlockers.length > 0 ? (
+        <ul className="space-y-0.5 text-xs text-ink-muted">
+          {promoteBlockers.map((r) => (
+            <li key={r}>{r}</li>
+          ))}
+        </ul>
       ) : null}
 
       {comparison.regressions.length > 0 ? (

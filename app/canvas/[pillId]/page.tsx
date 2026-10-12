@@ -6,6 +6,7 @@ import { loadContradictionFixture, loadTranscript } from '@/lib/data';
 import { CanvasHeader } from '@/components/canvas/CanvasHeader';
 import { ContradictionCallout } from '@/components/canvas/ContradictionCallout';
 import { DecisionCanvas } from '@/components/canvas/DecisionCanvas';
+import { NoteDrafts } from '@/components/canvas/NoteDrafts';
 
 export default async function CanvasPage({
   params,
@@ -45,6 +46,8 @@ export default async function CanvasPage({
       {showContradiction ? (
         <ContradictionCallout contradiction={contradiction.contradiction} plainCondition={plainCondition} />
       ) : null}
+
+      <NoteDrafts pill={pill} />
 
       <DecisionCanvas pill={pill} />
     </div>
