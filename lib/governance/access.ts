@@ -318,9 +318,9 @@ export function pillEditAuthority(role: string, policy: PillEditPolicy): Decisio
   const { access } = policy;
   if (access.denied?.includes(role)) return { allowed: false, reason: `${who} is denied access to this pill.` };
   if (access.roles_read_only?.includes(role)) {
-    return { allowed: false, reason: `${who} has read-only access to this pill (SKILL.md access.roles_read_only).` };
+    return { allowed: false, reason: `${who} has read-only access to this pill.` };
   }
   const raci = [policy.owner, policy.steward, policy.approver];
   if (raci.includes(role) || access.roles_allowed?.includes(role)) return { allowed: true };
-  return { allowed: false, reason: `${who} is not in this pill's access.roles_allowed, so cannot change it.` };
+  return { allowed: false, reason: `${who} is not on this pill's list of editors, so cannot change it.` };
 }

@@ -10,10 +10,13 @@ import { NoteDrafts } from '@/components/canvas/NoteDrafts';
 
 export default async function CanvasPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ pillId: string }>;
+  searchParams: Promise<{ rule?: string | string[] }>;
 }) {
   const { pillId } = await params;
+  const { rule } = await searchParams;
 
   // Unknown (or hostile) ids are a 404: loadPill only resolves ids from the
   // pills/ index, never a filesystem path. Parse errors of a real pill throw
@@ -49,7 +52,7 @@ export default async function CanvasPage({
 
       <NoteDrafts pill={pill} />
 
-      <DecisionCanvas pill={pill} />
+      <DecisionCanvas pill={pill} focusRule={typeof rule === 'string' ? rule : undefined} />
     </div>
   );
 }

@@ -7,7 +7,7 @@
 // navigation and reload, and are allowed only for roles the pill's SKILL.md
 // `access` block lets change it.
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Check, X, ArrowRight, FileCheck2, Lock } from 'lucide-react';
 import { RuleTile, EmptyState, ActionClassChip, CHIP_BASE, TONE_CHIP } from '@/components/mosaic';
@@ -20,6 +20,9 @@ import type { PillBundle } from '@/lib/pills/load';
 import { pillEditAuthority } from '@/lib/governance/access';
 import { reviewKey, useGovernanceStore, type RuleReviewRecord } from '@/lib/governance/store';
 import { currentApproved } from '@/lib/governance/versions';
+import { routes, ruleAnchorId, suggestHandoff } from '@/lib/journey';
+import { HandoffButton } from '@/components/journey/HandoffButton';
+import { policyOf } from './noteDraftUtils';
 import { useLivePill } from './useLivePill';
 
 type DecisionState = 'confirmed' | 'edited' | 'rejected';
@@ -94,11 +97,11 @@ const FILTERS: { id: ActionClass | 'all'; label: string }[] = [
 
 const NO_REVIEWS: Record<string, RuleReviewRecord> = {};
 
-export function DecisionCanvas({ pill }: { pill: PillBundle }) {
+export function DecisionCanvas({ pill, focusRule }: { pill: PillBundle; focusRule?: string }) {
   const mounted = useMounted();
   // Seeds the pill; the live version, versions in review and the next free
   // version come from the governance store's full history.
-  const { nextVersion, pending } = useLivePill(pill);
+  const { nextVersion, pending, version: liveVersion } = useLivePill(pill);
   const currentActor = useGovernanceStore((s) => s.currentActor);
   const storedHistory = useGovernanceStore((s) => s.versions[pill.id]);
   const allReviews = useGovernanceStore((s) => s.ruleReviews);
@@ -110,14 +113,19 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
   const rules = live?.rules ?? pill.pill.rules;
   const reviews = (live && allReviews[reviewKey(pill.id, live.version)]) || NO_REVIEWS;
 
-  const m = pill.pill.manifest;
-  const authority = pillEditAuthority(currentActor.role, {
-    owner: m.owner,
-    steward: m.steward,
-    approver: m.approver,
-    access: m.access,
-  });
+  const policy = useMemo(() => policyOf(pill), [pill]);
+  const authority = pillEditAuthority(currentActor.role, policy);
   const readOnlyReason = !mounted ? 'Loading…' : authority.allowed ? undefined : authority.reason;
+  // Who could review instead: the same policy the store enforces.
+  const reviewer =
+    mounted && !authority.allowed ? suggestHandoff((p) => pillEditAuthority(p.role, policy).allowed, currentActor) : undefined;
+
+  // `?rule=TS-07`: scroll to that rule's tile and highlight it (only a rule this version has).
+  const focused = focusRule && rules.some((r) => r.id === focusRule) ? focusRule : undefined;
+  useEffect(() => {
+    if (!focused) return;
+    document.getElementById(ruleAnchorId(focused))?.scrollIntoView({ block: 'center' });
+  }, [focused, mounted]);
 
   const [filter, setFilter] = useState<ActionClass | 'all'>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -165,18 +173,27 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
   const publishBlockedReason = readOnlyReason
     ? readOnlyReason
     : inReview
-      ? `v${inReview.version} is already in review (${inReview.status}) — finish it on Learning & Approval first.`
+      ? `v${inReview.version} is already in review (${inReview.status}): finish it in Approvals first.`
       : counts.decided < counts.total
         ? `Decide every tile to publish (${counts.total - counts.decided} left).`
         : undefined;
 
   return (
     <div className="space-y-6 pb-28">
+      <p className="text-[13px] text-ink-muted">
+        You are reviewing <span className="font-mono text-ink">v{liveVersion}</span>, the live version. Its rules are
+        already in use; the tiles track this review only. Publishing makes the next draft version, which still needs a
+        trial run and a separate approver.
+      </p>
+
       {readOnlyReason && mounted ? (
-        <p className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink-muted">
-          <Lock className="size-3.5 shrink-0" aria-hidden="true" />
-          Read only: {readOnlyReason}
-        </p>
+        <div className="space-y-2 rounded-lg border border-line bg-surface px-3 py-2">
+          <p className="flex items-center gap-1.5 text-xs text-ink-muted">
+            <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+            Read only: {readOnlyReason}
+          </p>
+          {reviewer ? <HandoffButton to={reviewer} action="review these rules" /> : null}
+        </div>
       ) : null}
 
       {error ? (
@@ -231,13 +248,26 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
                     const state = review?.outcome;
                     const confirmedProp = state === 'confirmed' ? true : state === 'rejected' ? false : undefined;
                     return (
-                      <div key={rule.id} className="relative">
+                      <div
+                        key={rule.id}
+                        id={ruleAnchorId(rule.id)}
+                        className={cn(
+                          'relative scroll-mt-24 rounded-2xl',
+                          rule.id === focused && 'ring-2 ring-accent ring-offset-4 ring-offset-dew-drop',
+                        )}
+                        aria-current={rule.id === focused ? 'true' : undefined}
+                      >
                         <div className="mb-2 flex items-center justify-between gap-2">
                           <ActionClassChip actionClass={rule.action_class} />
                           {state ? (
                             <span className={cn(CHIP_BASE, STATE_BADGE[state].tone)}>{STATE_BADGE[state].label}</span>
                           ) : (
-                            <span className={cn(CHIP_BASE, 'border-line bg-surface text-ink-muted')}>Pending</span>
+                            <span
+                              className={cn(CHIP_BASE, 'border-line bg-surface text-ink-muted')}
+                              title={`Live in v${liveVersion}; not yet reviewed in this review`}
+                            >
+                              Not reviewed
+                            </span>
                           )}
                         </div>
                         <RuleTile
@@ -280,9 +310,14 @@ export function DecisionCanvas({ pill }: { pill: PillBundle }) {
             Nothing executes without a named human: it needs evals, a Shadow run and a separate approver before it can
             go live.
           </p>
-          <Link href={`/learning/${pill.id}`} className="btn-pill mt-3 text-xs">
-            Go to Learning &amp; Approval <ArrowRight className="size-3.5" aria-hidden="true" />
-          </Link>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href={routes.approvals()} className="btn-pill text-xs">
+              Go to approvals <ArrowRight className="size-3.5" aria-hidden="true" />
+            </Link>
+            <Link href={routes.learning(pill.id)} className="btn-pill text-xs">
+              Learning loop <ArrowRight className="size-3.5" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       ) : null}
 
