@@ -51,7 +51,7 @@ import {
   assetTypeLabel,
   formatClock,
   formatElapsed,
-  formatSgtClock,
+  formatActionTime,
   humanizeKey,
   missingSummary,
   personForRole,
@@ -673,7 +673,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                 permissions={withRecordedDecision(
                   actionPermissions(item.action, role, target?.role ?? null),
                   record,
-                  formatSgtClock,
+                  formatActionTime,
                 )}
                 escalateLabel={target ? `Escalate to ${personLabel(target.role, people)}` : 'Escalate'}
                 missingEvidence={missingOptions(item)}
@@ -1025,7 +1025,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
           <span className="shrink-0 tabular-nums">
             {auditEvents.length} audit event
             {auditEvents.length === 1 ? '' : 's'} · {incidentId}
-            {lastReset ? ` since reset at ${formatSgtClock(lastReset.at)}` : ''}
+            {lastReset ? ` since the reset ${formatActionTime(lastReset.at)}` : ''}
           </span>
           {auditEvents.length > 0 ? (
             <span className="truncate">· latest: {auditEvents[auditEvents.length - 1].detail}</span>
@@ -1068,7 +1068,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                   permissions={withRecordedDecision(
                     actionPermissions(drawerItem.action, role, drawerItem.trace.escalateTo?.role ?? null),
                     decisions[drawerItem.rule.id],
-                    formatSgtClock,
+                    formatActionTime,
                   )}
                   escalateLabel={`Escalate to ${personLabel(drawerItem.trace.escalateTo.role, people)}`}
                   missingEvidence={missingOptions(drawerItem)}

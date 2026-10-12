@@ -7,7 +7,7 @@ import type { ActionDecisionRecord } from '@/lib/governance/store';
 import type { CaptureTask } from '@/lib/capture';
 import { cn } from '@/lib/ui/cn';
 import { WRAPPING_PILL } from './DecisionButtons';
-import { formatClock, formatSgtClock, missingSummary, personLabel } from './labels';
+import { formatClock, formatActionTime, missingSummary, personLabel } from './labels';
 import { actionPermissions, withRecordedDecision } from './permissions';
 import { RuleIdLink } from './RuleLinks';
 import type { AiProposal, BoardItem } from './types';
@@ -83,7 +83,7 @@ export function ProposalBanner({
   }
 
   const escalated = record?.outcome === 'escalated' ? record : undefined;
-  const perms = withRecordedDecision(actionPermissions(item.action, role, target.role), record, formatSgtClock);
+  const perms = withRecordedDecision(actionPermissions(item.action, role, target.role), record, formatActionTime);
   return (
     <div
       id={anchorId}
@@ -110,11 +110,12 @@ export function ProposalBanner({
           <p className="mt-4 flex items-start gap-2 rounded-lg border border-escalate-mark/40 bg-surface px-3 py-2 text-[13px] leading-snug text-ink">
             <Check className="mt-0.5 size-4 shrink-0 text-recommend" aria-hidden="true" />
             <span>
-              <span className="font-semibold">Escalated to {personLabel(target.role, people)}</span> at{' '}
-              <time dateTime={escalated.at} className="font-mono tabular-nums">
-                {formatSgtClock(escalated.at)}
-              </time>{' '}
-              by {escalated.actor.name}. The gate stays blocked until the missing evidence is confirmed.
+              <span className="font-semibold">Escalated to {personLabel(target.role, people)}</span> by{' '}
+              {escalated.actor.name},{' '}
+              <time dateTime={escalated.at} title="When you acted in this demo, not the incident clock">
+                {formatActionTime(escalated.at)}
+              </time>
+              . The gate stays blocked until the missing evidence is confirmed.
             </span>
           </p>
         ) : null}
