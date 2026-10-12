@@ -129,3 +129,36 @@ rationale wording changed. TS-02's deadline is still the only intentional
 failure. Stepping through INC-2026-1011 and INC-2026-1012, every rule's
 status, missing evidence and exception note is identical at every step, and
 TS-07 still first appears BLOCKED at step 10 of INC-2026-1011.
+
+## D6 — Public claims describe what runs, where it runs
+
+**Decision.** Every public document (README, SUBMISSION, ARCHITECTURE, SPEC,
+the submission pack and `pills/README.md`) states only what the repository
+backs, following the claims audit in `docs/review/claims-audit.md`.
+
+**How to describe the AI provider.** Locally, with CodeBuddy credits and a
+login (or a CodeBuddy Pro key), live calls run on Hunyuan `hy4-preview`
+through the CodeBuddy Agent SDK. The public Vercel deployment has no
+CodeBuddy or TokenHub key, so its live calls are answered by OpenAI
+`gpt-5.4-mini` (the final fallback) or by recorded output. TokenHub is wired
+but has not answered live; account verification is pending. The output badge
+always names the provider that actually answered. OpenAI gets one factual
+line, not promotion.
+
+**Other fixed wording.**
+- "Hear the expert" is a synthetic browser voice reading the expert's
+  recorded words, not his voice. The onboarding call is a scripted transcript.
+- The step-10 AI proposal is a recorded fixture.
+- The audit log is append-only in the browser store (plus server sessions
+  for identity and redaction); production would persist it server-side.
+  It is not described as immutable.
+- Override-rate KPI, incident-report pipeline, enforced pill `access`, AI
+  Verify process checks and "deny-by-default" are proposed, not built.
+- Tencent integrations in the present tense: CodeBuddy skill (verified,
+  model selector "Auto" in `docs/proof/04a`, `04b`) and the CodeBuddy Agent
+  SDK path to Hunyuan. TokenHub is built but pending. WorkBuddy, ADP, TRTC
+  and EdgeOne are proposed.
+- Model swap: the engine takes no model input, so an LLM change cannot alter
+  a gate. This holds by construction; there is no model-swap control.
+- Separation of duties is described as "the author cannot approve" until a
+  stricter rule is enforced in code.

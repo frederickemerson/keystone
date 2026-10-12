@@ -4,6 +4,16 @@ Keppel "AI HARVEST" track · Tencent Cloud AI CAN DO IT SG 2026 · **Submission:
 Built with **CodeBuddy Code** (primary builder: scaffold, pills, engine, data, UI) and **Claude Code** (planning, code review, governance/data layers). Keep this attribution accurate in the submission write-up.
 Research backing every decision: `docs/research/*.md`.
 
+> **Status note (12 Oct 2026).** This is the original v1 build plan, kept for the record.
+> Where the build diverged, the current truth is in `README.md`, `docs/ARCHITECTURE.md` and
+> `docs/DECISIONS.md`. Main differences: `/` is a landing page and Portfolio Pulse is at
+> `/pulse`; a demo sign-in with server-side redaction replaced the free role switcher (D1);
+> the LLM path is CodeBuddy Agent SDK → Hunyuan hy4-preview (local), then TokenHub (wired,
+> not yet answered live), then OpenAI gpt-5.4-mini (the live provider on the Vercel
+> deployment); only extraction and tenant drafting have live endpoints; the call's audio
+> is browser text-to-speech (no recorded clips); there is no model-swap control; the
+> engine core is ~500 lines; the hosting is Vercel (EdgeOne proposed).
+
 Blurb (<10 words): **Turn expert judgement into governed, versioned Intelligence Pills.**
 
 ## 1. The one story the demo tells
@@ -15,12 +25,12 @@ Blurb (<10 words): **Turn expert judgement into governed, versioned Intelligence
    - **Wow 1:** AI proposes "re-energise L23 AHU"; gate TS-07 blocks it: *LEW sign-off missing. Source: Chief Engineer interview 00:14:32.* AOM escalates to named human.
 3. **Learn** — Outcome captured → expert correction → version diff v1.2→v1.3 → evals replay 6 past incidents (5 pass, 1 flagged) → steward approves → **one-click rollback**.
    - **Wow 2:** "How does it get smarter after deployment?" answered live, with receipts.
-4. **Reuse** — Apply the same Technical Services pill to a colocation data centre profile ("Harbourfront DC1", PUE 1.32): tenant-message action disappears, client-SLA gate appears. Swap model (hy4-preview → deepseek) → identical decision because gates are deterministic.
+4. **Reuse** — Apply the same Technical Services pill to a colocation data centre profile ("Harbourfront DC1", PUE 1.32): tenant-message action disappears, client-SLA gate appears. Swapping the model cannot change the decision because gates are deterministic (true by construction; no model-swap control was built).
    - **Wow 3:** portable, scalable, model-agnostic in 30 seconds.
 
 ## 2. Scope (frozen)
 
-**Seven screens** (team commits to all seven): `/capture` (Expert Onboarding Call), `/canvas/[pillId]` (Decision Canvas), `/registry` (Pill Registry), `/` (Portfolio Pulse), `/incident/[id]` (Incident Decision Room), approval panel (inside incident room + `/approvals` queue), `/learning/[pillId]` (Outcome & Learning) + global role switcher + audit log drawer.
+**Seven screens** (team commits to all seven): `/capture` (Expert Onboarding Call), `/canvas/[pillId]` (Decision Canvas), `/registry` (Pill Registry), `/pulse` (Portfolio Pulse; originally planned at `/`), `/incident/[id]` (Incident Decision Room), approval panel (inside incident room + `/approvals` queue), `/learning/[pillId]` (Outcome & Learning) + global role switcher + audit log drawer.
 **Simulated voice call:** "incoming call" UI; AI interviewer speaks via TTS (Tencent TTS or browser speechSynthesis); expert side is pre-recorded audio clips (or live mic via Web Speech); live captions; rule tiles appear as the call progresses. Every rule keeps its audio timestamp → "Hear the expert" button replays the exact clip.
 **Two pills:** `technical-services/chilled-water-leak`, `tenant-experience/incident-comms`. Safety = gates inside Technical Services.
 **Cut:** LLM agents chatting to each other, real BMS integration, 3rd pill.
@@ -94,12 +104,12 @@ runEvals(pill): { case, expected, actual, pass }[]
 - Why drawer: evidence used, rule + version, transcript quote + timestamp, missing evidence, risk if ignored.
 - Role switcher: Technician / Asset Ops Manager / Tenant Experience / Executive; tenant PII + lease terms masked by role.
 - Audit log: who/when/pill version/action/outcome.
-- Version gate: cannot approve if evals regress; Shadow badge ("4/4 agreements") before promotion.
+- Version gate: cannot approve if evals regress; Shadow badge (as built: "6/6 agreements" over the 6 evals) before promotion.
 - Framework mapping slide: IMDA MGF (incl. Agentic AI 2026), AI Verify, ISO/IEC 42001, NIST AI RMF (`research_domain.md` §3.8).
 
 ## 7. Day plan
-- **D1 Sat 11 Oct** — scaffold, pill schema + 2 pills + evals, engine + unit tests. CodeBuddy screenshots ×3.
-- **D2 Sun 12** — `/capture`: transcript player, extraction (LLM + fixture), contradiction, Decision Canvas, publish.
-- **D3 Mon 13** — `/incident`: evidence timeline, gates, chips, Why drawer, counterfactual, approval/escalate, tenant message.
-- **D4 Tue 14** — `/learning` + `/registry`: diff, evals, approve, rollback, shadow, DC overlay, roles, audit. Deploy.
-- **D5 Wed 15** — diagram (8 points), video, description, cover, README, dry runs. **Submit by 16 Oct.**
+- **D1 Sun 11 Oct** — scaffold, pill schema + 2 pills + evals, engine + unit tests. CodeBuddy screenshots ×3.
+- **D2 Mon 12** — `/capture`: transcript player, extraction (LLM + fixture), contradiction, Decision Canvas, publish.
+- **D3 Tue 13** — `/incident`: evidence timeline, gates, chips, Why drawer, counterfactual, approval/escalate, tenant message.
+- **D4 Wed 14** — `/learning` + `/registry`: diff, evals, approve, rollback, shadow, DC overlay, roles, audit. Deploy.
+- **D5 Thu 15** — diagram (8 points), video, description, cover, README, dry runs. **Submit by 16 Oct.**

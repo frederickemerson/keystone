@@ -9,9 +9,10 @@ deterministic rules with provenance, tests, owners, and rollback.
 A pill is **not** a prompt, a RAG index, or a chatbot. It is a compiled
 artefact: rules with structured conditions that a deterministic engine
 evaluates against an evidence map to produce bounded actions
-(Recommend / Requires approval / Must escalate). An LLM host reads the
-prose heuristics in `SKILL.md` for context, but **cannot override the
-gates** in `rules.yaml`.
+(Recommend / Requires approval / Must escalate). Inside Keystone, the
+deterministic engine enforces `rules.yaml` and no LLM can override its
+gates. An external skill host (such as CodeBuddy) reads the prose
+heuristics and the rules for context, but does not itself enforce them.
 
 ## Pill structure
 
@@ -44,25 +45,29 @@ pills/<domain>/<name>/
 
 ## Portability — install unchanged
 
-Each pill folder installs **unchanged** as a skill in any
-agentskills-compatible host:
+Each pill folder is a standard `SKILL.md` skill package. Only CodeBuddy
+has been tested; WorkBuddy and ADP are designed for, per their
+documentation, but not yet tested by us.
 
-- **CodeBuddy** — copy to `.codebuddy/skills/<name>/SKILL.md`. The
+- **CodeBuddy** *(verified, `docs/proof/04a`, `04b`)* — copy to
+  `.codebuddy/skills/<name>/` (or run `npm run skills:sync`). The
   frontmatter (`name`, `description`, `version`) is read by the skill
-  loader. `rules.yaml` and `evals/` are consumed by the Keystone engine.
+  loader. Invoked as `/chilled-water-leak`, CodeBuddy reached the same
+  TS-07 decision as the Keystone engine. `rules.yaml` and `evals/` are
+  executed only by the Keystone engine.
   [CodeBuddy skills docs](https://www.tencentcloud.com/document/product/1256/77295)
 
-- **WorkBuddy** — import via Skills & Expert Center. The pill's
-  `SKILL.md` becomes a skill; rules and evals are available to the
-  multi-expert collaboration layer. Skills are "scanned for security
-  risks before installation"; the pill's `access` frontmatter maps to
+- **WorkBuddy** *(designed for, not yet tested)* — the pill would be
+  imported via Skills & Expert Center, where `SKILL.md` would become a
+  skill. WorkBuddy documents that skills are "scanned for security risks
+  before installation"; the pill's `access` frontmatter could map to
   WorkBuddy's RBAC (admin/member/viewer).
   [WorkBuddy](https://www.tencentcloud.com/act/pro/workbuddy)
 
-- **Tencent Cloud Agent Development Platform (ADP)** — package as a ZIP
-  with `SKILL.md` at the root. ADP supports YAML metadata, semantic
-  versioning, automated sandbox security review, and enterprise sharing
-  via the Approval Center.
+- **Tencent Cloud Agent Development Platform (ADP)** *(designed for, not
+  yet tested)* — the pill would be packaged as a ZIP with `SKILL.md` at
+  the root. ADP documents YAML metadata, semantic versioning, automated
+  sandbox security review, and enterprise sharing via the Approval Center.
   [ADP custom skills](https://www.tencentcloud.com/document/product/1254/81540)
 
 - **Any SKILL.md-compatible host** — the frontmatter and file structure
@@ -75,9 +80,9 @@ agentskills-compatible host:
 | RAG chatbot | Intelligence Pill |
 |---|---|
 | Retrieves text snippets | Evaluates structured rules against evidence |
-| No deterministic gates | Gates block unsafe actions; LLM cannot override |
+| No deterministic gates | Gates block unsafe actions; inside Keystone no LLM can override them |
 | No provenance | Every rule links to a transcript quote + timestamp |
-| No tests | Evals replay past incidents; approval blocked if regress |
+| No tests | Evals replay past incidents; a regression blocks approval unless the approver overrides with a reason |
 | No versions | Semantic versioning, diff, one-click rollback |
 | No owner | RACI: owner, steward, approver per pill |
 | Chatbots cannot be rolled back | Pills are version-controlled artefacts |
@@ -103,9 +108,13 @@ See `docs/SPEC.md` §4 for the full schema. Key fields:
 - **Provenance on every rule.** `provenance.json` maps each rule to the
   exact transcript span where the expert stated it.
 - **Evals as regression tests.** A version cannot be approved if evals
-  regress. Shadow mode runs new versions silently alongside the approved
-  version before promotion.
+  regress, unless the pill's approver role overrides with a recorded
+  reason. Shadow mode replays the pill's past-incident evals through both
+  the approved and the candidate version and reports agreement before
+  promotion.
 - **One-click rollback.** Semantic versions + CHANGELOG + jsondiffpatch
   diff + reverse.
-- **Role/sensitivity policy.** The `access` frontmatter and `sensitivity`
-  labels enforce who can see and act on each rule.
+- **Role/sensitivity policy.** `sensitivity` labels on incident records,
+  together with `data/roles.json`, drive server-side redaction per signed-in
+  role. The `access` frontmatter declares intended pill-level access; it is
+  parsed and displayed but not yet enforced.

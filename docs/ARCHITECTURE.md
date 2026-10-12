@@ -8,8 +8,13 @@ Two views:
    the governance layer and the mock data fit together.
 
 Implemented today: the deterministic engine, both pills, the governance layer, the data
-model and all seven screens. Proposed / production-only: live BMS/iBMS/DCIM integration,
-the TRTC live voice call, a Postgres version store, and the EdgeOne deployment.
+model, the landing page, demo sign-in with a signed server session and server-side
+redaction, and all seven app screens. The opt-in LLM path runs Hunyuan via the CodeBuddy
+Agent SDK where CodeBuddy credentials exist (local); the public Vercel deployment falls
+back to OpenAI gpt-5.4-mini; the TokenHub adapter is built but has not answered live.
+Proposed / production-only: live BMS/iBMS/DCIM integration, the TRTC live voice call,
+a server-side (e.g. Postgres) governance store, enterprise SSO, and the EdgeOne
+deployment.
 
 ---
 
@@ -19,7 +24,7 @@ the TRTC live voice call, a Postgres version store, and the EdgeOne deployment.
 flowchart TD
     subgraph P2["② Whose expertise · how undocumented knowledge is obtained"]
         EXP["Retiring Chief Engineer<br/>(Tan Wei Ming · 18 yrs M&E)"]
-        IV["Expert Onboarding Call<br/>CDM + ACTA · adaptive probes ·<br/>contradiction probe · coverage audit"]
+        IV["Expert Onboarding Call (scripted in demo)<br/>CDM + ACTA probes ·<br/>contradiction probe · coverage audit"]
         EXP -->|"speaks, is probed"| IV
     end
 
@@ -39,7 +44,7 @@ flowchart TD
     subgraph P5["⑤ Incident command — AOM uses, supervises, verifies, escalates"]
         EVID["Evidence feed (mock)<br/>iBMS alarm · leak detector ·<br/>tenant call · CMMS ticket"]
         ENG["Deterministic engine<br/>evaluate() → Recommend /<br/>Requires approval / Must escalate"]
-        WHY["Why drawer + Hear the expert<br/>evidence · rule + version · quote + timestamp"]
+        WHY["Why drawer + Hear the expert (TTS of quote)<br/>evidence · rule + version · quote + timestamp"]
         HUMAN["Named human<br/>approve / escalate"]
         EVID --> ENG --> WHY --> HUMAN
     end
@@ -50,9 +55,9 @@ flowchart TD
         OUT["Capture outcome"]
         COR["Expert correction"]
         DIFF["Diff v1.2.0 → v1.3.0"]
-        EVAL["Validate: replay evals<br/>5 pass · 1 flagged"]
-        SHADOW["Shadow mode<br/>4/4 agreements"]
-        APPR["Steward approval<br/>(separation of duties)"]
+        EVAL["Validate: replay evals<br/>v1.2.0: 5 pass · 1 flagged"]
+        SHADOW["Shadow mode<br/>6/6 agreements"]
+        APPR["Approval<br/>(author cannot approve)"]
         ROLL["One-click rollback<br/>(append-only)"]
         OUT --> COR --> DIFF --> EVAL --> SHADOW --> APPR --> ROLL
     end
@@ -62,13 +67,13 @@ flowchart TD
 
     subgraph P7["⑦ Extend to multi-asset / BU / enterprise"]
         OVER["Asset-type overrides<br/>office → data centre"]
-        DIST["Portable skill package<br/>CodeBuddy · WorkBuddy · ADP"]
+        DIST["Portable skill package<br/>CodeBuddy (verified) ·<br/>WorkBuddy · ADP (designed for)"]
     end
     PILL --> OVER
     PILL --> DIST
 
     subgraph P8["⑧ Credible implementation path (Tencent Cloud)"]
-        TC["TokenHub models · WorkBuddy Experts ·<br/>CodeBuddy skills · ADP governed distribution ·<br/>TRTC voice · EdgeOne / Lighthouse hosting ·<br/>iBMS + CMMS integration"]
+        TC["Today: CodeBuddy skill · CodeBuddy SDK → Hunyuan (local) ·<br/>TokenHub adapter (pending)<br/>Proposed: WorkBuddy Experts · ADP distribution ·<br/>TRTC voice · EdgeOne / Lighthouse hosting ·<br/>iBMS + CMMS integration"]
     end
     DIST --> TC
     ENG -.->|"language work only"| TC
@@ -117,9 +122,13 @@ flowchart LR
         COND["conditions · schema"]
     end
 
-    subgraph LLM["lib/llm — AI SDK 7 → Tencent TokenHub"]
-        CLIENT["getModel() · isConfigured()"]
-        USE["extraction · probes · contradiction ·<br/>tenant message · incident summary"]
+    subgraph LLM["lib/llm — provider chain"]
+        CLIENT["CodeBuddy Agent SDK → Hunyuan hy4-preview<br/>→ TokenHub (AI SDK 7, pending)<br/>→ OpenAI gpt-5.4-mini (AI SDK 7)"]
+        USE["live (opt-in): extraction · tenant message<br/>recorded only: probes · contradiction ·<br/>incident summary"]
+    end
+
+    subgraph AUTH["lib/auth + middleware"]
+        SESS["signed session cookie<br/>role → server-side redaction"]
     end
 
     subgraph GOV["lib/governance — pure + client-safe"]
@@ -130,8 +139,10 @@ flowchart LR
         STORE["store<br/>zustand + localStorage"]
     end
 
-    subgraph UI["components/ + app/ — 7 routes"]
-        PULSE["/ Portfolio Pulse"]
+    subgraph UI["components/ + app/ — 9 pages"]
+        LAND["/ Landing"]
+        SIGN["/sign-in"]
+        PULSE["/pulse Portfolio Pulse"]
         CAP["/capture Expert Call"]
         CANVAS["/canvas/[pillId] Decision Canvas"]
         REGI["/registry Pill Registry"]
@@ -152,6 +163,8 @@ flowchart LR
     DLOAD --> LLM
     PLOAD --> LLM
     UI -->|"user events"| GOV
+    AUTH --> UI
+    AUTH --> LLM
 
     style ENGINE fill:#e8f5e9,stroke:#2e7d32
     style GOV fill:#e3f2fd,stroke:#1565c0
@@ -163,14 +176,16 @@ flowchart LR
 - **`pills/` is the source of truth.** The engine reads `rules.yaml`; the app never
   generates decision logic at runtime.
 - **`lib/engine` is deterministic and LLM-free.** Given the same pill, asset, incident
-  and evidence it always returns the same actions and trace — which is why a model swap
-  produces an identical decision.
+  and evidence it always returns the same actions and trace, and it takes no model
+  input — so changing the LLM cannot change a decision.
 - **`lib/llm` is confined to language work**, and every call site has a recorded
   fallback in `data/fixtures/llm/`, so the app runs fully offline.
 - **`lib/governance` is pure and client-safe.** It owns versions, the approval gate,
-  role/sensitivity redaction and the audit log; the runtime store is a zustand store
-  backed by `localStorage`, with "Export pill" and "Reset demo" (production path: a
-  Postgres `pill_version` table).
+  role/sensitivity redaction and the audit log. Redaction runs on the server per
+  signed-in role (`lib/governance/scope.ts`, `docs/DECISIONS.md` D1). The runtime
+  governance store is a zustand store backed by `localStorage` (append-only audit,
+  validated on load), with "Export pill" and "Reset demo"; production would persist it
+  server-side (e.g. a Postgres `pill_version` table).
 
 ### Status precedence (the safety core)
 

@@ -55,7 +55,7 @@ review_cadence:
 ## Purpose
 
 This pill encodes the comms judgement of **Lim Hui Fen, Tenant Experience
-Manager** (9 years property management, Keppel REIT asset portfolio) as deterministic
+Manager** (9 years property management, fictional Grade A office portfolio) as deterministic
 rules for incident communications. An LLM host (CodeBuddy, WorkBuddy, Claude,
 or any agentskills-compatible host) may draft messages, but every outbound
 message requires a named human approver before sending — no autonomous

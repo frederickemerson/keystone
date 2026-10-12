@@ -113,7 +113,7 @@
       <h2>Capture what was never written</h2>
       <p><b class="k">Whose:</b> Tan Wei Ming, retiring Chief Engineer, 18 years of M&amp;E.</p>
       <ul>
-        <li>AI onboarding call with <b class="k">CDM + ACTA probes</b>: "walk me through the last time…"</li>
+        <li>Onboarding call with <b class="k">CDM + ACTA probes</b> (simulated in the demo): "walk me through the last time…"</li>
         <li><b class="k">Contradiction resolution:</b> "always isolate the riser" vs "isolate the sub-valve" becomes one condition (TS-02)</li>
         <li><b class="k">Expert confirms, edits or rejects</b> every rule on the Decision Canvas</li>
       </ul>
@@ -128,7 +128,7 @@
       <ul>
         <li>13 rules, each with action class, owner, deadline and expert quote + timestamp</li>
         <li>Owner, steward and approver named per pill</li>
-        <li>Runs as a <b class="k">native CodeBuddy skill</b>: same TS-07 decision</li>
+        <li>Runs as a <b class="k">native CodeBuddy skill</b> (verified): same TS-07 decision</li>
       </ul>
     </div>
     <div class="arrow"><svg viewBox="0 0 44 30"><path d="M2 15h34M26 5l12 10-12 10" fill="none" stroke="#171717" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -139,9 +139,9 @@
       <p><b class="k">Incident Room:</b> a deterministic engine applies the pill to evidence.</p>
       <div class="chips"><span class="chip c-ok">Recommend</span><span class="chip c-ap">Requires approval</span><span class="chip c-es">Must escalate</span><span class="chip c-bl">Blocked</span></div>
       <ul>
-        <li><b class="k">Verify:</b> Why drawer shows rule, version, missing evidence and the expert's clip</li>
+        <li><b class="k">Verify:</b> Why drawer shows rule, version, missing evidence and the expert's quote, read aloud</li>
         <li><b class="k">Escalate:</b> TS-07 blocks re-energisation and routes to the duty LEW by name</li>
-        <li><b class="k">Approve:</b> named humans only; role-based redaction</li>
+        <li><b class="k">Approve:</b> named humans only; server-side role-based redaction</li>
       </ul>
     </div>
     <div></div>
@@ -155,7 +155,7 @@
           <li><b class="k">Provenance</b> to the spoken sentence</li>
           <li><b class="k">Evals</b> replay past incidents</li>
           <li><b class="k">Governance:</b> versions, owners, audit, rollback</li>
-          <li>Same decision on a model swap</li>
+          <li>Engine takes no model input: an LLM change can't alter a gate</li>
         </ul>
       </div>
     </div>
@@ -166,15 +166,15 @@
       <span class="badge">6</span>
       <div class="loop-head">
         <h2>Governed learning after deployment</h2>
-        <span class="note">Evals pass + a separate approver signs. History is append-only.</span>
+        <span class="note">Evals pass + an approver who is not the author signs. History is append-only.</span>
       </div>
       <div class="steps">
         <div class="step"><b>Feedback</b><span>Outcome captured: isolated in 7 min</span></div>
         <div class="step"><b>Review</b><span>Expert corrects TS-02 deadline 15 → 10 min</span></div>
         <div class="step"><b>Diff</b><span>v1.2.0 → v1.3.0 draft, reason recorded</span></div>
         <div class="step gate"><b>Validate</b><span>Replay evals on past incidents; regressions block</span></div>
-        <div class="step"><b>Shadow</b><span>Runs silently beside the approved version</span></div>
-        <div class="step gate"><b>Approve</b><span>Head of Technical Services; author can't approve</span></div>
+        <div class="step"><b>Shadow</b><span>Replays evals through both versions: 6/6 agree</span></div>
+        <div class="step gate"><b>Approve</b><span>Approver role or steward with the grant; author can't approve</span></div>
         <div class="step"><b>Release</b><span>New semver version; one-click rollback</span></div>
       </div>
     </div>
@@ -193,15 +193,15 @@
     <div class="impl-head">
       <span class="badge">8</span>
       <h2>Credible implementation path on Tencent Cloud</h2>
-      <span class="note"><span style="font-weight:600">Running today:</span> Next.js app on Vercel, deterministic engine, CodeBuddy skill, opt-in Hunyuan via CodeBuddy SDK</span>
+      <span class="note"><span style="font-weight:600">Running today:</span> Next.js app on Vercel (live AI there: OpenAI fallback or recorded), deterministic engine, CodeBuddy skill (verified), Hunyuan via CodeBuddy SDK (local)</span>
     </div>
     <div class="layers">
-      <div class="layer"><b>CodeBuddy / WorkBuddy</b><span>Pill as SKILL.md skill; WorkBuddy Experts next</span></div>
-      <div class="layer"><b>Hunyuan models</b><span>hy4-preview via CodeBuddy SDK; TokenHub adapter ready</span></div>
-      <div class="layer"><b>ADP</b><span>Governed skill distribution, Approval Center</span></div>
-      <div class="layer"><b>iBMS · CMMS</b><span>Leak, alarm and work-order evidence feeds (Brick 1.5)</span></div>
-      <div class="layer"><b>TRTC voice</b><span>Live expert onboarding call with captions</span></div>
-      <div class="layer"><b>EdgeOne · Vercel</b><span>Hosting; enterprise SSO for roles</span></div>
+      <div class="layer"><b>CodeBuddy / WorkBuddy</b><span>Pill as SKILL.md skill (verified); WorkBuddy Experts proposed</span></div>
+      <div class="layer"><b>Hunyuan models</b><span>hy4-preview via CodeBuddy SDK (local); TokenHub pending</span></div>
+      <div class="layer"><b>ADP</b><span>Proposed: governed skill distribution, Approval Center</span></div>
+      <div class="layer"><b>iBMS · CMMS</b><span>Proposed: leak, alarm and work-order feeds (Brick 1.5); mock today</span></div>
+      <div class="layer"><b>TRTC voice</b><span>Proposed: live onboarding call with captions</span></div>
+      <div class="layer"><b>EdgeOne · SSO</b><span>Proposed hosting (Vercel today); enterprise SSO for roles</span></div>
     </div>
   </section>
 </body>

@@ -11,7 +11,8 @@
 - Use a fresh browser profile, or clear the site's localStorage, so the governance store starts at v1.2.0 with nothing approved.
 - Browser at 1440 x 900, zoom 110 %, cursor highlight on, notifications off.
 - Have CodeBuddy Code open in a terminal in the repo, with `.codebuddy/skills/chilled-water-leak/` present, for the reflection section. The screenshots `docs/proof/04a-codebuddy-skill-invoked.png` and `04b-codebuddy-skill-ts07-answer.png` are the fallback if a live run is not possible.
-- Have `npx vitest run` ready in a second terminal. Last verified run: **32 test files, 500 tests, all passing.**
+- Have `npx vitest run` ready in a second terminal. Last verified run (12 Oct 2026): **33 test files, 515 tests, all passing.** Re-run before recording; the narration says "over 500 tests".
+- Live AI on the Vercel deployment is OpenAI gpt-5.4-mini (the fallback) or recorded output, and the badge says which. This script does not show a live AI call. If you record one locally with CodeBuddy credentials, the badge will read Hunyuan hy4-preview via CodeBuddy; narrate whatever the badge shows.
 
 ---
 
@@ -45,9 +46,9 @@
 **On screen:** `/capture`. Play the call for a few seconds so the live captions and the "rule extracted" chips are visible. Then click the **00:23:10 "Contradiction caught"** marker on the call timeline. The contradiction card shows 00:06:30 "always isolate the whole riser" against 00:22:15 "for an AHU branch leak, isolate the sub-valve and leave the riser open".
 
 **Narration:**
-> This is the onboarding call. The interviewer isn't working from a questionnaire. It uses Critical Decision Method and ACTA probes, the techniques cognitive scientists use to draw out tacit expertise: "walk me through the last time this happened", "what would a new engineer get wrong?"
+> This is the onboarding call, simulated in the demo from a scripted transcript. The interviewer isn't working from a questionnaire. It uses Critical Decision Method and ACTA probes, the techniques cognitive scientists use to draw out tacit expertise: "walk me through the last time this happened", "what would a new engineer get wrong?"
 > Rule candidates appear as he speaks, each tied to the moment he said it.
-> Now the important part. At six minutes he says "always isolate the whole riser". At twenty-two minutes he says "for an AHU branch leak, isolate the sub-valve". The interviewer catches the contradiction and asks him about it. It doesn't throw either statement away.
+> Now the important part. At six minutes he says "always isolate the whole riser". At twenty-two minutes he says "for an AHU branch leak, isolate the sub-valve". In the interview, the interviewer catches the contradiction and asks him about it. It doesn't throw either statement away.
 
 ### 2:05 to 2:35 · Decision Canvas: the expert stays in charge
 
@@ -66,14 +67,14 @@
 
 ### 2:50 to 3:55 · Incident room: TS-07 blocks the AI
 
-**On screen:** Incident room for the L23 leak at Harbourfront One. Step the evidence timeline forward to **step 10 of 17** (or open `/incident/INC-2026-1011?step=10`). The proposal "Re-energise AHU-23-01 / DB-23A" appears, and the **TS-07 v1.2.0 Blocked** gate turns red: LEW sign-off missing, plus two more items (`lew_signoff`, `insulation_resistance_ok`, `area_dry`). Click **Why** to open the drawer. Point out evidence used versus missing, the rule and its version, and the risk if the gate is ignored. Click **Hear the expert** and let about four seconds of the 00:14:32 clip play. Scroll to **What would change the decision?** Close the drawer and click **Escalate to Rahul Menon** (the duty LEW).
+**On screen:** Incident room for the L23 leak at Harbourfront One. Step the evidence timeline forward to **step 10 of 17** (or open `/incident/INC-2026-1011?step=10`). The proposal "Re-energise AHU-23-01 / DB-23A" appears, and the **TS-07 v1.2.0 Blocked** gate turns red: LEW sign-off missing, plus two more items (`lew_signoff`, `insulation_resistance_ok`, `area_dry`). Click **Why** to open the drawer. Point out evidence used versus missing, the rule and its version, and the risk if the gate is ignored. Click **Hear the expert** and let about four seconds of the 00:14:32 quote play (a synthetic browser voice reads it). Scroll to **What would change the decision?** Close the drawer and click **Escalate to Rahul Menon** (the duty LEW).
 
 **Narration:**
-> The evidence comes in step by step: the leak alarm, the isolation, a moisture reading. At step ten the AI proposes re-energising the AHU and the distribution board, because the tenant wants their floor back.
+> The evidence comes in step by step: the leak alarm, the isolation, water reaching the electrics. At step ten an AI proposal, recorded for this demo, suggests re-energising the AHU and the distribution board, because the tenant wants their floor back.
 > TS-07 blocks it. The Licensed Electrical Worker hasn't signed off, insulation resistance hasn't been tested, and the area isn't confirmed dry. The block comes from a deterministic gate in the rule engine, so the language model can't argue its way past it, and neither can anyone else.
 > Priya wants to know why, so she opens the Why drawer. It shows the rule and its version, which evidence is confirmed and which is missing, and the risk if she ignores it. And here is the source:
-> *(clip plays: "never re-energise before the LEW signs off…")*
-> That's Tan Wei Ming's own voice, at fourteen minutes thirty-two. The drawer also tells her exactly what would change the decision: those three pieces of evidence, confirmed.
+> *(synthetic voice reads: "never re-energise before the LEW signs off…")*
+> That's Tan Wei Ming's sentence from fourteen minutes thirty-two, read back by the app in a synthetic voice. The drawer also tells her exactly what would change the decision: those three pieces of evidence, confirmed.
 > This is outside what the AI is allowed to decide, so it escalates to a named person: Rahul Menon, the duty LEW. Nothing runs without a human.
 
 ### 3:55 to 4:20 · Reuse: apply to Harbourfront DC1
@@ -97,25 +98,26 @@
 **Narration:**
 > A pill also has to learn, under governance. The outcome is captured: the leak was isolated in seven minutes. Tan Wei Ming corrects TS-02's deadline from fifteen minutes to ten. That creates a new draft version, and we can see exactly what changed.
 > Before anyone approves it, we replay it against every past incident in the pill's evals. The current version fails one case, and it's the very deadline he just corrected. The new version passes it, with no regressions.
-> He wrote the change, so he can't promote it. Priya puts it into shadow mode, where it runs silently beside the approved version.
-> Then the approver of record, Goh Boon Kheng, Head of Technical Services, signs it off. Author, steward and approver are three different people, and the code enforces that separation of duties.
+> He wrote the change, so he can't promote it. Priya puts it into shadow mode, which replays the past incidents through both versions and shows they agree.
+> Then the approver of record, Goh Boon Kheng, Head of Technical Services, signs it off. The author can never approve his own change, and the code enforces that.
+<!-- TODO(coordinator): if the three-person separation-of-duties fix (author ≠ shadow promoter ≠ approver) lands, restore: "Author, steward and approver are three different people, and the code enforces that separation of duties." Same for the 60-second cut and shot 15. -->
 > If it turns out to be wrong, rollback is one click. The rollback adds a new version and deletes nothing, so the audit trail stays complete.
 
 ### 5:20 to 5:45 · Responsible AI, briefly
 
-**On screen:** Split screen. On the left, the terminal runs `npx vitest run` and ends on "Test Files 32 passed (32) · Tests 500 passed (500)". On the right, use **Switch user** to choose **Rajesh Kumar · Technician** and show that the incident's tenant name is masked.
+**On screen:** Split screen. On the left, the terminal runs `npx vitest run` and ends on the "Test Files … passed · Tests … passed" summary (last run: 33 files, 515 tests). On the right, use **Switch user** to choose **Rajesh Kumar · Technician** and show that the incident's tenant name is masked.
 
 **Narration:**
-> Here's the responsible-AI part in one breath. Gates are deterministic and evidence counts only when it's confirmed true. Redaction happens on the server, so a technician's browser never receives the tenant's name. Every decision is audited. And it's all tested: 500 tests, including adversarial and property-based tests on the gates and the governance rules. The language model handles language. It never decides on a safety action.
+> Here's the responsible-AI part in one breath. Gates are deterministic and evidence counts only when it's confirmed true. Redaction happens on the server, so a technician's browser never receives the tenant's name. Every decision is audited. And it's all tested: over 500 tests, including adversarial and property-based tests on the gates and the governance rules. The language model handles language. It never decides on a safety action.
 
 ### 5:45 to 6:45 · Reflection: how we built it with CodeBuddy
 
 **On screen:** Show `docs/proof/01a-codebuddy-plan-mode-hy4-subagents.png`, then `01b`/`01c` (plan-mode clarifying questions answered by a sub-agent), `02c-codebuddy-scaffold-build-pass-7-routes.png` and `03a-codebuddy-hy4-learning-screen-build.png`. Then show CodeBuddy Code live, or `04a`/`04b`: the pill folder in `.codebuddy/skills/`, the skill invoked, and the answer that TS-07 blocks and escalates to the duty LEW with the Chief Engineer's quote.
 
 **Narration:**
-> We built Keystone in five days. CodeBuddy Code was our main builder. We started in Plan mode, which produces a plan we could review before any files changed. Sub-agents answered the plan's clarifying questions in parallel. CodeBuddy scaffolded the app and built the pills, the rule engine and the screens, mostly on Hunyuan hy4-preview, with hy3 and a DeepSeek flash model for faster passes.
-> Our favourite moment was this one. Because a pill is a standard SKILL.md package, we copied it unchanged into CodeBuddy's skills folder. CodeBuddy found it, loaded it, and reached the same TS-07 decision as our engine: blocked, escalate to the duty LEW, quoting the Chief Engineer. The knowledge belongs to the organisation and isn't tied to our app.
-> We also used Claude Code for planning, code review and integration, mainly the governance layer, the data schemas and the cross-file tests. Two tools, each doing what it does best.
+> We built Keystone in five days. We started in CodeBuddy Code's Plan mode, which produces a plan we could review before any files changed, with sub-agents working in parallel. CodeBuddy scaffolded the app and built the first versions of the pills, the rule engine and the screens, mostly on Hunyuan hy4-preview, with hy3 and a DeepSeek flash model for faster passes.
+> Our favourite moment was this one. Because a pill is a standard SKILL.md package, we copied it unchanged into CodeBuddy's skills folder. We invoked it as a skill, and CodeBuddy reached the same TS-07 decision as our engine: blocked, escalate to the duty LEW, quoting the Chief Engineer. The knowledge belongs to the organisation and isn't tied to our app.
+> We also used Claude Code for planning, code review, the governance, auth and data layers, the AI provider chain, engine hardening and the landing page. Two tools, each doing what it does best.
 > Three tips. Start in Plan mode and freeze scope early. Put the language model in charge of language and nothing else. And write your safety rules as tests, not comments.
 
 ### 6:45 to 7:00 · Close
@@ -137,7 +139,7 @@
 | 2 | 0:20 | Scroll through the problem and the "How it works" story | `/` | Scroll slowly and evenly. The story is scroll-scrubbed. |
 | 3 | 0:58 | "Safe and bounded" section | `/` | The three action classes. |
 | 4 | 1:05 | Sign-in persona picker, then Tan Wei Ming | `/sign-in` | Passcode `keystone`. |
-| 5 | 1:25 | Expert call playing, captions and rule chips | `/capture` | About 5 s of audio. |
+| 5 | 1:25 | Expert call playing, captions and rule chips | `/capture` | About 5 s of synthetic-voice audio. |
 | 6 | 1:45 | Jump to the 00:23:10 contradiction | `/capture` | Zoom in on the contradiction card. |
 | 7 | 2:05 | Decision Canvas: resolved TS-02, confirm and edit | `/canvas/technical-services-chilled-water-leak` | Hover to show the quote and timestamp. |
 | 8 | 2:35 | Switch user to Priya Nair | sidebar | |
@@ -149,7 +151,7 @@
 | 14 | 4:40 | Learning step 4: eval replay | same | v1.2.0 passes 5/6; the correction fixes the failing case. |
 | 15 | 4:55 | Learning steps 5 and 6: hand-off to Priya, shadow, switch to Goh Boon Kheng, approve | same | Point out separation of duties. |
 | 16 | 5:10 | Learning step 7: roll back, history kept | same | |
-| 17 | 5:20 | Split: vitest 500 passing, and the Technician view with masking | terminal + app | |
+| 17 | 5:20 | Split: vitest (500+ passing), and the Technician view with masking | terminal + app | |
 | 18 | 5:45 | CodeBuddy proof screenshots 01a, 01b, 01c, 02c, 03a | `docs/proof/` | Ken Burns pan, about 4 s each. |
 | 19 | 6:10 | CodeBuddy skill run: same TS-07 decision | live CodeBuddy, or `docs/proof/04a`, `04b` | |
 | 20 | 6:45 | Landing hero, then the cover card with the URL | `/`, `docs/submission/cover.png` | End card for 3 s. |
@@ -163,10 +165,10 @@ Use this if the full video can't be recorded, or as a teaser. It reuses shots 1,
 | Time | On screen | Narration |
 |------|-----------|-----------|
 | 0:00 to 0:08 | Landing hero | "Our Chief Engineer is retiring. Eighteen years of judgement on leaks, power and tenants. Keystone keeps it." |
-| 0:08 to 0:18 | `/capture`, contradiction at 00:23:10 | "An AI onboarding call draws out what was never written down. It catches contradictions, and the expert confirms every rule." |
-| 0:18 to 0:33 | Incident room, step 10, TS-07 Blocked, then Why drawer with the clip | "On a live leak, the AI proposes restoring power. Rule TS-07 blocks it: no LEW sign-off. It's a deterministic gate the model can't talk past, and here's the expert saying why, in his own voice." |
+| 0:08 to 0:18 | `/capture`, contradiction at 00:23:10 | "A simulated onboarding call shows how the interview draws out what was never written down and catches contradictions, and the expert confirms every rule." |
+| 0:18 to 0:33 | Incident room, step 10, TS-07 Blocked, then Why drawer with the quote read aloud | "On a live leak, an AI proposal says restore power. Rule TS-07 blocks it: no LEW sign-off. It's a deterministic gate the model can't talk past, and here are the expert's own words, read back by the app." |
 | 0:33 to 0:40 | Escalate to Rahul Menon, then Apply to Harbourfront DC1 | "It escalates to a named person. The same pill runs at a data centre with different escalation, without a rewrite." |
-| 0:40 to 0:52 | Learning: correction 15 → 10, eval replay, shadow, approve, rollback | "Corrections are replayed against past incidents, shadowed, approved by a different person, and can be rolled back in one click." |
+| 0:40 to 0:52 | Learning: correction 15 → 10, eval replay, shadow, approve, rollback | "Corrections are replayed against past incidents, shadowed, approved by someone other than the author, and can be rolled back in one click." |
 | 0:52 to 1:00 | CodeBuddy skill answer, then the cover card | "Built with CodeBuddy, and the pill runs as a native CodeBuddy skill. Keystone: expert judgement, governed." |
 
 ---
@@ -175,7 +177,7 @@ Use this if the full video can't be recorded, or as a teaser. It reuses shots 1,
 
 | Claim | Source in the repo |
 |---|---|
-| 500 tests, 32 files, all passing | `npx vitest run`, run 12 Oct 2026 |
+| Over 500 tests (last run: 33 files, 515 tests, all passing) | `npx vitest run`, run 12 Oct 2026 |
 | Adversarial and property-based tests | `lib/governance/__tests__/adversarial.property.test.ts`, `lib/engine/__tests__/properties.test.ts` (fast-check) |
 | TS-07 quote at 00:14:32 | `pills/technical-services/chilled-water-leak/provenance.json` |
 | Contradiction at 00:06:30 vs 00:22:15, resolved at 00:23:30, marker at 00:23:10 | `README.md` demo path; `components/capture/CallPanel.tsx` |
@@ -184,11 +186,14 @@ Use this if the full video can't be recorded, or as a teaser. It reuses shots 1,
 | Escalation to Rahul Menon (duty LEW); DC1 escalation to Steven Wong (CFM) | `data/roles.json`; `README.md` step 7 |
 | TS-02 correction 15 → 10; v1.2.0 fails only the deadline eval | `evals/eval-2025-09-tenant-area-isolation-deadline.yaml` |
 | Author can't promote; hand-off to Priya | `docs/DECISIONS.md` D2 |
+| Author can't approve (separation of duties) | `lib/governance/approval.ts` |
+| "Hear the expert" is a synthetic voice reading the quote | `components/incident/useExpertVoice.ts` (browser speech synthesis) |
+| The step-10 AI proposal is recorded | `data/fixtures/llm/ai-proposals-INC-2026-1011.json` |
 | Approver of record is Head of Technical Services (Goh Boon Kheng) | `SKILL.md` `approver: head_technical_services`; `data/roles.json` |
 | Rollback appends a version and marks the old one Retired | `README.md` Tests; `lib/governance` |
 | Technician never receives the tenant name | `docs/DECISIONS.md` D1 |
 | CodeBuddy skill reached the same TS-07 decision | `README.md` "How it installs"; `docs/proof/04a`, `04b` |
-| Models: hy4-preview, hy3, DeepSeek flash (`deepseek-v4.1-flash`) | `README.md` Built with |
-| Claude Code's role: planning, review, governance, data and integration | `README.md` Built with |
+| Models: hy4-preview (in `docs/proof/`), hy3, DeepSeek flash (`deepseek-v4.1-flash`, no screenshot) | `README.md` Built with |
+| Claude Code's role: planning, review, governance, auth, data, LLM provider chain, landing | `README.md` Built with; `git log` |
 
 Don't show a live model swap. The app doesn't include a model-swap control. The claim that "a model swap gives the same decision" holds by construction, because the engine is deterministic, and the narration says only that the model never decides.

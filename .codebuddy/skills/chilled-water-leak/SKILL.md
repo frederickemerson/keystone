@@ -69,11 +69,12 @@ review_cadence:
 ## Purpose
 
 This pill encodes the incident-response judgement of **Tan Wei Ming, Chief
-Engineer** (18 years M&E, Keppel REIT asset portfolio) as deterministic,
+Engineer** (18 years M&E, fictional Grade A office portfolio) as deterministic,
 testable rules. An LLM host (CodeBuddy, WorkBuddy, Claude, or any
 agentskills-compatible host) reads these heuristics for context, but the
-gates in `rules.yaml` are the source of truth — no LLM reasoning can override
-a blocked action.
+gates in `rules.yaml` are the source of truth. Inside Keystone the deterministic
+engine enforces them and no LLM reasoning can override a blocked action; an
+external skill host reads the rules but does not itself enforce them.
 
 ## How to use this pill
 
@@ -134,8 +135,8 @@ the rules in `rules.yaml` are.
 
 - If water is **in, above, or flowing toward** an electrical room,
   switchroom, riser cupboard, or lift motor room — **nobody enters**. The
-  Licensed Electrical Worker (LEW) is the only person who may certify the
-  area safe. This is an EMA regulatory requirement, not a preference.
+  Licensed Electrical Worker (LEW) tests and signs off the affected
+  electrical installation before re-energisation (EMA LEW regime).
 
 - Do **not** shut down a whole floor's power unless the electrical risk is
   confirmed by the LEW or by clear evidence (water on switchgear, breaker
