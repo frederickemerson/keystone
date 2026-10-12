@@ -135,6 +135,14 @@ export function rollbackFrom(history: readonly PillVersion[], version: string): 
   return history.find((v) => v.rollbackOf !== undefined && v.parentVersion === version);
 }
 
+/** The approved version of `pillId` live right now (what a decision taken now ran under). */
+export function liveVersionOf(
+  versions: Readonly<Record<string, readonly PillVersion[]>>,
+  pillId: string,
+): string | undefined {
+  return Object.hasOwn(versions, pillId) ? currentApproved(versions[pillId])?.version : undefined;
+}
+
 /**
  * What a rollback of the live version restores: the version it replaced (its
  * parent), when that one was approved once and is now Retired. Whatever made

@@ -582,6 +582,12 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
 
   // The model proposes only once its triggering event has been replayed.
   const proposals = scenario.aiProposals.filter((p) => step >= p.afterStep);
+  // Tenant-message decisions run under the tenant-experience pill's live version.
+  const tenantPillId = pills.find((p) => p.domain === 'tenant-experience')?.id;
+  const tenantPillRef = {
+    pillId: tenantPillId,
+    pillVersion: approved.find((a) => a.bundle.id === tenantPillId)?.version,
+  };
   // #blocked-gate: the AI proposal a gate is holding, else the first blocked action.
   const blockedProposalId = proposals.find(
     (p) => items.find((i) => i.rule.id === p.ruleId)?.action.status === 'blocked',
@@ -979,7 +985,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                   ruleId: draft.draft_id,
                   outcome,
                   note: `${outcome === 'approved' ? 'Approved' : 'Rejected'} tenant message ${draft.draft_id} (${draft.channel})`,
-                  pillId: pills.find((p) => p.domain === 'tenant-experience')?.id,
+                  ...tenantPillRef,
                   subject: { kind: 'tenant_message', approverRole: draft.approved_by_role },
                 });
                 if (rec) setAnnouncement(`Tenant message ${draft.draft_id} ${outcome} by ${rec.actor.name}.`);
