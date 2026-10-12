@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import {
   Activity,
   Wrench,
@@ -16,18 +17,30 @@ import { cn } from '@/lib/ui/cn';
 import type { TimelineEvent, TimelineSource } from './types';
 import { humanizeKey } from '@/components/incident/labels';
 import { ClampText } from './Disclosure';
+import { connectorForSource, sourceLabel } from '@/lib/connectors/registry';
+import { routes } from '@/lib/journey/routes';
 
-const SOURCE_MAP: Record<string, { icon: LucideIcon; label: string }> = {
-  iBMS: { icon: Activity, label: 'iBMS' },
-  CMMS: { icon: Wrench, label: 'CMMS' },
-  tenant: { icon: Phone, label: 'Tenant' },
-  technician: { icon: HardHat, label: 'Technician' },
-  contractor: { icon: Truck, label: 'Contractor' },
-  LEW: { icon: Zap, label: 'LEW' },
+/** Icon per connector (presentation only); labels come from data/connectors.json. */
+const CONNECTOR_ICON: Record<string, LucideIcon> = {
+  ibms_alarms: Activity,
+  leak_detection: Activity,
+  cmms_work_orders: Wrench,
+  tenant_hotline: Phone,
+  tenant_experience_desk: Phone,
+  technician_app: HardHat,
+  technical_services_desk: HardHat,
+  critical_facilities_desk: HardHat,
+  contractor: Truck,
+  lew_signoff: Zap,
 };
 
-function sourceIcon(source: TimelineSource): { icon: LucideIcon; label: string } {
-  return SOURCE_MAP[source] ?? { icon: FileText, label: source };
+function sourceIcon(source: TimelineSource): { icon: LucideIcon; label: string; connectorId?: string } {
+  const connector = connectorForSource(source);
+  return {
+    icon: (connector && CONNECTOR_ICON[connector.id]) ?? FileText,
+    label: sourceLabel(source),
+    connectorId: connector?.id,
+  };
 }
 
 // Deterministic wall-clock time in Singapore, identical on server and client —
@@ -72,7 +85,7 @@ export function EvidenceTimeline({
   return (
     <ol className={cn('relative space-y-4', className)} aria-label="Evidence timeline">
       {events.map((event, i) => {
-        const { icon: Icon, label } = sourceIcon(event.source);
+        const { icon: Icon, label, connectorId } = sourceIcon(event.source);
         const isNewest = event.id === newestId;
         const sensitive = event.sensitivity ? SENSITIVE.has(event.sensitivity) : false;
         const updates = event.evidence_updates ?? {};
@@ -104,9 +117,19 @@ export function EvidenceTimeline({
                 <time className="font-mono font-medium tabular-nums text-ink" dateTime={event.at}>
                   {formatTime(event.at)}
                 </time>
-                <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-medium text-ink">
-                  {label}
-                </span>
+                {connectorId ? (
+                  <Link
+                    href={`${routes.connectors()}#${connectorId}`}
+                    title="Where this evidence comes from"
+                    className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-medium text-ink underline-offset-2 hover:underline"
+                  >
+                    {label}
+                  </Link>
+                ) : (
+                  <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-medium text-ink">
+                    {label}
+                  </span>
+                )}
                 {event.type ? (
                   <span className="text-ink-muted">{humanizeKey(event.type)}</span>
                 ) : null}
