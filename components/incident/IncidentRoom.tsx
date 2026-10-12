@@ -73,6 +73,7 @@ import { useExpertVoice } from './useExpertVoice';
 import { CaptureTaskCard } from '@/components/pulse/CaptureTaskCard';
 import type { CaptureTask, VoiceNote } from '@/lib/capture';
 import { findOpenCaptureTask } from '@/lib/capture';
+import { notApplicableReason } from './naReason';
 import { buildCloseoutTask, buildGateTask, gateTaskKind, latestTask, openTasksFor } from './captureTasks';
 import { ensureTaskAnswered, useCaptureActions, useCaptureView } from './useCapture';
 import { proposablePill } from '@/components/canvas/noteDraftUtils';
@@ -266,9 +267,17 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
   const notApplicable = useMemo(
     () =>
       evaluations.flatMap(({ entry, result }) =>
-        result.trace.filter((t) => !t.triggered).map((t) => ({ entry, trace: t })),
+        result.trace
+          .filter((t) => !t.triggered)
+          .map((t) => {
+            const rule = findRule(entry.pill, t.ruleId);
+            const reason = rule
+              ? notApplicableReason(rule, t, entry.pill.evidenceCatalog, scenario.incident.type)
+              : t.triggerReason;
+            return { entry, trace: t, reason };
+          }),
       ),
-    [evaluations],
+    [evaluations, scenario.incident.type],
   );
   const confidence = evaluations.reduce(
     (acc, { result }) => ({
@@ -873,7 +882,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
               key={p.proposalId}
               proposal={p}
               item={items.find((i) => i.rule.id === p.ruleId)}
-              naReason={notApplicable.find((n) => n.trace.ruleId === p.ruleId)?.trace.triggerReason}
+              naReason={notApplicable.find((n) => n.trace.ruleId === p.ruleId)?.reason}
               people={people}
               role={role}
               record={decisions[p.ruleId]}
@@ -937,14 +946,14 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
             </button>
             {showNa ? (
               <ul className="mt-2 space-y-1">
-                {notApplicable.map(({ entry, trace }) => (
+                {notApplicable.map(({ entry, trace, reason }) => (
                   <li
                     key={`${entry.bundle.id}:${trace.ruleId}`}
                     className="rounded-md border border-line px-2.5 py-1.5 text-xs"
                   >
                     <RuleIdLink pillId={entry.bundle.id} ruleId={trace.ruleId} className="text-ink" />{' '}
                     <span className="text-ink">{trace.ruleTitle}</span>
-                    <span className="block text-[11px] text-ink-muted">{trace.triggerReason}</span>
+                    <span className="block text-[11px] text-ink-muted">{reason}</span>
                   </li>
                 ))}
               </ul>
