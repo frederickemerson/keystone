@@ -12,7 +12,7 @@ import { DEMO_PATH } from '@/lib/journey';
 import { SignInForm } from './SignInForm';
 
 export const metadata: Metadata = {
-  title: 'Sign in — Keystone',
+  title: 'Sign in · Keystone',
   description: 'Demo sign-in: choose a persona to see Keystone as that role.',
 };
 

@@ -6,7 +6,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, Compass } from 'lucide-react';
-import { DEMO_PATH, routes } from '@/lib/journey';
+import { DEMO_FINISH, DEMO_PATH, routes } from '@/lib/journey';
 import { stepsFor, storyLine } from '@/lib/guide/cast';
 import { stageLabel } from '@/lib/guide/stage';
 import { personaFor, roleLabel } from '@/lib/governance/access';
@@ -34,7 +34,31 @@ export function StartHereCard({ role }: { role: string | null }) {
         <Compass className="size-3.5" aria-hidden="true" /> Start here
       </p>
 
-      {state && step ? (
+      {state?.finished ? (
+        <>
+          <h2 id="start-here-title" className="mt-1.5 font-serif text-[28px] font-normal leading-[1.08] text-white">
+            {DEMO_FINISH.title}
+          </h2>
+          <p className="mt-2 max-w-[42rem] text-[14px] leading-snug text-white/85">
+            You followed one rule from an expert&apos;s words to a governed new version. Replay it, or look at what it left
+            behind.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <PrimaryButton onClick={() => void start()} disabled={busy}>
+              Replay the guided demo
+            </PrimaryButton>
+            {DEMO_FINISH.links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-5 text-[14px] font-medium text-white hover:bg-white/20"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        </>
+      ) : state && step ? (
         <>
           <h2 id="start-here-title" className="mt-1.5 font-serif text-[28px] font-normal leading-[1.08] text-white">
             You are on step {state.step + 1} of {DEMO_PATH.length}: {lowerFirst(step.title)}

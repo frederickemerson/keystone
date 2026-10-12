@@ -1,6 +1,7 @@
 'use client';
 
-// Header chip: resume a closed guided demo, or start one when none is running.
+// Header chip: resume a closed guided demo, start one when none is running,
+// or replay it once it is finished.
 
 import { Compass } from 'lucide-react';
 import { DEMO_PATH } from '@/lib/journey';
@@ -10,14 +11,23 @@ export function GuideChip() {
   const { state, ready, resume, start, busy } = useGuide();
   if (!ready || state?.open) return null;
 
-  const label = state ? `Resume demo · ${state.step + 1}/${DEMO_PATH.length}` : 'Guided demo';
-  const name = state ? `Resume the guided demo at step ${state.step + 1} of ${DEMO_PATH.length}` : 'Start the guided demo';
+  const resumable = state !== null && !state.finished;
+  const label = resumable
+    ? `Resume demo · ${state.step + 1}/${DEMO_PATH.length}`
+    : state?.finished
+      ? 'Replay demo'
+      : 'Guided demo';
+  const name = resumable
+    ? `Resume the guided demo at step ${state.step + 1} of ${DEMO_PATH.length}`
+    : state?.finished
+      ? 'Replay the guided demo from the start'
+      : 'Start the guided demo';
 
   return (
     <button
       type="button"
       disabled={busy}
-      onClick={() => (state ? resume() : void start())}
+      onClick={() => (resumable ? resume() : void start())}
       aria-label={name}
       className="btn-pill max-sm:size-10 max-sm:px-0"
     >

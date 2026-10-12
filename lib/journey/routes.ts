@@ -23,6 +23,25 @@ export function ruleAnchorId(ruleId: string): string {
   return `rule-${ruleId}`;
 }
 
+/**
+ * DOM ids the guided demo deep-links to (`href#id`). The screens that own
+ * these elements render exactly these ids; the shell's hash scroll brings
+ * them into view below the sticky header.
+ */
+export const GUIDE_ANCHORS = {
+  /** Incident room: the blocked gate banner (TS-07 at the demo's gate step). */
+  blockedGate: 'blocked-gate',
+  /** Incident room: the open "Tell us why" capture task card. */
+  captureTask: 'capture-task',
+  /** Decision canvas: "Drafts from frontline notes". */
+  noteDrafts: 'note-drafts',
+} as const;
+
+/** `href` with its fragment set to `anchorId` (any existing fragment replaced). */
+export function withAnchor(href: string, anchorId: string): string {
+  return `${href.split('#')[0]}#${anchorId}`;
+}
+
 export const routes = {
   pulse: (): string => '/pulse',
   /** Expert onboarding call; `at` = "HH:MM:SS" seeks the call to that moment. */

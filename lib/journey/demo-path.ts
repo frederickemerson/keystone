@@ -9,7 +9,9 @@ import {
   DEMO_GATE_STEP,
   DEMO_INCIDENT_ID,
   DEMO_PILL_ID,
+  GUIDE_ANCHORS,
   routes,
+  withAnchor,
 } from './routes';
 
 /** The five stages of the loop, as the landing page names them. */
@@ -30,6 +32,7 @@ export interface DemoStep {
   title: string;
   /** roles.json role the guided demo switches to for this step. */
   role: string;
+  /** The step's screen; a `#fragment` names the element to bring into view (GUIDE_ANCHORS). */
   href: string;
   /** What to do on the screen, one or two sentences. */
   doThis: string;
@@ -61,26 +64,28 @@ export const DEMO_PATH: readonly DemoStep[] = [
     stage: 'apply',
     title: 'Watch the gate hold',
     role: 'technician',
-    href: routes.incident(DEMO_INCIDENT_ID, DEMO_GATE_STEP),
-    doThis: 'You are Rajesh, the technician on the L23 leak. Try to re-energise the air-handling unit.',
-    notice: 'TS-07 blocks it until the LEW signs off. Open "Why" to hear the expert say it.',
+    href: withAnchor(routes.incident(DEMO_INCIDENT_ID, DEMO_GATE_STEP), GUIDE_ANCHORS.blockedGate),
+    doThis:
+      'You are Rajesh, the technician on the L23 leak. The AI proposed re-energising the air-handling unit, and TS-07 holds it. Open "Why? · Hear the expert", then press "Escalate to … Duty Licensed Electrical Worker".',
+    notice: 'The gate is fixed code: the AI cannot override it. Escalating hands the decision to the Duty LEW and asks you one question.',
   },
   {
     id: 'teach-back',
     stage: 'learn',
     title: 'Teach it back in 20 seconds',
     role: 'technician',
-    href: routes.incident(DEMO_INCIDENT_ID, DEMO_GATE_STEP),
-    doThis: 'Answer the "Tell us why" task with the recorded demo note, then confirm the highlighted values.',
-    notice: 'Your note becomes a draft rule. Nothing is live yet.',
+    href: withAnchor(routes.incident(DEMO_INCIDENT_ID, DEMO_GATE_STEP), GUIDE_ANCHORS.captureTask),
+    doThis:
+      'Escalating created the "Tell us why — 20 seconds" task. Press "Answer now", choose "Demo note" and "Use this demo note", mark each highlighted value "Right", then press "Draft rule".',
+    notice: 'Your note becomes one draft rule, credited to you. Nothing is live yet.',
   },
   {
     id: 'propose',
     stage: 'learn',
     title: 'Propose it as a new version',
     role: 'chief_engineer',
-    href: routes.canvas(DEMO_PILL_ID),
-    doThis: "Under Drafts from frontline notes, propose Rajesh's draft into the pill.",
+    href: withAnchor(routes.canvas(DEMO_PILL_ID), GUIDE_ANCHORS.noteDrafts),
+    doThis: "Under Drafts from frontline notes, propose the draft from Rajesh's note into the pill.",
     notice: 'It becomes a Draft version. Rajesh is credited; the rule keeps his words.',
   },
   {
@@ -98,8 +103,8 @@ export const DEMO_PATH: readonly DemoStep[] = [
     title: 'Start the trial run',
     role: 'asset_operations_manager',
     href: routes.approvals(),
-    doThis: 'As Priya, put the version into a trial run (Shadow) and review how it compares on past incidents.',
-    notice: 'The trial run decides nothing; it only shows where the new version would differ.',
+    doThis: 'As Priya, put the version into a trial run (Shadow).',
+    notice: 'The approvals card shows the trial result: how many past incidents the new version agrees with the live one on.',
   },
   {
     id: 'approve-reuse',
@@ -107,7 +112,23 @@ export const DEMO_PATH: readonly DemoStep[] = [
     title: 'Approve and reuse',
     role: 'head_technical_services',
     href: routes.approvals(),
-    doThis: 'As Goh, approve the version, then reopen the incident room.',
-    notice: 'The pill now runs the new version; one click rolls it back.',
+    doThis: 'As Goh, approve.',
+    notice: 'The incident room now runs the new version, and Learning can roll it back to the previous version in one click.',
   },
 ];
+
+/** The end card after the last step: what the demo showed, and where to go next. */
+export const DEMO_FINISH = {
+  title: 'You finished the guided demo',
+  saw: [
+    "Capture: a retiring expert's sentence became rule TS-07, linked to his exact words.",
+    'Compile: a named engineer confirmed the rule; the AI only drafted it.',
+    'Apply: the gate held an unsafe action until the Duty LEW signs off.',
+    "Learn: a technician's 20-second note became a draft, peer-checked, trial-run and approved by named people.",
+    'Reuse: the incident room runs the new version, and every decision is in the record.',
+  ],
+  links: [
+    { label: 'Decision record', href: routes.incidentRecord(DEMO_INCIDENT_ID) },
+    { label: 'Connectors', href: routes.connectors() },
+  ],
+} as const;

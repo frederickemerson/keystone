@@ -30,6 +30,8 @@ const SGT_DATE = new Intl.DateTimeFormat('en-GB', {
   year: 'numeric',
 });
 
+export const metadata = { title: 'Incidents · Keystone' };
+
 export default async function IncidentsPage() {
   const incidents = scopeIncidents(loadIncidents(), await sessionRole()).sort(
     (a, b) =>

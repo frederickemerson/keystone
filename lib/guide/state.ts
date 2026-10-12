@@ -12,6 +12,13 @@ export interface GuideState {
   step: number;
   /** Panel shown. A closed tour keeps its step and can be resumed from the header. */
   open: boolean;
+  /**
+   * Step details hidden. Belongs to the current step only: every step change
+   * shows the new step's "Do this" again.
+   */
+  collapsed: boolean;
+  /** The last step was finished: the panel shows the end card instead of a step. */
+  finished: boolean;
 }
 
 const lastStep = DEMO_PATH.length - 1;
@@ -26,10 +33,11 @@ export function parseGuideState(raw: string | null | undefined): GuideState | nu
   try {
     const value: unknown = JSON.parse(raw);
     if (typeof value !== 'object' || value === null) return null;
-    const { step, open } = value as Record<string, unknown>;
+    const { step, open, collapsed, finished } = value as Record<string, unknown>;
     if (typeof step !== 'number' || !Number.isFinite(step) || typeof open !== 'boolean') return null;
     if (step < 0 || step > lastStep) return null;
-    return { step: Math.trunc(step), open };
+    // Fields added later default to false, so a tour saved by an older build resumes.
+    return { step: Math.trunc(step), open, collapsed: collapsed === true, finished: finished === true };
   } catch {
     return null;
   }
@@ -42,26 +50,37 @@ export type GuideAction =
   | { type: 'goto'; step: number }
   | { type: 'close' }
   | { type: 'resume' }
+  | { type: 'toggleDetails' }
+  | { type: 'finish' }
   | { type: 'end' };
+
+/** A fresh, open step: details shown, not finished. */
+function atStep(step: number): GuideState {
+  return { step: clampStep(step), open: true, collapsed: false, finished: false };
+}
 
 /** Pure transitions; returns a new object, never mutates. */
 export function guideReducer(state: GuideState | null, action: GuideAction): GuideState | null {
   switch (action.type) {
     case 'start':
-      return { step: 0, open: true };
+      return atStep(0);
     case 'end':
       return null;
     case 'goto':
-      return { step: clampStep(action.step), open: true };
+      return atStep(action.step);
     default:
       break;
   }
   if (!state) return null;
   switch (action.type) {
     case 'next':
-      return { ...state, step: clampStep(state.step + 1) };
+      return atStep(state.step + 1);
     case 'back':
-      return { ...state, step: clampStep(state.step - 1) };
+      return atStep(state.step - 1);
+    case 'toggleDetails':
+      return { ...state, collapsed: !state.collapsed };
+    case 'finish':
+      return { step: lastStep, open: true, collapsed: false, finished: true };
     case 'close':
       return { ...state, open: false };
     case 'resume':

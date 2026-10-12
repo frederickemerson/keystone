@@ -4,6 +4,8 @@ import { ApprovalsQueue } from "@/components/approvals/ApprovalsQueue";
 import { sessionRole } from "@/lib/auth/session";
 import { scopeIncidents } from "@/lib/governance/scope";
 
+export const metadata = { title: 'Approvals · Keystone' };
+
 export default async function ApprovalsPage() {
   // Server loads pill bundles (for version approvals) and incidents (for
   // pending action decisions); the client queue seeds the governance store.

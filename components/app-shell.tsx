@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ScrollText } from 'lucide-react';
 import { SwitchUser } from '@/components/shell/SwitchUser';
 import { useSessionBinding, type SessionActor } from '@/components/shell/session';
@@ -10,6 +10,8 @@ import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { BrandLogo } from '@/components/shell/BrandMark';
 import { MobileNav, SidebarNav } from '@/components/shell/PrimaryNav';
 import { Breadcrumbs } from '@/components/shell/Breadcrumbs';
+import { HashScroll } from '@/components/shell/HashScroll';
+import { useStickyHeaderOffset } from '@/components/shell/useStickyHeaderOffset';
 import { GuideProvider } from '@/components/journey/GuideProvider';
 import { GuidePanel } from '@/components/journey/GuidePanel';
 import { GuideChip } from '@/components/journey/GuideChip';
@@ -47,12 +49,15 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const [auditOpen, setAuditOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const bare = BARE_ROUTES.has(pathname);
+  useStickyHeaderOffset(headerRef, !bare);
   // The signed session is the acting identity for every governance check.
   useSessionBinding(session);
 
   // The landing page (/) and sign-in are full-bleed with their own header;
   // every app screen gets the sidebar shell. The brand mark links back to /.
-  if (BARE_ROUTES.has(pathname)) return <>{children}</>;
+  if (bare) return <>{children}</>;
 
   const role = session?.role ?? null;
 
@@ -78,7 +83,7 @@ export function AppShell({
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Phones: the top bar and nav sit on night like the desktop sidebar,
               and nothing is sticky (the screen is short). */}
-          <header className="z-30 border-b border-line bg-canvas/90 backdrop-blur-md md:sticky md:top-0">
+          <header ref={headerRef} className="z-30 border-b border-line bg-canvas/90 backdrop-blur-md md:sticky md:top-0">
             <div className="flex h-14 items-center gap-2 bg-night px-4 md:h-16 md:bg-transparent md:px-8">
               <div className="shrink-0 md:hidden">
                 <Wordmark compact />
@@ -108,14 +113,19 @@ export function AppShell({
             </div>
           </header>
 
-          {/* Bottom padding keeps content clear of the floating guide on phones. */}
-          <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 pb-28 pt-6 outline-none md:px-8 md:pb-10 md:pt-8">
-            <Breadcrumbs names={names} className="mb-4 md:hidden" />
-            {children}
-          </main>
+          {/* The guide is docked, never floating over the page: a rail beside
+              main on wide screens, a bar at the bottom of this column below. */}
+          <div className="flex min-w-0 flex-1">
+            <main id="main" tabIndex={-1} className="min-w-0 flex-1 px-4 pb-10 pt-6 outline-none md:px-8 md:pt-8">
+              <Breadcrumbs names={names} className="mb-4 md:hidden" />
+              {children}
+            </main>
+            <GuidePanel currentRole={role} placement="rail" />
+          </div>
+          <GuidePanel currentRole={role} placement="bar" />
         </div>
 
-        <GuidePanel currentRole={role} />
+        <HashScroll />
         <AuditLogDrawer open={auditOpen} onClose={() => setAuditOpen(false)} />
       </div>
     </GuideProvider>

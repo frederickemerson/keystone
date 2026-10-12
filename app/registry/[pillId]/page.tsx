@@ -10,8 +10,15 @@ import { loadAssets, loadIncidents, loadTimeline } from '@/lib/data';
 import { loadPill } from '@/lib/pills/load';
 import { sessionRole } from '@/lib/auth/session';
 import { scopeAsset, scopeIncidents, scopeTimeline } from '@/lib/governance/scope';
+import { pillTitle } from '@/components/mosaic/pillTitle';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ pillId: string }> }) {
+  const { pillId } = await params;
+  const pill = loadPill(decodeURIComponent(pillId));
+  return { title: `${pill ? pillTitle(pill) : decodeURIComponent(pillId)} · Keystone` };
+}
 
 export default async function PillHubPage({ params }: { params: Promise<{ pillId: string }> }) {
   const { pillId } = await params;

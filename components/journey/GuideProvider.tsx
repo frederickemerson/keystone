@@ -1,6 +1,6 @@
 'use client';
 
-// The guided demo's state for the whole shell: the floating panel, the
+// The guided demo's state for the whole shell: the docked guide, the
 // header's "Resume" chip, the journey bar and Pulse's start-here card read it.
 // Moving to a step switches to that step's persona (the real session switch)
 // and opens its screen. State lives in sessionStorage (lib/guide/state).
@@ -16,6 +16,7 @@ import {
   type GuideAction,
   type GuideState,
 } from '@/lib/guide/state';
+import { anchorIdOf, scrollToAnchor } from '@/lib/guide/anchor';
 import { useSwitchUser } from '@/components/shell/session';
 
 interface GuideContextValue {
@@ -30,7 +31,10 @@ interface GuideContextValue {
   start: () => Promise<void>;
   close: () => void;
   resume: () => void;
-  end: () => void;
+  /** Show or hide the current step's details (resets on every step change). */
+  toggleDetails: () => void;
+  /** Finish the last step: the panel shows the end card. */
+  finish: () => void;
 }
 
 const GuideContext = createContext<GuideContextValue | null>(null);
@@ -73,8 +77,13 @@ export function GuideProvider({ currentRole, children }: { currentRole: string |
         // Same person: a client navigation. Another person: the switch opens
         // the step's screen itself (full navigation; a failed switch goes via
         // /sign-in and back). The step is saved first, so the panel resumes.
-        if (target.role === currentRole) router.push(target.href);
-        else await switchUser(target.role, target.href);
+        if (target.role === currentRole) {
+          router.push(target.href);
+          // Same-screen steps change only the hash (pushState fires no
+          // hashchange), so bring the step's element into view here.
+          const anchor = anchorIdOf(target.href);
+          if (anchor) scrollToAnchor(anchor);
+        } else await switchUser(target.role, target.href);
       } finally {
         setBusy(false);
       }
@@ -92,7 +101,8 @@ export function GuideProvider({ currentRole, children }: { currentRole: string |
       start: () => goTo(0),
       close: () => apply({ type: 'close' }),
       resume: () => apply({ type: 'resume' }),
-      end: () => apply({ type: 'end' }),
+      toggleDetails: () => apply({ type: 'toggleDetails' }),
+      finish: () => apply({ type: 'finish' }),
     }),
     [state, ready, busy, goTo, apply],
   );
