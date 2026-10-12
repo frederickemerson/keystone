@@ -1,12 +1,14 @@
 'use client';
 
-// Step 4 — Validate. Replays the pill's evals through v1.2.0 and v1.3.0
-// (runEvals + compareVersions) and shows the case × version matrix, the
-// regressions, and the correction assertion the whole flow hangs on.
+// Step 4 — Validate. Replays the pill's past incidents (evals) through the base
+// version and the correction (runEvals + compareVersions) and shows the case ×
+// version matrix, the regressions, and the correction assertion the whole flow
+// hangs on. Counts use the shared past-incident score (lib/governance/evalScore).
 
 import { CheckCircle2, FlaskConical, XCircle } from 'lucide-react';
 import { KpiStat, SectionHeader } from '@/components/mosaic';
 import type { ComparisonResult, EvalCase } from '@/lib/engine';
+import { formatChecks, formatIncidents, PAST_INCIDENTS_LABEL, scoreSummary } from '@/lib/governance/evalScore';
 import type { EvalMatrixRow, FieldAssertion } from './learning-utils';
 
 function PassCell({ pass, failed, total }: { pass: boolean; failed: number; total: number }) {
@@ -48,8 +50,8 @@ export function EvalMatrix({
   correctionCaseId?: string;
   assertion: FieldAssertion | null;
 }) {
-  const oldTotal = comparison.oldSummary.passed + comparison.oldSummary.failed;
-  const newTotal = comparison.newSummary.passed + comparison.newSummary.failed;
+  const oldScore = scoreSummary(cases, comparison.oldSummary);
+  const newScore = scoreSummary(cases, comparison.newSummary);
   const correctionRow = correctionCaseId ? rows.find((r) => r.caseId === correctionCaseId) : undefined;
   /** The engine itself flipped this case from failing to passing. */
   const engineFlip = Boolean(correctionRow && !correctionRow.oldPass && correctionRow.newPass);
@@ -63,8 +65,12 @@ export function EvalMatrix({
       />
 
       <div className="mt-3 grid gap-2 sm:grid-cols-4">
-        <KpiStat label={`v${baseVersion} assertions passed`} value={`${comparison.oldSummary.passed}/${oldTotal}`} />
-        <KpiStat label={`v${nextVersion} assertions passed`} value={`${comparison.newSummary.passed}/${newTotal}`} />
+        <div title={formatChecks(oldScore)}>
+          <KpiStat label={`${PAST_INCIDENTS_LABEL} · v${baseVersion}`} value={formatIncidents(oldScore)} />
+        </div>
+        <div title={formatChecks(newScore)}>
+          <KpiStat label={`${PAST_INCIDENTS_LABEL} · v${nextVersion}`} value={formatIncidents(newScore)} />
+        </div>
         <KpiStat label="Regressions" value={comparison.regressions.length} />
         <KpiStat label="Improvements" value={comparison.improvements.length} />
       </div>

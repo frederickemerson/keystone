@@ -7,8 +7,8 @@
 // English. Once the version has been approved, the step shows that record
 // (and, after a rollback, what is live now) instead of the gate.
 
-import { useState } from 'react';
-import { Ban, CheckCircle2, ShieldAlert, ShieldCheck, UserCheck } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { Ban, CheckCircle2, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { SectionHeader } from '@/components/mosaic';
 import type { ApprovalCheck } from '@/lib/governance/approval';
 import type { PillVersion } from '@/lib/governance/versions';
@@ -36,7 +36,7 @@ export function ApprovalPanel({
   canOverride,
   disabledReason,
   record,
-  switchRole,
+  handoff,
   onApprove,
   onOverride,
 }: {
@@ -47,8 +47,8 @@ export function ApprovalPanel({
   disabledReason?: string;
   /** The stored approval, once the version has been approved. */
   record?: ApprovalRecord;
-  /** Hand-off to the approver of record, offered when the acting person may not approve. */
-  switchRole?: { label: string; onSwitch: () => void };
+  /** Hand-off to someone the approval check allows, offered when the acting person may not approve. */
+  handoff?: ReactNode;
   onApprove: () => ApprovalCheck;
   onOverride: (reason: string) => ApprovalCheck;
 }) {
@@ -119,12 +119,8 @@ export function ApprovalPanel({
               >
                 <ShieldCheck className="size-3.5" aria-hidden="true" /> Approve v{version.version}
               </button>
-              {switchRole ? (
-                <button type="button" onClick={switchRole.onSwitch} className="btn-pill">
-                  <UserCheck className="size-3.5" aria-hidden="true" /> Switch user to {switchRole.label}
-                </button>
-              ) : null}
             </div>
+            {handoff}
 
             {check.regressions > 0 ? (
               <div className="rounded-card border border-approval/30 bg-approval-tint p-4">

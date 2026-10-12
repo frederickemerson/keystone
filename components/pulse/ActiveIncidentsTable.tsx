@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { routes } from '@/lib/journey';
 import { cn } from '@/lib/ui/cn';
 import type { IncidentRecord } from '@/lib/data';
 import { personaFor, roleLabel } from '@/lib/governance/access';
@@ -151,7 +152,7 @@ export function ActiveIncidentsTable({
                   <span className="sr-only"> ({incident.pill_applied})</span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/incident/${incident.id}`} className="btn-pill text-xs">
+                  <Link href={routes.incident(incident.id)} className="btn-pill text-xs">
                     Open
                   </Link>
                 </td>

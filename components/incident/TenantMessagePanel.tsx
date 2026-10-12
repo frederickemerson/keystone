@@ -19,8 +19,12 @@ type Draft = TenantMessageFixture['drafts'][number];
 
 const WAIT_S = LLM_CLIENT_WAIT_MS / 1000;
 
-function minutesBetween(fromIso: string, toIso: string): number {
-  return Math.round((new Date(toIso).getTime() - new Date(fromIso).getTime()) / 60_000);
+/** Whole minutes from one instant to another; null when either is not a time (e.g. masked for the viewer). */
+function minutesBetween(fromIso: string, toIso: string): number | null {
+  const from = Date.parse(fromIso);
+  const to = Date.parse(toIso);
+  if (Number.isNaN(from) || Number.isNaN(to)) return null;
+  return Math.round((to - from) / 60_000);
 }
 
 function DraftCard({

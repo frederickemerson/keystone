@@ -1,6 +1,6 @@
 // Inline governance test fixtures — no file reads.
 
-import type { Pill, Rule } from "@/lib/engine";
+import type { EvalCase, Pill, Rule } from "@/lib/engine";
 import { personaFor } from "../store";
 
 export function rule(id: string, overrides: Partial<Rule> = {}): Rule {
@@ -30,7 +30,19 @@ export function rule(id: string, overrides: Partial<Rule> = {}): Rule {
   };
 }
 
-export function pill(rules: Rule[] = [rule("TS-01"), rule("TS-02"), rule("TS-03")]): Pill {
+/** One past incident (eval case): a confirmed active leak, so every fixture rule fires. */
+export const PAST_LEAK: EvalCase = {
+  id: "eval-past-leak",
+  asset: { id: "asset-hf1", name: "Harbourfront One", type: "grade_a_office", attributes: {} },
+  incident: { id: "INC-PAST", type: "water_ingress" },
+  evidence: { active_water_release: { value: true, source: "technician", at: "2026-01-01T00:00:00Z", confirmed: true } },
+  expected: { "TS-01": { status: "allowed" } },
+};
+
+export function pill(
+  rules: Rule[] = [rule("TS-01"), rule("TS-02"), rule("TS-03")],
+  evals: Record<string, EvalCase> = { [PAST_LEAK.id]: PAST_LEAK },
+): Pill {
   return {
     manifest: {
       name: "chilled-water-leak",
@@ -45,7 +57,7 @@ export function pill(rules: Rule[] = [rule("TS-01"), rule("TS-02"), rule("TS-03"
     },
     rules,
     provenance: {},
-    evals: {},
+    evals,
     evidenceCatalog: {},
   };
 }

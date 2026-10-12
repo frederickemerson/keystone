@@ -14,7 +14,9 @@ import { DraftFromNoteTile } from '@/components/capture/DraftFromNoteTile';
 import { CapturedRulePanel } from '@/components/approvals/CapturedRulePanel';
 import { noteById, taskForNote, useCaptureActions, useCaptureView } from '@/components/incident/useCapture';
 import type { DraftFromNote, VoiceNote } from '@/lib/capture';
-import { identityKey } from '@/lib/governance/access';
+import { identityKey, pillEditAuthority } from '@/lib/governance/access';
+import { routes, suggestHandoff } from '@/lib/journey';
+import { HandoffButton } from '@/components/journey/HandoffButton';
 import { useGovernanceStore } from '@/lib/governance/store';
 import type { PillVersion } from '@/lib/governance/versions';
 import type { PillBundle } from '@/lib/pills/load';
@@ -43,7 +45,13 @@ export function NoteDrafts({ pill }: { pill: PillBundle }) {
   // Rendered only after mount (capture state is client-only), so a live clock is safe here.
   const now = new Date().toISOString();
   const proposable = proposablePill(pill, history);
-
+  // A draft not yet proposed, and the acting person may not propose it: hand to
+  // someone the pill's own edit policy allows (the store enforces the same check).
+  const unproposed = items.some((i) => !i.version?.capture);
+  const editor =
+    unproposed && !pillEditAuthority(currentActor.role, proposable.policy).allowed
+      ? suggestHandoff((p) => pillEditAuthority(p.role, proposable.policy).allowed, currentActor)
+      : undefined;
 
   return (
     <section aria-label="Drafts from frontline notes" className="space-y-3">
@@ -51,6 +59,14 @@ export function NoteDrafts({ pill }: { pill: PillBundle }) {
         title="Drafts from frontline notes"
         description="Short notes from the people doing the work: read back by the speaker, proposed by the pill's editors, confirmed by a peer before Shadow."
       />
+      {editor ? (
+        <HandoffButton
+          to={editor}
+          href={routes.canvas(pill.id)}
+          reason={`${pillEditAuthority(currentActor.role, proposable.policy).reason ?? ''} A draft becomes part of the pill only when one of its editors proposes it.`}
+          action="propose the draft"
+        />
+      ) : null}
       {notice ? (
         <p role="status" className="rounded-lg bg-dew-drop px-3 py-1.5 text-xs text-ink">
           {notice}
@@ -142,7 +158,7 @@ function ProposedDraft({
           Proposed as <span className="font-mono">{version.capture.ruleId}</span> in{' '}
           <span className="font-mono">v{version.version}</span> ({version.status}) by {version.createdBy.name}.
         </p>
-        <Link href="/approvals" className="btn-pill text-xs">
+        <Link href={routes.approvals()} className="btn-pill text-xs">
           Approvals <ArrowRight className="size-3.5" aria-hidden="true" />
         </Link>
       </div>

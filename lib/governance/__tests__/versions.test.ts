@@ -4,7 +4,8 @@ import {
   EmptyProposalError,
   currentApproved,
   diffVersions,
-  latestProposal,
+  correctionFor,
+  inReview,
   liveVersion,
   markApproved,
   nextMinorVersion,
@@ -158,28 +159,31 @@ describe("rollback", () => {
 
 const TS03_TO_10 = { op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } } as const;
 
-describe("latestProposal / rollbackFrom (what Learning resumes from)", () => {
-  it("follows the change through Draft → Shadow → Approved → rolled back, never the seed or the rollback", () => {
+describe("correctionFor / inReview / rollbackFrom (what Learning resumes from)", () => {
+  const INC = "INC-2026-1011";
+
+  it("follows the correction through Draft → Shadow → Approved → rolled back, never the seed or the rollback", () => {
     const base = seeded();
-    expect(latestProposal([base])).toBeUndefined();
-    const v13 = proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT);
-    expect(latestProposal([base, v13])).toMatchObject({ version: "1.3.0", status: "Draft" });
+    expect(correctionFor([base], INC)).toBeUndefined();
+    const v13 = { ...proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT), correction: { incidentId: INC, ruleId: "TS-03" } };
+    expect(correctionFor([base, v13], INC)).toMatchObject({ version: "1.3.0", status: "Draft" });
+    expect(inReview([base, v13])?.version).toBe("1.3.0");
     const shadowedH = promoteToShadow([base, v13], "1.3.0", AOM, AT);
-    expect(latestProposal(shadowedH)).toMatchObject({ version: "1.3.0", status: "Shadow", shadowedBy: AOM });
+    expect(correctionFor(shadowedH, INC)).toMatchObject({ version: "1.3.0", status: "Shadow", shadowedBy: AOM });
     const approved = markApproved(shadowedH, "1.3.0", HTS, AT);
-    expect(latestProposal(approved)).toMatchObject({ version: "1.3.0", status: "Approved" });
+    expect(correctionFor(approved, INC)).toMatchObject({ version: "1.3.0", status: "Approved" });
+    expect(inReview(approved)).toBeUndefined();
     expect(rollbackFrom(approved, "1.3.0")).toBeUndefined();
     const rolled = rollback(approved, PILL_ID, "1.2.0", HTS, "regression", AT);
-    expect(latestProposal(rolled)).toMatchObject({ version: "1.3.0", status: "Retired" });
+    expect(correctionFor(rolled, INC)).toMatchObject({ version: "1.3.0", status: "Retired" });
     expect(rollbackFrom(rolled, "1.3.0")).toMatchObject({ version: "1.4.0", rollbackOf: "1.2.0" });
   });
 
-  it("prefers a version in review over an older finished one", () => {
+  it("an uncorrelated version in review is in review, but is not the correction", () => {
     const base = seeded();
     const v13 = proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT);
-    const done = markApproved(promoteToShadow([base, v13], "1.3.0", AOM, AT), "1.3.0", HTS, AT);
-    const v14 = proposeVersion(done[1], [{ op: "update", ruleId: "TS-02", patch: { deadline_minutes: 5 } }], CE, "b", done, AT);
-    expect(latestProposal([...done, v14])?.version).toBe("1.4.0");
+    expect(inReview([base, v13])?.version).toBe("1.3.0");
+    expect(correctionFor([base, v13], INC)).toBeUndefined();
   });
 });
 

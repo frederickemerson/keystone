@@ -432,7 +432,7 @@ describe("peerConfirm and the Shadow peer gate", () => {
     s().setRole("duty_lew");
     refused("peer_confirm_blocked", () => s().peerConfirm({ ...target, verdict: "confirm" }), /read-only/);
     s().setRole("executive");
-    refused("peer_confirm_blocked", () => s().peerConfirm({ ...target, verdict: "confirm" }), /roles_allowed/);
+    refused("peer_confirm_blocked", () => s().peerConfirm({ ...target, verdict: "confirm" }), /list of editors/);
     s().setRole("technical_services_lead");
     refused("peer_confirm_blocked", () => s().peerConfirm({ ...target, verdict: "dispute" }), /what is wrong/);
     refused("peer_confirm_blocked", () => s().peerConfirm({ ...target, ruleId: "TS-01", verdict: "confirm" }), /not proposed from a voice note/);

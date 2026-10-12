@@ -14,6 +14,7 @@ export interface ApprovalOverride {
 export type ApprovalBlockerCode =
   | "not_shadowed"
   | "not_in_review"
+  | "no_trial_runs"
   | "author_cannot_approve"
   | "shadow_promoter_cannot_approve"
   | "author_shadowed_own"
@@ -45,6 +46,12 @@ export interface ApprovalContext {
    * approved version's rules (lost update), so it must be re-proposed.
    */
   liveApprovedVersion?: string;
+  /**
+   * How many trial runs (Shadow replays of past incidents) are recorded for
+   * the version. A Shadow version with none has not been trialled, so it
+   * cannot be approved. Fail-closed: when not given, it counts as zero.
+   */
+  trialRuns?: number;
 }
 
 /**
@@ -54,7 +61,8 @@ export interface ApprovalContext {
  * Separation of duties: three different people (DECISIONS.md D2). The author
  * proposes, a second person puts the version into Shadow
  * (shadowPromotionAuthority refuses the author), and a third person approves:
- * - only a Shadow version can be approved (a Draft has not run anywhere);
+ * - only a Shadow version can be approved (a Draft has not run anywhere),
+ *   and only once at least one trial run is on record (context.trialRuns);
  * - the approver is neither the author nor the person who promoted the
  *   version to Shadow. Identities are compared canonically (identityKey), so
  *   case, whitespace, zero-width and Unicode-compatibility variants of a name
@@ -80,6 +88,8 @@ export function canApprove(
     block("not_shadowed", `${v} is still a Draft. It must run in Shadow before anyone can approve it`);
   } else if (version.status !== "Shadow") {
     block("not_in_review", `${v} is ${version.status}, so there is nothing to approve`);
+  } else if ((context.trialRuns ?? 0) < 1) {
+    block("no_trial_runs", `${v} has no trial run on record. Replay it against past incidents in Shadow before approving`);
   }
 
   if (sameIdentity(actor.name, version.createdBy.name)) {
