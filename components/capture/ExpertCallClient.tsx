@@ -152,7 +152,7 @@ export function ExpertCallClient(
           <p className="min-w-0 flex-1 text-[14px] text-ink">
             You came here for the moment at <span className="font-mono tabular-nums">{pendingSeek}</span>.
           </p>
-          <button type="button" onClick={playback.accept} className="btn-pill btn-pill-primary text-xs">
+          <button type="button" onClick={playback.accept} autoFocus className="btn-pill btn-pill-primary text-xs">
             <Play className="size-3.5" aria-hidden="true" /> Play from {pendingSeek}
           </button>
         </div>
@@ -186,6 +186,7 @@ export function ExpertCallClient(
           pillId={pillId}
           pillName={pillName}
           duration={transcript.duration}
+          focusAccept={!pendingSeek}
         />
         <CapturedPanel
           rules={rules}

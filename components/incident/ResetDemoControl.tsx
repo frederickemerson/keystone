@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { formatSgtClock } from './labels';
+import { formatActionTime } from './labels';
 
 export function ResetDemoControl({ onConfirm }: { onConfirm: () => void }) {
   const [confirming, setConfirming] = useState(false);
@@ -70,9 +70,9 @@ export function ResetDemoControl({ onConfirm }: { onConfirm: () => void }) {
       </button>
       {resetAt ? (
         <p role="status" className="text-[11px] text-ink-muted">
-          Reset at{' '}
-          <time dateTime={resetAt} className="font-mono tabular-nums">
-            {formatSgtClock(resetAt)}
+          Reset{' '}
+          <time dateTime={resetAt}>
+            {formatActionTime(resetAt)}
           </time>
         </p>
       ) : null}

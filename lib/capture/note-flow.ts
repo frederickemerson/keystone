@@ -208,3 +208,17 @@ export function extractionForNote(
     reason: `${result.reason ?? "Live drafting is unavailable."} There is no recorded draft for this note; it is saved, so try drafting again.`,
   };
 }
+
+/**
+ * The incident a captured rule came from: its note's task (the "Tell us why"
+ * or close-out task raised in an incident room). Undefined for a note no
+ * incident asked for (a QR teach note) or one this device does not hold.
+ */
+export function incidentOfCapture(
+  capture: { noteId: string },
+  notes: readonly { id: string; taskId?: string }[],
+  tasks: readonly { id: string; incidentId?: string }[],
+): string | undefined {
+  const taskId = notes.find((n) => n.id === capture.noteId)?.taskId;
+  return taskId ? tasks.find((t) => t.id === taskId)?.incidentId : undefined;
+}

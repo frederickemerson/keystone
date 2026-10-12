@@ -110,6 +110,25 @@ export function formatSgtClock(iso: string): string {
   return Number.isNaN(d.getTime()) ? iso : SGT_CLOCK.format(d);
 }
 
+const SGT_DAY = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Singapore' });
+const MINUTE_MS = 60_000;
+const HOUR_MS = 60 * MINUTE_MS;
+
+/**
+ * When a person acted in this demo ("just now", "3 min ago", "today 10:00
+ * (your clock)"). Never a bare wall-clock time: the incident room's clock
+ * (08:11) is the recorded incident's, and these actions are the viewer's.
+ */
+export function formatActionTime(iso: string, now: number = Date.now()): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return iso;
+  const ago = now - t;
+  if (ago < MINUTE_MS) return 'just now';
+  if (ago < HOUR_MS) return `${Math.floor(ago / MINUTE_MS)} min ago`;
+  const day = SGT_DAY.format(t) === SGT_DAY.format(now) ? 'today' : SGT_DAY.format(t);
+  return `${day} ${SGT_CLOCK.format(t)} (your clock)`;
+}
+
 /** "LEW written sign-off missing (+2 more)" for an action's missing evidence keys. */
 export function missingSummary(missing: readonly string[]): string {
   if (missing.length === 0) return '';

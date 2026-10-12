@@ -6,7 +6,7 @@ import { cn } from '@/lib/ui/cn';
 import type { ActionDecisionRecord, ActionOutcome } from '@/lib/governance/store';
 import { roleLabel } from '@/lib/governance/access';
 import type { ActionPermissions, ButtonGate } from './permissions';
-import { formatClock } from './labels';
+import { formatActionTime } from './labels';
 
 const BASE = 'btn-pill text-xs';
 /**
@@ -78,7 +78,10 @@ export function DecisionStamp({ record }: { record: ActionDecisionRecord }) {
       <Stamp className="size-3.5" aria-hidden="true" />
       <span className="font-semibold">{OUTCOME_LABEL[record.outcome]}</span>
       <span>
-        by {record.actor.name} ({roleLabel(record.actor.role)}) · {formatClock(record.at)}
+        by {record.actor.name} ({roleLabel(record.actor.role)}) ·{' '}
+        <time dateTime={record.at} title="When this was decided in the demo, not the incident clock">
+          {formatActionTime(record.at)}
+        </time>
       </span>
       {record.note ? <span className="w-full text-[11px] opacity-80">{record.note}</span> : null}
     </p>

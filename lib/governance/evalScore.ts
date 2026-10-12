@@ -7,6 +7,7 @@
 // same pill never shows two different scores.
 
 import { runEvals, type EvalCase, type EvalSummary, type Pill } from "@/lib/engine";
+import type { ShadowRun } from "./approval";
 
 export interface PastIncidentScore {
   /** Past incidents (eval cases) replayed. */
@@ -59,7 +60,21 @@ export function formatChecks(s: PastIncidentScore): string {
   return `${s.checksPassed} of ${s.checks} checks`;
 }
 
-/** "5 of 6 past incidents pass (78 of 79 checks)" — the sentence form. */
-export function describeScore(s: PastIncidentScore): string {
-  return `${formatIncidents(s)} past incidents pass (${formatChecks(s)})`;
+/** "Past incidents passed 5 of 6 (78 of 79 checks)" — label and value in one line. */
+export function describePastIncidents(s: PastIncidentScore): string {
+  return `${PAST_INCIDENTS_LABEL} ${formatIncidents(s)} (${formatChecks(s)})`;
 }
+
+/**
+ * The recorded trial run (Shadow) in plain words: how many past incidents
+ * were replayed through both versions, and on how many they decided the same.
+ */
+export function describeTrial(runs: readonly Pick<ShadowRun, "agree">[]): string {
+  if (runs.length === 0) return "Trial run: not run yet (it runs when the version enters Shadow)";
+  const agreed = runs.filter((r) => r.agree).length;
+  return `Trial run: ${runs.length} past incidents replayed · new version agrees with the live one on ${agreed}`;
+}
+
+/** Why the two numbers differ, in one line. */
+export const TRIAL_VS_SCORE =
+  "The trial run counts where the new version decides the same as the live version; past incidents passed counts where it matches the outcome the experts expected.";

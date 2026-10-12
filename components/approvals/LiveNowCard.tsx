@@ -1,8 +1,10 @@
 'use client';
 
 // After an approval the version leaves the queue; this says what happened and
-// where to see it working, instead of the card silently vanishing.
+// where to see it working, instead of the card silently vanishing. The page
+// scrolls it into view and announces it (it appears above the queue).
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, X } from 'lucide-react';
 import { pillDisplayName } from '@/components/mosaic';
@@ -16,7 +18,8 @@ export function LiveNowCard({
   version,
   stillLive,
   incidents,
-  replayable,
+  replayEnd,
+  originIncidentId,
   onDismiss,
 }: {
   bundle: PillBundle;
@@ -24,19 +27,35 @@ export function LiveNowCard({
   /** False once a later approval or a rollback has replaced it. */
   stillLive: boolean;
   incidents: readonly IncidentRecord[];
-  replayable: readonly string[];
+  /** Incident id → number of recorded timeline events (only incidents the room can replay). */
+  replayEnd: Readonly<Record<string, number>>;
+  /** The incident the version's change came from (its note's task, or its correction), if known. */
+  originIncidentId: string | undefined;
   onDismiss: () => void;
 }) {
   const name = pillDisplayName(bundle.name);
-  // An open incident that recorded this pill and can be replayed: the room evaluates the new version there.
-  const open = incidentsUsingPill(bundle.id, incidents, {}).find(
-    (u) => u.incident.status !== 'closed' && replayable.includes(u.incident.id),
-  )?.incident;
+  const ref = useRef<HTMLElement>(null);
+  const replayable = (id: string): boolean => Object.hasOwn(replayEnd, id);
+  // Where the change came from, when the room can replay it; otherwise an open
+  // incident that recorded this pill. Either way the room evaluates the new version.
+  const origin = originIncidentId && replayable(originIncidentId) ? originIncidentId : undefined;
+  const openId =
+    origin ??
+    incidentsUsingPill(bundle.id, incidents, {}).find((u) => u.incident.status !== 'closed' && replayable(u.incident.id))
+      ?.incident.id;
+
+  // The approve button sits far below this card: bring the outcome into view.
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    ref.current?.focus({ preventScroll: true });
+  }, []);
 
   return (
     <section
+      ref={ref}
+      tabIndex={-1}
       aria-label={`${name} v${version} approved`}
-      className="flex flex-wrap items-start gap-3 rounded-xl border border-recommend/40 bg-recommend-tint p-4"
+      className="flex scroll-mt-24 flex-wrap items-start gap-3 rounded-xl border border-recommend/40 bg-recommend-tint p-4 outline-none"
       role="status"
     >
       <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-recommend" aria-hidden="true" />
@@ -47,15 +66,16 @@ export function LiveNowCard({
             : `${name} v${version} was approved and has since been replaced.`}
         </p>
         <div className="flex flex-wrap gap-2">
-          {open ? (
-            <Link href={routes.incident(open.id)} className="btn-pill btn-pill-primary text-xs">
-              See it in {open.id} <ArrowRight className="size-3.5" aria-hidden="true" />
+          {openId ? (
+            <Link href={routes.incident(openId, replayEnd[openId])} className="btn-pill btn-pill-primary text-xs">
+              {origin ? `See it in ${openId}, where it came from` : `See it in ${openId}`}{' '}
+              <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>
           ) : null}
           <Link href={routes.pill(bundle.id)} className="btn-pill text-xs">
             Open the pill
           </Link>
-          <Link href={routes.learning(bundle.id, open?.id)} className="btn-pill text-xs">
+          <Link href={routes.learning(bundle.id, openId)} className="btn-pill text-xs">
             Learning and rollback
           </Link>
         </div>

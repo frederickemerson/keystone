@@ -21,6 +21,8 @@ const captureFixtureSchema = z.object({
   fixture_type: z.literal("capture_transcript"),
   description: z.string().min(1),
   asset_id: z.string().refine((id) => resolveAssetRef(id) !== null, { message: "asset_id not in the register" }),
+  /** The incident this demo note was written to answer (the guided demo's incident), if any. */
+  incident_id: z.string().regex(/^INC-\d{4}-\d{4}$/).optional(),
   speaker_role: z.string().refine(isKnownRole, { message: "speaker_role is not a roles.json role" }),
   duration_sec: z.number().positive().max(MAX_NOTE_DURATION_SEC),
   transcript: z.string().trim().min(1).max(MAX_TRANSCRIPT_CHARS),
@@ -37,6 +39,8 @@ export interface CaptureFixture {
   id: string;
   description: string;
   assetId: string;
+  /** The incident this recorded demo note was written for, if any. */
+  incidentId: string | undefined;
   speakerRole: string;
   durationSec: number;
   transcript: string;
@@ -54,6 +58,7 @@ function load(raw: unknown): CaptureFixture {
     id: f.fixture_id,
     description: f.description,
     assetId: f.asset_id,
+    incidentId: f.incident_id,
     speakerRole: f.speaker_role,
     durationSec: f.duration_sec,
     transcript: f.transcript,
@@ -74,7 +79,12 @@ function load(raw: unknown): CaptureFixture {
 
 export const CAPTURE_FIXTURES: readonly CaptureFixture[] = [load(qrAhu2301), load(closeoutChwR2)];
 
-/** Demo transcripts for an asset: those recorded on it first, then the rest. */
-export function fixturesForAsset(assetId: string): CaptureFixture[] {
-  return [...CAPTURE_FIXTURES].sort((a, b) => Number(b.assetId === assetId) - Number(a.assetId === assetId));
+/**
+ * Demo transcripts offered for a capture, best match first: the note written
+ * for this incident, then notes recorded on this asset, then the rest.
+ */
+export function fixturesForTask(at: { assetId: string; incidentId?: string }): CaptureFixture[] {
+  const rank = (f: CaptureFixture): number =>
+    (at.incidentId !== undefined && f.incidentId === at.incidentId ? 2 : 0) + (f.assetId === at.assetId ? 1 : 0);
+  return [...CAPTURE_FIXTURES].sort((a, b) => rank(b) - rank(a));
 }

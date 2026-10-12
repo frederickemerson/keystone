@@ -17,12 +17,19 @@ export function IncidentDecisionCard({
   incident,
   action,
   rulePillId,
+  livePillVersion,
   currentActor,
 }: {
   incident: IncidentRecord;
   action: IncidentActionRecord;
   /** The pill that defines this action's rule (for the rule link), when known. */
   rulePillId?: string;
+  /**
+   * The applied pill's approved version live now (governance store): what a
+   * decision taken now runs under. Required, so no caller can fall back to the
+   * version the incident opened under.
+   */
+  livePillVersion: string | undefined;
   currentActor: Actor;
 }) {
   const decideAction = useGovernanceStore((s) => s.decideAction);
@@ -60,7 +67,7 @@ export function IncidentDecisionCard({
         outcome,
         note,
         pillId: incident.pill_applied,
-        pillVersion: incident.pill_version,
+        pillVersion: livePillVersion,
       });
       setRefusal(null);
     } catch (err) {

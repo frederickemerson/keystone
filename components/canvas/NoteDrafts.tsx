@@ -54,7 +54,7 @@ export function NoteDrafts({ pill }: { pill: PillBundle }) {
       : undefined;
 
   return (
-    <section aria-label="Drafts from frontline notes" className="space-y-3">
+    <section id="note-drafts" aria-label="Drafts from frontline notes" className="scroll-mt-24 space-y-3">
       <SectionHeader
         title="Drafts from frontline notes"
         description="Short notes from the people doing the work: read back by the speaker, proposed by the pill's editors, confirmed by a peer before Shadow."

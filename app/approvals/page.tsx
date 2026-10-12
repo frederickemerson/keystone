@@ -1,5 +1,5 @@
 import { loadAllPills } from "@/lib/pills/load";
-import { listTimelineIds, loadIncidents } from "@/lib/data";
+import { loadAllTimelines, loadIncidents } from "@/lib/data";
 import { ApprovalsQueue } from "@/components/approvals/ApprovalsQueue";
 import { sessionRole } from "@/lib/auth/session";
 import { scopeIncidents } from "@/lib/governance/scope";
@@ -12,5 +12,7 @@ export default async function ApprovalsPage() {
   const bundles = loadAllPills();
   // Incidents are scoped to the signed-in role before they reach the client.
   const incidents = scopeIncidents(loadIncidents(), await sessionRole());
-  return <ApprovalsQueue bundles={bundles} incidents={incidents} replayable={listTimelineIds()} />;
+  // Replayable incidents and their length: "See it in …" opens the room at the end of the replay.
+  const replayEnd = Object.fromEntries(loadAllTimelines().map((t) => [t.incident_id, t.events.length]));
+  return <ApprovalsQueue bundles={bundles} incidents={incidents} replayEnd={replayEnd} />;
 }

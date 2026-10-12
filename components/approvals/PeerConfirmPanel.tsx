@@ -8,7 +8,7 @@
 import { useId, useState } from 'react';
 import { BadgeCheck, CircleDashed, ShieldX, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { CHIP_BASE, TONE_CHIP } from '@/components/mosaic';
-import { formatSgtClock } from '@/components/incident/labels';
+import { formatActionTime } from '@/components/incident/labels';
 import {
   peerConfirmAuthority,
   peerGate,
@@ -113,7 +113,7 @@ export function PeerConfirmPanel({
   const confirmGate = !authority.allowed
     ? authority.reason
     : latestOwn?.verdict === 'confirm'
-      ? `You confirmed this at ${formatSgtClock(latestOwn.at)}.`
+      ? `You confirmed this ${formatActionTime(latestOwn.at)}.`
       : undefined;
 
   const record = (verdict: 'confirm' | 'dispute', text?: string) => {
@@ -145,8 +145,8 @@ export function PeerConfirmPanel({
               <span className="font-medium">{c.confirmer.name}</span>
               <span className="text-ink-muted">({roleLabel(c.confirmer.role)})</span>
               <span>{c.verdict === 'confirm' ? 'confirmed' : 'disputed'}</span>
-              <time dateTime={c.at} className="font-mono text-[11px] tabular-nums text-ink-muted">
-                {formatSgtClock(c.at)}
+              <time dateTime={c.at} className="text-[11px] text-ink-muted">
+                {formatActionTime(c.at)}
               </time>
               {c.note ? <span className="w-full text-ink-muted">“{c.note}”</span> : null}
             </li>

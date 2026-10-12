@@ -14,8 +14,10 @@ import {
 } from "@/lib/governance/versions";
 import { shadowPromotionAuthority } from "@/lib/governance/approval";
 import { roleLabel } from "@/lib/governance/access";
-import { compareVersions, runEvals } from "@/lib/engine";
-import { SectionHeader, DiffView, KpiStat, pillDisplayName } from "@/components/mosaic";
+import { compareVersions } from "@/lib/engine";
+import { describePastIncidents, describeTrial, pastIncidentScore, TRIAL_VS_SCORE } from "@/lib/governance/evalScore";
+import type { ShadowRun } from "@/lib/governance/approval";
+import { SectionHeader, DiffView, pillDisplayName } from "@/components/mosaic";
 import { routes } from "@/lib/journey/routes";
 import type { PillBundle } from "@/lib/pills/load";
 import { changesToDiffItems } from "../registry/registry-utils";
@@ -26,6 +28,9 @@ import { peerGateFor } from "./PeerConfirmPanel";
 import { approvalCheck, nextApprovalStep } from "./nextStep";
 import { NextStepPanel } from "./NextStepPanel";
 import { ChangedRulesList } from "./ChangedRulesList";
+import { fieldChanges } from "./changedRules";
+
+const NO_RUNS: readonly ShadowRun[] = [];
 
 export function PillApprovalCard({
   bundle,
@@ -43,8 +48,9 @@ export function PillApprovalCard({
 }) {
   const approveVersion = useGovernanceStore((s) => s.approveVersion);
   const promoteToShadow = useGovernanceStore((s) => s.promoteToShadow);
-  // The same count the store's approveVersion passes to canApprove.
-  const trialRuns = useGovernanceStore((s) => (s.shadowRuns[shadowKey(bundle.id, version.version)] ?? []).length);
+  // The recorded trial runs: their count is what the store's approveVersion passes to canApprove.
+  const runs = useGovernanceStore((s) => s.shadowRuns[shadowKey(bundle.id, version.version)]) ?? NO_RUNS;
+  const trialRuns = runs.length;
 
   const captureView = useCaptureView();
   const captureActions = useCaptureActions();
@@ -60,7 +66,9 @@ export function PillApprovalCard({
   const candidatePill = pillAtVersion(bundle.pill, version);
   const approvedPill = approved ? pillAtVersion(bundle.pill, approved) : candidatePill;
   const comparison = compareVersions(approvedPill, candidatePill, cases);
-  const candidateSummary = runEvals(candidatePill, cases);
+  // The same helper and wording as Learning, Pulse and the registry.
+  const candidateScore = pastIncidentScore(candidatePill);
+  const edits = fieldChanges(parent.rules, version.rules);
 
   const evalReport = { regressions: comparison.regressions };
   const approvalContext = { liveApprovedVersion: approved?.version, trialRuns };
@@ -156,20 +164,22 @@ export function PillApprovalCard({
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <KpiStat label="Eval pass" value={`${candidateSummary.passed}/${candidateSummary.passed + candidateSummary.failed}`} />
-        <KpiStat label="Regressions" value={comparison.regressions.length} />
-        <KpiStat label="Improvements" value={comparison.improvements.length} />
-        <KpiStat label="Rules changed" value={diff.changes.length} />
+      <div className="space-y-1.5 rounded-lg border border-line bg-dew-drop px-3 py-2.5 text-[13px]" aria-label="How the new version did">
+        <p className="font-medium text-ink">{describeTrial(runs)}</p>
+        <p className="text-ink">
+          {describePastIncidents(candidateScore)} · {comparison.regressions.length} worse and{" "}
+          {comparison.improvements.length} better than v{approved?.version ?? parent.version}
+        </p>
+        <p className="text-[12px] text-ink-muted">{TRIAL_VS_SCORE}</p>
       </div>
 
-      <SectionHeader title="Human-readable changes" description={`v${diff.from} → v${diff.to}`} />
+      <SectionHeader title="What changes" description={`v${diff.from} → v${diff.to}`} />
       {diff.changes.length === 0 ? (
         <p className="text-xs text-ink-muted">No rule changes (metadata only).</p>
       ) : (
         <>
-          <DiffView changes={changesToDiffItems(diff.changes)} />
           <ChangedRulesList pillId={bundle.id} parentRules={parent.rules} rules={version.rules} />
+          {edits.length > 0 ? <DiffView changes={changesToDiffItems(edits)} /> : null}
         </>
       )}
 
@@ -247,7 +257,7 @@ export function PillApprovalCard({
         <button
           type="button"
           disabled
-          title="Governance store is append-only — reject by leaving the version in Draft or rolling back the approved version."
+          title="Nothing is deleted, so there is no separate reject step: a version nobody approves never goes live. Leave it unapproved, or roll it back after approval."
           className="btn-pill text-ink-muted"
         >
           <Ban className="size-3.5" aria-hidden="true" /> Reject

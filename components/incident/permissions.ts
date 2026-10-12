@@ -91,6 +91,6 @@ export function withRecordedDecision(
   if (record?.outcome !== 'escalated') return permissions;
   return {
     ...permissions,
-    escalate: { enabled: false, reason: `Already escalated by ${record.actor.name} at ${formatAt(record.at)}` },
+    escalate: { enabled: false, reason: `Already escalated by ${record.actor.name}, ${formatAt(record.at)}` },
   };
 }

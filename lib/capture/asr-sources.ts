@@ -65,7 +65,20 @@ export function transcriptSourceLabel(source: TranscriptSource): string {
     case "typed":
       return "Typed note · no audio recorded";
     case "fixture":
-      return `Recorded demo transcript · ${source.model.replace(/^recorded transcript /, "")} · no audio`;
+      // The fixture id stays on the note (model) and in the audit log; people see what it is.
+      return "Recorded demo transcript · no audio";
+  }
+}
+
+/** Why a note has no audio, from its source; null when audio was captured. */
+export function noAudioReason(source: TranscriptSource): string | null {
+  switch (source.provider) {
+    case "typed":
+      return "No audio was recorded: the note was typed.";
+    case "fixture":
+      return "No audio was recorded: this is a recorded demo transcript, written for the demo.";
+    default:
+      return null;
   }
 }
 

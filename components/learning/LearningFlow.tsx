@@ -27,7 +27,7 @@ import {
   type ApprovalCheck,
 } from '@/lib/governance/approval';
 import { hasCapability, pillEditAuthority } from '@/lib/governance/access';
-import { describeScore, pastIncidentScore } from '@/lib/governance/evalScore';
+import { describePastIncidents, pastIncidentScore } from '@/lib/governance/evalScore';
 import { shadowKey, useGovernanceStore, type PillSeed } from '@/lib/governance/store';
 import {
   bumpMinor,
@@ -39,6 +39,7 @@ import {
   nextMinorVersion,
   pillAtVersion,
   rollbackFrom,
+  rollbackTarget,
   type PillVersion,
 } from '@/lib/governance/versions';
 import { routes, suggestHandoff, type Persona } from '@/lib/journey';
@@ -310,10 +311,13 @@ export function LearningFlow({
       : undefined;
   const canOverride = Boolean(target && check && check.regressions > 0 && currentActor.role === target.approverRole);
 
-  // Step 7 — Roll back: only while the change is live; grant + separation of duties.
-  const restoreVersion = target?.parentVersion ? findVersion(versions, target.parentVersion) : undefined;
+  // Step 7 — Roll back whatever is live now (a correction, a frontline note's
+  // rule, a Canvas review) to the version it replaced; grant + separation of duties.
   const targetIsLive = Boolean(target && approved && target.version === approved.version);
-  const rollbackCheck = targetIsLive ? rollbackAuthority(restoreVersion, approved, currentActor) : null;
+  const restoreVersion = rollbackTarget(versions);
+  const rollbackCheck = restoreVersion && approved ? rollbackAuthority(restoreVersion, approved, currentActor) : null;
+  // The live version is itself a rollback: say so instead of offering to undo it.
+  const liveRollback = approved?.rollbackOf ? approved : undefined;
 
   const handoff = (to: Persona | undefined, action: string) =>
     to ? <HandoffButton to={to} action={action} /> : undefined;
@@ -329,7 +333,7 @@ export function LearningFlow({
     'learn-step-4': Boolean(comparison),
     'learn-step-5': Boolean(target?.shadowedBy && runs.length > 0),
     'learn-step-6': Boolean(target?.approvedBy),
-    'learn-step-7': Boolean(rolledBackAs),
+    'learn-step-7': Boolean(rolledBackAs ?? liveRollback),
   };
   const blockedMap: Record<string, string> = {
     'learn-step-2': 'Confirm the outcome in step 1 first.',
@@ -341,7 +345,7 @@ export function LearningFlow({
         ? `Promote v${target.version} to Shadow in step 5 first.`
         : ''
       : 'Propose the correction in step 2 first.',
-    'learn-step-7': target?.approvedBy ? '' : 'Available once the new version is approved.',
+    'learn-step-7': restoreVersion ? '' : 'Available once a newer version has been approved.',
   };
 
   let activeIndex = STEP_IDS.findIndex((id) => !doneMap[id]);
@@ -457,7 +461,7 @@ export function LearningFlow({
               <VersionChip status="Approved" version={liveVersion} />
               <span>{liveRules.length} rules</span>
               <span>·</span>
-              <span>{describeScore(liveScore)}</span>
+              <span>{describePastIncidents(liveScore)}</span>
             </p>
             {otherInReview ? (
               <p className="text-xs text-ink-muted">
@@ -604,22 +608,18 @@ export function LearningFlow({
           ) : null}
 
           <RollbackPanel
-            baseVersion={restoreVersion?.version ?? baseVersion}
+            restoreVersion={restoreVersion?.version ?? null}
             approvedVersion={approved?.version ?? null}
             canRollback={Boolean(rollbackCheck?.allowed)}
             disabledReason={
-              !target
-                ? 'Available once a new version is proposed and approved.'
-                : !targetIsLive
-                  ? target.approvedBy
-                    ? `v${target.version} is no longer live (v${liveVersion} is), so there is nothing of it to roll back.`
-                    : `Approve v${target.version} in step 6 first: rollback restores what was live before it.`
-                  : rollbackCheck && !rollbackCheck.allowed
-                    ? `${rollbackCheck.reason}.`
-                    : undefined
+              !restoreVersion
+                ? `v${liveVersion} is the first approved version here, so there is nothing earlier to roll back to. Rollback appears once a newer version is approved.`
+                : rollbackCheck && !rollbackCheck.allowed
+                  ? `${rollbackCheck.reason}.`
+                  : undefined
             }
             handoff={
-              targetIsLive && rollbackCheck && !rollbackCheck.allowed && !rolledBackAs
+              restoreVersion && rollbackCheck && !rollbackCheck.allowed && !liveRollback
                 ? handoff(
                     suggestHandoff((p) => rollbackAuthority(restoreVersion, approved, p).allowed, currentActor),
                     'roll back',
@@ -627,12 +627,12 @@ export function LearningFlow({
                 : undefined
             }
             rolledBack={
-              rolledBackAs
+              liveRollback
                 ? {
-                    restored: rolledBackAs.rollbackOf ?? baseVersion,
-                    as: rolledBackAs.version,
-                    by: rolledBackAs.createdBy.name,
-                    reason: rolledBackAs.reason,
+                    restored: liveRollback.rollbackOf ?? baseVersion,
+                    as: liveRollback.version,
+                    by: liveRollback.createdBy.name,
+                    reason: liveRollback.reason,
                   }
                 : null
             }

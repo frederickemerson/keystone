@@ -8,7 +8,7 @@
 import { AudioLines, FileAudio } from 'lucide-react';
 import { CHIP_BASE, TONE_CHIP } from '@/components/mosaic';
 import { audioExpired, creditFor, type CaptureStoreActions, type DraftFromNote, type PeerConfirmation, type VoiceNote } from '@/lib/capture';
-import { transcriptSourceLabel } from '@/lib/capture/asr-sources';
+import { noAudioReason, transcriptSourceLabel } from '@/lib/capture/asr-sources';
 import { roleLabel, type PillEditPolicy } from '@/lib/governance/access';
 import type { Actor, CaptureProvenance, VersionStatus } from '@/lib/governance/versions';
 import { cn } from '@/lib/ui/cn';
@@ -18,9 +18,8 @@ const SGT_DATE = new Intl.DateTimeFormat('en-SG', { timeZone: 'Asia/Singapore', 
 
 function audioLine(note: VoiceNote | undefined, now: string): string {
   if (!note) return 'Raw audio is never kept without the speaker’s consent; this device does not hold the note.';
-  if (note.transcriptSource.provider === 'typed' || note.transcriptSource.provider === 'fixture') {
-    return 'No audio was recorded: the note was typed.';
-  }
+  const noAudio = noAudioReason(note.transcriptSource);
+  if (noAudio) return noAudio;
   if (audioExpired(note, now)) {
     return note.audio.retained
       ? 'Raw audio was deleted when its consented retention ended. The transcript is the record.'

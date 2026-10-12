@@ -29,7 +29,8 @@ import {
   typedSource,
   type CaptureMode,
 } from '@/lib/capture/asr-sources';
-import { fixturesForAsset } from '@/lib/capture/fixtures';
+import { forgetConsent, recallConsent, rememberConsent, sessionStore } from '@/lib/capture/consent-session';
+import { CAPTURE_FIXTURES, fixturesForTask } from '@/lib/capture/fixtures';
 import {
   carriedAnswers,
   confirmChip,
@@ -85,8 +86,6 @@ function message(err: unknown, fallback: string): string {
   return err instanceof Error && err.message ? err.message : fallback;
 }
 
-// Consent given in this tab, per speaker (the notice is shown before the first recording).
-const consentBySpeaker = new Map<string, Consent>();
 const NO_DRAFTS: DraftFromNote[] = [];
 
 /** A "recorded" generation result: no model was called. */
@@ -99,6 +98,8 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
   const signedIn = actor.role !== UNRESOLVED_ROLE;
   const speaker = roleLabel(actor.role);
   const [consent, setConsent] = useState<Consent | null>(null);
+  // The stored decision is read after mount; until then show neither the notice nor the recorder.
+  const [consentRead, setConsentRead] = useState(false);
   const [modes, setModes] = useState<CaptureMode[]>(['typed', 'fixture']);
   const [mode, setMode] = useState<CaptureMode>('typed');
   const [captured, setCaptured] = useState<Captured | null>(null);
@@ -111,9 +112,13 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
   const resultRef = useRef<HTMLDivElement>(null);
   const note = useGovernanceStore((s) => (outcome ? s.voiceNotes[outcome.noteId] : undefined));
   const drafts = useGovernanceStore((s) => (outcome ? s.draftsFromNotes[outcome.noteId] : undefined)) ?? NO_DRAFTS;
+  // The incident whose task this note answers: its own recorded demo note is offered first.
+  const incidentId = useGovernanceStore((s) => (taskId ? s.captureTasks[taskId]?.incidentId : undefined));
 
   useEffect(() => {
-    if (signedIn) setConsent(consentBySpeaker.get(actor.name) ?? null);
+    // Asked once per person per session; the stored decision is shown and can be withdrawn.
+    if (signedIn) setConsent(recallConsent(sessionStore(), actor.name));
+    setConsentRead(true);
   }, [signedIn, actor.name]);
 
   // Which capture modes this device offers (server ASR only when the server says it is ready).
@@ -206,7 +211,7 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
     inFlight.current = controller;
     setDrafting(n.amendedFrom ? 'redrafting' : 'drafting');
     try {
-      const fixture = captured?.fixtureId ? fixturesForAsset(assetId).find((f) => f.id === captured.fixtureId) : undefined;
+      const fixture = captured?.fixtureId ? CAPTURE_FIXTURES.find((f) => f.id === captured.fixtureId) : undefined;
       const recordedDrafts = fixture?.extractionFor(n.id) ?? null;
       const recorded = fixture && recordedDrafts ? { transcript: fixture.transcript, extraction: recordedDrafts } : null;
       // The unedited recorded demo note always drafts the same rule (the guided
@@ -275,13 +280,14 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
   if (!signedIn) {
     return <p className="text-sm text-ink-muted">Sign in to record a note.</p>;
   }
+  if (!consentRead) return null;
   if (!consent) {
     return (
       <ConsentNotice
         speakerName={actor.name}
         speakerRole={speaker}
         onConsent={(c) => {
-          consentBySpeaker.set(actor.name, c);
+          rememberConsent(sessionStore(), actor.name, c);
           setConsent(c);
         }}
       />
@@ -294,7 +300,24 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
   return (
     <div className="space-y-5">
       {!captured ? (
-        <CaptureInput assetId={assetId} modes={modes} mode={mode} onMode={setMode} onCaptured={accept} onError={setError} />
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-muted">
+          <span>
+            {actor.name} agreed to recording this session · credited {consent.namedCredit ? 'by name' : `as ${speaker}`}.
+          </span>
+          <button
+            type="button"
+            className="underline underline-offset-2 hover:text-ink"
+            onClick={() => {
+              forgetConsent(sessionStore(), actor.name);
+              setConsent(null);
+            }}
+          >
+            Withdraw consent
+          </button>
+        </p>
+      ) : null}
+      {!captured ? (
+        <CaptureInput assetId={assetId} incidentId={incidentId} modes={modes} mode={mode} onMode={setMode} onCaptured={accept} onError={setError} />
       ) : null}
 
       {error ? (
@@ -422,6 +445,7 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
 
 function CaptureInput({
   assetId,
+  incidentId,
   modes,
   mode,
   onMode,
@@ -429,6 +453,7 @@ function CaptureInput({
   onError,
 }: {
   assetId: string;
+  incidentId: string | undefined;
   modes: CaptureMode[];
   mode: CaptureMode;
   onMode: (m: CaptureMode) => void;
@@ -467,7 +492,7 @@ function CaptureInput({
         <HoldToTalk engine={speech} onCaptured={onCaptured} onError={onError} />
       ) : null}
       {mode === 'typed' ? <TypedNote onCaptured={onCaptured} /> : null}
-      {mode === 'fixture' ? <FixturePicker assetId={assetId} onCaptured={onCaptured} /> : null}
+      {mode === 'fixture' ? <FixturePicker assetId={assetId} incidentId={incidentId} onCaptured={onCaptured} /> : null}
     </section>
   );
 }
@@ -595,29 +620,45 @@ function TypedNote({ onCaptured }: { onCaptured: (c: Captured) => void }) {
   );
 }
 
-function FixturePicker({ assetId, onCaptured }: { assetId: string; onCaptured: (c: Captured) => void }) {
-  const fixtures = fixturesForAsset(assetId);
+function FixturePicker({
+  assetId,
+  incidentId,
+  onCaptured,
+}: {
+  assetId: string;
+  incidentId: string | undefined;
+  onCaptured: (c: Captured) => void;
+}) {
+  const fixtures = fixturesForTask({ assetId, incidentId });
   return (
     <div className="space-y-3">
       <p className="text-sm text-ink-muted">Recorded demo notes are written for the demo. No audio was recorded, and the note is labelled that way.</p>
       <ul className="space-y-2">
-        {fixtures.map((f) => (
-          <li key={f.id} className="rounded-lg border border-line bg-surface p-3">
-            <p className="text-[15px] leading-relaxed text-ink">{f.transcript}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                className="btn-pill min-h-11"
-                onClick={() => onCaptured({ transcript: f.transcript, source: fixtureSource(f.id), durationSec: f.durationSec, fixtureId: f.id })}
-              >
-                Use this demo note
-              </button>
-              <span className="font-mono text-xs text-ink-muted">
-                {f.assetId} · {f.durationSec} s
-              </span>
-            </div>
-          </li>
-        ))}
+        {fixtures.map((f) => {
+          const forThisIncident = incidentId !== undefined && f.incidentId === incidentId;
+          return (
+            <li key={f.id} className={cn('rounded-lg border bg-surface p-3', forThisIncident ? 'border-ink/60' : 'border-line')}>
+              {forThisIncident ? (
+                <p className="mb-1.5 text-[12px] font-semibold text-heading">Recorded demo note for {incidentId} · use this one for the guided demo</p>
+              ) : (
+                <p className="mb-1.5 text-[12px] text-ink-muted">Another demo note (written for {f.assetId})</p>
+              )}
+              <p className="text-[15px] leading-relaxed text-ink">{f.transcript}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className={cn('btn-pill min-h-11', forThisIncident && 'btn-pill-primary')}
+                  onClick={() => onCaptured({ transcript: f.transcript, source: fixtureSource(f.id), durationSec: f.durationSec, fixtureId: f.id })}
+                >
+                  Use this demo note
+                </button>
+                <span className="font-mono text-xs text-ink-muted">
+                  {f.assetId} · {f.durationSec} s
+                </span>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

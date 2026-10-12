@@ -80,7 +80,7 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
   const { overall, captured, stats, gaps } = computeCoverage(rules);
 
   return (
-    <div className="rounded-xl border border-line-strong bg-surface p-5 shadow-card">
+    <div className="@container rounded-xl border border-line-strong bg-surface p-5 shadow-card">
       <div className="flex items-baseline justify-between">
         <p className="font-display-soft text-[17px] font-semibold text-heading">Schema coverage</p>
         <p className="text-[15px] font-semibold tabular-nums text-ink">{overall}%</p>
@@ -91,7 +91,7 @@ export function CoverageMeter({ rules }: { rules: Rule[] }) {
           : `Fields filled across ${captured} captured candidate${captured === 1 ? '' : 's'}.`}
       </p>
 
-      <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 @md:grid-cols-2">
         {stats.map((s) => (
           <div key={s.key} className="flex items-center gap-2">
             <span className="w-24 shrink-0 truncate text-xs text-ink-muted" title={s.label}>

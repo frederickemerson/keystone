@@ -130,6 +130,7 @@ export function CallPanel({
   pillId,
   pillName,
   duration,
+  focusAccept,
 }: {
   playback: CallPlayback;
   expert: { name: string; role: string; asset: string; retiring: string };
@@ -140,6 +141,8 @@ export function CallPanel({
   pillName: string;
   /** Recorded call length from the transcript ("HH:MM:SS"). */
   duration: string;
+  /** Focus "Accept call" on load. False while a ?at= seek offers its own "Play from" button. */
+  focusAccept: boolean;
 }) {
   const { status } = playback;
 
@@ -149,7 +152,7 @@ export function CallPanel({
       aria-label="Expert onboarding call"
     >
       {status === 'idle' ? (
-        <IdleView expert={expert} onAccept={playback.accept} />
+        <IdleView expert={expert} onAccept={playback.accept} autoFocus={focusAccept} />
       ) : status === 'ended' ? (
         <EndedView
           playback={playback}
@@ -168,9 +171,11 @@ export function CallPanel({
 function IdleView({
   expert,
   onAccept,
+  autoFocus,
 }: {
   expert: { name: string; role: string; asset: string; retiring: string };
   onAccept: () => void;
+  autoFocus: boolean;
 }) {
   return (
     <div className="flex flex-col items-center gap-5 py-6 text-center">
@@ -188,7 +193,7 @@ function IdleView({
       <button
         type="button"
         onClick={onAccept}
-        autoFocus
+        autoFocus={autoFocus}
         className="btn-pill btn-pill-primary min-h-12 px-7 text-[15px]"
       >
         <Phone className="size-4" aria-hidden="true" />
