@@ -13,7 +13,15 @@
 // signed session (lib/auth). A `currentActor` left by an older build is ignored.
 
 import { z } from "@/lib/zod";
-import { ruleSchema } from "@/lib/engine";
+import { isDraftRuleId, ruleSchema } from "@/lib/engine";
+import {
+  captureTaskSchema,
+  draftFromNoteSchema,
+  peerConfirmationSchema,
+  quoteMatchesNote,
+  readBackMatchesExtraction,
+  voiceNoteSchema,
+} from "@/lib/capture";
 import { isKnownRole, sameIdentity } from "./access";
 import { AUDIT_ACTIONS, auditId, type AuditEvent } from "./audit";
 import { compareSemver, type PillVersion } from "./versions";
@@ -38,6 +46,15 @@ const pillVersionSchema = z.object({
   parentVersion: semverSchema.nullable(),
   approverRole: z.string().min(1),
   rollbackOf: semverSchema.optional(),
+  capture: z
+    .object({
+      noteId: z.string(),
+      draftRuleId: z.string(),
+      ruleId: z.string(),
+      quoteSpan: z.object({ start: z.number().int().min(0), end: z.number().int().min(1), text: z.string().min(1) }),
+      author: actorSchema,
+    })
+    .optional(),
 });
 
 const auditEventSchema = z.object({
@@ -51,6 +68,8 @@ const auditEventSchema = z.object({
   incidentId: z.string().optional(),
   ruleId: z.string().optional(),
   evidenceKey: z.string().optional(),
+  captureTaskId: z.string().optional(),
+  noteId: z.string().optional(),
   detail: z.string(),
 });
 
@@ -118,6 +137,12 @@ const snapshotSchema = z.object({
   evidenceConfirmations: z.record(z.string(), z.record(z.string(), evidenceConfirmationSchema)).default({}),
   outcomes: z.record(z.string(), outcomeSchema).default({}),
   ruleReviews: z.record(z.string(), z.record(z.string(), ruleReviewSchema)).default({}),
+  // Frontline capture (store v4). Notes are strict: a persisted note holds the
+  // transcript and retention metadata only — never an audio payload.
+  captureTasks: z.record(z.string(), captureTaskSchema).default({}),
+  voiceNotes: z.record(z.string(), voiceNoteSchema.strict()).default({}),
+  draftsFromNotes: z.record(z.string(), z.array(draftFromNoteSchema)).default({}),
+  peerConfirmations: z.array(peerConfirmationSchema).default([]),
 });
 
 export type SnapshotResult = { ok: true; data: PersistedGovernanceData } | { ok: false; reason: string };
@@ -211,8 +236,12 @@ function violation(data: PersistedGovernanceData): string | null {
       if (!history.slice(0, i).some((h) => h.version === v.parentVersion)) {
         return `${pillId}: v${v.version} has unknown parent v${v.parentVersion}`;
       }
-      if (!hasEvent(["version_proposed"], { pillId, pillVersion: v.version })) {
+      if (!hasEvent([v.capture ? "draft_from_note_proposed" : "version_proposed"], { pillId, pillVersion: v.version })) {
         return `${pillId}: v${v.version} has no proposal audit event`;
+      }
+      if (v.capture) {
+        const problem = captureVersionViolation(data, v, hasEvent);
+        if (problem) return `${pillId}: v${v.version} ${problem}`;
       }
       if (v.approvedBy) {
         if (sameIdentity(v.approvedBy.name, v.createdBy.name)) {
@@ -272,6 +301,9 @@ function violation(data: PersistedGovernanceData): string | null {
     }
   }
 
+  const captureProblem = captureViolation(data, hasEvent);
+  if (captureProblem) return captureProblem;
+
   for (const key of Object.keys(data.shadowRuns)) {
     const at = key.lastIndexOf("@");
     const pillId = key.slice(0, at);
@@ -279,6 +311,111 @@ function violation(data: PersistedGovernanceData): string | null {
     if (!data.versions[pillId]?.some((v) => v.version === version)) return `shadow runs for unknown version ${key}`;
   }
 
+  return null;
+}
+
+type HasEvent = (actions: readonly string[], match: Partial<AuditEvent>) => boolean;
+
+/** Invariants of a version proposed from a voice note (PillVersion.capture). */
+function captureVersionViolation(data: PersistedGovernanceData, v: PillVersion, hasEvent: HasEvent): string | null {
+  const c = v.capture!;
+  if (v.rollbackOf !== undefined) return "is a rollback that claims a voice-note source";
+  const note = Object.hasOwn(data.voiceNotes, c.noteId) ? data.voiceNotes[c.noteId] : undefined;
+  if (!note) return `came from unknown voice note ${c.noteId}`;
+  if (!isDraftRuleId(c.draftRuleId) || isDraftRuleId(c.ruleId)) return "has a malformed capture rule id";
+  if (!v.rules.some((r) => r.id === c.ruleId)) return `does not contain its captured rule ${c.ruleId}`;
+  if (c.author.name !== note.author.name || c.author.role !== note.author.role) return `credits the wrong author for ${c.noteId}`;
+  if (!quoteMatchesNote({ noteId: c.noteId, quoteSpan: c.quoteSpan }, note)) return `quote is not a verbatim span of ${c.noteId}`;
+  if (!hasEvent(["draft_from_note_proposed"], { pillId: v.pillId, pillVersion: v.version, noteId: c.noteId, ruleId: c.ruleId })) {
+    return "has no draft-from-note audit event";
+  }
+  // Past Draft, the peer gate was passed: at least one confirm by someone other
+  // than the speaker is on record. (Role eligibility needs the pill's access
+  // block, which is never persisted; the store checks it at promotion time.)
+  if (v.shadowedBy) {
+    const confirmed = data.peerConfirmations.some(
+      (p) =>
+        p.pillId === v.pillId &&
+        p.pillVersion === v.version &&
+        p.ruleId === c.ruleId &&
+        p.noteId === c.noteId &&
+        p.verdict === "confirm" &&
+        !sameIdentity(p.confirmer.name, note.author.name),
+    );
+    if (!confirmed) return "entered Shadow without a peer confirmation";
+  }
+  return null;
+}
+
+/** Invariants of the frontline-capture state; returns the first violation. */
+function captureViolation(data: PersistedGovernanceData, hasEvent: HasEvent): string | null {
+  for (const [id, task] of Object.entries(data.captureTasks)) {
+    if (task.id !== id) return `capture task ${id} is misfiled`;
+    if (!hasEvent(["capture_task_created"], { captureTaskId: id })) return `capture task ${id} has no audit event`;
+    if (task.status === "answered") {
+      const note = Object.hasOwn(data.voiceNotes, task.noteId!) ? data.voiceNotes[task.noteId!] : undefined;
+      if (!note || note.taskId !== id) return `capture task ${id} is answered by a note that is not its own`;
+      if (!sameIdentity(note.author.name, task.answeredBy!.name)) return `capture task ${id} answered by someone other than the speaker`;
+      if (task.answeredBy!.role !== task.createdFor) return `capture task ${id} answered by the wrong role`;
+      if (!hasEvent(["capture_task_answered"], { captureTaskId: id, noteId: note.id, actor: task.answeredBy!.name })) {
+        return `capture task ${id} has no answer audit event`;
+      }
+    }
+    if (task.status === "dismissed") {
+      if (task.answeredBy!.role !== task.createdFor) return `capture task ${id} dismissed by the wrong role`;
+      if (!hasEvent(["capture_task_dismissed"], { captureTaskId: id, actor: task.answeredBy!.name })) {
+        return `capture task ${id} has no dismissal audit event`;
+      }
+    }
+  }
+
+  for (const [id, note] of Object.entries(data.voiceNotes)) {
+    if (note.id !== id) return `voice note ${id} is misfiled`;
+    if (!hasEvent(["voice_note_recorded"], { noteId: id, actor: note.author.name, role: note.author.role })) {
+      return `voice note ${id} has no audit event`;
+    }
+    if (note.taskId !== undefined && !Object.hasOwn(data.captureTasks, note.taskId)) return `voice note ${id} names unknown task ${note.taskId}`;
+    if (note.amendedFrom !== undefined && !hasEvent(["voice_note_amended"], { noteId: id, actor: note.author.name })) {
+      return `voice note ${id} was amended without an audit event`;
+    }
+  }
+
+  for (const [noteId, drafts] of Object.entries(data.draftsFromNotes)) {
+    const note = Object.hasOwn(data.voiceNotes, noteId) ? data.voiceNotes[noteId] : undefined;
+    if (!note) return `drafts for unknown voice note ${noteId}`;
+    if (!hasEvent(["drafts_from_note_recorded"], { noteId, actor: note.author.name })) return `drafts of ${noteId} have no audit event`;
+    const ids = new Set<string>();
+    for (const d of drafts) {
+      const where = `draft ${noteId}/${d.rule.id}`;
+      if (d.noteId !== noteId) return `${where} is misfiled`;
+      if (ids.has(d.rule.id)) return `${where} appears twice`;
+      ids.add(d.rule.id);
+      if (!quoteMatchesNote(d, note)) return `${where} quote is not a verbatim span of its note`;
+      if (!readBackMatchesExtraction(d.readBack, note, d.quoteSpan)) return `${where} read-back chips do not match the transcript`;
+      // Each answered chip took one read-back event by the speaker.
+      const answered = d.readBack.filter((c) => c.confirmed !== null).length;
+      const events = data.audit.filter(
+        (e) =>
+          (e.action === "readback_confirmed" || e.action === "readback_corrected") &&
+          e.noteId === noteId &&
+          e.ruleId === d.rule.id &&
+          e.actor === note.author.name,
+      ).length;
+      if (answered > events) return `${where} has read-back answers with no audit event`;
+    }
+  }
+
+  for (const [i, p] of data.peerConfirmations.entries()) {
+    const where = `peer confirmation ${i + 1}`;
+    if (!isKnownRole(p.confirmer.role)) return `${where} by undefined role`;
+    if (!data.versions[p.pillId]?.some((v) => v.version === p.pillVersion)) return `${where} for unknown version ${p.pillId}@${p.pillVersion}`;
+    if (p.noteId === undefined || !Object.hasOwn(data.voiceNotes, p.noteId)) return `${where} for unknown voice note`;
+    if (sameIdentity(p.confirmer.name, data.voiceNotes[p.noteId].author.name)) return `${where} by the speaker`;
+    const action = p.verdict === "confirm" ? "peer_confirmed" : "peer_disputed";
+    if (!hasEvent([action], { pillId: p.pillId, pillVersion: p.pillVersion, ruleId: p.ruleId, actor: p.confirmer.name })) {
+      return `${where} has no audit event`;
+    }
+  }
   return null;
 }
 

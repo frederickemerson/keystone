@@ -10,7 +10,27 @@
 import { useStore } from "zustand";
 import { createJSONStorage, persist, type PersistStorage, type StateStorage } from "zustand/middleware";
 import { createStore, type Mutate, type StoreApi } from "zustand/vanilla";
-import type { ComparisonResult, EvidenceCatalog, Pill } from "@/lib/engine";
+import { isDraftRuleId, type ComparisonResult, type EvidenceCatalog, type Pill } from "@/lib/engine";
+import {
+  answerReadBack,
+  applyReadBackCorrections,
+  captureTaskSchema,
+  draftFromNoteSchema,
+  draftProposalReadiness,
+  findOpenCaptureTask,
+  peerConfirmationSchema,
+  peerConfirmAuthority,
+  peerGate,
+  quoteMatchesNote,
+  readBackForDraft,
+  resolveAssetRef,
+  voiceNoteSchema,
+  type CaptureStoreActions,
+  type CaptureTask,
+  type DraftFromNote,
+  type PeerConfirmation,
+  type VoiceNote,
+} from "@/lib/capture";
 import {
   canApprove,
   rollbackAuthority,
@@ -26,13 +46,14 @@ import {
   personaFor,
   pillEditAuthority,
   roleLabel,
+  sameIdentity,
   UNRESOLVED_ACTOR,
   UNRESOLVED_ROLE,
   type DecisionOutcome,
   type DecisionSubject,
   type PillEditPolicy,
 } from "./access";
-import { appendAudit, EMPTY_AUDIT_LOG, type AuditInput, type AuditLog } from "./audit";
+import { appendAudit, EMPTY_AUDIT_LOG, type AuditAction, type AuditInput, type AuditLog } from "./audit";
 import { parseGovernanceSnapshot } from "./snapshot";
 import {
   currentApproved,
@@ -44,6 +65,7 @@ import {
   rollback as rollbackPure,
   seedVersion,
   type Actor,
+  type CaptureProvenance,
   type PillVersion,
   type RuleChange,
 } from "./versions";
@@ -51,8 +73,9 @@ import {
 export const GOVERNANCE_STORE_KEY = "mosaic-governance";
 /** Bump when the persisted shape or role ids change; older snapshots are discarded.
  *  v2: role `tenant_experience` renamed to `tenant_experience_manager` in roles.json.
- *  v3: versions record `shadowedBy` (three-person separation of duties); outcomes + Canvas rule reviews. */
-export const GOVERNANCE_STORE_VERSION = 3;
+ *  v3: versions record `shadowedBy` (three-person separation of duties); outcomes + Canvas rule reviews.
+ *  v4: frontline capture — capture tasks, voice notes, drafts from notes, peer confirmations, PillVersion.capture. */
+export const GOVERNANCE_STORE_VERSION = 4;
 
 // Personas (named human per role) live with the role policy in ./access.
 export { DEMO_PERSONAS, personaFor } from "./access";
@@ -146,6 +169,14 @@ export interface GovernanceData {
   outcomes: Record<string, OutcomeRecord>;
   /** "<pillId>@<version>" → ruleId → latest Canvas review (full history is in `audit`). */
   ruleReviews: Record<string, Record<string, RuleReviewRecord>>;
+  /** Frontline capture: task id (CT-…) → task. */
+  captureTasks: Record<string, CaptureTask>;
+  /** Frontline capture: note id (VN-…) → note (transcript only — raw audio is never stored here). */
+  voiceNotes: Record<string, VoiceNote>;
+  /** Frontline capture: note id → the drafts extracted from it (unique DRAFT- ids per note). */
+  draftsFromNotes: Record<string, DraftFromNote[]>;
+  /** Frontline capture: every peer verdict, in order (each person's latest counts — lib/capture peerGate). */
+  peerConfirmations: PeerConfirmation[];
 }
 
 /** Thrown when a store action is refused by governance policy (the refusal is audited first). */
@@ -226,7 +257,7 @@ export interface GovernanceActions {
   resetDemo: () => void;
 }
 
-export type GovernanceState = GovernanceData & GovernanceActions;
+export type GovernanceState = GovernanceData & GovernanceActions & CaptureStoreActions;
 
 export type GovernanceStore = Mutate<StoreApi<GovernanceState>, [["zustand/persist", unknown]]>;
 
@@ -248,7 +279,25 @@ function initialData(
     evidenceConfirmations: {},
     outcomes: {},
     ruleReviews: {},
+    captureTasks: {},
+    voiceNotes: {},
+    draftsFromNotes: {},
+    peerConfirmations: [],
   };
+}
+
+/** Audit reference fields of a capture event; non-string values (malformed input) are dropped. */
+type CaptureRefs = Partial<Record<"pillId" | "pillVersion" | "incidentId" | "ruleId" | "captureTaskId" | "noteId", unknown>>;
+function auditRefs(refs: CaptureRefs): Pick<AuditInput, "pillId" | "pillVersion" | "incidentId" | "ruleId" | "captureTaskId" | "noteId"> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(refs)) if (typeof v === "string" && v.length > 0) out[k] = v;
+  return out;
+}
+
+/** First zod issue as "path: message" — schema messages never echo the input value (no transcript text). */
+function firstIssue(error: { issues: readonly { path: readonly PropertyKey[]; message: string }[] }): string {
+  const i = error.issues[0];
+  return i ? `${i.path.map(String).join(".") || "(input)"}: ${i.message}` : "invalid input";
 }
 
 const ACTION_AUDIT: Record<ActionOutcome, AuditInput["action"]> = {
@@ -368,13 +417,33 @@ export function createGovernanceStore(
           if (!policy) return { allowed: false, reason: `Unknown pill ${pillId}` };
           return pillEditAuthority(get().currentActor.role, policy);
         };
-        /** Propose + audit; the shared path of proposeVersion and publishReview. */
-        const propose = (pillId: string, baseVersion: string, changes: readonly RuleChange[], reason: string, via?: string) => {
+        /**
+         * Propose + audit; the shared path of proposeVersion, publishReview and
+         * proposeFromNote. `fromNote` switches the audit names to the capture
+         * ones, records the version's capture provenance, and audits every
+         * failure (a capture action always writes exactly one event).
+         */
+        const propose = (
+          pillId: string,
+          baseVersion: string,
+          changes: readonly RuleChange[],
+          reason: string,
+          via?: string,
+          fromNote?: CaptureProvenance,
+        ) => {
           const h = history(pillId);
           const base = findVersion(h, baseVersion);
           if (!base) throw new Error(`Unknown version ${pillId}@${baseVersion}`);
+          const refs = fromNote ? { noteId: fromNote.noteId, ruleId: fromNote.ruleId } : {};
           const refuse = (why: string): never => {
-            log({ ...actorFields(), action: "version_proposal_blocked", pillId, pillVersion: baseVersion, detail: why });
+            log({
+              ...actorFields(),
+              action: fromNote ? "draft_from_note_blocked" : "version_proposal_blocked",
+              pillId,
+              pillVersion: baseVersion,
+              ...refs,
+              detail: why,
+            });
             throw new GovernanceError(why);
           };
           if (!isKnownRole(get().currentActor.role)) {
@@ -389,19 +458,31 @@ export function createGovernanceStore(
           } catch (err) {
             // Malformed input (no reason, invalid rules) changes nothing; an
             // empty proposal is a policy refusal and is audited.
-            if (!(err instanceof EmptyProposalError)) throw err;
-            return refuse(err.message);
+            if (!(err instanceof EmptyProposalError) && !fromNote) throw err;
+            return refuse((err as Error).message);
           }
+          if (fromNote) proposed = { ...proposed, capture: fromNote };
           set((s) => ({ versions: { ...s.versions, [pillId]: [...h, proposed] } }));
           log({
             ...actorFields(),
-            action: "version_proposed",
+            action: fromNote ? "draft_from_note_proposed" : "version_proposed",
             pillId,
             pillVersion: proposed.version,
+            ...refs,
             detail: `Proposed v${proposed.version} from v${baseVersion}${via ? ` ${via}` : ""}: ${reason}`,
           });
           return proposed;
         };
+
+        // ---- Frontline capture helpers -------------------------------------
+        /** Audit a capture refusal (one event) and throw. */
+        const refuseCapture = (action: AuditAction, refs: CaptureRefs, why: string): never => {
+          log({ ...actorFields(), action, ...auditRefs(refs), detail: why });
+          throw new GovernanceError(why);
+        };
+        const signedIn = () => isKnownRole(get().currentActor.role);
+        const NOT_SIGNED_IN = "No signed-in identity — sign in first";
+        const actorRecord = () => ({ name: get().currentActor.name, role: get().currentActor.role });
 
         return {
           ...initialData(),
@@ -480,6 +561,24 @@ export function createGovernanceStore(
               const why = authority.reason ?? "Not authorised";
               log({ ...actorFields(), action: "version_shadow_blocked", pillId, pillVersion: version, detail: why });
               throw new GovernanceError(why);
+            }
+            // A version proposed from a voice note also needs its peer gate:
+            // ≥1 eligible peer confirmation and no outstanding eligible dispute.
+            if (authority.allowed && target.capture) {
+              const policy = policies.get(pillId);
+              const gate = policy
+                ? peerGate(
+                    get().peerConfirmations,
+                    { pillId, pillVersion: version, ruleId: target.capture.ruleId, noteId: target.capture.noteId },
+                    target.capture.author,
+                    policy,
+                  )
+                : { allowed: false, reason: `Unknown pill ${pillId}` };
+              if (!gate.allowed) {
+                const why = `Peer gate: ${gate.reason ?? "not satisfied"}`;
+                log({ ...actorFields(), action: "version_shadow_blocked", pillId, pillVersion: version, ruleId: target.capture.ruleId, noteId: target.capture.noteId, detail: why });
+                throw new GovernanceError(why);
+              }
             }
             const next = promoteToShadow(h, version, get().currentActor, now());
             set((s) => ({ versions: { ...s.versions, [pillId]: next } }));
@@ -748,6 +847,319 @@ export function createGovernanceStore(
             return propose(pillId, live.version, changes, reason, "from the Decision Canvas");
           },
 
+          // ---- Frontline capture (lib/capture CaptureStoreActions) -----------
+          // Every call appends exactly one audit event: the success event, or a
+          // *_blocked refusal followed by a GovernanceError. Audit details never
+          // carry transcript text (every role can read the audit log).
+
+          createCaptureTask: (input) => {
+            const raw = (input ?? {}) as Partial<CaptureTask>;
+            const refs = { captureTaskId: raw.id, incidentId: raw.incidentId, pillId: raw.pillId, ruleId: raw.ruleId };
+            const refuse = (why: string) => refuseCapture("capture_task_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            const { status: _s, answeredBy: _a, noteId: _n, ...fields } = raw;
+            const parsed = captureTaskSchema.safeParse({ ...fields, status: "open" });
+            if (!parsed.success) return refuse(`Task refused: ${firstIssue(parsed.error)}`);
+            const task = parsed.data;
+            if (Object.hasOwn(get().captureTasks, task.id)) return refuse(`Task ${task.id} already exists`);
+            const open = findOpenCaptureTask(get().captureTasks, task);
+            if (open) return refuse(`Already asked: ${open.id} is still open for ${roleLabel(open.createdFor)}`);
+            set((s) => ({ captureTasks: { ...s.captureTasks, [task.id]: task } }));
+            log({
+              ...actorFields(),
+              action: "capture_task_created",
+              ...auditRefs(refs),
+              detail: `${task.kind} task ${task.id} for ${roleLabel(task.createdFor)} on ${task.assetId}`,
+            });
+            return task;
+          },
+
+          answerCaptureTask: (taskId, noteId) => {
+            const task = Object.hasOwn(get().captureTasks, taskId) ? get().captureTasks[taskId] : undefined;
+            const refs = { captureTaskId: taskId, noteId, incidentId: task?.incidentId, pillId: task?.pillId, ruleId: task?.ruleId };
+            const refuse = (why: string) => refuseCapture("capture_task_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            if (!task) return refuse(`Unknown task ${String(taskId)}`);
+            if (task.status !== "open") return refuse(`Task ${task.id} is already ${task.status}`);
+            const actor = get().currentActor;
+            if (actor.role !== task.createdFor) {
+              return refuse(`Task ${task.id} is addressed to ${roleLabel(task.createdFor)}, not ${roleLabel(actor.role)}`);
+            }
+            const note = Object.hasOwn(get().voiceNotes, noteId) ? get().voiceNotes[noteId] : undefined;
+            if (!note) return refuse(`Unknown voice note ${String(noteId)}`);
+            if (!sameIdentity(note.author.name, actor.name)) return refuse(`${note.id} was recorded by someone else`);
+            if (note.taskId !== task.id) return refuse(`${note.id} was not recorded for task ${task.id}`);
+            const answered = captureTaskSchema.parse({ ...task, status: "answered", answeredBy: actorRecord(), noteId: note.id });
+            set((s) => ({ captureTasks: { ...s.captureTasks, [task.id]: answered } }));
+            log({ ...actorFields(), action: "capture_task_answered", ...auditRefs(refs), detail: `Answered ${task.id} with voice note ${note.id}` });
+            return answered;
+          },
+
+          dismissCaptureTask: (taskId, reason) => {
+            const task = Object.hasOwn(get().captureTasks, taskId) ? get().captureTasks[taskId] : undefined;
+            const refs = { captureTaskId: taskId, incidentId: task?.incidentId, pillId: task?.pillId, ruleId: task?.ruleId };
+            const refuse = (why: string) => refuseCapture("capture_task_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            if (!task) return refuse(`Unknown task ${String(taskId)}`);
+            if (task.status !== "open") return refuse(`Task ${task.id} is already ${task.status}`);
+            const actor = get().currentActor;
+            if (actor.role !== task.createdFor) {
+              return refuse(`Task ${task.id} is addressed to ${roleLabel(task.createdFor)}, not ${roleLabel(actor.role)}`);
+            }
+            const why = typeof reason === "string" ? reason.trim() : "";
+            if (!why) return refuse("Dismissing a task needs a reason");
+            if (why.length > 280) return refuse("Keep the dismissal reason under 280 characters");
+            const dismissed = captureTaskSchema.parse({ ...task, status: "dismissed", answeredBy: actorRecord() });
+            set((s) => ({ captureTasks: { ...s.captureTasks, [task.id]: dismissed } }));
+            log({ ...actorFields(), action: "capture_task_dismissed", ...auditRefs(refs), detail: `Dismissed ${task.id}: ${why}` });
+            return dismissed;
+          },
+
+          recordVoiceNote: (input) => {
+            const raw = (input ?? {}) as Partial<VoiceNote>;
+            const refs = { noteId: raw.id, captureTaskId: raw.taskId };
+            const refuse = (why: string) => refuseCapture("voice_note_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            if (raw.amendedFrom !== undefined) return refuse("A new note cannot claim an amendment; use amendNoteFromReadBack");
+            // The author is the signed-in actor, never the caller's claim; only
+            // schema fields are kept (an attached audio blob is dropped).
+            const parsed = voiceNoteSchema.safeParse({ ...raw, author: actorRecord() });
+            if (!parsed.success) return refuse(`Note refused: ${firstIssue(parsed.error)}`);
+            const note = parsed.data;
+            if (Object.hasOwn(get().voiceNotes, note.id)) return refuse(`Voice note ${note.id} already exists`);
+            if (note.taskId !== undefined) {
+              const task = Object.hasOwn(get().captureTasks, note.taskId) ? get().captureTasks[note.taskId] : undefined;
+              if (!task) return refuse(`Unknown task ${note.taskId}`);
+              if (task.status !== "open") return refuse(`Task ${task.id} is already ${task.status}`);
+              if (task.createdFor !== note.author.role) {
+                return refuse(`Task ${task.id} is addressed to ${roleLabel(task.createdFor)}, not ${roleLabel(note.author.role)}`);
+              }
+              if (resolveAssetRef(task.assetId)?.siteId !== resolveAssetRef(note.assetId)?.siteId) {
+                return refuse(`${note.assetId} is not on the site of task ${task.id} (${task.assetId})`);
+              }
+            }
+            set((s) => ({ voiceNotes: { ...s.voiceNotes, [note.id]: note } }));
+            const src = note.transcriptSource;
+            log({
+              ...actorFields(),
+              action: "voice_note_recorded",
+              ...auditRefs(refs),
+              detail:
+                `Recorded ${note.id} (${note.durationSec} s, ${src.provider}/${src.model} @ ${src.region}, ${src.languageHint}) on ${note.assetId}; ` +
+                (note.audio.retained ? `audio kept until ${note.audio.expiresAt}` : "audio discarded") +
+                `; credit ${note.consent.namedCredit ? "by name" : "by role"}`,
+            });
+            return note;
+          },
+
+          recordDraftsFromNote: (noteId, drafts) => {
+            const refs = { noteId };
+            const refuse = (why: string) => refuseCapture("draft_from_note_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            const note = Object.hasOwn(get().voiceNotes, noteId) ? get().voiceNotes[noteId] : undefined;
+            if (!note) return refuse(`Unknown voice note ${String(noteId)}`);
+            if (!sameIdentity(note.author.name, get().currentActor.name)) return refuse(`Only ${note.author.name} can record drafts from ${note.id}`);
+            if (!Array.isArray(drafts)) return refuse("Drafts must be a list");
+            const stored: DraftFromNote[] = [];
+            for (const [i, d] of (drafts as readonly Partial<DraftFromNote>[]).entries()) {
+              const quoteSpan = d?.quoteSpan;
+              const parsed = draftFromNoteSchema.safeParse({
+                status: "draft",
+                requiresExpertConfirmation: true,
+                rule: d?.rule,
+                noteId: note.id,
+                quoteSpan,
+                // Chips are always the store's own deterministic extraction.
+                readBack: quoteSpan && typeof quoteSpan === "object" ? readBackForDraft(note, quoteSpan) : [],
+              });
+              if (!parsed.success) return refuse(`Draft ${i + 1} refused: ${firstIssue(parsed.error)}`);
+              const draft = parsed.data;
+              if (!quoteMatchesNote(draft, note)) return refuse(`Draft ${draft.rule.id}: the quote is not a verbatim span of ${note.id}`);
+              if (stored.some((x) => x.rule.id === draft.rule.id)) return refuse(`Draft id ${draft.rule.id} appears twice`);
+              stored.push(draft);
+            }
+            set((s) => ({ draftsFromNotes: { ...s.draftsFromNotes, [note.id]: stored } }));
+            log({
+              ...actorFields(),
+              action: "drafts_from_note_recorded",
+              ...auditRefs(refs),
+              detail: `${stored.length} draft(s) from ${note.id}${stored.length ? `: ${stored.map((d) => d.rule.id).join(", ")}` : ""}`,
+            });
+            return stored;
+          },
+
+          amendNoteFromReadBack: (noteId, draftRuleId) => {
+            const refs = { noteId, ruleId: draftRuleId };
+            const refuse = (why: string) => refuseCapture("voice_note_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            const note = Object.hasOwn(get().voiceNotes, noteId) ? get().voiceNotes[noteId] : undefined;
+            if (!note) return refuse(`Unknown voice note ${String(noteId)}`);
+            if (!sameIdentity(note.author.name, get().currentActor.name)) return refuse(`Only ${note.author.name} can amend ${note.id}`);
+            const draft = (get().draftsFromNotes[note.id] ?? []).find((d) => d.rule.id === draftRuleId);
+            if (!draft) return refuse(`No draft ${String(draftRuleId)} on ${note.id}`);
+            const corrections = draft.readBack.filter((c) => c.correctedText !== undefined).length;
+            if (corrections === 0) return refuse(`${draft.rule.id} has no corrected chip to apply`);
+            const proposed = Object.values(get().versions).flat().find((v) => v.capture?.noteId === note.id);
+            if (proposed) return refuse(`v${proposed.version} of ${proposed.pillId} was already proposed from ${note.id}; record a new note instead`);
+            const parsed = voiceNoteSchema.safeParse({
+              ...note,
+              transcript: applyReadBackCorrections(note.transcript, draft.readBack),
+              amendedFrom: note.amendedFrom ?? note.transcript,
+            });
+            if (!parsed.success) return refuse(`Amendment refused: ${firstIssue(parsed.error)}`);
+            const amended = parsed.data;
+            set((s) => {
+              const { [note.id]: _cleared, ...rest } = s.draftsFromNotes;
+              return { voiceNotes: { ...s.voiceNotes, [note.id]: amended }, draftsFromNotes: rest };
+            });
+            log({
+              ...actorFields(),
+              action: "voice_note_amended",
+              ...auditRefs(refs),
+              detail: `${note.id} amended with ${corrections} read-back correction(s) from ${draft.rule.id}; its drafts must be re-extracted`,
+            });
+            return amended;
+          },
+
+          confirmReadBack: (noteId, draftRuleId, index, answer) => {
+            const refs = { noteId, ruleId: draftRuleId };
+            const refuse = (why: string) => refuseCapture("readback_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            const note = Object.hasOwn(get().voiceNotes, noteId) ? get().voiceNotes[noteId] : undefined;
+            if (!note) return refuse(`Unknown voice note ${String(noteId)}`);
+            if (!sameIdentity(note.author.name, get().currentActor.name)) {
+              return refuse(`Only the speaker (${note.author.name}) can read back ${note.id}`);
+            }
+            const drafts = get().draftsFromNotes[note.id] ?? [];
+            const draft = drafts.find((d) => d.rule.id === draftRuleId);
+            if (!draft) return refuse(`No draft ${String(draftRuleId)} on ${note.id}`);
+            if (Object.values(get().versions).flat().some((v) => v.capture?.noteId === note.id && v.capture.draftRuleId === draft.rule.id)) {
+              return refuse(`${draft.rule.id} was already proposed; its chips are final`);
+            }
+            if (!answer || typeof answer.confirmed !== "boolean") return refuse("A read-back answer is confirmed: true or false");
+            let readBack: DraftFromNote["readBack"];
+            try {
+              readBack = answerReadBack(draft.readBack, index, answer);
+            } catch (err) {
+              return refuse((err as Error).message);
+            }
+            const updated = draftFromNoteSchema.safeParse({ ...draft, readBack });
+            if (!updated.success) return refuse(`Answer refused: ${firstIssue(updated.error)}`);
+            const chip = readBack[index];
+            set((s) => ({
+              draftsFromNotes: {
+                ...s.draftsFromNotes,
+                [note.id]: (s.draftsFromNotes[note.id] ?? []).map((d) => (d.rule.id === draft.rule.id ? updated.data : d)),
+              },
+            }));
+            const verdict = chip.correctedText !== undefined ? "corrected" : chip.confirmed ? "confirmed" : "flagged wrong";
+            log({
+              ...actorFields(),
+              action: chip.confirmed && chip.correctedText === undefined ? "readback_confirmed" : "readback_corrected",
+              ...auditRefs(refs),
+              // Chip text is transcript text: name the chip by position and kind only.
+              detail: `Chip ${index + 1}/${readBack.length} (${chip.kind}) of ${draft.rule.id} on ${note.id} ${verdict}`,
+            });
+            return updated.data;
+          },
+
+          proposeFromNote: ({ noteId, draftRuleId, pillId, ruleId, reason }) => {
+            const refs = { noteId, pillId, ruleId: draftRuleId };
+            const refuse = (why: string) => refuseCapture("draft_from_note_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            const h = Object.hasOwn(get().versions, pillId) ? get().versions[pillId] : undefined;
+            if (!h || !policies.has(pillId)) return refuse(`Unknown pill ${String(pillId)}`);
+            const note = Object.hasOwn(get().voiceNotes, noteId) ? get().voiceNotes[noteId] : undefined;
+            if (!note) return refuse(`Unknown voice note ${String(noteId)}`);
+            const draft = (get().draftsFromNotes[note.id] ?? []).find((d) => d.rule.id === draftRuleId);
+            if (!draft) return refuse(`No draft ${String(draftRuleId)} on ${note.id}`);
+            const readiness = draftProposalReadiness(draft, note);
+            if (!readiness.allowed) return refuse(readiness.reason ?? "Draft is not ready");
+            if (typeof ruleId !== "string" || !ruleId.trim() || isDraftRuleId(ruleId.trim())) {
+              return refuse("Choose a real rule id for the draft (DRAFT- ids are reserved for unreviewed drafts)");
+            }
+            const inReview = Object.values(get().versions)
+              .flat()
+              .find((v) => v.capture?.noteId === note.id && v.capture.draftRuleId === draft.rule.id && v.status !== "Retired");
+            if (inReview) return refuse(`${draft.rule.id} from ${note.id} was already proposed as ${inReview.pillId} v${inReview.version}`);
+            const base = currentApproved(h);
+            if (!base) return refuse(`${pillId} has no approved version to propose from`);
+            const id = ruleId.trim();
+            const provenance: CaptureProvenance = {
+              noteId: note.id,
+              draftRuleId: draft.rule.id,
+              ruleId: id,
+              quoteSpan: { ...draft.quoteSpan },
+              author: { ...note.author },
+            };
+            return propose(
+              pillId,
+              base.version,
+              [{ op: "add", rule: { ...draft.rule, id } }],
+              typeof reason === "string" ? reason : "",
+              `with ${id} from voice note ${note.id} (${draft.rule.id})`,
+              provenance,
+            );
+          },
+
+          peerConfirm: (input) => {
+            const raw = (input ?? {}) as Partial<PeerConfirmation>;
+            const refs = { pillId: raw.pillId, pillVersion: raw.pillVersion, ruleId: raw.ruleId, noteId: raw.noteId };
+            const refuse = (why: string) => refuseCapture("peer_confirm_blocked", refs, why);
+            if (!signedIn()) return refuse(NOT_SIGNED_IN);
+            const pillId = String(raw.pillId);
+            const policy = policies.get(pillId);
+            const h = Object.hasOwn(get().versions, pillId) ? get().versions[pillId] : undefined;
+            if (!policy || !h) return refuse(`Unknown pill ${pillId}`);
+            const version = findVersion(h, String(raw.pillVersion));
+            if (!version) return refuse(`Unknown version ${pillId}@${String(raw.pillVersion)}`);
+            const ruleId = String(raw.ruleId);
+            let author: Actor;
+            let noteId: string;
+            if (isDraftRuleId(ruleId)) {
+              const note = raw.noteId !== undefined && Object.hasOwn(get().voiceNotes, raw.noteId) ? get().voiceNotes[raw.noteId] : undefined;
+              if (!note) return refuse(`A ${ruleId} tile needs the voice note it came from`);
+              if (!(get().draftsFromNotes[note.id] ?? []).some((d) => d.rule.id === ruleId)) return refuse(`No draft ${ruleId} on ${note.id}`);
+              author = note.author;
+              noteId = note.id;
+            } else {
+              const capture = version.capture;
+              if (!capture || capture.ruleId !== ruleId) {
+                return refuse(`${ruleId} of v${version.version} was not proposed from a voice note; peer confirmation does not apply`);
+              }
+              if (raw.noteId !== undefined && raw.noteId !== capture.noteId) return refuse(`${ruleId} came from ${capture.noteId}, not ${String(raw.noteId)}`);
+              if (version.status !== "Draft") return refuse(`v${version.version} is ${version.status}; peer review happens while it is a Draft`);
+              author = capture.author;
+              noteId = capture.noteId;
+            }
+            const actor = actorRecord();
+            const authority = peerConfirmAuthority(actor, author, policy);
+            if (!authority.allowed) return refuse(authority.reason ?? "Not authorised");
+            const parsed = peerConfirmationSchema.safeParse({
+              pillId,
+              pillVersion: version.version,
+              ruleId,
+              noteId,
+              confirmer: actor,
+              at: now(),
+              verdict: raw.verdict,
+              ...(raw.note !== undefined ? { note: raw.note } : {}),
+            });
+            if (!parsed.success) return refuse(`Verdict refused: ${firstIssue(parsed.error)}`);
+            const record = parsed.data;
+            set((s) => ({ peerConfirmations: [...s.peerConfirmations, record] }));
+            log({
+              ...actorFields(),
+              action: record.verdict === "confirm" ? "peer_confirmed" : "peer_disputed",
+              ...auditRefs({ pillId, pillVersion: version.version, ruleId, noteId }),
+              detail:
+                record.verdict === "confirm"
+                  ? `${actor.name} confirmed ${ruleId} of v${version.version} (from ${noteId})`
+                  : `${actor.name} disputed ${ruleId} of v${version.version} (from ${noteId}): ${record.note ?? ""}`,
+            });
+            return record;
+          },
+
           resetDemo: () => {
             // Versions, decisions and shadow runs return to the seed; the audit
             // log is append-only and survives (the reset itself is audited).
@@ -771,6 +1183,10 @@ export function createGovernanceStore(
           evidenceConfirmations: s.evidenceConfirmations,
           outcomes: s.outcomes,
           ruleReviews: s.ruleReviews,
+          captureTasks: s.captureTasks,
+          voiceNotes: s.voiceNotes,
+          draftsFromNotes: s.draftsFromNotes,
+          peerConfirmations: s.peerConfirmations,
         }),
         // Unknown/older snapshot versions are discarded rather than half-migrated.
         migrate: () => undefined,

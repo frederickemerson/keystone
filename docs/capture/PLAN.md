@@ -15,7 +15,32 @@ This plan covers five features. Each one turns a moment the worker already has (
 | `PeerConfirmation` | One person's `confirm` or `dispute` on (pillId, pillVersion, ruleId[, noteId]) | A `DRAFT-` ruleId needs a `noteId`. A dispute needs a `note`. |
 | `peerConfirmAuthority` / `peerGate` | The Draft→Shadow peer gate for capture-derived versions | The confirmer must be a different identity (`identityKey`) from the author, and `pillEditAuthority` must allow the confirmer's role on the pill (owner, steward, approver or `roles_allowed`; `denied`/`roles_read_only` lose). The gate needs at least one eligible confirm and **no outstanding eligible dispute**. Each person's latest verdict counts. |
 | `CAPTURE_AUDIT_ACTIONS` | New audit names, already spread into `AUDIT_ACTIONS` (`lib/capture/audit-actions.ts`) | `capture_task_created/answered/dismissed/blocked`, `voice_note_recorded/blocked`, `readback_confirmed/corrected/blocked`, `draft_from_note_proposed/blocked`, `peer_confirmed/disputed/confirm_blocked` |
-| `CaptureStoreActions` | Signatures only: `createCaptureTask`, `answerCaptureTask`, `dismissCaptureTask`, `recordVoiceNote`, `confirmReadBack`, `proposeFromNote`, `peerConfirm` | Same conventions as the existing store: the actor is the session's `currentActor`, every call is audited, and a refusal is audited as `…_blocked` before `GovernanceError` is thrown. |
+| `CaptureStoreActions` | Implemented in `lib/governance/store.ts`: `createCaptureTask`, `answerCaptureTask`, `dismissCaptureTask`, `recordVoiceNote`, `recordDraftsFromNote`, `amendNoteFromReadBack`, `confirmReadBack`, `proposeFromNote`, `peerConfirm` (see "Contract changes") | Same conventions as the existing store: the actor is the session's `currentActor`, every call is audited, and a refusal is audited as `…_blocked` before `GovernanceError` is thrown. |
+
+## Contract changes (Builder A, store landing)
+
+All additive. B and C: rebase on this commit; nothing you already coded against changes shape.
+
+| Change | Why |
+|---|---|
+| `CaptureStoreActions.recordDraftsFromNote(noteId, drafts: Pick<DraftFromNote, "rule" \| "quoteSpan">[]) => DraftFromNote[]` | Drafts had no way into the store. Author-only; replaces the note's drafts. Every quote must be a verbatim span of the note. **The store computes the chips itself** (with `DEFAULT_READ_BACK_VOCAB`, all `confirmed: null`); chips passed by a client are ignored. Audit `drafts_from_note_recorded` / `draft_from_note_blocked`. |
+| `CaptureStoreActions.amendNoteFromReadBack(noteId, draftRuleId) => VoiceNote` | F3's "re-extract from `applyReadBackCorrections`": the corrected text becomes the note's `transcript` (the first one is kept in the new optional `VoiceNote.amendedFrom`), and the note's drafts are cleared. Re-extract from `note.transcript`, then call `recordDraftsFromNote` again. Refused once a version was proposed from the note. Audit `voice_note_amended` / `voice_note_blocked`. |
+| `draftProposalReadiness` also refuses a draft with any **corrected** chip | The LLM read the misheard value, so a corrected draft must go through amend + re-extract. Store and UI stay in agreement. |
+| `readBackMatchesExtraction(items, note, quoteSpan, vocab?)` | Exact chip check (kind, span, text, canonical, order). Snapshot validation uses it. |
+| `captureTaskDedupeKey` / `findOpenCaptureTask(tasks, t)` | F1 dedupe: one open task per (incident, rule, kind) for gate tasks, per (incident, role) for close-outs, per (asset, role) for QR. `createCaptureTask` **refuses** a duplicate (`capture_task_blocked`), so call `findOpenCaptureTask(state.captureTasks, t)` first and reuse the open task. |
+| `CAPTURE_AUDIT_ACTIONS` += `drafts_from_note_recorded`, `voice_note_amended` | For the two new actions. |
+| `AuditEvent` gains optional `captureTaskId` and `noteId` | Structured links from audit events to capture records (snapshot invariants match on these, never on detail text). |
+| `PillVersion.capture?: { noteId, draftRuleId, ruleId, quoteSpan, author }` (`CaptureProvenance` in `versions.ts`) | The PLAN's `{ noteId, draftRuleId, ruleId }` plus the quote and who said it. |
+
+**Store behaviour B and C rely on** (`lib/governance/store.ts`, `GOVERNANCE_STORE_VERSION = 4`):
+- State: `captureTasks: Record<CT-id, CaptureTask>`, `voiceNotes: Record<VN-id, VoiceNote>`, `draftsFromNotes: Record<VN-id, DraftFromNote[]>`, `peerConfirmations: PeerConfirmation[]`.
+- Every capture action appends exactly one audit event. Any failure, including a malformed input, is a `…_blocked` event followed by `GovernanceError`. Audit details never contain transcript or chip text.
+- `recordVoiceNote`: the author is always the session actor. Only schema fields are kept, so an attached audio blob is dropped and the persisted snapshot rejects a note with extra keys. With `taskId`, the task must be open, addressed to the actor's role, and on the same site as the note's `assetId`.
+- `answerCaptureTask`: the actor must hold `createdFor`, and the note must be the actor's own, recorded with that `taskId`. `dismissCaptureTask` needs a non-blank reason (≤ 280 chars).
+- `confirmReadBack`, `recordDraftsFromNote` and `amendNoteFromReadBack` are speaker-only. `confirmed: false` is audited as `readback_corrected` ("flagged wrong"). A proposed draft's chips are final.
+- `proposeFromNote` proposes from the pill's **live Approved** version, through the existing edit policy. That means a read-only technician cannot propose: on chilled-water-leak the Chief Engineer proposes Rajesh's draft. The version-proposal audit event is `draft_from_note_proposed` (not `version_proposed`). The same draft cannot be proposed again while a version from it is not Retired.
+- `peerConfirm`: on a real rule id, the version must be a **Draft** with `capture.ruleId === ruleId`. The store fills in `noteId`, and the excluded author is the note's speaker. On a `DRAFT-` id it needs `noteId` and a stored draft. Such a verdict is recorded but **does not count for the gate**: only verdicts on the proposed version do.
+- `promoteToShadow` on a `capture` version requires `peerGate(...).allowed` after the existing authority check. A refusal is `version_shadow_blocked` with detail `Peer gate: <reason>`, plus `ruleId` and `noteId`.
 
 **Glossary data change.** `data/roles.json` gained an optional `aliases` field, added to `roleSchema`. The aliases are `LEW` (duty_lew), `FSM`, `CFM`, `CE` and `FCC operator`, all short forms used in the pills and transcripts. Read-back matches each role's label, its id spoken as words ("duty lew") and its aliases. All-caps aliases match case-sensitively.
 
@@ -51,11 +76,11 @@ Every number, asset tag, role and time inside a draft's quote is shown as a chip
 
 ### F4: Peer confirmation before Shadow
 A version proposed from a note cannot enter Shadow until a different, eligible person confirms it, and while any eligible peer disputes it.
-- [ ] `PillVersion` gains `capture?: { noteId: string; draftRuleId: string; ruleId: string }`. The snapshot schema validates it, and `GOVERNANCE_STORE_VERSION` bumps to 4.
-- [ ] For a version with `capture`, `promoteToShadow` requires `peerGate(...).allowed` in addition to `shadowPromotionAuthority`. A refusal is audited as `version_shadow_blocked` and carries the gate's reason.
-- [ ] `peerConfirm` refuses the author, read-only roles and denied roles (`peer_confirm_blocked`). A dispute requires a note.
+- [x] `PillVersion` gains `capture?: { noteId: string; draftRuleId: string; ruleId: string }` (plus `quoteSpan`, `author`). The snapshot schema validates it, and `GOVERNANCE_STORE_VERSION` bumps to 4.
+- [x] For a version with `capture`, `promoteToShadow` requires `peerGate(...).allowed` in addition to `shadowPromotionAuthority`. A refusal is audited as `version_shadow_blocked` and carries the gate's reason.
+- [x] `peerConfirm` refuses the author, read-only roles and denied roles (`peer_confirm_blocked`). A dispute requires a note.
 - [ ] The Canvas or approvals view shows the badge "Peer-confirmed by …" or "Disputed by …".
-- [ ] Versions that did not come from capture behave exactly as before. The existing governance tests stay green unchanged.
+- [x] Versions that did not come from capture behave exactly as before. The existing governance tests stay green unchanged.
 
 ### F5: QR tap-to-teach `/c/[assetId]`
 A QR code on equipment opens a page that already knows the asset, its site, location and pill. The worker only records what is new.

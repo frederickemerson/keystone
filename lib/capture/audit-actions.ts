@@ -18,5 +18,8 @@ export const CAPTURE_AUDIT_ACTIONS = [
   "peer_confirmed",
   "peer_disputed",
   "peer_confirm_blocked",
+  // Added by the store (Builder A) — see docs/capture/PLAN.md "Contract changes".
+  "drafts_from_note_recorded",
+  "voice_note_amended",
 ] as const;
 export type CaptureAuditAction = (typeof CAPTURE_AUDIT_ACTIONS)[number];

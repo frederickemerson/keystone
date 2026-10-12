@@ -15,6 +15,7 @@ import {
   type DecisionSubject,
 } from "../access";
 import { canApprove } from "../approval";
+import { peerGate, type CaptureTask } from "@/lib/capture";
 import { parseGovernanceSnapshot } from "../snapshot";
 import {
   createGovernanceStore,
@@ -24,7 +25,7 @@ import {
   type GovernanceStore,
 } from "../store";
 import { compareSemver, proposeVersion, seedVersion, type PillVersion } from "../versions";
-import { CE, HTS, PILL_ID, pill } from "./fixtures";
+import { CE, HTS, PILL_ID, pill, rule } from "./fixtures";
 
 const ROLE_IDS = ROLES.map((r) => r.role);
 const clock = () => "2026-10-11T08:00:00.000Z";
@@ -37,9 +38,27 @@ const REGRESSION: Regression = {
   newActual: "blocked",
 };
 
+// A second pill with the chilled-water-leak access block (technicians,
+// FCC operators and the Duty LEW read-only) for the frontline-capture commands.
+const CAP_PILL_ID = "capture-chilled-water-leak";
+const CAP_POLICY = {
+  owner: "chief_engineer",
+  steward: "asset_operations_manager",
+  approver: "head_technical_services",
+  access: {
+    roles_allowed: ["chief_engineer", "asset_operations_manager", "head_technical_services", "duty_facilities_manager", "technical_services_lead", "fire_safety_manager", "dc_critical_facilities_manager"],
+    roles_read_only: ["technician", "security_fcc_operator", "duty_lew"],
+  },
+};
+function capPill() {
+  const p = pill();
+  return { ...p, manifest: { ...p.manifest, access: { sensitivity_default: "internal" as const, ...CAP_POLICY.access } } };
+}
+
 function freshStore(): GovernanceStore {
   const store = createGovernanceStore(memoryStorage(), clock);
   store.getState().seedPills([{ id: PILL_ID, pill: pill() }]);
+  store.getState().seedPills([{ id: CAP_PILL_ID, pill: capPill() }]);
   return store;
 }
 
@@ -55,8 +74,23 @@ function dataOf(store: GovernanceStore): GovernanceData {
     evidenceConfirmations: s.evidenceConfirmations,
     outcomes: s.outcomes,
     ruleReviews: s.ruleReviews,
+    captureTasks: s.captureTasks,
+    voiceNotes: s.voiceNotes,
+    draftsFromNotes: s.draftsFromNotes,
+    peerConfirmations: s.peerConfirmations,
   };
 }
+
+// Frontline-capture fixtures.
+const CAP_TRANSCRIPT = "AHU-23-01 drain pan overflow again. Wait 15 minutes then call Duty LEW, cannot anyhow reset the breaker lah.";
+const CAP_TASKS: Omit<CaptureTask, "status" | "answeredBy" | "noteId">[] = [
+  { id: "CT-A", kind: "gate_override", incidentId: "INC-2026-1011", assetId: "asset-hf1", ruleId: "TS-07", pillId: CAP_PILL_ID, createdAt: "2026-10-12T08:55:00+08:00", createdFor: "technician", prompt: "You overrode TS-07 — why?" },
+  { id: "CT-B", kind: "job_closeout", incidentId: "INC-2026-1011", assetId: "asset-hf1", createdAt: "2026-10-12T08:56:00+08:00", createdFor: "technician", prompt: "Anything the next shift should know?" },
+  { id: "CT-C", kind: "asset_qr", assetId: "AHU-23-01", createdAt: "2026-10-12T08:57:00+08:00", createdFor: "chief_engineer", prompt: "What is new on AHU-23-01?" },
+  // Invalid: a gate task without its rule.
+  { id: "CT-D", kind: "gate_blocked", incidentId: "INC-2026-1011", assetId: "asset-hf1", pillId: CAP_PILL_ID, createdAt: "2026-10-12T08:58:00+08:00", createdFor: "technician", prompt: "Blocked — why?" },
+];
+const CAP_DRAFT_RULE = rule("DRAFT-01", { decision: "Do not reset; call Duty LEW after 15 minutes" });
 
 // ---------------------------------------------------------------------------
 // Commands
@@ -76,6 +110,10 @@ const subjectArb = fc.option(
   { nil: undefined },
 );
 
+const noteIdArb = fc.constantFrom("VN-A", "VN-B", "VN-404");
+const taskIdArb = fc.constantFrom("CT-A", "CT-B", "CT-C", "CT-404");
+const capRuleIdArb = fc.constantFrom("TS-14", "TS-14", "DRAFT-01", "TS-01");
+
 type Command =
   | { op: "setRole"; role: string }
   | { op: "propose"; base: string; deadline: number; reason: string }
@@ -83,12 +121,23 @@ type Command =
   | { op: "approve"; version: string; regressed: boolean; override: string | null }
   | { op: "rollback"; version: string; reason: string }
   | { op: "decide"; outcome: DecisionOutcome; subject: DecisionSubject | undefined }
-  | { op: "reset" };
+  | { op: "reset" }
+  // Frontline capture
+  | { op: "createTask"; task: number }
+  | { op: "recordNote"; id: string; task: string | undefined; consent: boolean; retainDays: number }
+  | { op: "answerTask"; task: string; note: string }
+  | { op: "dismissTask"; task: string; reason: string }
+  | { op: "recordDrafts"; note: string; valid: boolean }
+  | { op: "confirmChip"; note: string; index: number; answer: "yes" | "no" | "fix" }
+  | { op: "amend"; note: string }
+  | { op: "proposeFromNote"; note: string; ruleId: string }
+  | { op: "peer"; version: string; ruleId: string; note: string | undefined; verdict: "confirm" | "dispute"; why: string | undefined }
+  | { op: "promoteCap"; version: string };
 
 // Weighted towards the roles that hold grants so approvals/rollbacks actually
 // succeed often enough to be checked; every role (and non-roles) still appear.
 const roleArb = fc.oneof(
-  { weight: 3, arbitrary: fc.constantFrom("head_technical_services", "executive", "asset_operations_manager", "chief_engineer") },
+  { weight: 3, arbitrary: fc.constantFrom("head_technical_services", "executive", "asset_operations_manager", "chief_engineer", "technician", "technical_services_lead") },
   { weight: 1, arbitrary: fc.constantFrom(...ROLE_IDS, "intruder", UNRESOLVED_ROLE) },
 );
 
@@ -116,6 +165,44 @@ const commandArb: fc.Arbitrary<Command> = fc.oneof(
   { weight: 2, arbitrary: fc.record({ op: fc.constant("rollback" as const), version: versionArb, reason: reasonArb }) },
   { weight: 2, arbitrary: fc.record({ op: fc.constant("decide" as const), outcome: outcomeArb, subject: subjectArb }) },
   { weight: 1, arbitrary: fc.constant({ op: "reset" as const }) },
+  // Frontline capture
+  { weight: 2, arbitrary: fc.record({ op: fc.constant("createTask" as const), task: fc.integer({ min: 0, max: CAP_TASKS.length - 1 }) }) },
+  {
+    weight: 3,
+    arbitrary: fc.record({
+      op: fc.constant("recordNote" as const),
+      id: noteIdArb,
+      task: fc.option(taskIdArb, { nil: undefined }),
+      consent: fc.boolean(),
+      retainDays: fc.constantFrom(0, 0, 10, 45),
+    }),
+  },
+  { weight: 2, arbitrary: fc.record({ op: fc.constant("answerTask" as const), task: taskIdArb, note: noteIdArb }) },
+  { weight: 1, arbitrary: fc.record({ op: fc.constant("dismissTask" as const), task: taskIdArb, reason: reasonArb }) },
+  { weight: 3, arbitrary: fc.record({ op: fc.constant("recordDrafts" as const), note: noteIdArb, valid: fc.boolean() }) },
+  {
+    weight: 4,
+    arbitrary: fc.record({
+      op: fc.constant("confirmChip" as const),
+      note: noteIdArb,
+      index: fc.integer({ min: -1, max: 2 }),
+      answer: fc.constantFrom<"yes" | "no" | "fix">("yes", "yes", "no", "fix"),
+    }),
+  },
+  { weight: 1, arbitrary: fc.record({ op: fc.constant("amend" as const), note: noteIdArb }) },
+  { weight: 3, arbitrary: fc.record({ op: fc.constant("proposeFromNote" as const), note: noteIdArb, ruleId: capRuleIdArb }) },
+  {
+    weight: 3,
+    arbitrary: fc.record({
+      op: fc.constant("peer" as const),
+      version: versionArb,
+      ruleId: capRuleIdArb,
+      note: fc.option(noteIdArb, { nil: undefined }),
+      verdict: fc.constantFrom<"confirm" | "dispute">("confirm", "confirm", "dispute"),
+      why: fc.option(fc.constantFrom("too long", " "), { nil: undefined }),
+    }),
+  },
+  { weight: 2, arbitrary: fc.record({ op: fc.constant("promoteCap" as const), version: versionArb }) },
 );
 
 /** A realistic start (proposal approved by a second human) so later commands meet a non-trivial history. */
@@ -157,6 +244,43 @@ const BOTH_OUTCOMES: Command[] = [
   { op: "reset" }, // ok
 ];
 
+const CAPTURE_OPS: readonly string[] = ["createTask", "recordNote", "answerTask", "dismissTask", "recordDrafts", "confirmChip", "amend", "proposeFromNote", "peer", "promoteCap"];
+
+/** Drives every frontline-capture action to both outcomes (see BOTH_OUTCOMES). */
+const CAPTURE_BOTH_OUTCOMES: Command[] = [
+  { op: "setRole", role: "technician" },
+  { op: "createTask", task: 0 }, // ok
+  { op: "createTask", task: 0 }, // refused: id exists
+  { op: "recordNote", id: "VN-A", task: "CT-A", consent: false, retainDays: 0 }, // refused: no consent
+  { op: "recordNote", id: "VN-A", task: "CT-A", consent: true, retainDays: 0 }, // ok
+  { op: "recordDrafts", note: "VN-A", valid: false }, // refused: quote not verbatim
+  { op: "recordDrafts", note: "VN-A", valid: true }, // ok
+  { op: "confirmChip", note: "VN-A", index: 2, answer: "yes" }, // refused: no such chip
+  { op: "confirmChip", note: "VN-A", index: 0, answer: "yes" }, // ok
+  { op: "confirmChip", note: "VN-A", index: 1, answer: "yes" }, // ok
+  { op: "answerTask", task: "CT-A", note: "VN-B" }, // refused: unknown note
+  { op: "answerTask", task: "CT-A", note: "VN-A" }, // ok
+  { op: "createTask", task: 1 }, // ok
+  { op: "dismissTask", task: "CT-B", reason: " " }, // refused: no reason
+  { op: "dismissTask", task: "CT-B", reason: "ok" }, // ok
+  { op: "recordNote", id: "VN-B", task: undefined, consent: true, retainDays: 10 }, // ok
+  { op: "recordDrafts", note: "VN-B", valid: true }, // ok
+  { op: "amend", note: "VN-B" }, // refused: nothing corrected
+  { op: "confirmChip", note: "VN-B", index: 0, answer: "fix" }, // ok (corrected)
+  { op: "amend", note: "VN-B" }, // ok
+  { op: "proposeFromNote", note: "VN-A", ruleId: "TS-14" }, // refused: technician is read-only
+  { op: "setRole", role: "chief_engineer" },
+  { op: "proposeFromNote", note: "VN-A", ruleId: "TS-14" }, // ok → capture pill v1.3.0
+  { op: "setRole", role: "asset_operations_manager" },
+  { op: "promoteCap", version: "1.3.0" }, // refused: peer gate
+  { op: "setRole", role: "technician" },
+  { op: "peer", version: "1.3.0", ruleId: "TS-14", note: undefined, verdict: "confirm", why: undefined }, // refused: speaker
+  { op: "setRole", role: "technical_services_lead" },
+  { op: "peer", version: "1.3.0", ruleId: "TS-14", note: undefined, verdict: "confirm", why: undefined }, // ok
+  { op: "setRole", role: "asset_operations_manager" },
+  { op: "promoteCap", version: "1.3.0" }, // ok
+];
+
 /** Run one command; returns whether it threw a policy refusal, a malformed-input error, or succeeded. */
 function run(store: GovernanceStore, c: Command): "ok" | "refused" | "invalid" {
   const s = store.getState();
@@ -189,6 +313,61 @@ function run(store: GovernanceStore, c: Command): "ok" | "refused" | "invalid" {
       case "reset":
         s.resetDemo();
         break;
+      case "createTask":
+        s.createCaptureTask(CAP_TASKS[c.task]);
+        break;
+      case "recordNote": {
+        const recordedAt = "2026-10-12T09:00:00+08:00";
+        s.recordVoiceNote({
+          id: c.id,
+          taskId: c.task,
+          assetId: "AHU-23-01",
+          recordedAt,
+          durationSec: 18,
+          transcript: CAP_TRANSCRIPT,
+          transcriptSource: { provider: "fixture", model: "recorded", region: "on-device", languageHint: "en-SG" },
+          consent: { noticeShownAt: "2026-10-12T08:59:40+08:00", recordingConsent: c.consent },
+          audio:
+            c.retainDays > 0
+              ? { retained: true, expiresAt: new Date(Date.parse(recordedAt) + c.retainDays * 86_400_000).toISOString() }
+              : { retained: false, expiresAt: null },
+        });
+        break;
+      }
+      case "answerTask":
+        s.answerCaptureTask(c.task, c.note);
+        break;
+      case "dismissTask":
+        s.dismissCaptureTask(c.task, c.reason);
+        break;
+      case "recordDrafts": {
+        const t = s.voiceNotes[c.note]?.transcript ?? CAP_TRANSCRIPT;
+        const start = t.indexOf("Wait");
+        const end = t.indexOf("LEW") + 3;
+        const text = c.valid ? t.slice(start, end) : "Wait 99 minutes";
+        s.recordDraftsFromNote(c.note, [{ rule: CAP_DRAFT_RULE, quoteSpan: { start, end: start + text.length, text } }]);
+        break;
+      }
+      case "confirmChip":
+        s.confirmReadBack(
+          c.note,
+          "DRAFT-01",
+          c.index,
+          c.answer === "yes" ? { confirmed: true } : c.answer === "no" ? { confirmed: false } : { confirmed: true, correctedText: "50 minutes" },
+        );
+        break;
+      case "amend":
+        s.amendNoteFromReadBack(c.note, "DRAFT-01");
+        break;
+      case "proposeFromNote":
+        s.proposeFromNote({ noteId: c.note, draftRuleId: "DRAFT-01", pillId: CAP_PILL_ID, ruleId: c.ruleId, reason: "Frontline close-out" });
+        break;
+      case "peer":
+        s.peerConfirm({ pillId: CAP_PILL_ID, pillVersion: c.version, ruleId: c.ruleId, noteId: c.note, verdict: c.verdict, note: c.why });
+        break;
+      case "promoteCap":
+        s.promoteToShadow(CAP_PILL_ID, c.version);
+        break;
     }
     return "ok";
   } catch (err) {
@@ -213,6 +392,25 @@ function assertInvariants(store: GovernanceStore): void {
       expect(new Set([v.createdBy.name, v.shadowedBy!.name, v.approvedBy.name].map(identityKey)).size).toBe(3);
     }
   }
+  // A capture-derived version past Draft passed its peer gate (verdicts stop once it leaves Draft).
+  for (const v of data.versions[CAP_PILL_ID]) {
+    if (!v.capture) continue;
+    expect(v.capture.author).toEqual(data.voiceNotes[v.capture.noteId]?.author);
+    if (v.shadowedBy) {
+      const gate = peerGate(data.peerConfirmations, { pillId: CAP_PILL_ID, pillVersion: v.version, ruleId: v.capture.ruleId, noteId: v.capture.noteId }, v.capture.author, CAP_POLICY);
+      expect(gate.allowed).toBe(true);
+    }
+  }
+  // Every stored note was recorded with consent; audio, if retained at all, for ≤ 30 days.
+  for (const n of Object.values(data.voiceNotes)) {
+    expect(n.consent.recordingConsent).toBe(true);
+    if (n.audio.retained) expect(Date.parse(n.audio.expiresAt!) - Date.parse(n.recordedAt)).toBeLessThanOrEqual(30 * 86_400_000);
+  }
+  // Every proposed draft had every chip confirmed and none corrected (draftProposalReadiness).
+  for (const v of data.versions[CAP_PILL_ID]) {
+    const d = v.capture && data.draftsFromNotes[v.capture.noteId]?.find((x) => x.rule.id === v.capture!.draftRuleId);
+    if (d) expect(d.readBack.every((c) => c.confirmed === true && c.correctedText === undefined)).toBe(true);
+  }
   // Whatever the store publishes, its own snapshot validator accepts.
   const parsed = parseGovernanceSnapshot(JSON.parse(JSON.stringify(data)));
   expect(parsed.ok ? "ok" : parsed.reason).toBe("ok");
@@ -227,6 +425,9 @@ describe("governance store under random action sequences", () => {
         for (const c of commands) {
           const before = store.getState();
           const result = run(store, c);
+          // A capture action always audits: it never fails without an event.
+          // (promoteCap is the existing promoteToShadow: an unknown version stays malformed input.)
+          if (CAPTURE_OPS.includes(c.op) && c.op !== "promoteCap") expect(result).not.toBe("invalid");
           if (result !== "invalid") seen[result].add(c.op);
           const after = store.getState();
           if (result === "invalid") {
@@ -243,13 +444,18 @@ describe("governance store under random action sequences", () => {
           assertInvariants(store);
         }
       }),
-      { numRuns: 500, examples: [[BOTH_OUTCOMES]] },
+      { numRuns: 500, examples: [[BOTH_OUTCOMES], [CAPTURE_BOTH_OUTCOMES]] },
     );
     // Every privileged action really reaches both outcomes (guaranteed by BOTH_OUTCOMES).
     for (const op of ["propose", "promote", "approve", "rollback", "decide", "reset", "setRole"]) {
       expect(seen.ok.has(op), `${op} never succeeded`).toBe(true);
     }
     for (const op of ["propose", "promote", "approve", "rollback", "decide"]) {
+      expect(seen.refused.has(op), `${op} never refused`).toBe(true);
+    }
+    // Frontline capture: guaranteed by CAPTURE_BOTH_OUTCOMES.
+    for (const op of CAPTURE_OPS) {
+      expect(seen.ok.has(op), `${op} never succeeded`).toBe(true);
       expect(seen.refused.has(op), `${op} never refused`).toBe(true);
     }
   });

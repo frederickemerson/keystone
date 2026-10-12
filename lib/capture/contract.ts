@@ -138,6 +138,32 @@ export const captureTaskSchema = z
   });
 export type CaptureTask = z.infer<typeof captureTaskSchema>;
 
+/**
+ * What makes two tasks "the same question" (F1: one open task per incident +
+ * rule + kind; a close-out per incident + role; a QR task per asset + role).
+ */
+export function captureTaskDedupeKey(t: Pick<CaptureTask, "kind" | "incidentId" | "ruleId" | "assetId" | "createdFor">): string {
+  switch (t.kind) {
+    case "gate_override":
+    case "gate_blocked":
+      return `${t.kind}|${t.incidentId ?? ""}|${t.ruleId ?? ""}`;
+    case "job_closeout":
+      return `${t.kind}|${t.incidentId ?? ""}|${t.createdFor}`;
+    case "asset_qr":
+      return `${t.kind}|${t.assetId}|${t.createdFor}`;
+  }
+}
+
+/** The open task asking the same question as `t`, if any — check before createCaptureTask (which refuses a duplicate). */
+export function findOpenCaptureTask(
+  tasks: Readonly<Record<string, CaptureTask>> | readonly CaptureTask[],
+  t: Pick<CaptureTask, "kind" | "incidentId" | "ruleId" | "assetId" | "createdFor">,
+): CaptureTask | undefined {
+  const key = captureTaskDedupeKey(t);
+  const list: readonly CaptureTask[] = Array.isArray(tasks) ? tasks : Object.values(tasks);
+  return list.find((x) => x.status === "open" && captureTaskDedupeKey(x) === key);
+}
+
 // ---------------------------------------------------------------------------
 // 2. VoiceNote + consent / PDPA
 // ---------------------------------------------------------------------------
@@ -200,6 +226,12 @@ export const voiceNoteSchema = z
     transcriptSource: transcriptSourceSchema,
     audio: audioRetentionSchema.default(DEFAULT_AUDIO_RETENTION),
     consent: consentSchema,
+    /**
+     * The transcript as first recorded, kept when the author corrected read-back
+     * chips and the note was amended (store: amendNoteFromReadBack). `transcript`
+     * is then the corrected text every draft quote and chip refers to.
+     */
+    amendedFrom: z.string().trim().min(1).max(MAX_TRANSCRIPT_CHARS).optional(),
   })
   .superRefine((n, ctx) => {
     if (!n.consent.recordingConsent) {
@@ -359,6 +391,10 @@ export function buildReadBackVocab(input: {
 }
 
 export const DEFAULT_READ_BACK_VOCAB: ReadBackVocab = buildReadBackVocab({ assets: ASSET_REGISTER, roles: ROLES });
+
+// The governance store computes every stored draft's chips with
+// DEFAULT_READ_BACK_VOCAB (independent of which pills a page happened to seed,
+// so stored chips stay valid); UI previews of stored drafts must use it too.
 
 // Number words ASR may emit instead of digits.
 const UNITS: Record<string, number> = {
@@ -556,6 +592,33 @@ export function readBackForDraft(
 
 const chipKey = (i: Pick<ReadBackItem, "kind" | "spanStart" | "spanEnd">) => `${i.kind}:${i.spanStart}-${i.spanEnd}`;
 
+/**
+ * Are `items` exactly the deterministic extraction over the draft's quote —
+ * same chips (kind, span, text, canonical) in the same order — with only the
+ * speaker's answers (confirmed / correctedText) added? Stricter than the
+ * chip-key match in draftProposalReadiness: the store's snapshot validation
+ * uses it to reject a hand-edited chip.
+ */
+export function readBackMatchesExtraction(
+  items: readonly ReadBackItem[],
+  note: Pick<VoiceNote, "transcript">,
+  quoteSpan: Pick<QuoteSpan, "start" | "end">,
+  vocab: ReadBackVocab = DEFAULT_READ_BACK_VOCAB,
+): boolean {
+  const expected = readBackForDraft(note, quoteSpan, vocab);
+  if (expected.length !== items.length) return false;
+  return expected.every((e, i) => {
+    const it = items[i];
+    return (
+      it.kind === e.kind &&
+      it.text === e.text &&
+      it.spanStart === e.spanStart &&
+      it.spanEnd === e.spanEnd &&
+      it.canonical === e.canonical
+    );
+  });
+}
+
 export interface DraftProposalReadiness extends DecisionAuthority {
   /** Chips still unanswered or flagged wrong. */
   pending: ReadBackItem[];
@@ -564,8 +627,9 @@ export interface DraftProposalReadiness extends DecisionAuthority {
 /**
  * May this draft be proposed as a pill version? Only when its quote is a
  * verbatim span of its note, its chips are exactly the deterministic
- * extraction over that quote (none dropped or invented by a client), and
- * every chip is confirmed. Store (proposeFromNote) and UI both call this.
+ * extraction over that quote (none dropped or invented by a client), every
+ * chip is confirmed, and none was corrected (a correction means amend the note
+ * and re-extract). Store (proposeFromNote) and UI both call this.
  */
 export function draftProposalReadiness(
   draft: DraftFromNote,
@@ -585,6 +649,16 @@ export function draftProposalReadiness(
     return {
       allowed: false,
       reason: `Confirm every read-back chip first (${pending.length} left: ${pending.map((p) => p.text).join(", ")}).`,
+      pending,
+    };
+  }
+  // A corrected chip means the LLM read the misheard value: the note must be
+  // amended with the corrections and the draft re-extracted from it.
+  const corrected = draft.readBack.filter((i) => i.correctedText !== undefined);
+  if (corrected.length > 0) {
+    return {
+      allowed: false,
+      reason: `Corrected ${corrected.map((c) => `"${c.text}"`).join(", ")}: amend the note and re-extract the draft from the corrected transcript.`,
       pending,
     };
   }
@@ -698,7 +772,11 @@ export function peerGate(
 export { CAPTURE_AUDIT_ACTIONS, type CaptureAuditAction } from "./audit-actions";
 
 export interface CaptureStoreActions {
-  /** System or a gate raises a task (status open). Audit: capture_task_created. */
+  /**
+   * System or a gate raises a task (status open) as the signed-in actor.
+   * Refused (capture_task_blocked) when the id exists or an open task already
+   * asks the same question (findOpenCaptureTask). Audit: capture_task_created.
+   */
   createCaptureTask: (input: Omit<CaptureTask, "status" | "answeredBy" | "noteId">) => CaptureTask;
   /** Link a recorded note; actor must hold task.createdFor. Audit: capture_task_answered / capture_task_blocked. */
   answerCaptureTask: (taskId: string, noteId: string) => CaptureTask;
@@ -710,6 +788,22 @@ export interface CaptureStoreActions {
    * contains the transcript — audit is visible to every role).
    */
   recordVoiceNote: (input: Omit<VoiceNoteInput, "author">) => VoiceNote;
+  /**
+   * Author-only: store the drafts extracted from a note (replacing the note's
+   * previous drafts). Only `rule` and `quoteSpan` are taken from the caller:
+   * every quote must be a verbatim span of the note, and the store computes the
+   * read-back chips itself (DEFAULT_READ_BACK_VOCAB), all unconfirmed.
+   * Audit: drafts_from_note_recorded / draft_from_note_blocked.
+   */
+  recordDraftsFromNote: (noteId: string, drafts: readonly Pick<DraftFromNote, "rule" | "quoteSpan">[]) => DraftFromNote[];
+  /**
+   * Author-only: apply draft `draftRuleId`'s corrected chips to the note
+   * (applyReadBackCorrections), keep the first transcript in `amendedFrom`, and
+   * clear the note's drafts — they must be re-extracted from the corrected
+   * transcript and recorded again. Refused once a version was proposed from
+   * the note. Audit: voice_note_amended / voice_note_blocked.
+   */
+  amendNoteFromReadBack: (noteId: string, draftRuleId: string) => VoiceNote;
   /** Author-only: answer chip `index` of a draft. Audit: readback_confirmed / readback_corrected / readback_blocked. */
   confirmReadBack: (
     noteId: string,
@@ -726,7 +820,10 @@ export interface CaptureStoreActions {
    */
   proposeFromNote: (input: { noteId: string; draftRuleId: string; pillId: string; ruleId: string; reason: string }) => PillVersion;
   /**
-   * Record a peer verdict; peerConfirmAuthority must allow it.
+   * Record a peer verdict; peerConfirmAuthority must allow it (author = the
+   * note's author). Target: a rule of a Draft version proposed from a note
+   * (the store fills in noteId), or a DRAFT- tile of a stored note (noteId
+   * required). Only verdicts on the proposed version count for the Shadow gate.
    * Audit: peer_confirmed / peer_disputed / peer_confirm_blocked.
    */
   peerConfirm: (input: Omit<PeerConfirmation, "confirmer" | "at">) => PeerConfirmation;

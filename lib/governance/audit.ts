@@ -55,6 +55,10 @@ export interface AuditEvent {
   readonly ruleId?: string;
   /** Evidence key, for evidence_confirmed / evidence_confirmation_blocked. */
   readonly evidenceKey?: string;
+  /** Capture task (CT-…) a capture_task_* event is about. */
+  readonly captureTaskId?: string;
+  /** Voice note (VN-…) a capture event is about. */
+  readonly noteId?: string;
   readonly detail: string;
 }
 

@@ -33,6 +33,26 @@ export interface PillVersion {
   approverRole: string;
   /** Set when this version restores an earlier version's rules. */
   rollbackOf?: string;
+  /**
+   * Set when this version was proposed from a frontline voice note
+   * (store: proposeFromNote). Such a version enters Shadow only past the peer
+   * gate (lib/capture peerGate) on `ruleId`.
+   */
+  capture?: CaptureProvenance;
+}
+
+/** Where a capture-derived version's new rule came from: the note, the verbatim quote and who said it. */
+export interface CaptureProvenance {
+  /** VN-… id of the voice note. */
+  noteId: string;
+  /** The extraction draft's DRAFT- id (draft tiles are identified by noteId + draftRuleId). */
+  draftRuleId: string;
+  /** The real rule id the proposer chose; the rule in this version's `rules`. */
+  ruleId: string;
+  /** Verbatim span of the note transcript the rule rests on ([start, end) offsets). */
+  quoteSpan: { start: number; end: number; text: string };
+  /** Who recorded the note (the peer gate excludes this person). */
+  author: Actor;
 }
 
 // ---------------------------------------------------------------------------

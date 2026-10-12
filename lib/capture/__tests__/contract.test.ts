@@ -17,6 +17,8 @@ import {
   draftFromNoteSchema,
   draftProposalReadiness,
   extractReadBack,
+  findOpenCaptureTask,
+  readBackMatchesExtraction,
   peerConfirmAuthority,
   peerConfirmationSchema,
   peerGate,
@@ -331,6 +333,20 @@ describe("DraftFromNote", () => {
     expect(draftProposalReadiness(draft(confirmed), n).allowed).toBe(true);
   });
 
+  it("blocks a draft with a corrected chip until the note is amended and the draft re-extracted", () => {
+    const answered = answerReadBack(chips.map((c) => ({ ...c, confirmed: true })), 0, { confirmed: true, correctedText: "50 minutes" });
+    expect(draftProposalReadiness(draft(answered), n)).toMatchObject({ allowed: false, reason: expect.stringMatching(/amend the note/) });
+  });
+
+  it("readBackMatchesExtraction: answers allowed, any edit to a chip is not", () => {
+    const span = { start, end: start + quoteText.length };
+    expect(readBackMatchesExtraction(chips, n, span)).toBe(true);
+    expect(readBackMatchesExtraction(answerReadBack(chips, 1, { confirmed: true, correctedText: "Duty FM" }), n, span)).toBe(true);
+    expect(readBackMatchesExtraction([{ ...chips[0], canonical: "PT50M" }, chips[1]], n, span)).toBe(false);
+    expect(readBackMatchesExtraction([chips[1], chips[0]], n, span)).toBe(false);
+    expect(readBackMatchesExtraction(chips.slice(1), n, span)).toBe(false);
+  });
+
   it("blocks a draft whose chips were dropped or whose quote is not in the note", () => {
     const confirmed = chips.map((c) => ({ ...c, confirmed: true }));
     expect(draftProposalReadiness(draft(confirmed.slice(1)), n).reason).toMatch(/do not match/);
@@ -380,6 +396,39 @@ describe("peer confirmation", () => {
     expect(peerGate([pc({}), dispute], target, rajesh, CWL_POLICY)).toMatchObject({ allowed: false, disputers: [priya.name] });
     const retract = pc({ confirmer: priya, at: "2026-10-12T10:10:00+08:00" });
     expect(peerGate([pc({}), dispute, retract], target, rajesh, CWL_POLICY).allowed).toBe(true);
+  });
+});
+
+describe("open-task dedupe (F1)", () => {
+  const t = (over: Partial<CaptureTaskLike>): CaptureTaskLike => ({
+    id: "CT-1",
+    kind: "gate_override",
+    incidentId: "INC-2026-1011",
+    ruleId: "TS-07",
+    assetId: "asset-hf1",
+    createdFor: "technician",
+    status: "open",
+    ...over,
+  });
+  type CaptureTaskLike = Parameters<typeof findOpenCaptureTask>[1] & { id: string; status: "open" | "answered" | "dismissed" };
+  const tasks = (list: CaptureTaskLike[]) => list as unknown as Parameters<typeof findOpenCaptureTask>[0];
+
+  it("one open task per incident + rule + kind; close-out per incident + role; QR per asset + role", () => {
+    expect(findOpenCaptureTask(tasks([t({})]), t({ createdFor: "chief_engineer" }))?.id).toBe("CT-1");
+    expect(findOpenCaptureTask(tasks([t({})]), t({ kind: "gate_blocked" }))).toBeUndefined();
+    expect(findOpenCaptureTask(tasks([t({ status: "answered" })]), t({}))).toBeUndefined();
+    const closeout = t({ kind: "job_closeout", ruleId: undefined });
+    expect(findOpenCaptureTask(tasks([closeout]), { ...closeout, createdFor: "chief_engineer" })).toBeUndefined();
+    const qr = t({ kind: "asset_qr", incidentId: undefined, ruleId: undefined, assetId: "AHU-23-01" });
+    expect(findOpenCaptureTask(tasks([qr]), qr)?.id).toBe("CT-1");
+    expect(findOpenCaptureTask(tasks([qr]), { ...qr, assetId: "CHW-R2" })).toBeUndefined();
+  });
+});
+
+describe("voice note amendment", () => {
+  it("amendedFrom is optional and bounded", () => {
+    expect(note({ amendedFrom: "earlier transcript" }).amendedFrom).toBe("earlier transcript");
+    expect(() => note({ amendedFrom: "x".repeat(4_001) })).toThrow();
   });
 });
 
