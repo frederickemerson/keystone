@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Caveat, Geist, Geist_Mono } from 'next/font/google';
+import { Caveat, Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
 import { AppShell } from '@/components/app-shell';
 import { getSession } from '@/lib/auth/session';
 import './globals.css';
@@ -26,6 +26,15 @@ const caveat = Caveat({
   display: 'swap',
 });
 
+// The landing hero headline only: an editorial serif over the photograph.
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: ['400'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif-display',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Keystone — expert judgement, governed',
   description: 'Keystone turns expert judgement into governed, versioned Intelligence Pills.',
@@ -39,7 +48,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${geistMono.variable} ${caveat.variable}`}
+      className={`${geist.variable} ${geistMono.variable} ${caveat.variable} ${instrumentSerif.variable}`}
     >
       <body>
         <AppShell session={session}>{children}</AppShell>

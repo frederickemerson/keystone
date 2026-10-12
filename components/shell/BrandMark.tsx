@@ -5,7 +5,7 @@ const KEYSTONE = 'M13 24 L10 6 L22 6 L19 24Z';
 const VOUSSOIR_LEFT = 'M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z';
 const VOUSSOIR_RIGHT = 'M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z';
 
-export type BrandTone = 'default' | 'onBrand';
+export type BrandTone = 'default' | 'onBrand' | 'onDark';
 
 /**
  * Keystone mark: the crown of an arch. Two charcoal voussoirs lean in on a
@@ -31,8 +31,8 @@ export function BrandMark({
       focusable="false"
       className={cn('shrink-0', className)}
     >
-      <path d={VOUSSOIR_LEFT} fill="var(--charcoal)" />
-      <path d={VOUSSOIR_RIGHT} fill="var(--charcoal)" />
+      <path d={VOUSSOIR_LEFT} fill={tone === 'onDark' ? '#ffffff' : 'var(--charcoal)'} />
+      <path d={VOUSSOIR_RIGHT} fill={tone === 'onDark' ? '#ffffff' : 'var(--charcoal)'} />
       <path d={KEYSTONE} fill={tone === 'onBrand' ? 'var(--cream-paper)' : 'var(--marker-orange)'} />
     </svg>
   );
@@ -55,7 +55,7 @@ export function BrandLogo({
   return (
     <span className={cn('inline-grid grid-cols-[auto_auto] items-center gap-x-2', className)}>
       <BrandMark size={markSize} tone={tone} />
-      <span className={cn('font-display font-semibold leading-none tracking-[-0.02em] text-charcoal', textClassName)}>
+      <span className={cn('font-display font-semibold leading-none tracking-[-0.02em]', tone === 'onDark' ? 'text-white' : 'text-charcoal', textClassName)}>
         Keystone
       </span>
       {subtitle ? <span className="col-start-2 mt-1 text-xs leading-none text-ink-muted">{subtitle}</span> : null}

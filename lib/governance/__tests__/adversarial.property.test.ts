@@ -458,7 +458,8 @@ describe("governance store under random action sequences", () => {
       expect(seen.ok.has(op), `${op} never succeeded`).toBe(true);
       expect(seen.refused.has(op), `${op} never refused`).toBe(true);
     }
-  });
+    // 500 random sequences take ~6 s when the whole suite runs in parallel; the 5 s default flakes.
+  }, 30_000);
 
   it("an approval succeeds only for an authorised human who neither wrote nor shadowed a Shadow version from the live base — and a regression override only for the pill's approver with a non-blank reason", () => {
     fc.assert(

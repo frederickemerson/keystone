@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { LandingHeader } from '@/components/landing/LandingHeader';
 import { Hero } from '@/components/landing/Hero';
 import { ProblemStory } from '@/components/landing/ProblemStory';
 import { Replay } from '@/components/landing/Replay';
@@ -34,7 +33,6 @@ export default function LandingPage() {
       >
         Skip to content
       </a>
-      <LandingHeader />
       <main id="main" className="flex-1">
         <Hero facts={facts.hero} />
         <ProblemStory facts={facts.problem} />
