@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { routes } from '@/lib/journey';
 import { cn } from '@/lib/ui/cn';
 import { CHIP_BASE, TONE_CHIP, type Tone } from '@/components/mosaic';
 import type { AssetRecord, IncidentRecord } from '@/lib/data';
@@ -94,7 +95,7 @@ export function AssetGrid({
             <div className="mt-auto">
               {open ? (
                 <Link
-                  href={`/incident/${open.id}`}
+                  href={routes.incident(open.id)}
                   className={cn(CHIP_BASE, TONE_CHIP[SEVERITY_TONE[open.severity] ?? 'neutral'])}
                 >
                   <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />

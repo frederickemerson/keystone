@@ -6,6 +6,7 @@
 
 import { useId, useState } from 'react';
 import Link from 'next/link';
+import { routes } from '@/lib/journey';
 import { Check, Mic, MicOff, X } from 'lucide-react';
 import { VoiceCapture } from '@/components/capture/VoiceCapture';
 import type { ProposablePill } from '@/components/capture/DraftFromNoteTile';
@@ -78,7 +79,7 @@ export function CaptureTaskCard({
         {task.ruleId ? <span className="font-mono text-[12px] text-ink">{task.ruleId}</span> : null}
         {showIncident && task.incidentId ? (
           <Link
-            href={`/incident/${task.incidentId}`}
+            href={routes.incident(task.incidentId)}
             className="font-mono text-[12px] text-ink underline decoration-line-strong underline-offset-2 hover:decoration-ink"
           >
             {task.incidentId}
