@@ -27,7 +27,7 @@ import {
   type ApprovalCheck,
 } from '@/lib/governance/approval';
 import { hasCapability, pillEditAuthority } from '@/lib/governance/access';
-import { describeScore, pastIncidentScore } from '@/lib/governance/evalScore';
+import { describePastIncidents, pastIncidentScore } from '@/lib/governance/evalScore';
 import { shadowKey, useGovernanceStore, type PillSeed } from '@/lib/governance/store';
 import {
   bumpMinor,
@@ -461,7 +461,7 @@ export function LearningFlow({
               <VersionChip status="Approved" version={liveVersion} />
               <span>{liveRules.length} rules</span>
               <span>·</span>
-              <span>{describeScore(liveScore)}</span>
+              <span>{describePastIncidents(liveScore)}</span>
             </p>
             {otherInReview ? (
               <p className="text-xs text-ink-muted">

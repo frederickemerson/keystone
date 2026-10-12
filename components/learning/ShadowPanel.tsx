@@ -7,6 +7,7 @@
 import type { ReactNode } from 'react';
 import { CheckCircle2, Eye, XCircle } from 'lucide-react';
 import { KpiStat, SectionHeader } from '@/components/mosaic';
+import { describeTrial, TRIAL_VS_SCORE } from '@/lib/governance/evalScore';
 import type { ActionStatus } from '@/lib/engine/types';
 import {
   shadowSummary,
@@ -90,6 +91,8 @@ export function ShadowPanel({
         </p>
       ) : (
         <>
+          <p className="mt-3 text-[13px] font-medium text-ink">{describeTrial(runs)}</p>
+          <p className="mt-1 text-[12px] text-ink-muted">{TRIAL_VS_SCORE}</p>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             <KpiStat label="Shadow agreements" value={summary.label} />
             <KpiStat label="Incidents replayed" value={`${runs.length}/${totalCases}`} />

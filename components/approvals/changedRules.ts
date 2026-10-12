@@ -2,6 +2,7 @@
 // by parsing the human-readable diff lines), so each can link to its pill hub.
 
 import type { Rule } from '@/lib/engine/types';
+import { diffRules } from '@/lib/governance/versions';
 
 export type RuleChangeKind = 'added' | 'changed' | 'removed';
 
@@ -28,4 +29,16 @@ export function changedRules(parentRules: readonly Rule[], rules: readonly Rule[
     if (!after.has(rule.id)) out.push({ id: rule.id, kind: 'removed', title: rule.title, decision: rule.decision });
   }
   return out;
+}
+
+/**
+ * Field-by-field edits ("TS-02 deadline_minutes 15 → 10") of the rules present
+ * in both versions. Added and removed rules are shown whole by changedRules.
+ */
+export function fieldChanges(parentRules: readonly Rule[], rules: readonly Rule[]): string[] {
+  const shared = new Set(rules.map((r) => r.id).filter((id) => parentRules.some((p) => p.id === id)));
+  return diffRules(
+    parentRules.filter((r) => shared.has(r.id)),
+    rules.filter((r) => shared.has(r.id)),
+  ).changes;
 }
