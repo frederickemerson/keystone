@@ -24,16 +24,25 @@ const fixtures = {
 
 /**
  * Decode-time output contracts for providers that support strict JSON-schema
- * output (OpenAI). Free-form JSON mode let the model invent shapes the guard
+ * output (OpenAI, TokenHub). Free-form JSON mode let the model invent shapes the guard
  * then rejected (e.g. a bare condition inside `exceptions`). These schemas only
  * constrain generation; the caller's `zodSchema` guard still validates the result.
  */
 const STRUCTURED_OUTPUT: Partial<Record<LlmTask, z.ZodType>> = { extract: extractionWireSchema };
 
+/** Sent in the TokenHub request body: disables hy4-preview's reasoning phase (see callProvider). */
+export const TOKENHUB_REQUEST_OPTIONS = { thinking: { type: 'disabled' } } as const;
+/** Measured extract answers are 790–1,140 tokens; the cap only stops a runaway. */
+export const TOKENHUB_MAX_OUTPUT_TOKENS = 3_000;
+
 /** Auto chain order. Each provider is tried only when it has credentials. */
 export const CHAIN: readonly LiveProvider[] = ['codebuddy', 'tokenhub', 'openai'];
-/** Per-provider timeouts; each is further capped by what is left of the budget. */
-export const PROVIDER_TIMEOUT_MS: Readonly<Record<LiveProvider, number>> = { codebuddy: 15_000, tokenhub: 10_000, openai: 15_000 };
+/**
+ * Per-provider timeouts; each is further capped by what is left of the budget.
+ * TokenHub: hy4-preview extract (thinking off, strict json_schema) measured
+ * p50 11.4 s, max 16.4 s over 11 direct calls on 12 Oct 2026; 22 s adds ~35%.
+ */
+export const PROVIDER_TIMEOUT_MS: Readonly<Record<LiveProvider, number>> = { codebuddy: 15_000, tokenhub: 22_000, openai: 15_000 };
 /**
  * Overall budget for the whole chain. Clients wait LLM_CLIENT_WAIT_MS, which is
  * this plus headroom, so the server always answers (live or recorded, with a
@@ -181,11 +190,21 @@ async function callProvider(
       return { json: firstJsonObject(text ?? ''), model };
     }
     if (provider === 'tokenhub') {
+      // hy4-preview is a thinking model. Left on, it streams reasoning into
+      // `reasoning_content` and, on the extract prompt, spent all 6,000 output
+      // tokens there without ever emitting an answer (142 s). `thinking:
+      // {type:'disabled'}` is the switch TokenHub honours (reasoning_tokens 0);
+      // enable_thinking / chat_template_kwargs / reasoning_effort were accepted
+      // but ignored. Strict json_schema decoding keeps the output in the wire
+      // contract. The SDK keeps any reasoning in a separate part; only the
+      // answer text is parsed, and the guard still validates it.
       const result = await generateText({
-        model: getModel(model), system: SYSTEM_PROMPT, prompt, abortSignal: controller.signal,
-        maxRetries: 0, maxOutputTokens: 6_000,
+        model: getModel(model), system: SYSTEM_PROMPT, prompt,
+        output: structured ? Output.object({ schema: structured, name: 'keystone_draft' }) : Output.json(),
+        abortSignal: controller.signal, maxRetries: 0, maxOutputTokens: TOKENHUB_MAX_OUTPUT_TOKENS,
+        providerOptions: { tokenhub: TOKENHUB_REQUEST_OPTIONS },
       });
-      return { json: firstJsonObject(result.text), model: result.response?.modelId || model };
+      return { json: result.output, model: result.response?.modelId || model };
     }
     // OpenAI: strict structured output when the task has a contract, else JSON mode.
     // The SDK throws NoObjectGeneratedError when the response does not parse/validate.

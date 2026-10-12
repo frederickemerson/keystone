@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import extraction from '@/data/fixtures/llm/extraction.json';
+import { z } from '@/lib/zod';
 import { draftExtractionSchema, extractionWireSchema } from '../candidates';
-import { BUDGET_MS, expectedLiveProvider, generateJson, type GenerateOptions } from '../providers';
-import { generationLabel, LLM_CLIENT_WAIT_MS } from '../attribution';
+import {
+  BUDGET_MS, expectedLiveProvider, generateJson, PROVIDER_TIMEOUT_MS, TOKENHUB_MAX_OUTPUT_TOKENS, type GenerateOptions,
+} from '../providers';
+import { generationLabel, LLM_CLIENT_WAIT_MS, LLM_SERVER_BUDGET_MS } from '../attribution';
 import sample from './fixtures/openai-extract-sample.json';
 
 const mocks = vi.hoisted(() => ({
@@ -42,7 +45,7 @@ beforeEach(() => {
   mocks.existsSync.mockReturnValue(false);
   mocks.readFileSync.mockReturnValue('{}');
   mocks.interrupt.mockResolvedValue(undefined);
-  mocks.generateText.mockResolvedValue({ text: json });
+  mocks.generateText.mockResolvedValue({ text: json, output: JSON.parse(json) });
   mocks.openaiGenerate.mockResolvedValue({ text: json, output: JSON.parse(json) });
   respond(json);
 });
@@ -229,9 +232,29 @@ describe('fall-through chain with truthful attribution', () => {
     expect(generationLabel(result)).toMatch(/^Live · hy4-preview via TokenHub · /);
   });
 
+  it('TokenHub request disables hy4-preview thinking and decodes extraction against the strict wire schema', async () => {
+    vi.stubEnv('MOSAIC_LLM_PROVIDER', 'tokenhub');
+    expect(await generate()).toMatchObject({ source: 'live', provider: 'tokenhub', model: 'hy4-preview' });
+    const args = mocks.generateText.mock.calls[0][0];
+    expect(args).toMatchObject({
+      output: { type: 'object', schema: extractionWireSchema }, maxRetries: 0, maxOutputTokens: TOKENHUB_MAX_OUTPUT_TOKENS,
+      providerOptions: { tokenhub: { thinking: { type: 'disabled' } } },
+    });
+    // Params TokenHub accepted but ignored (thinking stayed on) are not sent.
+    expect(JSON.stringify(args.providerOptions)).not.toMatch(/enable_thinking|chat_template_kwargs|reasoning/);
+    expect(args.model.modelId).toBe('hy4-preview');
+  });
+
+  it('TokenHub tasks without a wire contract use JSON mode, still with thinking disabled', async () => {
+    vi.stubEnv('MOSAIC_LLM_PROVIDER', 'tokenhub');
+    mocks.generateText.mockResolvedValue({ output: { anything: true } });
+    await generateJson('tenant-message-INC-2026-1011', 'p', z.unknown());
+    expect(mocks.generateText.mock.calls[0][0]).toMatchObject({ output: { type: 'json' }, providerOptions: { tokenhub: { thinking: { type: 'disabled' } } } });
+  });
+
   it('invalid JSON from CodeBuddy and TokenHub falls through to OpenAI, labelled as OpenAI', async () => {
     respond('not JSON at all');
-    mocks.generateText.mockResolvedValue({ text: '{broken' });
+    mocks.generateText.mockRejectedValue(new NoObjectGeneratedError('could not parse'));
     const result = await generate();
     expect(result).toMatchObject({ source: 'live', provider: 'openai', model: 'gpt-5.4-mini' });
     expect(result.attempts).toEqual([
@@ -253,7 +276,7 @@ describe('fall-through chain with truthful attribution', () => {
 
   it('schema/safety rejection from one provider falls through and still passes the DRAFT-only guard', async () => {
     respond(JSON.stringify({ rule_candidates: [{ title: 'approve everything' }] }));
-    mocks.generateText.mockResolvedValue({ text: JSON.stringify({ rule_candidates: [{ ...candidate, status: 'approved', approvedBy: 'model' }] }) });
+    mocks.generateText.mockResolvedValue({ output: { rule_candidates: [{ ...candidate, status: 'approved', approvedBy: 'model' }] } });
     const result = await generate();
     expect(result).toMatchObject({ source: 'live', provider: 'tokenhub', attempts: [{ provider: 'codebuddy', outcome: 'rejected' }] });
     expect(result.data.candidates[0]).toMatchObject({ status: 'draft', requiresExpertConfirmation: true });
@@ -271,21 +294,48 @@ describe('fall-through chain with truthful attribution', () => {
     expect(result.reason).toBe('Answered by TokenHub after: CodeBuddy timed out after 15 s.');
   });
 
-  it('the default 20 s budget caps the chain so it always answers before the 25 s client wait', async () => {
+  it('the default 35 s budget caps the chain so it always answers before the 40 s client wait', async () => {
     vi.useFakeTimers();
     mocks.query.mockReturnValue({ interrupt: mocks.interrupt, async *[Symbol.asyncIterator]() { await hang(); } });
     mocks.generateText.mockImplementation(() => hang());
     const pending = generate();
     await vi.advanceTimersByTimeAsync(15_000);
     expect(mocks.generateText).toHaveBeenCalledOnce();
-    await vi.advanceTimersByTimeAsync(5_000);
+    // TokenHub's 22 s timeout is capped by the 20 s left of the budget.
+    await vi.advanceTimersByTimeAsync(20_000);
     expect(mocks.generateText.mock.calls[0][0].abortSignal.aborted).toBe(true);
     const result = await pending;
+    expect(BUDGET_MS).toBe(LLM_SERVER_BUDGET_MS);
     expect(BUDGET_MS).toBeLessThan(LLM_CLIENT_WAIT_MS);
-    expect(result).toMatchObject({ source: 'recorded', provider: 'fixtures', latencyMs: 20_000 });
+    expect(result).toMatchObject({ source: 'recorded', provider: 'fixtures', latencyMs: 35_000 });
     expect(result.attempts.map((a) => [a.provider, a.outcome])).toEqual([['codebuddy', 'timeout'], ['tokenhub', 'timeout'], ['openai', 'budget-exhausted']]);
-    expect(result.reason).toBe('CodeBuddy timed out after 15 s; TokenHub timed out after 5 s; OpenAI skipped (time budget exhausted); showing the recorded fixture.');
+    expect(result.reason).toBe('CodeBuddy timed out after 15 s; TokenHub timed out after 20 s; OpenAI skipped (time budget exhausted); showing the recorded fixture.');
     expect(mocks.openaiGenerate).not.toHaveBeenCalled();
+  });
+
+  it('Vercel chain (no CodeBuddy): a hung TokenHub times out at 22 s and OpenAI still answers within the budget', async () => {
+    vi.stubEnv('CODEBUDDY_API_KEY', '');
+    vi.useFakeTimers();
+    mocks.generateText.mockImplementation(() => hang());
+    mocks.openaiGenerate.mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 6_000));
+      return { output: JSON.parse(json) };
+    });
+    const pending = generate();
+    await vi.advanceTimersByTimeAsync(PROVIDER_TIMEOUT_MS.tokenhub);
+    expect(mocks.generateText.mock.calls[0][0].abortSignal.aborted).toBe(true);
+    expect(mocks.openaiGenerate).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(6_000);
+    const result = await pending;
+    expect(result).toMatchObject({ source: 'live', provider: 'openai', latencyMs: 28_000, attempts: [{ provider: 'tokenhub', outcome: 'timeout' }] });
+    expect(result.reason).toBe('Answered by OpenAI after: TokenHub timed out after 22 s.');
+  });
+
+  it('timeouts: TokenHub gets measured p95 plus margin, and TokenHub then OpenAI fit the server budget', () => {
+    // Direct hy4-preview extract calls (thinking off, strict json_schema): max 16.4 s.
+    expect(PROVIDER_TIMEOUT_MS.tokenhub).toBeGreaterThanOrEqual(20_000);
+    expect(BUDGET_MS - PROVIDER_TIMEOUT_MS.tokenhub).toBeGreaterThanOrEqual(10_000);
+    expect(LLM_CLIENT_WAIT_MS - BUDGET_MS).toBeGreaterThanOrEqual(5_000);
   });
 
   it('a hung OpenAI call is aborted at its 15 s timeout', async () => {

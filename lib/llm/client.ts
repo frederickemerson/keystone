@@ -10,7 +10,9 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
  *
  * API keys are read from the server environment and are never logged or exposed.
  */
-export const DEFAULT_BASE_URL = 'https://tokenhub-intl.tencentcloudmaas.com/v1';
+// The area-gz endpoint is the one verified live for our key (the -intl
+// Singapore host returns 401 for it). TOKENHUB_BASE_URL overrides per account.
+export const DEFAULT_BASE_URL = 'https://tokenhub.tencentcloudmaas.com/v1';
 export const DEFAULT_MODEL = 'hy4-preview';
 
 export type MosaicModel = ReturnType<ReturnType<typeof createOpenAICompatible>>;
@@ -40,6 +42,9 @@ function getProvider() {
     name: 'tokenhub',
     baseURL: getBaseUrl(),
     apiKey,
+    // Measured 12 Oct 2026: TokenHub honours response_format json_schema
+    // (strict) for hy4-preview, so the extract wire schema is enforced at decode time.
+    supportsStructuredOutputs: true,
   });
 
   return provider;

@@ -11,7 +11,7 @@ The code blocks below contain only claims backed by this repository or by a cite
 - [ ] **[verify]** No pilot cost has been estimated, so the answers do not claim that one avoided flood "pays for the pilot". Add that only with a cost estimate.
 - [ ] **[verify]** The GitHub repository is private. Grant the judges access, or make it public.
 - [ ] **[verify]** Re-run `npx vitest run` just before submitting. The answers say "590+ automated tests"; the last run (12 Oct 2026) was 38 files, 593 tests, all passing.
-- [ ] **[verify]** Sign in on the live URL and check that the live drafting badge reads `Live · gpt-5.4-mini via OpenAI` (or `Recorded output`), as described below.
+- [ ] **[verify]** Sign in on the live URL and check that the live drafting badge reads `Live · hy4-preview via TokenHub` (or `Live · gpt-5.4-mini via OpenAI` if TokenHub fell through, or `Recorded output`), as described below.
 
 ---
 
@@ -90,7 +90,7 @@ Next.js 15 (App Router, TypeScript), React 19 and Tailwind v4, deployed on Verce
 • lib/engine: a deterministic rule engine in pure TypeScript with no LLM. evaluate(pill, asset, incident, evidence) returns actions, evidence coverage (a count, never a made-up percentage) and a trace. It also provides counterfactuals ("what would change the decision?") and runEvals(). Conditions are structured (eq, neq, gt, gte, lt, lte, in, exists); there is no eval() and no string expressions. Status precedence is not_applicable → blocked → escalate → needs_approval → allowed.
 • lib/governance: semantic versions with a JSON diff and append-only rollback; approval with three-person separation of duties (author, Shadow promoter and approver must differ; only Shadow versions can be approved) and an eval-regression gate; role and sensitivity-based access with server-side redaction; an audit log.
 • lib/auth: demo sign-in with a signed HTTP-only session (one shared demo passcode, so not identity proofing). Middleware is default-deny with a public allowlist; auth routes check same-origin (CSRF); responses carry security headers (CSP, frame-ancestors none, nosniff, referrer policy) and the site is noindex. Paid routes are rate-limited (LLM 10/min and 40/day per session plus per-IP limits; Jev 60/min per session; failed sign-ins 10/min per IP), in memory per serverless instance; production would use a shared store or a WAF. Each page reads the role from the verified session, and data above that role's clearance is masked on the server before it reaches the browser. Versions, approvals and the append-only audit log live in the browser in this demo; production would persist them server-side.
-• lib/llm: Hunyuan hy4-preview via the CodeBuddy Agent SDK is the primary provider for opt-in live rule extraction and tenant-notice drafting; it runs where CodeBuddy credentials exist (locally). The TokenHub adapter is built but has not answered live (account verification pending). OpenAI gpt-5.4-mini is the final live fallback and is what answers on the public Vercel demo; live extraction uses strict structured output constrained by the rule schema (6 of 6 live runs succeeded on 12 Oct, median 5.7 s, within a 20 s server budget). Every screen opens on recorded output, and the badge always names the provider that actually answered.
+• lib/llm: Hunyuan hy4-preview via the CodeBuddy Agent SDK is the primary provider for opt-in live rule extraction and tenant-notice drafting; it runs where CodeBuddy credentials exist (locally). Hunyuan hy4-preview via TokenHub (area gz endpoint, thinking disabled) is live and answers first on the public Vercel demo; live extraction uses strict structured output constrained by the rule schema (10 of 10 app-path runs answered by TokenHub on 12 Oct, median 11.4 s, p95 12.9 s, within a 35 s server budget). OpenAI gpt-5.4-mini is the final live fallback. Every screen opens on recorded output, and the badge always names the provider that actually answered.
 
 How prompts drive the AI
 The LLM does language work only. It never decides on a safety action.
@@ -106,7 +106,7 @@ These invariants are executable: 590+ automated tests, including adversarial and
 The design is mapped (design alignment, not certification) to the IMDA Model AI Governance Framework (2020 and the 2026 Agentic AI edition), AI Verify, ISO/IEC 42001 and the NIST AI RMF. The mapping is in docs/SUBMISSION.md §9.
 
 Path to production on Tencent Cloud
-Running today: pills as CodeBuddy skills (verified) and Hunyuan through the CodeBuddy Agent SDK (locally). Built but pending: the TokenHub adapter. Proposed: WorkBuddy and ADP skill distribution (designed for, not yet tested; ADP through its Approval Center), TRTC for the live voice interview, iBMS and CMMS as evidence feeds through Brick 1.5 classes, EdgeOne Pages or Lighthouse for hosting (Vercel today), and enterprise SSO for roles.
+Running today: pills as CodeBuddy skills (verified) and Hunyuan through the CodeBuddy Agent SDK (locally). Hunyuan hy4-preview via TokenHub (live, including on the public deployment). Proposed: WorkBuddy and ADP skill distribution (designed for, not yet tested; ADP through its Approval Center), TRTC for the live voice interview, iBMS and CMMS as evidence feeds through Brick 1.5 classes, EdgeOne Pages or Lighthouse for hosting (Vercel today), and enterprise SSO for roles.
 ```
 
 ### 4. Business value: measurable metrics or a clearly defined impact
@@ -177,7 +177,7 @@ Keystone was built with CodeBuddy Code (Plan mode on Hunyuan hy4-preview, sub-ag
 https://mosaic-psi-rouge.vercel.app
 Demo passcode: keystone (it is also shown on the sign-in page). Pick any persona. Each one sees what its role allows, enforced on the server.
 Fastest path: sign in as Priya Nair (Asset Operations Manager), then go to /incident/INC-2026-1011?step=10 to see TS-07 block the AI proposal.
-Live AI on this deployment is OpenAI gpt-5.4-mini (the fallback provider) or recorded output; the badge on each output names which. Hunyuan via CodeBuddy runs in local development with CodeBuddy credentials.
+Live AI on this deployment is Hunyuan hy4-preview via TokenHub, with OpenAI gpt-5.4-mini as the final fallback, or recorded output; the badge on each output names which. Hunyuan via CodeBuddy runs in local development with CodeBuddy credentials.
 All assets, people, tenants and incidents are fictional.
 ```
 

@@ -178,7 +178,7 @@ export function TenantMessagePanel({
     setElapsed(0);
     setStartedAt(Date.now());
     try {
-      // Shared client: 25 s wait, HTTP / timeout failures mapped to the
+      // Shared client: LLM_CLIENT_WAIT_MS wait, HTTP / timeout failures mapped to the
       // recorded first notice with a reason, the server Generation passed
       // through so the badge names the provider that actually answered.
       const result = await requestLive<{ draft: Draft; snapshotAt: string }>(

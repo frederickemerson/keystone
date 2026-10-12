@@ -235,3 +235,36 @@ Vercel KV through `@upstash/ratelimit`) or a Vercel WAF rate-limit rule on
 
 **Rationale.** D6's rule stands: every public claim must match what the code
 does today.
+
+## D9 — TokenHub (Hunyuan hy4-preview) live: thinking off, strict JSON schema, 22 s timeout (12 Oct 2026)
+
+**Context.** With a working key on the area-gz endpoint
+(`https://tokenhub.tencentcloudmaas.com/v1`; the `-intl` Singapore host returns
+401 for it), `/api/llm/extract` still timed out on TokenHub 3/3 at its 10 s
+budget. Direct calls with the real extract prompt (5.7k input tokens) showed why:
+`hy4-preview` is a thinking model. Its reasoning arrives in a separate
+`reasoning_content` field (never inline `<think>` tags), and left on, it spent
+all 6,000 output tokens reasoning and never produced an answer (142 s).
+
+**Measured (direct, 12 Oct).** `enable_thinking: false`,
+`chat_template_kwargs: {enable_thinking: false}` and `reasoning_effort: "low"`
+were accepted but ignored (still > 60 s). `thinking: {type: "disabled"}` works
+(reasoning_tokens 0): 17–23 s with free-form JSON, and 1 of 3 outputs passed the
+guard. Adding `response_format: json_schema` (strict) with the extract wire
+schema is enforced by TokenHub (a probe schema was honoured exactly), makes
+decoding faster, and gave 11 of 11 guard-valid outputs, p50 11.4 s, max 16.4 s.
+
+**Decision.** The TokenHub request sends `thinking: {type: "disabled"}`, strict
+`json_schema` for extraction (JSON mode for tenant drafts) and `max_tokens`
+3,000 (answers are 790–1,450 tokens). The AI SDK keeps any `reasoning_content`
+as a separate reasoning part, and only the answer is parsed; an empty answer or
+inline `<think>` text fails closed to the fixture. The guard
+(`draftExtractionSchema`) is unchanged. Timeouts: TokenHub 22 s (max + ~35%),
+chain budget 35 s (a TokenHub timeout still leaves OpenAI 13 s), client wait 40 s.
+Order stays CodeBuddy → TokenHub → OpenAI → recorded; on Vercel (no CodeBuddy
+key) TokenHub is first.
+
+**Result.** App path (`next start`, TokenHub first as on Vercel): 10 of 10
+extractions answered live by TokenHub (`hy4-preview`), p50 11.4 s, p95 12.9 s;
+tenant drafts 2 of 2 (3.2 s, 5.9 s). This supersedes D8's budget figures (20 s
+chain, TokenHub 10 s, 25 s client wait).

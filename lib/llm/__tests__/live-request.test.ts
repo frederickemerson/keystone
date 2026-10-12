@@ -14,9 +14,9 @@ const hangingFetch = (_url: string | URL | Request, init?: RequestInit) => new P
 afterEach(() => { vi.useRealTimers(); });
 
 describe('requestLive (client wait for live LLM routes)', () => {
-  it('the client waits longer than the server budget, and at most 25 s', () => {
+  it('the client waits longer than the server budget, and at most 40 s', () => {
     expect(LLM_CLIENT_WAIT_MS).toBeGreaterThan(LLM_SERVER_BUDGET_MS);
-    expect(LLM_CLIENT_WAIT_MS).toBeLessThanOrEqual(25_000);
+    expect(LLM_CLIENT_WAIT_MS).toBeLessThanOrEqual(40_000);
   });
 
   it('returns the server Generation as-is, keeping the provider that actually answered', async () => {
@@ -30,7 +30,7 @@ describe('requestLive (client wait for live LLM routes)', () => {
     await vi.advanceTimersByTimeAsync(LLM_CLIENT_WAIT_MS);
     const result = await pending;
     expect(result).toMatchObject({ source: 'recorded', provider: 'fixtures', reason: LIVE_FAILURE_REASON.timeout });
-    expect(result.reason).toContain('25 s');
+    expect(result.reason).toContain('40 s');
   });
 
   it('maps HTTP failures to explicit reasons and never names a live provider', async () => {

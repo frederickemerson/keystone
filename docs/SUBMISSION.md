@@ -160,9 +160,9 @@ Next.js 15 (App Router, TS) · React 19 · Tailwind v4
 │                         evaluate(pill, asset, incident, evidence) → actions + confidence + trace
 │                         counterfactual() · runEvals() · conditions · schema
 ├─ lib/llm/               CodeBuddy Agent SDK → Hunyuan hy4-preview (primary, opt-in,
-│                         needs CodeBuddy credentials) → TokenHub adapter (pending
-│                         account verification) → OpenAI gpt-5.4-mini (final live
-│                         fallback; the only live provider on the Vercel deployment)
+│                         needs CodeBuddy credentials) → TokenHub → Hunyuan
+│                         hy4-preview (live; first on the Vercel deployment) →
+│                         OpenAI gpt-5.4-mini (final live fallback)
 │                         → recorded fixtures (default view and last resort)
 ├─ lib/auth/ + middleware demo sign-in; signed HTTP-only session cookie (jti);
 │                         default-deny middleware with a public allowlist; CSRF
@@ -184,8 +184,8 @@ plus API routes for auth, LLM and Jev. Full Mermaid diagrams in `docs/ARCHITECTU
 
 The LLM is confined to **language work**. Extraction and tenant drafting have
 opt-in live endpoints: Hunyuan hy4-preview via the **CodeBuddy Agent SDK** when a
-CodeBuddy key or local login exists, otherwise TokenHub or OpenAI (gpt-5.4-mini) as
-fallbacks; the public Vercel deployment uses OpenAI. Interviewer probes and
+CodeBuddy key or local login exists, otherwise Hunyuan hy4-preview via TokenHub, with
+OpenAI (gpt-5.4-mini) as the final fallback; the public Vercel deployment tries TokenHub first. Interviewer probes and
 contradiction detection remain scripted/recorded, not live inference. All screens
 default to recorded fixtures in `data/fixtures/llm/`. The prompts below describe the
 design; items 1 and 3 run as recorded output in the demo:
@@ -215,21 +215,23 @@ design; items 1 and 3 run as recorded output in the demo:
 Agent SDK → Hunyuan hy4-preview, TokenHub, OpenAI gpt-5.4-mini — each with its own
 timeout, falling through on error, timeout, invalid JSON or safety rejection, within
 an overall time budget (values in `README.md`); if none succeeds it returns the recorded fixture with a reason.
-**TokenHub has not answered live: account verification is pending.** Output badges
-name the provider and model that actually answered (on the deployed site, for
-example, `Live · gpt-5.4-mini via OpenAI`) or show `Recorded output`. The CodeBuddy
+**TokenHub is live:** Hunyuan hy4-preview via TokenHub (area gz endpoint), with
+thinking disabled and strict `json_schema` output. Output badges name the provider
+and model that actually answered (on the deployed site, for example,
+`Live · hy4-preview via TokenHub`) or show `Recorded output`. The CodeBuddy
 SDK has no tools, one model turn, plan permission mode and no session persistence.
-Live extraction decodes against the wire schema (on OpenAI, strict structured output),
-and all extraction output still passes the DRAFT-only guard. In a 12 Oct run, 6 of 6
-live OpenAI extractions succeeded (p50 5.7 s); the provider chain has a 20 s budget and
-the browser waits up to 25 s with a progress counter and a badge that says truthfully
-whether the result is live or recorded.
+Live extraction decodes against the wire schema (strict structured output on TokenHub
+and OpenAI), and all extraction output still passes the DRAFT-only guard. In a 12 Oct
+app-path run with TokenHub first, 10 of 10 live extractions were answered by Hunyuan
+via TokenHub (p50 11.4 s, p95 12.9 s); OpenAI stays the final fallback. The provider
+chain has a 35 s budget and the browser waits up to 40 s with a progress counter and a
+badge that says truthfully whether the result is live or recorded.
 
 **Where each provider runs.** CodeBuddy API keys require a Pro plan, and Vercel
 never inspects a local CLI login, so Hunyuan via CodeBuddy runs locally (CodeBuddy
-credits and login). The public Vercel deployment has no CodeBuddy or TokenHub key;
-its live calls go to OpenAI gpt-5.4-mini, the final fallback, and to the recorded
-fixture if that fails. With no provider credentials at all, the API selects recorded
+credits and login). The public Vercel deployment has a TokenHub key and no CodeBuddy
+key; its live calls go to Hunyuan hy4-preview via TokenHub, then OpenAI gpt-5.4-mini
+(the final fallback), then the recorded fixture. With no provider credentials at all, the API selects recorded
 fixtures without spawning the SDK or attempting inference. Do not set
 `CODEBUDDY_INTERNET_ENVIRONMENT` (the integration uses the international edition).
 The LLM and Jev endpoints require a signed demo session, and one shared passcode
@@ -410,8 +412,8 @@ See §10. Each component has a shipping Tencent Cloud counterpart we propose to 
 TokenHub for models, WorkBuddy Experts/Skills, ADP for governed enterprise
 distribution, TRTC for the voice interview, EdgeOne Pages / Lighthouse for hosting,
 with iBMS + CMMS as evidence feeds. Integrated today: the CodeBuddy skill (verified)
-and the CodeBuddy Agent SDK path to Hunyuan (runs locally). The TokenHub adapter is
-built but has not answered live.
+the CodeBuddy Agent SDK path to Hunyuan (runs locally) and Hunyuan hy4-preview via
+TokenHub (live, including on the deployment).
 
 ---
 
@@ -477,15 +479,15 @@ control of building systems anywhere in the design.
 
 Current state: mock incident data and recorded defaults. Opt-in live extraction and
 bounded tenant drafting run on Hunyuan via the CodeBuddy Agent SDK where CodeBuddy
-credentials exist (local); the public deployment falls back to OpenAI gpt-5.4-mini.
-TokenHub is wired but blocked by pending account verification. Rows marked
+credentials exist (local); the public deployment runs them on Hunyuan hy4-preview via
+TokenHub, with OpenAI gpt-5.4-mini as the final fallback. Rows marked
 *proposed* are the production path, not completed integrations.
 
 | Layer | Tencent product | Role in Keystone |
 |---|---|---|
 | **Models (built, runs locally)** | **CodeBuddy Agent SDK → Hunyuan `hy4-preview`** | Opt-in extraction and tenant drafts; local CLI login (with CodeBuddy credits) or Pro API key. Recorded defaults and fallback. No autonomous approvals or tool use. |
-| **Models (built, pending verification)** | **TokenHub** (`https://tokenhub-intl.tencentcloudmaas.com/v1`) | OpenAI-compatible adapter; has not answered live because account verification is pending. |
-| Models (fallback, non-Tencent) | OpenAI `gpt-5.4-mini` | Final live fallback; the only live provider on the current Vercel deployment. |
+| **Models (built, live)** | **TokenHub → Hunyuan `hy4-preview`** (`https://tokenhub.tencentcloudmaas.com/v1`, area gz) | OpenAI-compatible adapter, thinking disabled, strict `json_schema` output; first live provider on the Vercel deployment (10 of 10 app-path extractions, p50 11.4 s). |
+| Models (fallback, non-Tencent) | OpenAI `gpt-5.4-mini` | Final live fallback. |
 | **Builder skills (verified)** | **CodeBuddy** — `.codebuddy/skills/<name>/SKILL.md` | The same pill loads as a CodeBuddy skill (`docs/proof/04a`, `04b`); `rules.yaml` and `evals/` are executed only by the Keystone engine. |
 | **Expert host (proposed)** | **WorkBuddy** — Skills & Expert Center, Experts, Expert Teams | A pill would become a Skill; a domain pill + persona an Expert; the Asset Ops orchestrator an Expert Team leader. WorkBuddy documents a security scan before install; `access` could map to its RBAC. |
 | **Enterprise governance (proposed)** | **ADP** (Agent Development Platform) — custom skills as a ZIP with `SKILL.md` at the root, YAML metadata, semantic versioning, sandbox security review, **Approval Center** for enterprise sharing | The governed distribution path for pills across business units. |

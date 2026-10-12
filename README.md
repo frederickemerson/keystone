@@ -85,7 +85,7 @@ Next.js 15 (App Router, TS) + React 19 + Tailwind v4 + shadcn-style components
 │                                 counterfactual(); runEvals(); schema; conditions
 ├─ lib/llm/                       CodeBuddy Agent SDK → Hunyuan hy4-preview (primary,
 │                                 needs CodeBuddy credentials; local today). Falls
-│                                 through to TokenHub (pending), then OpenAI, per credentials.
+│                                 through to TokenHub → Hunyuan hy4-preview (live), then OpenAI.
 │                                 Opt-in extraction + tenant drafts; recorded fallback.
 │                                 Probes, contradictions and summaries remain recorded.
 ├─ lib/auth/ + middleware.ts      demo sign-in, signed HTTP-only session cookie (with jti),
@@ -194,8 +194,8 @@ stays offline.
 |---|---|---|
 | `MOSAIC_LLM_PROVIDER` | `auto` | `auto`, `codebuddy`, `tokenhub`, `openai`, or `fixtures` (a provider name forces only that provider) |
 | `CODEBUDDY_API_KEY` | _(unset)_ | CodeBuddy international API key; requires a **Pro plan** |
-| `TOKENHUB_API_KEY` | _(unset)_ | TokenHub adapter; account KYC is currently pending, not verified live |
-| `TOKENHUB_BASE_URL` | `https://tokenhub-intl.tencentcloudmaas.com/v1` | TokenHub endpoint |
+| `TOKENHUB_API_KEY` | _(unset)_ | TokenHub → Hunyuan `hy4-preview` (verified live, 12 Oct) |
+| `TOKENHUB_BASE_URL` | `https://tokenhub.tencentcloudmaas.com/v1` | TokenHub endpoint (area gz, verified for our key; the `-intl` Singapore host returned 401 for it) |
 | `MOSAIC_MODEL` | `hy4-preview` | TokenHub model only; CodeBuddy always requests Hunyuan `hy4-preview` |
 | `OPENAI_API_KEY` | _(unset)_ | OpenAI, the final live fallback |
 | `OPENAI_MODEL` | `gpt-5.4-mini` | OpenAI model id |
@@ -205,35 +205,39 @@ stays offline.
 next on an error, timeout, invalid JSON or schema/safety rejection:
 
 1. **CodeBuddy Agent SDK → Hunyuan hy4-preview** (CodeBuddy key or local saved CLI login; 15 s)
-2. **TokenHub** (`TOKENHUB_API_KEY`; 10 s)
+2. **TokenHub → Hunyuan hy4-preview** (`TOKENHUB_API_KEY`; 22 s)
 3. **OpenAI** (`OPENAI_API_KEY`; 15 s) — final live fallback
 4. **Recorded fixtures**
 
-Each timeout is capped by a 20-second budget for the whole chain; providers left
-when under 3 s remain are skipped. The browser waits up to 25 s, showing an
-elapsed-time counter, then reports the outcome truthfully (live, or recorded with
-the reason). Live extraction decodes against the wire schema: on OpenAI it uses
-strict structured output (`json_schema`), and the DRAFT-only guard still validates
-every result. In our 12 Oct run, 6 of 6 live OpenAI extractions succeeded, p50 5.7 s. A forced provider that fails goes to the fixture.
+Each timeout is capped by a 35-second budget for the whole chain (enough for a
+TokenHub timeout and then an OpenAI answer); providers left when under 3 s remain
+are skipped. The browser waits up to 40 s, showing an elapsed-time counter, then
+reports the outcome truthfully (live, or recorded with the reason). Live extraction
+decodes against the wire schema with strict structured output (`json_schema`) on
+both TokenHub and OpenAI, and the DRAFT-only guard still validates every result.
+`hy4-preview` is a thinking model: left on, it spent all 6,000 output tokens on
+reasoning without answering, so the TokenHub request sends `thinking: {type:
+"disabled"}`. In our 12 Oct app-path run (TokenHub first, as on Vercel), 10 of 10
+live extractions were answered by TokenHub, p50 11.4 s, p95 12.9 s; tenant drafts
+2 of 2 (3–6 s). An earlier run had 6 of 6 OpenAI extractions at p50 5.7 s. A forced provider that fails goes to the fixture.
 Local login detection reads only the installed SDK's shared auth-cache shape and
 logout marker, without spawning a CLI or decrypting credentials. The SDK handles
 actual login reuse/refresh; a stale login fails safely to recorded output.
 
 **Which provider answers where.** Locally, with CodeBuddy credits and a CLI login
 (or a CodeBuddy Pro API key), live calls run on Hunyuan `hy4-preview` through the
-CodeBuddy Agent SDK. The public Vercel deployment has no CodeBuddy or TokenHub key
-(API-key access requires Pro, and Vercel/CI never inspect a local CLI login), so
-its live calls are answered by OpenAI `gpt-5.4-mini`, the final fallback, or by
-recorded output if that call fails. TokenHub is wired but has not answered live:
-account verification is pending. The output badge always names the provider that
-actually answered. With no CodeBuddy, TokenHub or OpenAI credentials, the API
+CodeBuddy Agent SDK. The public Vercel deployment has a TokenHub key but no
+CodeBuddy key (API-key access requires Pro, and Vercel/CI never inspect a local CLI
+login), so its live calls go to Hunyuan `hy4-preview` via TokenHub first; OpenAI
+`gpt-5.4-mini` is the final fallback, then recorded output. The output badge always
+names the provider that actually answered. With no CodeBuddy, TokenHub or OpenAI credentials, the API
 selects recorded fixtures without any SDK spawn or network attempt. Explicit `codebuddy` with neither a key nor a local login also falls
 back without spawning. Set `MOSAIC_LLM_PROVIDER=fixtures` to force offline mode.
 Do **not** set `CODEBUDDY_INTERNET_ENVIRONMENT`; this integration uses the
 international edition. Keep all credentials server-side (never `NEXT_PUBLIC_*`).
 
 The Node routes `/api/llm/extract` and `/api/llm/tenant-message` have a 60-second
-platform budget and the 20-second provider-chain budget above. Requests are limited to 64 KB;
+platform budget and the 35-second provider-chain budget above. Requests are limited to 64 KB;
 extraction permits at most 100 turns of 4,000 characters each. Results include
 `data`, `source`, `provider`, `model`, `latencyMs`, `attempts` (earlier providers that
 failed, with an outcome only) and a safe `reason`. `provider`/`model` always name

@@ -4,10 +4,13 @@
 // live provider whose response passed validation, and `model` is the model id
 // that provider was asked for. Recorded output is always `provider: 'fixtures'`.
 
-/** Server-side budget for a whole provider chain (providers.ts BUDGET_MS). */
-export const LLM_SERVER_BUDGET_MS = 20_000;
+/**
+ * Server-side budget for a whole provider chain (providers.ts BUDGET_MS):
+ * TokenHub's 22 s timeout plus 13 s for the OpenAI fallback if it times out.
+ */
+export const LLM_SERVER_BUDGET_MS = 35_000;
 /** How long a client waits for a live LLM route: the server budget plus headroom. */
-export const LLM_CLIENT_WAIT_MS = 25_000;
+export const LLM_CLIENT_WAIT_MS = 40_000;
 
 export type LiveProvider = 'codebuddy' | 'tokenhub' | 'openai';
 export type LlmProvider = LiveProvider | 'fixtures';

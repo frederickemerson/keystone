@@ -12,7 +12,7 @@
 - Browser at 1440 x 900, zoom 110 %, cursor highlight on, notifications off.
 - Have CodeBuddy Code open in a terminal in the repo, with `.codebuddy/skills/chilled-water-leak/` present, for the reflection section. The screenshots `docs/proof/04a-codebuddy-skill-invoked.png` and `04b-codebuddy-skill-ts07-answer.png` are the fallback if a live run is not possible.
 - Have `npx vitest run` ready in a second terminal. Last verified run (12 Oct 2026): **38 test files, 593 tests, all passing.** Re-run before recording; the narration says "over 590 tests".
-- Live AI on the Vercel deployment is OpenAI gpt-5.4-mini (the fallback) or recorded output, and the badge says which. Sign in once more if you have an older session (tokens now carry a `jti`). This script does not show a live AI call. If you record one locally with CodeBuddy credentials, the badge will read Hunyuan hy4-preview via CodeBuddy; narrate whatever the badge shows.
+- Live AI on the Vercel deployment is Hunyuan hy4-preview via TokenHub (OpenAI gpt-5.4-mini is the final fallback) or recorded output, and the badge says which. Sign in once more if you have an older session (tokens now carry a `jti`). This script does not show a live AI call. If you record one locally with CodeBuddy credentials, the badge will read Hunyuan hy4-preview via CodeBuddy; narrate whatever the badge shows.
 
 ---
 
