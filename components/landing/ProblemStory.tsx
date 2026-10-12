@@ -376,7 +376,7 @@ export function ProblemStory({ facts }: { facts: ProblemFacts }) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <section aria-labelledby="problem-title" className={cn('border-t border-line', styles.problem)}>
+      <section aria-labelledby="problem-title" className={styles.problem}>
         <div className="mx-auto w-full max-w-[1240px] px-4 pt-16 sm:px-8 lg:pt-24">
           <h2
             id="problem-title"

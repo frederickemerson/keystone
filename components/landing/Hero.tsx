@@ -32,8 +32,8 @@ export function Hero({ facts }: { facts: HeroFacts }) {
   const note = markReadBack(closeoutNote.transcript);
 
   return (
-    <section aria-labelledby="hero-title" className="px-2 pt-2 sm:px-3 sm:pt-3">
-      <div className="relative isolate flex min-h-[min(920px,calc(100svh-16px))] flex-col overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,#5d5577_0%,#8a7a91_22%,#97858f_40%,#3a3150_72%,#211b31_100%)]">
+    <section aria-labelledby="hero-title" className="relative">
+      <div className="relative isolate flex min-h-[max(100svh,760px)] flex-col overflow-hidden bg-[linear-gradient(180deg,#5d5577_0%,#8a7a91_22%,#97858f_40%,#3a3150_72%,#211b31_100%)]">
         {/* The photo sits low in the panel; its sky fades into the panel's own sky, so the headline has open space. */}
         <div className="absolute inset-x-0 top-[330px] -z-10 h-[460px] [mask-image:linear-gradient(180deg,transparent_0%,black_16%,black_78%,transparent_100%)] sm:top-[320px] sm:h-[560px] lg:bottom-0 lg:top-[24%] lg:h-auto lg:[mask-image:linear-gradient(180deg,transparent_0%,black_16%)]">
           <Image
@@ -45,11 +45,12 @@ export function Hero({ facts }: { facts: HeroFacts }) {
             className="object-cover object-[50%_10%]"
           />
         </div>
-        {/* Darken the top for the header and headline, and the bottom edge for the cards. */}
+        {/* Darken the top for the header and headline. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(24,20,44,0.55)_0%,rgba(24,20,44,0.12)_38%,rgba(24,20,44,0)_60%,rgba(18,14,32,0.45)_100%)]"
+          className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(24,20,44,0.55)_0%,rgba(24,20,44,0.12)_38%,rgba(24,20,44,0)_60%)]"
         />
+
 
         <LandingHeader />
 
@@ -95,10 +96,10 @@ export function Hero({ facts }: { facts: HeroFacts }) {
         </div>
 
         {/* Product glimpses: real demo data, decorative layout. Desktop floats them over the photo. */}
-        <div className="relative z-10 mt-auto grid gap-3 px-4 pb-4 pt-[260px] sm:grid-cols-2 sm:pt-[330px] lg:static lg:block lg:p-0">
+        <div className="relative z-10 mt-auto grid gap-3 px-4 pb-4 pb-44 pt-[260px] sm:grid-cols-2 sm:pt-[330px] lg:static lg:block lg:p-0">
           {/* Left: a frontline voice note with its read-back. */}
           <figure
-            className={`${GLASS} ${styles.glassIn} p-4 text-left lg:absolute lg:left-[4%] lg:top-[52%] lg:w-[300px]`}
+            className={`${GLASS} ${styles.glassIn} p-4 text-left lg:absolute lg:left-[4%] lg:top-[39%] lg:w-[300px]`}
             style={{ animationDelay: '250ms' }}
           >
             <figcaption className="flex items-center gap-2 text-[12px] text-white/75">
@@ -131,7 +132,7 @@ export function Hero({ facts }: { facts: HeroFacts }) {
           {/* Left dock: the four steps, as in an app rail. */}
           <div
             aria-hidden="true"
-            className={`${GLASS} ${styles.glassIn} hidden flex-col items-center gap-3 rounded-full px-2 py-3 lg:absolute lg:left-[calc(4%+312px)] lg:top-[54%] lg:flex`}
+            className={`${GLASS} ${styles.glassIn} hidden flex-col items-center gap-3 rounded-full px-2 py-3 lg:absolute lg:left-[calc(4%+312px)] lg:top-[41%] lg:flex`}
             style={{ animationDelay: '350ms' }}
           >
             <Mic className="size-4 text-white/90" />
@@ -142,7 +143,7 @@ export function Hero({ facts }: { facts: HeroFacts }) {
 
           {/* Left, lower: the deterministic gate. */}
           <div
-            className={`${GLASS} ${styles.glassIn} p-4 text-left lg:absolute lg:bottom-[6%] lg:left-[9%] lg:w-[340px]`}
+            className={`${GLASS} ${styles.glassIn} p-4 text-left lg:absolute lg:left-[9%] lg:top-[calc(39%+222px)] lg:w-[340px]`}
             style={{ animationDelay: '450ms' }}
           >
             <p className="flex items-start gap-2 text-[14px] font-medium leading-snug">
@@ -165,7 +166,7 @@ export function Hero({ facts }: { facts: HeroFacts }) {
 
           {/* Right: the expert's words, with the timestamp they are traced to. */}
           <figure
-            className={`${GLASS} ${styles.glassIn} p-4 text-left lg:absolute lg:right-[4%] lg:top-[50%] lg:w-[320px]`}
+            className={`${GLASS} ${styles.glassIn} p-4 text-left lg:absolute lg:right-[4%] lg:top-[41%] lg:w-[320px]`}
             style={{ animationDelay: '550ms' }}
           >
             <figcaption className="flex items-center justify-between gap-2 text-[12px] text-white/75">
@@ -190,7 +191,7 @@ export function Hero({ facts }: { facts: HeroFacts }) {
 
           {/* Right, lower: the governance outcome. */}
           <p
-            className={`${GLASS} ${styles.glassIn} hidden items-center gap-2 rounded-full px-4 py-2.5 text-[13px] lg:absolute lg:bottom-[9%] lg:right-[8%] lg:flex`}
+            className={`${GLASS} ${styles.glassIn} hidden items-center gap-2 rounded-full px-4 py-2.5 text-[13px] lg:absolute lg:right-[8%] lg:top-[calc(41%+200px)] lg:flex`}
             style={{ animationDelay: '650ms' }}
           >
             <ShieldCheck className="size-4 text-[#b8f0c8]" aria-hidden="true" />
@@ -198,6 +199,12 @@ export function Hero({ facts }: { facts: HeroFacts }) {
           </p>
         </div>
       </div>
+      {/* No hard edge: the hero dissolves into the page. Outside the panel's clip and 2 px past its
+          edge, so a fractional-pixel bottom never shows a dark seam. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -bottom-[2px] z-[5] h-[172px] bg-[linear-gradient(180deg,transparent_0%,color-mix(in_srgb,var(--canvas)_60%,transparent)_55%,var(--canvas)_100%)]"
+      />
     </section>
   );
 }
