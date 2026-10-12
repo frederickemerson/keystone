@@ -21,3 +21,13 @@ export function parseCallTime(raw: string | string[] | undefined): string | unde
   const v = Array.isArray(raw) ? raw[0] : raw;
   return v && CALL_TIME.test(v) ? v : undefined;
 }
+
+/**
+ * Tile state on the call from the pill's Canvas reviews (governance store):
+ * confirmed or edited → true, rejected → false, not reviewed → absent.
+ */
+export function callTileStates(
+  reviews: Readonly<Record<string, { outcome: 'confirmed' | 'edited' | 'rejected' }>>,
+): Record<string, boolean> {
+  return Object.fromEntries(Object.entries(reviews).map(([ruleId, r]) => [ruleId, r.outcome !== 'rejected']));
+}

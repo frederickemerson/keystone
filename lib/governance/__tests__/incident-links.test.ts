@@ -12,7 +12,10 @@ import {
   toEngineIncident,
 } from "@/components/incident/engineInputs";
 import { activityLabel, driftLabel, loadedPillLabel, pillsInUse } from "@/components/incident/pill-usage";
-import { expertCallHref, parseCallTime, EXPERT_CALL_INTERVIEW_ID } from "@/components/incident/expertCall";
+import { callTileStates, expertCallHref, parseCallTime, EXPERT_CALL_INTERVIEW_ID } from "@/components/incident/expertCall";
+import { createGovernanceStore, memoryStorage, reviewKey } from "@/lib/governance/store";
+import { toDraftCandidates } from "@/lib/llm/candidates";
+import { loadExtractionFixture } from "@/lib/data";
 import { expertQuoteFor } from "@/components/incident/provenance";
 import type { ApprovedPill, BoardItem } from "@/components/incident/types";
 import { loadAsset, loadIncident, loadTimeline } from "@/lib/data";
@@ -96,5 +99,22 @@ describe("expert call links", () => {
     expect(parseCallTime("14:32")).toBeUndefined();
     expect(parseCallTime("javascript:alert(1)")).toBeUndefined();
     expect(parseCallTime(undefined)).toBeUndefined();
+  });
+});
+
+describe("expert call confirmations carry over to the canvas", () => {
+  it("a verdict recorded through the store's Canvas review is what the call tiles show, keyed to the live version", () => {
+    const bundle = loadAllPills().find((b) => b.id === TS)!;
+    const store = createGovernanceStore(memoryStorage(), () => "2026-10-12T08:00:00.000Z");
+    const s = () => store.getState();
+    s().seedPills([{ id: TS, pill: bundle.pill }]);
+    s().setRole("chief_engineer");
+    // The call's candidate ids are the pill's rule ids, so the call reviews the same tiles.
+    const callIds = toDraftCandidates(loadExtractionFixture()).candidates.map((c) => c.rule.id);
+    expect(callIds.every((id) => bundle.pill.rules.some((r) => r.id === id))).toBe(true);
+    s().reviewRule({ pillId: TS, ruleId: "TS-07", outcome: "confirmed" });
+    s().reviewRule({ pillId: TS, ruleId: "TS-03", outcome: "rejected" });
+    const reviews = s().ruleReviews[reviewKey(TS, bundle.pill.manifest.version)];
+    expect(callTileStates(reviews)).toEqual({ "TS-07": true, "TS-03": false });
   });
 });

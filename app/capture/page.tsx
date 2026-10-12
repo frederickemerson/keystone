@@ -10,14 +10,21 @@ import { toDraftCandidates } from '@/lib/llm/candidates';
 import { ExpertCallClient } from '@/components/capture/ExpertCallClient';
 import { pillTitle } from '@/components/mosaic/pillTitle';
 import { expectedLiveProvider } from '@/lib/llm/providers';
+import { EXPERT_CALL_INTERVIEW_ID, EXPERT_CALL_PILL_ID, parseCallTime } from '@/components/incident/expertCall';
 
 // Provider availability (env / local CLI login) is read per request, not baked in at build time.
 export const dynamic = 'force-dynamic';
 
-const INTERVIEW_ID = 'ce-interview-2026-10-02';
-const PILL_ID = 'technical-services-chilled-water-leak';
+const INTERVIEW_ID = EXPERT_CALL_INTERVIEW_ID;
+const PILL_ID = EXPERT_CALL_PILL_ID;
 
-export default function CapturePage() {
+export default async function CapturePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // ?at=HH:MM:SS (routes.capture) offers to start the call at that moment; anything else is ignored.
+  const seekTo = parseCallTime((await searchParams).at);
   const transcript = loadTranscript(INTERVIEW_ID);
   const extraction = loadExtractionFixture();
   const contradiction = loadContradictionFixture();
@@ -55,6 +62,8 @@ export default function CapturePage() {
       contradiction={contradiction}
       pillId={PILL_ID}
       pillName={pill ? pillTitle(pill) : PILL_ID}
+      pill={pill?.pill ?? null}
+      seekTo={seekTo}
       liveProvider={expectedLiveProvider()}
     />
   );

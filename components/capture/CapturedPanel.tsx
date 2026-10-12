@@ -1,10 +1,11 @@
 'use client';
 
 // Right column — "Captured so far". As expert turns reveal rule ids, RuleTile
-// cards animate in (status: draft — awaiting your confirmation) with provenance,
-// above the coverage meter that shows the interviewer targeting gaps.
+// cards animate in with provenance, above the coverage meter that shows the
+// interviewer targeting gaps. Confirmation state and actions come from the
+// caller (the governance store's Canvas review), so a verdict given on the call
+// is the same verdict the Decision Canvas shows.
 
-import { useState } from 'react';
 import { SectionHeader, RuleTile, ActionClassChip, CHIP_BASE, TONE_CHIP } from '@/components/mosaic';
 import { cn } from '@/lib/ui/cn';
 import type { Rule } from '@/lib/engine/types';
@@ -17,26 +18,33 @@ export function CapturedPanel({
   provenance,
   playback,
   totalRules,
+  confirmed,
+  onConfirm,
+  onEdit,
+  onReject,
 }: {
   rules: Rule[];
   provenance: Record<string, ProvenanceInfo>;
   playback: CallPlayback;
   totalRules: number;
+  /** ruleId -> true confirmed, false rejected, undefined pending (the Canvas review). */
+  confirmed: Readonly<Record<string, boolean | undefined>>;
+  /** Absent when the viewer may not review this pill. */
+  onConfirm?: (ruleId: string) => void;
+  onEdit?: (ruleId: string) => void;
+  onReject?: (ruleId: string) => void;
 }) {
   const revealed = playback.revealedRuleIds
     .map((id) => rules.find((r) => r.id === id))
     .filter((r): r is Rule => Boolean(r));
 
-  // Local confirmation preview only — the authoritative confirm/edit/reject
-  // happens on the Decision Canvas.
-  const [confirmed, setConfirmed] = useState<Record<string, boolean | undefined>>({});
-  const locked = playback.status === 'ended';
+  const decided = revealed.filter((r) => confirmed[r.id] !== undefined).length;
 
   return (
     <div className="space-y-4">
       <SectionHeader
         title="Captured so far"
-        description={`${revealed.length} of ${totalRules} candidates · draft, awaiting your confirmation`}
+        description={`${revealed.length} of ${totalRules} candidates · ${decided} decided by the expert`}
       />
 
       <CoverageMeter rules={revealed} />
@@ -62,9 +70,9 @@ export function CapturedPanel({
                 rule={rule}
                 confirmed={confirmed[rule.id]}
                 provenance={provenance[rule.id]}
-                onConfirm={locked ? undefined : () => setConfirmed((c) => ({ ...c, [rule.id]: true }))}
-                onEdit={locked ? undefined : () => setConfirmed((c) => ({ ...c, [rule.id]: undefined }))}
-                onReject={locked ? undefined : () => setConfirmed((c) => ({ ...c, [rule.id]: false }))}
+                onConfirm={onConfirm ? () => onConfirm(rule.id) : undefined}
+                onEdit={onEdit ? () => onEdit(rule.id) : undefined}
+                onReject={onReject ? () => onReject(rule.id) : undefined}
               />
             </div>
           ))
