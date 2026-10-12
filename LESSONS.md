@@ -7,3 +7,9 @@ Written by /aar-loop after each session's After Action Review. Read this file be
 - Actual: All models 401006; KYC required; shipped CodeBuddy SDK -> TokenHub -> OpenAI -> recorded fixtures chain.
 - Why: Inference endpoints are VIRTUAL/charge off until activation, which needs a verified account.
 - tags: tokenhub,llm,fallback
+
+## 2026-10-12 -- Builder-reported bugs are hypotheses: before fixing one, reproduce it with a failing vitest against the store. 'DRAFT-02 Propose is refused (in review)' was false; the store accepts it as v1.4.0 and stale_base guards approval. My first 'fix' (one-in-review in propose()) broke 2 tests that encode the intended parallel-draft design.
+- Expected: Builder C's open issue described real store behaviour.
+- Actual: No such refusal exists; adding one contradicted the stale_base design.
+- Why: Builder inferred behaviour from publishReview's message without running proposeFromNote twice.
+- tags: multi-agent,verification,governance
