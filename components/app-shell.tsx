@@ -114,18 +114,6 @@ export function AppShell({ children, session }: { children: React.ReactNode; ses
             })}
           </ul>
         </nav>
-
-        {/* Brand band: marker orange, 56px top radius (DESIGN.md §8). Typeset —
-            no handwriting inside the app. Full cocoa ink on #ff6f1e is 6.0:1;
-            never fade it with opacity (cocoa/80 drops to 4.3:1, below AA). */}
-        <div className="mt-4 rounded-t-[56px] bg-marker px-7 pb-5 pt-7">
-          <p className="font-display-soft text-[19px] font-semibold leading-[1.15] text-cocoa-ink">
-            Expert judgement,
-            <br />
-            governed.
-          </p>
-          <p className="mt-2 font-mono text-[11px] font-medium text-cocoa-ink">Keystone v1</p>
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
