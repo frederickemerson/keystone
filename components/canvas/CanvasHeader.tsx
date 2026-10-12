@@ -96,7 +96,7 @@ export function CanvasHeader({
               {STATUS_LABEL[live.status]}
             </span>
           }
-          className="w-[24rem] max-w-full"
+          className="w-[min(24rem,calc(100vw-2rem))]"
         />
       }
     />
