@@ -9,14 +9,20 @@ import { decisionAuthority, roleLabel } from "@/lib/governance/access";
 import { StatusBadge, ActionClassChip } from "@/components/mosaic";
 import type { ActionStatus } from "@/lib/engine/types";
 import type { IncidentRecord, IncidentActionRecord } from "@/lib/data/schemas";
+import { routes } from "@/lib/journey/routes";
+import { suggestHandoff } from "@/lib/journey/handoff";
+import { HandoffButton } from "@/components/journey/HandoffButton";
 
 export function IncidentDecisionCard({
   incident,
   action,
+  rulePillId,
   currentActor,
 }: {
   incident: IncidentRecord;
   action: IncidentActionRecord;
+  /** The pill that defines this action's rule (for the rule link), when known. */
+  rulePillId?: string;
   currentActor: Actor;
 }) {
   const decideAction = useGovernanceStore((s) => s.decideAction);
@@ -32,6 +38,14 @@ export function IncidentDecisionCard({
   // Same policy the governance store enforces on decideAction.
   const canApproveAction = isNeedsApproval && decisionAuthority(currentActor.role, "approved").allowed;
   const canEscalateAction = isEscalate && decisionAuthority(currentActor.role, "escalated").allowed;
+
+  // Dead end -> hand-off: the same decision authority, run for the demo cast.
+  const neededOutcome = isNeedsApproval ? "approved" : isEscalate ? "escalated" : null;
+  const canAct = isNeedsApproval ? canApproveAction : isEscalate ? canEscalateAction : true;
+  const handoffTo =
+    neededOutcome && !canAct && !recorded
+      ? suggestHandoff((a) => decisionAuthority(a.role, neededOutcome).allowed, currentActor)
+      : undefined;
 
   const missingCount = (action.missing_evidence ?? []).length;
   const missingEvidence = (action.missing_evidence ?? []).join(", ") || "—";
@@ -59,7 +73,7 @@ export function IncidentDecisionCard({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="flex min-w-0 items-center gap-2 text-[13px]">
           <Link
-            href={`/incident/${incident.id}`}
+            href={routes.incident(incident.id)}
             className="inline-flex items-center gap-1 font-mono font-medium text-ink hover:text-accent"
           >
             {incident.id} <ExternalLink className="size-3.5" aria-hidden="true" />
@@ -72,10 +86,20 @@ export function IncidentDecisionCard({
       <h3 className="text-pretty text-[15px] font-medium leading-snug text-ink">{action.decision}</h3>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-mono text-[11px] text-ink">
-          <span className="sr-only">Rule </span>
-          {action.rule_id}
-        </span>
+        {rulePillId ? (
+          <Link
+            href={routes.pill(rulePillId, action.rule_id)}
+            className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-mono text-[11px] text-ink underline-offset-2 hover:underline"
+          >
+            <span className="sr-only">Rule </span>
+            {action.rule_id}
+          </Link>
+        ) : (
+          <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-mono text-[11px] text-ink">
+            <span className="sr-only">Rule </span>
+            {action.rule_id}
+          </span>
+        )}
         <ActionClassChip actionClass={action.action_class} />
         {missingCount > 0 ? (
           <span
@@ -143,6 +167,14 @@ export function IncidentDecisionCard({
           </button>
         ) : null}
       </div>
+      {handoffTo ? (
+        <HandoffButton
+          to={handoffTo}
+          href={routes.approvals()}
+          action={isNeedsApproval ? "approve" : "escalate"}
+          reason={`${roleLabel(currentActor.role)} cannot ${isNeedsApproval ? "approve" : "escalate"} this action.`}
+        />
+      ) : null}
       {refusal ? (
         <p role="alert" className="text-xs text-blocked">
           Not recorded: {refusal}

@@ -4,20 +4,30 @@ import { useEffect, useMemo, useState } from "react";
 import { Layers, Siren, Inbox } from "lucide-react";
 import { useGovernanceStore } from "@/lib/governance/store";
 import { SectionHeader, EmptyState, PageHeader } from "@/components/mosaic";
-import type { PillVersion } from "@/lib/governance/versions";
+import { currentApproved, type PillVersion } from "@/lib/governance/versions";
 import type { PillBundle } from "@/lib/pills/load";
 import type { IncidentRecord, IncidentActionRecord } from "@/lib/data/schemas";
 import { PillApprovalCard } from "./PillApprovalCard";
+import { LiveNowCard } from "./LiveNowCard";
 import { IncidentDecisionCard } from "./IncidentDecisionCard";
+
+function currentApprovedVersion(history: PillVersion[] | undefined): string | undefined {
+  return history ? currentApproved(history)?.version : undefined;
+}
 
 export function ApprovalsQueue({
   bundles,
   incidents,
+  replayable,
 }: {
   bundles: PillBundle[];
   incidents: IncidentRecord[];
+  /** Ids of incidents with a recorded timeline (the room can replay them). */
+  replayable: string[];
 }) {
   const [mounted, setMounted] = useState(false);
+  // Versions approved on this screen: their cards leave the queue, so the next step shows here.
+  const [justApproved, setJustApproved] = useState<{ pillId: string; version: string }[]>([]);
   const versions = useGovernanceStore((s) => s.versions);
   const currentActor = useGovernanceStore((s) => s.currentActor);
   const seedPills = useGovernanceStore((s) => s.seedPills);
@@ -65,6 +75,21 @@ export function ApprovalsQueue({
         subtitle="Nothing executes without a named human."
       />
 
+      {justApproved.map(({ pillId, version }) => {
+        const bundle = bundles.find((b) => b.id === pillId);
+        return bundle ? (
+          <LiveNowCard
+            key={`${pillId}@${version}`}
+            bundle={bundle}
+            version={version}
+            stillLive={currentApprovedVersion(versions[pillId]) === version}
+            incidents={incidents}
+            replayable={replayable}
+            onDismiss={() => setJustApproved((prev) => prev.filter((p) => p.pillId !== pillId))}
+          />
+        ) : null;
+      })}
+
       {/* (1) Pill version approvals */}
       <section className="space-y-3">
         <SectionHeader
@@ -84,6 +109,9 @@ export function ApprovalsQueue({
                   version={version}
                   history={history}
                   currentActor={currentActor}
+                  onApproved={(pillId, v) =>
+                    setJustApproved((prev) => [...prev.filter((p) => p.pillId !== pillId), { pillId, version: v }])
+                  }
                 />
               );
             })}
@@ -106,6 +134,7 @@ export function ApprovalsQueue({
                 key={`${incident.id}:${action.rule_id}`}
                 incident={incident}
                 action={action}
+                rulePillId={bundles.find((b) => b.pill.rules.some((r) => r.id === action.rule_id))?.id}
                 currentActor={currentActor}
               />
             ))}

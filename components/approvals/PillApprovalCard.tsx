@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { CheckCircle2, ArrowRightCircle, ShieldAlert, Ban, AlertTriangle } from "lucide-react";
 import { useGovernanceStore } from "@/lib/governance/store";
 import {
@@ -11,27 +12,34 @@ import {
   type Actor,
   type PillVersion,
 } from "@/lib/governance/versions";
-import { canApprove, shadowPromotionAuthority } from "@/lib/governance/approval";
+import { shadowPromotionAuthority } from "@/lib/governance/approval";
 import { roleLabel } from "@/lib/governance/access";
 import { compareVersions, runEvals } from "@/lib/engine";
-import { SectionHeader, DiffView, KpiStat } from "@/components/mosaic";
+import { SectionHeader, DiffView, KpiStat, pillDisplayName } from "@/components/mosaic";
+import { routes } from "@/lib/journey/routes";
 import type { PillBundle } from "@/lib/pills/load";
 import { changesToDiffItems } from "../registry/registry-utils";
 import { noteById, useCaptureActions, useCaptureView } from "@/components/incident/useCapture";
 import { policyOf } from "@/components/canvas/noteDraftUtils";
 import { CapturedRulePanel } from "./CapturedRulePanel";
 import { peerGateFor } from "./PeerConfirmPanel";
+import { approvalCheck, nextApprovalStep } from "./nextStep";
+import { NextStepPanel } from "./NextStepPanel";
+import { ChangedRulesList } from "./ChangedRulesList";
 
 export function PillApprovalCard({
   bundle,
   version,
   history,
   currentActor,
+  onApproved,
 }: {
   bundle: PillBundle;
   version: PillVersion;
   history: PillVersion[];
   currentActor: Actor;
+  /** Called once the store approves the version (the card then leaves the queue). */
+  onApproved?: (pillId: string, version: string) => void;
 }) {
   const approveVersion = useGovernanceStore((s) => s.approveVersion);
   const promoteToShadow = useGovernanceStore((s) => s.promoteToShadow);
@@ -53,9 +61,8 @@ export function PillApprovalCard({
   const candidateSummary = runEvals(candidatePill, cases);
 
   const evalReport = { regressions: comparison.regressions };
-  const check = canApprove(version, evalReport, currentActor, undefined, {
-    liveApprovedVersion: approved?.version,
-  });
+  const approvalContext = { liveApprovedVersion: approved?.version };
+  const check = approvalCheck({ version, evalReport, context: approvalContext }, currentActor);
   // Same policy the store enforces (promoteToShadow refuses + audits otherwise).
   const promotion = shadowPromotionAuthority(version, currentActor);
   // A version proposed from a frontline note also needs its peer gate (PLAN F4);
@@ -78,12 +85,19 @@ export function PillApprovalCard({
     ? undefined
     : version.status !== "Draft"
       ? promotion.reason
-      : `${roleLabel(currentActor.role)} has no pill-promotion grant — switch user to someone who holds it (e.g. ${roleLabel(version.approverRole)}) to start Shadow.`;
+      : `${roleLabel(currentActor.role)} has no pill-promotion grant, so cannot start the trial run.`;
   // Both blockers are shown: who may promote, and (for a version from a note) the peer gate.
   const promoteBlockers = [authorityBlocker, peerBlocker ? `Peer gate: ${peerBlocker}` : undefined].filter(
     (r): r is string => Boolean(r),
   );
   const promoteBlockedReason = promoteBlockers.length > 0 ? promoteBlockers.join(" ") : undefined;
+
+  const step = nextApprovalStep({
+    version,
+    evalReport,
+    context: approvalContext,
+    peer: capture ? { policy, gateMet: gate?.allowed ?? false } : undefined,
+  });
 
   const overrideReady =
     comparison.regressions.length > 0 &&
@@ -92,6 +106,7 @@ export function PillApprovalCard({
 
   function onApprove() {
     const result = approveVersion(bundle.id, version.version, evalReport, undefined);
+    if (result.allowed) onApproved?.(bundle.id, version.version);
     setMessage(
       result.allowed
         ? `v${version.version} approved.`
@@ -103,6 +118,7 @@ export function PillApprovalCard({
     const result = approveVersion(bundle.id, version.version, evalReport, {
       reason: overrideReason,
     });
+    if (result.allowed) onApproved?.(bundle.id, version.version);
     setMessage(
       result.allowed
         ? `v${version.version} approved with override — ${overrideReason}`
@@ -113,7 +129,7 @@ export function PillApprovalCard({
   function onPromote() {
     try {
       promoteToShadow(bundle.id, version.version);
-      setMessage(`v${version.version} promoted to Shadow.`);
+      setMessage(`v${version.version} is in its trial run (Shadow).`);
     } catch (err) {
       setMessage(`Blocked: ${(err as Error).message}`);
     }
@@ -124,7 +140,9 @@ export function PillApprovalCard({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold text-ink">
-            {bundle.domain}/{bundle.name}
+            <Link href={routes.pill(bundle.id)} className="hover:underline">
+              {pillDisplayName(bundle.name)}
+            </Link>
           </h3>
           <p className="font-mono text-[11px] tabular-nums text-ink-muted">
             v{version.version} · {version.status} · authored by {version.createdBy.name}
@@ -147,7 +165,10 @@ export function PillApprovalCard({
       {diff.changes.length === 0 ? (
         <p className="text-xs text-ink-muted">No rule changes (metadata only).</p>
       ) : (
-        <DiffView changes={changesToDiffItems(diff.changes)} />
+        <>
+          <DiffView changes={changesToDiffItems(diff.changes)} />
+          <ChangedRulesList pillId={bundle.id} parentRules={parent.rules} rules={version.rules} />
+        </>
       )}
 
       {comparison.regressions.length > 0 ? (
@@ -238,6 +259,8 @@ export function PillApprovalCard({
           ))}
         </ul>
       ) : null}
+
+      {step ? <NextStepPanel step={step} currentActor={currentActor} /> : null}
 
       {comparison.regressions.length > 0 ? (
         <div className="rounded-lg border border-approval/30 bg-approval-tint p-3">
