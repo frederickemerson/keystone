@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Filter, Boxes } from "lucide-react";
 import { useGovernanceStore, personaFor } from "@/lib/governance/store";
 import { currentApproved, type PillVersion } from "@/lib/governance/versions";
 import { runEvals } from "@/lib/engine";
-import { PillCard, SectionHeader, EmptyState, KpiStat, PageHeader } from "@/components/mosaic";
+import { PillCard, EmptyState, KpiStat, PageHeader } from "@/components/mosaic";
+import { routes } from "@/lib/journey/routes";
 import type { PillCardData, PillStatus } from "@/components/mosaic/types";
 import type { PillBundle } from "@/lib/pills/load";
-import { PillDetailPanel } from "./PillDetailPanel";
 import { assetRefsFor, latestShadow, nextReviewDate } from "./registry-utils";
 
 const STATUSES: PillStatus[] = ["Draft", "Shadow", "Approved", "Retired"];
@@ -23,7 +24,6 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
   const [mounted, setMounted] = useState(false);
   const [domainFilter, setDomainFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const versions = useGovernanceStore((s) => s.versions);
   const shadowRuns = useGovernanceStore((s) => s.shadowRuns);
@@ -88,18 +88,16 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
     [prepared, domainFilter, statusFilter],
   );
 
-  const selected = prepared.find((p) => p.bundle.id === selectedId) ?? null;
-
   if (!mounted) {
     return <div className="text-xs text-ink-muted" aria-busy="true">Loading registry…</div>;
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 lg:flex-row">
-      <div className="min-w-0 flex-1 space-y-5">
+    <div className="mx-auto w-full max-w-[1200px]">
+      <div className="min-w-0 space-y-5">
         <PageHeader
           title="Pill registry"
-          subtitle="Every Intelligence Pill, its lifecycle state and health at a glance."
+          subtitle="Every Intelligence Pill, its lifecycle state and health at a glance. Open one to see its rules, where it was applied and how to export it."
         />
 
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Registry summary">
@@ -161,31 +159,18 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
           <ul className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))]">
             {filtered.map((p) => (
               <li key={p.bundle.id}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedId(p.bundle.id)}
+                <Link
+                  href={routes.pill(p.bundle.id)}
                   className="block w-full rounded-card text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-marker-ink"
-                  aria-pressed={selectedId === p.bundle.id}
                 >
                   <PillCard data={p.card} />
-                </button>
+                </Link>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {selected ? (
-        <PillDetailPanel
-          bundle={selected.bundle}
-          history={selected.history}
-          onClose={() => setSelectedId(null)}
-        />
-      ) : (
-        <div className="hidden w-[28rem] shrink-0 lg:block">
-          <SectionHeader title="Pill detail" description="Select a pill to see its version history and portability options." />
-        </div>
-      )}
     </div>
   );
 }
