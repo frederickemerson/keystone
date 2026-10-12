@@ -1,0 +1,49 @@
+{
+  "fixture_id": "capture-qr-ahu-23-01",
+  "fixture_type": "capture_transcript",
+  "description": "Authored demo transcript for the QR tap-to-teach page on AHU-23-01 (Harbourfront One). Written for the offline demo: no audio was recorded and no recogniser produced it. Its recorded_extraction is used only when live drafting is unavailable and the note is exactly this transcript.",
+  "asset_id": "AHU-23-01",
+  "speaker_role": "technician",
+  "duration_sec": 24,
+  "transcript": "AHU-23-01 condensate tray overflows when the drain trap dries out, usually after the coil wash. Before you restart the fan, pour about 2 litres into the trap and wait 15 minutes. If water reached DB-23A, keep it isolated and call the duty LEW, don't reset the breaker yourself.",
+  "recorded_extraction": {
+    "model": "authored demo extraction",
+    "generated_at": "2026-10-12T11:40:00+08:00",
+    "rule_candidates": [
+      {
+        "title": "Prime the AHU drain trap before restarting the fan after a coil wash",
+        "trigger": { "incident_type": "condensate_leak", "all": [{ "path": "evidence.condensate_leak_alarm", "op": "eq", "value": true }], "any": [] },
+        "required_evidence": ["visual_inspection"],
+        "decision": "Pour about 2 litres into the drain trap and wait 15 minutes before restarting the AHU fan.",
+        "allowed_actions": ["Prime the drain trap", "Restart the fan after 15 minutes"],
+        "forbidden_actions": ["Restarting the fan with a dry trap"],
+        "exceptions": [],
+        "action_class": "recommend",
+        "forbidden_if_missing_evidence": false,
+        "escalate_to": { "role": "technical_services_lead", "fallback": "chief_engineer" },
+        "owner": "chief_engineer",
+        "deadline_minutes": null,
+        "provenance": ["NOTE#00:00:00"],
+        "confirmation_status": "pending_expert_review",
+        "confidence": 0.82
+      },
+      {
+        "title": "Condensate reached a distribution board: keep it isolated and call the duty LEW",
+        "trigger": { "incident_type": "condensate_leak", "all": [{ "path": "evidence.water_near_electrical", "op": "eq", "value": true }], "any": [] },
+        "required_evidence": ["lew_signoff"],
+        "decision": "Keep the distribution board isolated and call the duty LEW. Do not reset the breaker yourself.",
+        "allowed_actions": ["Keep the board isolated", "Call the duty LEW"],
+        "forbidden_actions": ["Resetting the breaker without LEW sign-off"],
+        "exceptions": [],
+        "action_class": "must_escalate",
+        "forbidden_if_missing_evidence": true,
+        "escalate_to": { "role": "duty_lew", "fallback": "chief_engineer" },
+        "owner": "chief_engineer",
+        "deadline_minutes": null,
+        "provenance": ["NOTE#00:00:00"],
+        "confirmation_status": "pending_expert_review",
+        "confidence": 0.88
+      }
+    ]
+  }
+}

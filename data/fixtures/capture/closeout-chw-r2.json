@@ -1,0 +1,10 @@
+{
+  "fixture_id": "capture-closeout-chw-r2",
+  "fixture_type": "capture_transcript",
+  "description": "Authored demo transcript for a close-out note on the CHW-R2 riser (Harbourfront One). Written for the offline demo: no audio was recorded and no recogniser produced it. It has no recorded extraction, so drafting it needs the live extractor.",
+  "asset_id": "CHW-R2",
+  "speaker_role": "technician",
+  "duration_sec": 18,
+  "transcript": "Closed ISV-L23-CHW at 08:20, leak stopped within 5 minutes. Next time check the LD-23-04 cable first, it alarms before the ceiling shows any stain.",
+  "recorded_extraction": null
+}
