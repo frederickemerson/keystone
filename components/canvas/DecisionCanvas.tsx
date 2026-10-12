@@ -224,12 +224,14 @@ export function DecisionCanvas({ pill, focusRule }: { pill: PillBundle; focusRul
         })}
       </div>
 
-      {/* Lanes */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* Lanes: columns follow the space the canvas actually has (the guide
+          rail can take 20rem), not the viewport. */}
+      <div className="@container">
+      <div className="grid grid-cols-1 gap-4 @4xl:grid-cols-2">
         {LANES.map((lane) => {
           const laneRules = rulesByLane[lane.id];
           return (
-            <section key={lane.id} aria-label={lane.title} className="rounded-2xl border border-line bg-dew-drop/50 p-4">
+            <section key={lane.id} aria-label={lane.title} className="@container rounded-2xl border border-line bg-dew-drop/50 p-4">
               <div className="mb-4 border-b border-line pb-2.5">
                 <h2 className="text-[19px] font-semibold leading-tight">{lane.title}</h2>
                 <p className="mt-0.5 text-[13px] text-ink-muted">{lane.description}</p>
@@ -242,7 +244,7 @@ export function DecisionCanvas({ pill, focusRule }: { pill: PillBundle; focusRul
                   className="py-6"
                 />
               ) : (
-                <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-2">
                   {laneRules.map((rule) => {
                     const review = reviews[rule.id];
                     const state = review?.outcome;
@@ -297,6 +299,7 @@ export function DecisionCanvas({ pill, focusRule }: { pill: PillBundle; focusRul
             </section>
           );
         })}
+      </div>
       </div>
 
       {/* Version in review (from the store) */}
