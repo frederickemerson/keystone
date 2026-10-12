@@ -30,7 +30,9 @@ describe('guided demo copy and deep links', () => {
     expect(byId('gate-blocks').doThis).toMatch(/Escalate to … Duty Licensed Electrical Worker/);
     expect(byId('gate-blocks').doThis).not.toMatch(/Try to re-energise/);
     expect(byId('teach-back').doThis).toMatch(/Tell us why — 20 seconds/);
-    expect(byId('teach-back').doThis).toMatch(/Answer now/);
+    expect(byId('teach-back').doThis).toMatch(/Use this demo note/);
+    // The task opens by itself after escalating; the banner's "Answer now" is hidden then.
+    expect(byId('teach-back').doThis).not.toMatch(/Answer now/);
     expect(byId('propose').doThis).toMatch(/the draft\b/);
     expect(byId('propose').doThis).not.toMatch(/drafts\b(?! from)/);
   });
