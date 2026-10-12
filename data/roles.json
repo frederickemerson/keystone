@@ -133,6 +133,7 @@
     "label": "Chief Engineer",
     "description": "Senior technical authority; owner of the chilled-water-leak pill. Provides electrical-safety and isolation judgement; escalates to LEW and Head of Technical Services.",
     "person": "Tan Wei Ming",
+    "aliases": ["CE"],
     "sensitivity_levels_visible": ["public", "internal"],
     "sensitivity_levels_masked": ["tenant_pii", "commercial"],
     "can_see": {
@@ -183,6 +184,7 @@
     "label": "Fire Safety Manager",
     "description": "Authorises fire-protection system impairments (red-tag permits) and owns life-safety evacuation instructions. Single authority for sprinkler/riser/hose-reel isolation.",
     "person": "Aziz bin Rahman",
+    "aliases": ["FSM"],
     "sensitivity_levels_visible": ["public", "internal"],
     "sensitivity_levels_masked": ["tenant_pii", "commercial"],
     "can_see": {
@@ -207,6 +209,7 @@
     "label": "Duty Licensed Electrical Worker",
     "description": "Licensed Electrical Worker on duty. Sole authority to inspect, test insulation resistance, and sign off before re-energisation of wetted or isolated electrical circuits. Electrical safety gate.",
     "person": "Rahul Menon",
+    "aliases": ["LEW"],
     "sensitivity_levels_visible": ["public", "internal"],
     "sensitivity_levels_masked": ["tenant_pii", "commercial"],
     "can_see": {
@@ -232,6 +235,7 @@
     "label": "DC Critical Facilities Manager",
     "description": "Owns data-centre client SLA notifications and co-signs re-energisation for DC asset types. Critical escalation point for CRAH/chilled-water leaks in colocation facilities.",
     "person": "Steven Wong",
+    "aliases": ["CFM"],
     "sensitivity_levels_visible": ["public", "internal", "commercial"],
     "sensitivity_levels_masked": ["tenant_pii"],
     "can_see": {
@@ -330,6 +334,7 @@
     "label": "Security / FCC Operator",
     "description": "Fire Command Centre (FCC) operator on duty. Issues life-safety instructions via PA / mass notification, takes lifts out of service, and monitors patrol points; read-only on pill rules and tenant PII.",
     "person": "Kelvin Lim",
+    "aliases": ["FCC operator"],
     "sensitivity_levels_visible": ["public", "internal"],
     "sensitivity_levels_masked": ["tenant_pii", "commercial"],
     "can_see": {

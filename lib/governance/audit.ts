@@ -2,6 +2,8 @@
 // Pure + client-safe. There is deliberately no update or delete API: the only
 // operation is appendAudit(), which returns a new log with one frozen event added.
 
+import { CAPTURE_AUDIT_ACTIONS } from "@/lib/capture/audit-actions";
+
 export const AUDIT_ACTIONS = [
   "role_switched",
   "pill_seeded",
@@ -28,6 +30,8 @@ export const AUDIT_ACTIONS = [
   "rule_review_blocked",
   "demo_reset",
   "snapshot_discarded",
+  // Frontline capture (lib/capture/audit-actions.ts owns these names).
+  ...CAPTURE_AUDIT_ACTIONS,
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

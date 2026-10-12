@@ -43,6 +43,12 @@ export const roleSchema = z.object({
   description: z.string(),
   /** The named human who holds this role in the demo (one persona per role). */
   person: z.string().min(1),
+  /**
+   * Spoken / written short forms of this role used on site ("LEW", "FSM").
+   * The capture read-back glossary (lib/capture) matches these alongside the
+   * label and the role id, so a voice note naming a role always gets a chip.
+   */
+  aliases: z.array(z.string().min(1)).optional(),
   sensitivity_levels_visible: z.array(sensitivityLevelSchema),
   sensitivity_levels_masked: z.array(sensitivityLevelSchema),
   can_see: visibilityListSchema,
