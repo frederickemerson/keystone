@@ -10,6 +10,8 @@ import type { IncidentRecord, IncidentActionRecord } from "@/lib/data/schemas";
 import { PillApprovalCard } from "./PillApprovalCard";
 import { LiveNowCard } from "./LiveNowCard";
 import { IncidentDecisionCard } from "./IncidentDecisionCard";
+import { useCaptureView } from "@/components/incident/useCapture";
+import { incidentOfCapture } from "@/lib/capture/note-flow";
 
 function currentApprovedVersion(history: PillVersion[] | undefined): string | undefined {
   return history ? currentApproved(history)?.version : undefined;
@@ -18,12 +20,12 @@ function currentApprovedVersion(history: PillVersion[] | undefined): string | un
 export function ApprovalsQueue({
   bundles,
   incidents,
-  replayable,
+  replayEnd,
 }: {
   bundles: PillBundle[];
   incidents: IncidentRecord[];
-  /** Ids of incidents with a recorded timeline (the room can replay them). */
-  replayable: string[];
+  /** Incidents with a recorded timeline (the room can replay them) → their number of events. */
+  replayEnd: Record<string, number>;
 }) {
   const [mounted, setMounted] = useState(false);
   // Versions approved on this screen: their cards leave the queue, so the next step shows here.
@@ -31,6 +33,10 @@ export function ApprovalsQueue({
   const versions = useGovernanceStore((s) => s.versions);
   const currentActor = useGovernanceStore((s) => s.currentActor);
   const seedPills = useGovernanceStore((s) => s.seedPills);
+  const captureView = useCaptureView();
+  // Where an approved change came from: its note's incident task, or the incident its correction closed.
+  const originIncident = (v: PillVersion | undefined): string | undefined =>
+    v?.capture ? incidentOfCapture(v.capture, captureView.notes, captureView.tasks) : v?.correction?.incidentId;
 
   useEffect(() => {
     seedPills(bundles.map((b) => ({ id: b.id, pill: b.pill })));
@@ -84,7 +90,8 @@ export function ApprovalsQueue({
             version={version}
             stillLive={currentApprovedVersion(versions[pillId]) === version}
             incidents={incidents}
-            replayable={replayable}
+            replayEnd={replayEnd}
+            originIncidentId={originIncident(versions[pillId]?.find((v) => v.version === version))}
             onDismiss={() => setJustApproved((prev) => prev.filter((p) => p.pillId !== pillId))}
           />
         ) : null;
