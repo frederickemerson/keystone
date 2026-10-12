@@ -67,7 +67,7 @@ describe("trial run (Shadow)", () => {
     expect(canApprove(shadowed, { regressions: [] }, HTS, undefined, { trialRuns: 0 }).reasons.map((r) => r.code)).toEqual([
       "no_trial_runs",
     ]);
-    expect(canApprove(shadowed, { regressions: [] }, HTS).reasons.map((r) => r.code)).toEqual(["no_trial_runs"]);
+    expect(canApprove(shadowed, { regressions: [] }, HTS, undefined, { trialRuns: 0 }).reasons.map((r) => r.code)).toEqual(["no_trial_runs"]);
     expect(canApprove(shadowed, { regressions: [] }, HTS, undefined, { trialRuns: 1 }).allowed).toBe(true);
   });
 

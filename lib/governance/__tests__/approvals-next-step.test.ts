@@ -44,7 +44,7 @@ function fromNote(): PillVersion {
     },
   };
 }
-const ctx = { liveApprovedVersion: "1.2.0" };
+const ctx = { liveApprovedVersion: "1.2.0", trialRuns: 1 };
 
 describe("nextApprovalStep", () => {
   it("a Draft from a frontline note needs a peer first; the hand-off is neither the speaker nor the proposer", () => {
@@ -86,7 +86,7 @@ describe("nextApprovalStep", () => {
   it("a stale Shadow version can be approved by nobody, so no hand-off is offered", () => {
     const d = draft(CE);
     const shadowed = promoteToShadow([d], d.version, AOM, AT)[0];
-    const step = nextApprovalStep({ version: shadowed, evalReport: CLEAN, context: { liveApprovedVersion: "1.9.0" } })!;
+    const step = nextApprovalStep({ version: shadowed, evalReport: CLEAN, context: { liveApprovedVersion: "1.9.0", trialRuns: 1 } })!;
     expect(suggestHandoff(step.isAllowed, AOM)).toBeUndefined();
   });
 });

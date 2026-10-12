@@ -49,9 +49,9 @@ export interface ApprovalContext {
   /**
    * How many trial runs (Shadow replays of past incidents) are recorded for
    * the version. A Shadow version with none has not been trialled, so it
-   * cannot be approved. Fail-closed: when not given, it counts as zero.
+   * cannot be approved. Required, so every caller passes the real count.
    */
-  trialRuns?: number;
+  trialRuns: number;
 }
 
 /**
@@ -77,8 +77,8 @@ export function canApprove(
   version: PillVersion,
   evalReport: Pick<ComparisonResult, "regressions"> | null,
   actor: Actor,
-  override?: ApprovalOverride,
-  context: ApprovalContext = {},
+  override: ApprovalOverride | undefined,
+  context: ApprovalContext,
 ): ApprovalCheck {
   const reasons: ApprovalBlocker[] = [];
   const block = (code: ApprovalBlockerCode, message: string) => void reasons.push({ code, message });
@@ -88,7 +88,7 @@ export function canApprove(
     block("not_shadowed", `${v} is still a Draft. It must run in Shadow before anyone can approve it`);
   } else if (version.status !== "Shadow") {
     block("not_in_review", `${v} is ${version.status}, so there is nothing to approve`);
-  } else if ((context.trialRuns ?? 0) < 1) {
+  } else if (context.trialRuns < 1) {
     block("no_trial_runs", `${v} has no trial run on record. Replay it against past incidents in Shadow before approving`);
   }
 

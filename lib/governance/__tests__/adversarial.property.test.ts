@@ -573,7 +573,7 @@ describe("separation of duties", () => {
                 ...proposeVersion(base, [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], { name: author, role: "chief_engineer" }, "x", [base], AT),
                 status: shadow ? "Shadow" : "Draft",
               };
-              const check = canApprove(draft, { regressions: [] }, { name: alias, role: approverRole }, { reason: "ok" });
+              const check = canApprove(draft, { regressions: [] }, { name: alias, role: approverRole }, { reason: "ok" }, { trialRuns: 1 });
               expect(check.allowed).toBe(false);
               expect(check.blockers.some((b) => b.startsWith("Separation of duties"))).toBe(true);
             }),

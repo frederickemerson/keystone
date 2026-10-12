@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, ArrowRightCircle, ShieldAlert, Ban, AlertTriangle } from "lucide-react";
-import { useGovernanceStore } from "@/lib/governance/store";
+import { shadowKey, useGovernanceStore } from "@/lib/governance/store";
 import {
   currentApproved,
   diffVersions,
@@ -43,6 +43,8 @@ export function PillApprovalCard({
 }) {
   const approveVersion = useGovernanceStore((s) => s.approveVersion);
   const promoteToShadow = useGovernanceStore((s) => s.promoteToShadow);
+  // The same count the store's approveVersion passes to canApprove.
+  const trialRuns = useGovernanceStore((s) => (s.shadowRuns[shadowKey(bundle.id, version.version)] ?? []).length);
 
   const captureView = useCaptureView();
   const captureActions = useCaptureActions();
@@ -61,7 +63,7 @@ export function PillApprovalCard({
   const candidateSummary = runEvals(candidatePill, cases);
 
   const evalReport = { regressions: comparison.regressions };
-  const approvalContext = { liveApprovedVersion: approved?.version };
+  const approvalContext = { liveApprovedVersion: approved?.version, trialRuns };
   const check = approvalCheck({ version, evalReport, context: approvalContext }, currentActor);
   // Same policy the store enforces (promoteToShadow refuses + audits otherwise).
   const promotion = shadowPromotionAuthority(version, currentActor);

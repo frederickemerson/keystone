@@ -7,7 +7,8 @@ import { markApproved, promoteToShadow, proposeVersion, rollback, seedVersion, t
 import { AOM, CE, HTS, PILL_ID, TECH, pill } from "./fixtures";
 
 /** canApprove for a version with one trial run on record (the no-trial gate is tested in trial.test.ts). */
-const canApproveTrialled = (...[v, report, actor, override]: Parameters<typeof canApprove>) =>
+type ApproveArgs = Parameters<typeof canApprove>;
+const canApproveTrialled = (v: ApproveArgs[0], report: ApproveArgs[1], actor: ApproveArgs[2], override?: ApproveArgs[3]) =>
   canApprove(v, report, actor, override, { trialRuns: 1 });
 
 const AT = "2026-10-11T08:00:00.000Z";

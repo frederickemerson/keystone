@@ -102,7 +102,7 @@ describe("extraction output → draft candidates", () => {
     // …the live version is untouched…
     expect(s().versions[PILL_ID].find((v) => v.status === "Approved")).toEqual(approvedBefore);
     // …and its author can never approve it (no role a model could claim is the author's approver).
-    expect(canApprove(draft, { regressions: [] }, { name: "Tan Wei Ming", role: "head_technical_services" }).allowed).toBe(false);
+    expect(canApprove(draft, { regressions: [] }, { name: "Tan Wei Ming", role: "head_technical_services" }, undefined, { trialRuns: 1 }).allowed).toBe(false);
     expect(s().approveVersion(PILL_ID, draft.version, { regressions: [] }).allowed).toBe(false);
 
     // The engine only ever runs approved rules, which are byte-identical to the pill files.
