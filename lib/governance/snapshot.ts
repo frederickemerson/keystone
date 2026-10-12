@@ -55,6 +55,7 @@ const pillVersionSchema = z.object({
       author: actorSchema,
     })
     .optional(),
+  correction: z.object({ incidentId: z.string().min(1), ruleId: z.string().min(1) }).optional(),
 });
 
 const auditEventSchema = z.object({
@@ -238,6 +239,14 @@ function violation(data: PersistedGovernanceData): string | null {
       }
       if (!hasEvent([v.capture ? "draft_from_note_proposed" : "version_proposed"], { pillId, pillVersion: v.version })) {
         return `${pillId}: v${v.version} has no proposal audit event`;
+      }
+      if (v.correction) {
+        const { incidentId, ruleId } = v.correction;
+        if (v.capture || v.rollbackOf !== undefined) return `${pillId}: v${v.version} claims a correction it cannot be`;
+        if (!v.rules.some((r) => r.id === ruleId)) return `${pillId}: v${v.version} corrects unknown rule ${ruleId}`;
+        if (!hasEvent(["version_proposed"], { pillId, pillVersion: v.version, incidentId, ruleId })) {
+          return `${pillId}: v${v.version} correction has no matching audit event`;
+        }
       }
       if (v.capture) {
         const problem = captureVersionViolation(data, v, hasEvent);

@@ -2,9 +2,9 @@
 // No React, no store — everything here is a function of its inputs so the
 // screen's numbers can be reasoned about (and probed) without rendering.
 
-import { evaluate, type EvalCase, type EvalSummary, type Pill } from "@/lib/engine";
+import type { EvalCase, EvalSummary } from "@/lib/engine";
 import type { ComparisonResult, EvalCaseResult, EvalField, EvalValue } from "@/lib/engine";
-import { makeShadowRun, type ApprovalBlocker, type ApprovalBlockerCode, type ShadowRun } from "@/lib/governance/approval";
+import type { ApprovalBlocker, ApprovalBlockerCode } from "@/lib/governance/approval";
 import { roleLabel } from "@/lib/governance/access";
 import type { IncidentRecord } from "@/lib/data/schemas";
 import type { DiffItem } from "@/components/mosaic/types";
@@ -258,27 +258,6 @@ export function fieldAssertion(
 }
 
 // ---------------------------------------------------------------------------
-// Step 5 — shadow mode
-// ---------------------------------------------------------------------------
-
-/**
- * Replay every closed incident (the pill's eval cases are past incidents) through
- * the approved and the shadow version, side by side.
- */
-export function simulateShadowRuns(
-  approved: Pill,
-  shadow: Pill,
-  cases: readonly EvalCase[],
-  at: string = new Date().toISOString(),
-): ShadowRun[] {
-  return cases.map((c) => {
-    const onApproved = evaluate(approved, c.asset, c.incident, c.evidence).actions;
-    const onShadow = evaluate(shadow, c.asset, c.incident, c.evidence).actions;
-    return makeShadowRun(c.id, onApproved, onShadow, at);
-  });
-}
-
-// ---------------------------------------------------------------------------
 // Roles + plain-English governance
 // ---------------------------------------------------------------------------
 
@@ -301,6 +280,7 @@ const NEXT_STEP: Partial<Record<ApprovalBlockerCode, (approverRole: string) => s
   shadow_promoter_cannot_approve: (r) => `Hand over to ${roleDisplayName(r)} to approve.`,
   not_authorised: (r) => `Hand over to ${roleDisplayName(r)}.`,
   not_shadowed: () => 'Promote it in step 5 first.',
+  no_trial_runs: () => 'Propose it again so a new trial run is recorded when it enters Shadow.',
   regressions: () => 'Record the reason below and use “Override & approve”.',
   no_eval_report: () => 'Replay the evals in step 4 first.',
 };

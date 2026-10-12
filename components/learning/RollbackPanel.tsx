@@ -4,7 +4,7 @@
 // a reason is mandatory and history is append-only — the version being rolled
 // back is marked Retired and a new Approved version restores the old rules.
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { History, Undo2 } from 'lucide-react';
 import { SectionHeader } from '@/components/mosaic';
 
@@ -14,12 +14,15 @@ export function RollbackPanel({
   canRollback,
   disabledReason,
   rolledBack,
+  handoff,
   onRollback,
 }: {
   baseVersion: string;
   approvedVersion: string | null;
   canRollback: boolean;
   disabledReason?: string;
+  /** Hand-off to someone the rollback check allows. */
+  handoff?: ReactNode;
   /** The stored rollback of this change, if it happened. */
   rolledBack: { restored: string; as: string; by: string; reason: string } | null;
   onRollback: (reason: string) => void;
@@ -65,6 +68,7 @@ export function RollbackPanel({
             </div>
 
             {disabledReason ? <p className="text-xs text-ink-muted">{disabledReason}</p> : null}
+            {handoff}
 
             <button
               type="button"

@@ -8,7 +8,15 @@
 import { useEffect, useMemo } from 'react';
 import { KpiStat } from '@/components/mosaic';
 import { useMounted } from '@/components/mosaic/useMounted';
-import { runEvals, type Pill } from '@/lib/engine';
+import type { Pill } from '@/lib/engine';
+import {
+  addScores,
+  EMPTY_SCORE,
+  formatChecks,
+  formatIncidents,
+  pastIncidentScore,
+  PAST_INCIDENTS_LABEL,
+} from '@/lib/governance/evalScore';
 import { useGovernanceStore } from '@/lib/governance/store';
 import { currentApproved, pillAtVersion } from '@/lib/governance/versions';
 
@@ -26,44 +34,43 @@ function useSeededPills(pills: readonly PulsePill[]): void {
 }
 
 /**
- * "Pills approved" and "Replay agreement" for the governed (live approved)
- * version of each pill: every eval case of the pill replayed through that
- * version's rules, counted in asserted fields ("x of y").
+ * "Pills approved" and "Past incidents passed" for the governed (live approved)
+ * version of each pill: every past incident (eval case) replayed through that
+ * version's rules, counted and worded by lib/governance/evalScore, the one
+ * score every screen shows. Before mount (and on the server) the file pills
+ * are the seed, so both renders agree.
  */
 export function LiveGovernanceKpis({
   pills,
-  initial,
 }: {
   pills: readonly PulsePill[];
-  /** Server values from the pill files (identical to the seeded store). */
-  initial: { approved: number; agreement: { passed: number; total: number } };
+  /** Ignored: the score is computed here from `pills` (kept so the Pulse page compiles unchanged). */
+  initial?: unknown;
 }) {
   useSeededPills(pills);
   const mounted = useMounted();
   const versions = useGovernanceStore((s) => s.versions);
 
   const live = useMemo(() => {
-    if (!mounted) return initial;
     let approved = 0;
-    let passed = 0;
-    let total = 0;
+    let score = EMPTY_SCORE;
     for (const { id, pill } of pills) {
-      const history = versions[id];
-      // Not seeded yet (first effect pending): the file pill is the seed.
+      const history = mounted ? versions[id] : undefined;
+      // Not seeded yet (server render, first effect pending): the file pill is the seed.
       const v = history ? currentApproved(history) : undefined;
-      if (history && !v) continue;
+      if (history ? !v : pill.manifest.status !== 'approved') continue;
       approved += 1;
-      const summary = runEvals(v ? pillAtVersion(pill, v) : pill, Object.values(pill.evals));
-      passed += summary.passed;
-      total += summary.passed + summary.failed;
+      score = addScores(score, pastIncidentScore(v ? pillAtVersion(pill, v) : pill));
     }
-    return { approved, agreement: { passed, total } };
-  }, [mounted, initial, pills, versions]);
+    return { approved, score };
+  }, [mounted, pills, versions]);
 
   return (
     <>
       <KpiStat label="Pills approved" value={live.approved} />
-      <KpiStat label="Replay agreement" value={`${live.agreement.passed} of ${live.agreement.total}`} />
+      <div title={formatChecks(live.score)}>
+        <KpiStat label={PAST_INCIDENTS_LABEL} value={formatIncidents(live.score)} />
+      </div>
     </>
   );
 }

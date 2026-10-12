@@ -1,6 +1,6 @@
 'use client';
 
-// Step 3 — version diff v1.2.0 → v1.3.0, rendered as human-readable lines
+// Step 3 — version diff (base → the correction), rendered as human-readable lines
 // ("TS-02 deadline_minutes 15 → 10") through the shared DiffView.
 
 import { FileDiff } from 'lucide-react';

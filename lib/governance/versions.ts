@@ -39,6 +39,18 @@ export interface PillVersion {
    * gate (lib/capture peerGate) on `ruleId`.
    */
   capture?: CaptureProvenance;
+  /**
+   * Set when this version is an expert correction made in the Learning loop
+   * after an incident (store: proposeVersion with a correction). It is how
+   * Learning finds its own change, whatever version number it was given.
+   */
+  correction?: CorrectionProvenance;
+}
+
+/** The incident whose outcome a correction answers, and the rule it corrects. */
+export interface CorrectionProvenance {
+  incidentId: string;
+  ruleId: string;
 }
 
 /** Where a capture-derived version's new rule came from: the note, the verbatim quote and who said it. */
@@ -104,18 +116,18 @@ export function liveVersion(history: readonly PillVersion[]): PillVersion | unde
   return currentApproved(history) ?? [...history].sort((a, b) => compareSemver(b.version, a.version))[0];
 }
 
-/**
- * The change a pill's learning loop is about, read from the history alone:
- * the version in review (Draft / Shadow) if there is one, else the most
- * recent proposal (whatever became of it: Approved, or Retired by a later
- * approval or a rollback). Never the seed baseline or a rollback version.
- */
-export function latestProposal(history: readonly PillVersion[]): PillVersion | undefined {
-  const newestFirst = [...history].sort((a, b) => compareSemver(b.version, a.version));
-  return (
-    newestFirst.find((v) => v.status === "Draft" || v.status === "Shadow") ??
-    newestFirst.find((v) => v.parentVersion !== null && v.rollbackOf === undefined)
-  );
+/** The version currently in review (Draft or Shadow), whatever it came from. */
+export function inReview(history: readonly PillVersion[]): PillVersion | undefined {
+  return [...history]
+    .sort((a, b) => compareSemver(b.version, a.version))
+    .find((v) => v.status === "Draft" || v.status === "Shadow");
+}
+
+/** The newest expert correction proposed for `incidentId` (Learning's own change), if any. */
+export function correctionFor(history: readonly PillVersion[], incidentId: string): PillVersion | undefined {
+  return [...history]
+    .sort((a, b) => compareSemver(b.version, a.version))
+    .find((v) => v.correction?.incidentId === incidentId);
 }
 
 /** The rollback version that retired `version` while it was live, if any. */

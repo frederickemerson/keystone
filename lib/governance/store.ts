@@ -55,17 +55,20 @@ import {
 } from "./access";
 import { appendAudit, EMPTY_AUDIT_LOG, type AuditAction, type AuditInput, type AuditLog } from "./audit";
 import { parseGovernanceSnapshot } from "./snapshot";
+import { replayTrial } from "./trial";
 import {
   currentApproved,
   EmptyProposalError,
   findVersion,
   markApproved,
+  pillAtVersion,
   promoteToShadow,
   proposeVersion as proposePure,
   rollback as rollbackPure,
   seedVersion,
   type Actor,
   type CaptureProvenance,
+  type CorrectionProvenance,
   type PillVersion,
   type RuleChange,
 } from "./versions";
@@ -204,8 +207,17 @@ export interface GovernanceActions {
   setRole: (role: string) => void;
   /** Seed any pill not already in the store (persisted edits survive reloads). */
   seedPills: (seeds: readonly PillSeed[]) => void;
-  /** Throws GovernanceError (after auditing the refusal) when the changes leave the rules identical. */
-  proposeVersion: (pillId: string, baseVersion: string, changes: readonly RuleChange[], reason: string) => PillVersion;
+  /**
+   * Throws GovernanceError (after auditing the refusal) when the changes leave the rules identical.
+   * `correction` marks the version as Learning's expert correction of an incident's outcome.
+   */
+  proposeVersion: (
+    pillId: string,
+    baseVersion: string,
+    changes: readonly RuleChange[],
+    reason: string,
+    correction?: CorrectionProvenance,
+  ) => PillVersion;
   /** Throws GovernanceError (after auditing the refusal) when the acting role lacks the pill-promotion grant. */
   promoteToShadow: (pillId: string, version: string) => void;
   recordShadowRun: (pillId: string, version: string, run: ShadowRun) => void;
@@ -412,6 +424,9 @@ export function createGovernanceStore(
         // Who may change each seeded pill: its SKILL.md RACI + access block
         // (from the pill files; not persisted, for the same reason).
         const policies = new Map<string, PillEditPolicy>();
+        // The seeded file pills (rules baseline + eval cases = past incidents),
+        // for the trial run on entering Shadow. Not persisted, for the same reason.
+        const filePills = new Map<string, Pill>();
         const editAuthority = (pillId: string) => {
           const policy = policies.get(pillId);
           if (!policy) return { allowed: false, reason: `Unknown pill ${pillId}` };
@@ -430,11 +445,16 @@ export function createGovernanceStore(
           reason: string,
           via?: string,
           fromNote?: CaptureProvenance,
+          correction?: CorrectionProvenance,
         ) => {
           const h = history(pillId);
           const base = findVersion(h, baseVersion);
           if (!base) throw new Error(`Unknown version ${pillId}@${baseVersion}`);
-          const refs = fromNote ? { noteId: fromNote.noteId, ruleId: fromNote.ruleId } : {};
+          const refs = fromNote
+            ? { noteId: fromNote.noteId, ruleId: fromNote.ruleId }
+            : correction
+              ? { incidentId: correction.incidentId, ruleId: correction.ruleId }
+              : {};
           const refuse = (why: string): never => {
             log({
               ...actorFields(),
@@ -462,6 +482,7 @@ export function createGovernanceStore(
             return refuse((err as Error).message);
           }
           if (fromNote) proposed = { ...proposed, capture: fromNote };
+          if (correction) proposed = { ...proposed, correction: { incidentId: correction.incidentId, ruleId: correction.ruleId } };
           set((s) => ({ versions: { ...s.versions, [pillId]: [...h, proposed] } }));
           log({
             ...actorFields(),
@@ -500,6 +521,7 @@ export function createGovernanceStore(
           seedPills: (seeds) => {
             for (const s of seeds) {
               catalogs.set(s.id, s.pill.evidenceCatalog);
+              filePills.set(s.id, s.pill);
               const m = s.pill.manifest;
               policies.set(s.id, { owner: m.owner, steward: m.steward, approver: m.approver, access: m.access });
             }
@@ -550,7 +572,8 @@ export function createGovernanceStore(
             }
           },
 
-          proposeVersion: (pillId, baseVersion, changes, reason) => propose(pillId, baseVersion, changes, reason),
+          proposeVersion: (pillId, baseVersion, changes, reason, correction) =>
+            propose(pillId, baseVersion, changes, reason, undefined, undefined, correction),
 
           promoteToShadow: (pillId, version) => {
             const h = history(pillId);
@@ -581,9 +604,33 @@ export function createGovernanceStore(
                 throw new GovernanceError(why);
               }
             }
+            // Entering Shadow IS the trial run: the version is replayed beside
+            // the live approved version over every past incident (eval case).
+            // No past incidents means nothing to trial on, so no Shadow.
+            const filePill = filePills.get(pillId);
+            const cases = filePill ? Object.values(filePill.evals) : [];
+            const live = currentApproved(h);
+            if (authority.allowed && (!filePill || !live || cases.length === 0)) {
+              const why = `v${version} cannot enter Shadow: ${pillId} has no past incidents to trial it on`;
+              log({ ...actorFields(), action: "version_shadow_blocked", pillId, pillVersion: version, detail: why });
+              throw new GovernanceError(why);
+            }
             const next = promoteToShadow(h, version, get().currentActor, now());
-            set((s) => ({ versions: { ...s.versions, [pillId]: next } }));
-            log({ ...actorFields(), action: "version_shadowed", pillId, pillVersion: version, detail: `v${version} entered Shadow mode` });
+            const runs =
+              filePill && live ? replayTrial(pillAtVersion(filePill, live), pillAtVersion(filePill, target), cases, now()) : [];
+            const agree = runs.filter((r) => r.agree).length;
+            const key = shadowKey(pillId, version);
+            set((s) => ({
+              versions: { ...s.versions, [pillId]: next },
+              shadowRuns: { ...s.shadowRuns, [key]: [...(s.shadowRuns[key] ?? []), ...runs] },
+            }));
+            log({
+              ...actorFields(),
+              action: "version_shadowed",
+              pillId,
+              pillVersion: version,
+              detail: `v${version} entered Shadow: trial run over ${runs.length} past incident${runs.length === 1 ? "" : "s"} against v${live?.version ?? "?"}, ${agree} agree`,
+            });
           },
 
           recordShadowRun: (pillId, version, run) => {
@@ -604,7 +651,10 @@ export function createGovernanceStore(
             const target = h ? findVersion(h, version) : undefined;
             const actor = get().currentActor;
             const check: ApprovalCheck = target
-              ? canApprove(target, evalReport, actor, override, { liveApprovedVersion: currentApproved(h)?.version })
+              ? canApprove(target, evalReport, actor, override, {
+                  liveApprovedVersion: currentApproved(h)?.version,
+                  trialRuns: (get().shadowRuns[shadowKey(pillId, version)] ?? []).length,
+                })
               : {
                   allowed: false,
                   blockers: [`Unknown version ${pillId}@${version}`],

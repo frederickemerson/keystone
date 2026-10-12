@@ -6,6 +6,10 @@ import { personaFor } from "../access";
 import { markApproved, promoteToShadow, proposeVersion, rollback, seedVersion, type Actor, type PillVersion } from "../versions";
 import { AOM, CE, HTS, PILL_ID, TECH, pill } from "./fixtures";
 
+/** canApprove for a version with one trial run on record (the no-trial gate is tested in trial.test.ts). */
+const canApproveTrialled = (...[v, report, actor, override]: Parameters<typeof canApprove>) =>
+  canApprove(v, report, actor, override, { trialRuns: 1 });
+
 const AT = "2026-10-11T08:00:00.000Z";
 const CLEAN = { regressions: [] as Regression[] };
 const REGRESSED = {
@@ -32,12 +36,12 @@ function shadowed(author: Actor = CE, promoter: Actor = AOM): PillVersion {
 
 describe("canApprove — three different people", () => {
   it("allows a third person (the pill approver) on a clean eval report", () => {
-    const check = canApprove(shadowed(CE, AOM), CLEAN, HTS);
+    const check = canApproveTrialled(shadowed(CE, AOM), CLEAN, HTS);
     expect(check).toMatchObject({ allowed: true, blockers: [], reasons: [], regressions: 0, overridden: false });
   });
 
   it("a Draft cannot be approved: it must run in Shadow first", () => {
-    const check = canApprove(draft(), CLEAN, HTS);
+    const check = canApproveTrialled(draft(), CLEAN, HTS);
     expect(check.allowed).toBe(false);
     expect(check.reasons.map((r) => r.code)).toEqual(["not_shadowed"]);
     expect(check.blockers[0]).toBe("v1.3.0 is still a Draft. It must run in Shadow before anyone can approve it");
@@ -45,22 +49,22 @@ describe("canApprove — three different people", () => {
 
   it("the author cannot approve their own version", () => {
     const v = shadowed(HTS, AOM);
-    const check = canApprove(v, CLEAN, HTS);
+    const check = canApproveTrialled(v, CLEAN, HTS);
     expect(check.allowed).toBe(false);
     expect(check.reasons.map((r) => r.code)).toEqual(["author_cannot_approve"]);
     expect(check.blockers[0]).toBe("Separation of duties: Goh Boon Kheng wrote v1.3.0, so someone else must approve it");
-    expect(canApprove(v, REGRESSED, HTS, { reason: "accept" }).allowed).toBe(false);
+    expect(canApproveTrialled(v, REGRESSED, HTS, { reason: "accept" }).allowed).toBe(false);
   });
 
   it("the person who promoted the version to Shadow cannot approve it", () => {
-    const check = canApprove(shadowed(CE, AOM), CLEAN, AOM);
+    const check = canApproveTrialled(shadowed(CE, AOM), CLEAN, AOM);
     expect(check.allowed).toBe(false);
     expect(check.reasons.map((r) => r.code)).toEqual(["shadow_promoter_cannot_approve"]);
     expect(check.blockers[0]).toBe("Separation of duties: Priya Nair put v1.3.0 into Shadow, so someone else must approve it");
   });
 
   it("a role granted pill promotion may approve when it neither wrote nor shadowed the version", () => {
-    expect(canApprove(shadowed(CE, HTS), CLEAN, AOM).allowed).toBe(true);
+    expect(canApproveTrialled(shadowed(CE, HTS), CLEAN, AOM).allowed).toBe(true);
   });
 
   it("property: an approval is only ever allowed for three distinct identities", () => {
@@ -69,7 +73,7 @@ describe("canApprove — three different people", () => {
     fc.assert(
       fc.property(pick, pick, pick, (author, promoter, approver) => {
         const v = { ...draft(author), status: "Shadow" as const, shadowedBy: promoter, shadowedAt: AT };
-        const check = canApprove(v, CLEAN, approver);
+        const check = canApproveTrialled(v, CLEAN, approver);
         if (check.allowed) {
           expect(new Set([author.name, promoter.name, approver.name]).size).toBe(3);
         }
@@ -79,31 +83,31 @@ describe("canApprove — three different people", () => {
   });
 
   it("rejects roles without approval authority", () => {
-    const check = canApprove(shadowed(), CLEAN, TECH);
+    const check = canApproveTrialled(shadowed(), CLEAN, TECH);
     expect(check.allowed).toBe(false);
     expect(check.reasons.map((r) => r.code)).toContain("not_authorised");
   });
 
   it("eval regressions block approval", () => {
-    const check = canApprove(shadowed(CE, HTS), REGRESSED, AOM);
+    const check = canApproveTrialled(shadowed(CE, HTS), REGRESSED, AOM);
     expect(check.allowed).toBe(false);
     expect(check.regressions).toBe(1);
     expect(check.reasons.map((r) => r.code)).toEqual(["regressions"]);
   });
 
   it("only head_technical_services can override regressions, and only with a reason", () => {
-    expect(canApprove(shadowed(CE, HTS), REGRESSED, AOM, { reason: "accept" }).allowed).toBe(false);
+    expect(canApproveTrialled(shadowed(CE, HTS), REGRESSED, AOM, { reason: "accept" }).allowed).toBe(false);
     const v = shadowed(CE, AOM);
-    expect(canApprove(v, REGRESSED, HTS).allowed).toBe(false);
-    expect(canApprove(v, REGRESSED, HTS, { reason: "   " }).allowed).toBe(false);
-    const ok = canApprove(v, REGRESSED, HTS, { reason: "Regression is the intended correction" });
+    expect(canApproveTrialled(v, REGRESSED, HTS).allowed).toBe(false);
+    expect(canApproveTrialled(v, REGRESSED, HTS, { reason: "   " }).allowed).toBe(false);
+    const ok = canApproveTrialled(v, REGRESSED, HTS, { reason: "Regression is the intended correction" });
     expect(ok).toMatchObject({ allowed: true, overridden: true, regressions: 1 });
   });
 
   it("requires an eval report and a version in review", () => {
-    expect(canApprove(shadowed(), null, HTS).allowed).toBe(false);
+    expect(canApproveTrialled(shadowed(), null, HTS).allowed).toBe(false);
     const approved = { ...shadowed(), status: "Approved" as const };
-    expect(canApprove(approved, CLEAN, HTS).reasons.map((r) => r.code)).toEqual(["not_in_review"]);
+    expect(canApproveTrialled(approved, CLEAN, HTS).reasons.map((r) => r.code)).toEqual(["not_in_review"]);
   });
 });
 
