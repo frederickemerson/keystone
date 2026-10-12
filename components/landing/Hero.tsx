@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, Ban, Check, GitBranch, Mic, Play, ShieldCheck, Users } from 'lucide-react';
 import closeoutNote from '@/data/fixtures/capture/closeout-chw-r2.json';
 import { personaFor, roleLabel } from '@/lib/governance/access';
-import { LandingHeader, INCIDENT_ROOM_HREF } from './LandingHeader';
+import { LandingHeader, GUIDED_DEMO_HREF, INCIDENT_ROOM_HREF } from './LandingHeader';
 import type { HeroFacts } from './data';
 import styles from './landing.module.css';
 
@@ -78,19 +78,19 @@ export function Hero({ facts }: { facts: HeroFacts }) {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
-              href={INCIDENT_ROOM_HREF}
+              href={GUIDED_DEMO_HREF}
               className="group inline-flex min-h-12 items-center gap-2 rounded-full bg-[#15121f] py-1.5 pl-6 pr-1.5 text-[15px] font-medium text-white shadow-lg ring-1 ring-white/10 transition-colors hover:bg-black focus-visible:outline-offset-4 focus-visible:outline-white"
             >
-              Open the incident room
+              Start the guided demo
               <span className="grid size-9 place-items-center rounded-full bg-[#8b7cf6] transition-transform group-hover:translate-x-0.5">
                 <ArrowRight className="size-4" aria-hidden="true" />
               </span>
             </Link>
             <Link
-              href="/capture"
+              href={INCIDENT_ROOM_HREF}
               className="inline-flex min-h-12 items-center rounded-full border border-white/30 bg-white/10 px-6 text-[15px] font-medium text-white backdrop-blur-md transition-colors hover:bg-white/20 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
-              Hear the onboarding call
+              Open the incident room
             </Link>
           </div>
         </div>

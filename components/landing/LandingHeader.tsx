@@ -3,6 +3,8 @@ import { ArrowRight } from 'lucide-react';
 import { BrandLogo } from '@/components/shell/BrandMark';
 
 export const INCIDENT_ROOM_HREF = '/incident/INC-2026-1011?step=10';
+/** Sign-in leads with the guided demo (8 steps, one persona each). */
+export const GUIDED_DEMO_HREF = '/sign-in';
 
 const SECTIONS = [
   { href: '#problem-title', label: 'The problem' },
@@ -41,7 +43,7 @@ export function LandingHeader() {
           Sign in
         </Link>
         <Link
-          href={INCIDENT_ROOM_HREF}
+          href={GUIDED_DEMO_HREF}
           className="inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-white/90 px-4 text-[14px] font-medium text-[#1d1a2b] shadow-sm transition-colors hover:bg-white focus-visible:outline-offset-4 focus-visible:outline-white max-[380px]:px-3"
         >
           Try the demo <ArrowRight className="size-3.5" aria-hidden="true" />
