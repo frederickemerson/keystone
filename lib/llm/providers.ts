@@ -88,6 +88,18 @@ function selectChain(): Selection {
   return { chain: [], reason: 'Invalid MOSAIC_LLM_PROVIDER; showing the recorded fixture.' };
 }
 
+/**
+ * Display label for the provider a live call will try first, in the badge's
+ * "<model> via <Provider>" wording (e.g. "hy4-preview via CodeBuddy",
+ * "gpt-… via OpenAI"), or null when only recorded output is possible. Uses the
+ * same selection as generateJson, so pages never re-derive env logic. The
+ * post-call badge still names whichever provider actually answered.
+ */
+export function expectedLiveProvider(): string | null {
+  const first = selectChain().chain[0];
+  return first ? `${modelFor(first)} via ${PROVIDER_NAMES[first]}` : null;
+}
+
 function firstJsonObject(text: string): unknown {
   if (text.length > 128_000) throw new Error('invalid-json');
   const start = text.indexOf('{');

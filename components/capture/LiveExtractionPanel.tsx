@@ -9,12 +9,9 @@ import type { CaptureProps } from './types';
 
 const WAIT_S = LLM_CLIENT_WAIT_MS / 1000;
 
-type Props = Pick<CaptureProps, 'transcript' | 'rules'> & {
-  /** Display name of the configured live provider, if the page knows it (e.g. "OpenAI"). */
-  liveProviderName?: string;
-};
+type Props = Pick<CaptureProps, 'transcript' | 'rules' | 'liveProvider'>;
 
-export function LiveExtractionPanel({ transcript, rules, liveProviderName = 'the live model' }: Props) {
+export function LiveExtractionPanel({ transcript, rules, liveProvider }: Props) {
   const [result, setResult] = useState<Generation<CandidateParse> | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -59,16 +56,21 @@ export function LiveExtractionPanel({ transcript, rules, liveProviderName = 'the
   return (
     <section className="space-y-3 rounded-xl border border-line bg-surface px-4 py-3" aria-label="Optional live extraction" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" className="btn-pill text-xs" disabled={loading} onClick={extract}>
-          {loading ? `Drafting with ${liveProviderName}…` : 'Re-extract live'}
+        <button
+          type="button" className="btn-pill text-xs" disabled={loading} onClick={extract}
+          title={liveProvider ? `Tries ${liveProvider} first; falls back to the recorded output.` : 'No live provider is configured; shows the recorded output.'}
+        >
+          {liveProvider
+            ? (loading ? `Drafting with ${liveProvider}…` : 'Re-extract live')
+            : (loading ? 'Loading recorded draft…' : 'Show recorded draft')}
         </button>
         <span role="status" className="text-xs text-ink-muted">
           {loading
-            ? <span className="tabular-nums">{elapsed} s of {WAIT_S} s, then the recorded output</span>
+            ? (liveProvider ? <span className="tabular-nums">{elapsed} s of {WAIT_S} s, then the recorded output</span> : 'Loading recorded output')
             : <LlmBadge result={result} />}
         </span>
         {result ? <button type="button" className="btn-pill text-xs" onClick={() => setResult(null)}>Dismiss preview</button> : null}
-        <p className="text-xs text-ink-muted">Optional · up to four live candidates · the recorded call below is unchanged</p>
+        <p className="text-xs text-ink-muted">{liveProvider ? 'Optional · up to four live candidates' : 'No live provider configured'} · the recorded call below is unchanged</p>
       </div>
       {result ? (
         <div className="space-y-3">

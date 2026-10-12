@@ -176,7 +176,7 @@ function evaluateAll(pills: readonly ApprovedPill[], scenario: IncidentScenario,
 // Room
 // ---------------------------------------------------------------------------
 
-export function IncidentRoom({ primary, overlay, pills, initialStep = 0, sessionActor = null }: IncidentRoomProps) {
+export function IncidentRoom({ primary, liveProvider, overlay, pills, initialStep = 0, sessionActor = null }: IncidentRoomProps) {
   const mounted = useMounted();
 
   // Governance store (persisted). Before mount, render the seed state so the
@@ -826,6 +826,7 @@ export function IncidentRoom({ primary, overlay, pills, initialStep = 0, session
             <h2 className="mb-2 text-[19px] font-semibold leading-tight">Tenant message</h2>
             <TenantMessagePanel
               key={incidentId}
+              liveProvider={liveProvider}
               fixture={scenario.tenantMessage}
               role={role}
               replayAt={currentEvent?.at ?? null}

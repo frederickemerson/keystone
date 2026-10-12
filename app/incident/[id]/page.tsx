@@ -14,6 +14,7 @@ import {
 } from '@/lib/data';
 import { loadAllPills } from '@/lib/pills/load';
 import { getSession } from '@/lib/auth/session';
+import { expectedLiveProvider } from '@/lib/llm/providers';
 import { UNRESOLVED_ROLE } from '@/lib/governance/access';
 import { scopeAsset, scopeIncident, scopeTenantMessageFixture, scopeTimeline } from '@/lib/governance/scope';
 
@@ -119,6 +120,7 @@ export default async function IncidentPage({
   return (
     <IncidentRoom
       primary={primary}
+      liveProvider={expectedLiveProvider()}
       overlay={overlayFor(primary, incidents, assets, role)}
       pills={pills}
       initialStep={parseStep(step)}

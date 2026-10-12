@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import extraction from '@/data/fixtures/llm/extraction.json';
 import { draftExtractionSchema, extractionWireSchema } from '../candidates';
-import { BUDGET_MS, generateJson, type GenerateOptions } from '../providers';
+import { BUDGET_MS, expectedLiveProvider, generateJson, type GenerateOptions } from '../providers';
 import { generationLabel, LLM_CLIENT_WAIT_MS } from '../attribution';
 import sample from './fixtures/openai-extract-sample.json';
 
@@ -113,6 +113,28 @@ describe('provider selection and no-spawn recorded mode', () => {
     vi.stubEnv('MOSAIC_LLM_PROVIDER', 'typo');
     expect((await generate()).source).toBe('recorded');
     expect(mocks.query).not.toHaveBeenCalled();
+  });
+});
+
+describe('expectedLiveProvider (button label before the call)', () => {
+  it('is null when only recorded output is possible', () => {
+    expect(expectedLiveProvider()).toBeNull();
+    vi.stubEnv('MOSAIC_LLM_PROVIDER', 'fixtures');
+    vi.stubEnv('OPENAI_API_KEY', 'openai-key');
+    expect(expectedLiveProvider()).toBeNull();
+    vi.stubEnv('MOSAIC_LLM_PROVIDER', 'codebuddy');
+    expect(expectedLiveProvider()).toBeNull();
+  });
+  it('names the first provider generateJson would try, in badge wording', async () => {
+    vi.stubEnv('OPENAI_API_KEY', 'openai-key');
+    vi.stubEnv('OPENAI_MODEL', 'gpt-test');
+    expect(expectedLiveProvider()).toBe('gpt-test via OpenAI');
+    vi.stubEnv('CODEBUDDY_API_KEY', 'test-key');
+    expect(expectedLiveProvider()).toBe('hy4-preview via CodeBuddy');
+    expect((await generate()).provider).toBe('codebuddy');
+    vi.stubEnv('MOSAIC_LLM_PROVIDER', 'openai');
+    expect(expectedLiveProvider()).toBe('gpt-test via OpenAI');
+    expect(mocks.query).toHaveBeenCalledTimes(1);
   });
 });
 

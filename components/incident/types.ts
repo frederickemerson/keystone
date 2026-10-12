@@ -47,6 +47,11 @@ export type RoomPill = Pick<PillBundle, 'id' | 'domain' | 'name' | 'pill'>;
 
 export interface IncidentRoomProps {
   primary: IncidentScenario;
+  /**
+   * Provider a live LLM call will try first (server `expectedLiveProvider()`),
+   * or null when only recorded output is possible.
+   */
+  liveProvider: string | null;
   /** Same pills on a different asset profile (Wow 3), when one exists. */
   overlay: IncidentScenario | null;
   pills: RoomPill[];

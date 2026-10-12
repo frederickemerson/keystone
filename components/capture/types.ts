@@ -22,4 +22,9 @@ export interface CaptureProps {
   pillId: string;
   /** Human-readable pill name for the end summary. */
   pillName: string;
+  /**
+   * Provider a live call will try first (server `expectedLiveProvider()`), or
+   * null when only recorded output is possible.
+   */
+  liveProvider: string | null;
 }

@@ -19,13 +19,16 @@ function humanize(slug: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** Same wording as the registry detail's "Equipment classes (Brick)" row. */
+export function equipmentClassesLabel(count: number): string {
+  return `${count} equipment class${count === 1 ? '' : 'es'} (Brick)`;
+}
+
 export function PillCard({ data, className }: { data: PillCardData; className?: string }) {
   const evalTotal = data.evalPass.total || 0;
   const evalPct = evalTotal > 0 ? Math.round((data.evalPass.pass / evalTotal) * 100) : 0;
-  const assets =
-    typeof data.assetsCovered === 'number'
-      ? `${data.assetsCovered} asset${data.assetsCovered === 1 ? '' : 's'}`
-      : data.assetsCovered.join(', ');
+  const classes = data.equipmentClasses;
+  const classList = classes.join(', ');
   const status = STATUS[data.status];
   const StatusIcon = status.icon;
 
@@ -81,12 +84,10 @@ export function PillCard({ data, className }: { data: PillCardData; className?: 
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
         <span>
           Covers{' '}
-          <span className="font-medium tabular-nums text-ink" title={typeof data.assetsCovered === 'number' ? undefined : assets}>
-            {typeof data.assetsCovered === 'number'
-              ? assets
-              : `${data.assetsCovered.length} asset class${data.assetsCovered.length === 1 ? '' : 'es'}`}
+          <span className="font-medium tabular-nums text-ink" title={classList || undefined}>
+            {equipmentClassesLabel(classes.length)}
           </span>
-          {typeof data.assetsCovered === 'number' ? null : <span className="sr-only">: {assets}</span>}
+          {classes.length ? <span className="sr-only">: {classList}</span> : null}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <CalendarClock className="size-3.5" aria-hidden="true" />

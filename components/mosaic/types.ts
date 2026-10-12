@@ -61,8 +61,8 @@ export interface PillCardData {
   owner: string;
   steward: string;
   approver: string;
-  /** Either a list of asset ids/names or a count. */
-  assetsCovered: string[] | number;
+  /** Brick equipment classes covered by the version's rules (registry-utils assetRefsFor). */
+  equipmentClasses: string[];
   evalPass: { pass: number; total: number };
   shadowAgreements: number;
   pendingCorrections: number;

@@ -9,6 +9,10 @@ import type { Rule as EngineRule } from '@/lib/engine/types';
 import { toDraftCandidates } from '@/lib/llm/candidates';
 import { ExpertCallClient } from '@/components/capture/ExpertCallClient';
 import { pillTitle } from '@/components/mosaic/pillTitle';
+import { expectedLiveProvider } from '@/lib/llm/providers';
+
+// Provider availability (env / local CLI login) is read per request, not baked in at build time.
+export const dynamic = 'force-dynamic';
 
 const INTERVIEW_ID = 'ce-interview-2026-10-02';
 const PILL_ID = 'technical-services-chilled-water-leak';
@@ -51,6 +55,7 @@ export default function CapturePage() {
       contradiction={contradiction}
       pillId={PILL_ID}
       pillName={pill ? pillTitle(pill) : PILL_ID}
+      liveProvider={expectedLiveProvider()}
     />
   );
 }

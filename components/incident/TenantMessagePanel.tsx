@@ -144,7 +144,7 @@ export function TenantMessagePanel({
   records,
   onDecide,
   noDraftReason,
-  liveProviderName = 'the live model',
+  liveProvider,
 }: {
   fixture: TenantMessageFixture | null;
   role: string;
@@ -153,8 +153,8 @@ export function TenantMessagePanel({
   records: Record<string, ActionDecisionRecord>;
   onDecide: (draft: Draft, outcome: ActionOutcome) => void;
   noDraftReason: string;
-  /** Display name of the configured live provider, if the page knows it (e.g. "OpenAI"). */
-  liveProviderName?: string;
+  /** Provider a live call will try first (server `expectedLiveProvider()`), or null when only recorded output is possible. */
+  liveProvider: string | null;
 }) {
   const [generation, setGeneration] = useState<Generation<{ draft: Draft; snapshotAt: string }> | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -207,16 +207,17 @@ export function TenantMessagePanel({
       }
     }
   }
+  const drafting = liveProvider ? `Drafting with ${liveProvider}…` : 'Loading recorded draft…';
   if (!fixture || fixture.drafts.length === 0) {
     return <p className="rounded-lg border border-dashed border-line px-3 py-4 text-xs text-ink-muted">{noDraftReason}</p>;
   }
   return (
     <div className="space-y-3" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" className="btn-pill text-xs" disabled={loading || !mayDraft} onClick={draftLive} title={mayDraft ? 'Optional live drafting; nothing is sent.' : 'Switch to a role permitted to draft tenant messages.'}>
-          {loading ? `Drafting with ${liveProviderName}…` : 'Draft live'}
+        <button type="button" className="btn-pill text-xs" disabled={loading || !mayDraft} onClick={draftLive} title={!mayDraft ? 'Switch to a role permitted to draft tenant messages.' : liveProvider ? `Optional live drafting; tries ${liveProvider} first. Nothing is sent.` : 'No live provider is configured; shows the recorded draft. Nothing is sent.'}>
+          {loading ? drafting : liveProvider ? 'Draft live' : 'Show recorded draft'}
         </button>
-        {loading ? (
+        {loading && liveProvider ? (
           <span className="text-xs tabular-nums text-ink-muted">
             {elapsed} s of {WAIT_S} s, then the recorded output
           </span>
@@ -228,7 +229,7 @@ export function TenantMessagePanel({
         Snapshot at <span className="font-mono tabular-nums">{formatClock(fixture.generated_at)}</span> · reviewed sentences only
         <span className="sr-only">. Live drafting selects and arranges reviewed factual sentences; no new cause or completion promise.</span>
       </p>
-      <span className="sr-only" role="status">{loading ? `Drafting with ${liveProviderName}…` : generation ? `${generation.source === 'live' ? 'Live' : 'Recorded'} draft ready for human review` : 'Recorded output'}</span>
+      <span className="sr-only" role="status">{loading ? drafting : generation ? `${generation.source === 'live' ? 'Live' : 'Recorded'} draft ready for human review` : 'Recorded output'}</span>
       {(generation ? [generation.data.draft] : fixture.drafts).map((d) => (
         <DraftCard
           key={d.draft_id}

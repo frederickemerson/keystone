@@ -75,7 +75,7 @@ export function ExpertCallClient(props: CaptureProps) {
         title="Expert onboarding call"
         subtitle="Rule candidates appear as the expert speaks, each linked to its transcript span."
       />
-      <LiveExtractionPanel transcript={transcript} rules={rules} />
+      <LiveExtractionPanel transcript={transcript} rules={rules} liveProvider={props.liveProvider} />
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <CallPanel
           playback={playback}

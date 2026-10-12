@@ -68,7 +68,7 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
         owner: personaFor(bundle.pill.manifest.owner).name,
         steward: personaFor(bundle.pill.manifest.steward).name,
         approver: personaFor(bundle.pill.manifest.approver).name,
-        assetsCovered: assets,
+        equipmentClasses: assets,
         evalPass,
         shadowAgreements: sk.agreements,
         pendingCorrections,
