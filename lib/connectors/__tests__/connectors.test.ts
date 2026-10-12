@@ -9,6 +9,7 @@ import { loadAllPills } from '@/lib/pills/load';
 import { connectorsFileSchema, type Connector } from '../contract';
 import { CONNECTORS, connectorForSource, groupConnectors, sourceLabel } from '../registry';
 import { resolveStatus, resolveStatuses, type AiConfigProbe } from '../ai-status';
+import { evidenceUses } from '../evidence-uses';
 
 const raw: unknown = JSON.parse(readFileSync(path.join(process.cwd(), 'data', 'connectors.json'), 'utf8'));
 const pills = loadAllPills();
@@ -184,6 +185,18 @@ describe('AI service status', () => {
       expect(readAiConfig().jevConfigured).toBe(true);
     } finally {
       vi.unstubAllEnvs();
+    }
+  });
+});
+
+describe('evidence uses', () => {
+  it('links each key to the rules that read it, marking gating use', () => {
+    const uses = evidenceUses(pills);
+    expect((uses.lew_signoff ?? []).some((u) => u.ruleId === 'TS-07' && u.gating)).toBe(true);
+    for (const id of TELEMETRY_IDS) {
+      for (const key of byId(id).evidenceKeys) {
+        expect((uses[key] ?? []).every((u) => !u.gating), `${id}: ${key}`).toBe(true);
+      }
     }
   });
 });
