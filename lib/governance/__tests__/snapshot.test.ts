@@ -22,7 +22,19 @@ function populated() {
   const s = () => store.getState();
   s().seedPills([{ id: PILL_ID, pill: pill() }]);
   s().setRole("chief_engineer");
+  s().recordOutcome({
+    incidentId: "INC-2026-1011",
+    pillId: PILL_ID,
+    timeToIsolateMinutes: 7,
+    tenantImpact: "none",
+    costSgd: 100,
+    causeConfirmed: "joint",
+    notes: "",
+  });
+  s().reviewRule({ pillId: PILL_ID, ruleId: "TS-01", outcome: "edited", decision: "Isolate first" });
   s().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], "fix");
+  s().setRole("asset_operations_manager");
+  s().promoteToShadow(PILL_ID, "1.3.0");
   s().setRole("head_technical_services");
   s().approveVersion(PILL_ID, "1.3.0", { regressions: [] });
   s().decideAction({ incidentId: "INC-2026-1011", ruleId: "TS-07", outcome: "escalated" });
@@ -112,6 +124,39 @@ const TAMPERS: Record<string, Tamper> = {
     r.state.decisions["INC-9"] = {
       "TS-07": { ...r.state.decisions["INC-2026-1011"]["TS-07"], incidentId: "INC-9" },
     };
+    return r;
+  },
+  "approved version that never ran in Shadow": (r) => {
+    const v = r.state.versions[PILL_ID][1];
+    delete v.shadowedBy;
+    delete v.shadowedAt;
+    return r;
+  },
+  "approved by the person who put it into Shadow": (r) => {
+    const v = r.state.versions[PILL_ID][1];
+    v.shadowedBy = { ...v.approvedBy };
+    return r;
+  },
+  "put into Shadow by its own author": (r) => {
+    const v = r.state.versions[PILL_ID][1];
+    v.shadowedBy = { ...v.createdBy };
+    return r;
+  },
+  "outcome with no audit event": (r) => {
+    r.state.outcomes["INC-9"] = { ...r.state.outcomes["INC-2026-1011"], incidentId: "INC-9" };
+    return r;
+  },
+  "outcome with a negative cost": (r) => {
+    r.state.outcomes["INC-2026-1011"].costSgd = -1;
+    return r;
+  },
+  "rule review with no audit event": (r) => {
+    const key = `${PILL_ID}@1.2.0`;
+    r.state.ruleReviews[key]["TS-02"] = { ...r.state.ruleReviews[key]["TS-01"], ruleId: "TS-02" };
+    return r;
+  },
+  "rule review re-attributed to someone else": (r) => {
+    r.state.ruleReviews[`${PILL_ID}@1.2.0`]["TS-01"].actor = personaFor("executive");
     return r;
   },
   "prototype pollution keys": (r) => JSON.parse(JSON.stringify(r).replace('"decisions":{', '"decisions":{"__proto__":{"polluted":true},')),

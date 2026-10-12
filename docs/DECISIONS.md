@@ -71,6 +71,19 @@ Operations Manager". The steward then promotes the version, replays it in
 Shadow and approves it in step 6. She is not the author, so separation of
 duties holds. The role switch is audited too.
 
+**Amended (12 Oct 2026): three different people.** The author, the person who
+puts a version into Shadow, and the approver must be three different people,
+and the code enforces it: `shadowPromotionAuthority` refuses the author;
+`canApprove` approves only Shadow versions and refuses both the author and
+the Shadow promoter (recorded as `shadowedBy` on the version); a rollback is
+refused to the author or Shadow promoter of the version it retires or
+restores (`rollbackAuthority`). Every refusal is audited, and the snapshot
+validator rejects stored state that breaks the rule. The steward therefore no
+longer approves the version she shadowed. Demo flow: Tan Wei Ming (Chief
+Engineer) proposes; Priya Nair (Asset Operations Manager) promotes to Shadow
+and replays it; Goh Boon Kheng (Head of Technical Services) approves, and
+later rolls back.
+
 ## D3 — Empty proposals are refused
 
 **Decision.** `proposeVersion` refuses a proposal that leaves the rules

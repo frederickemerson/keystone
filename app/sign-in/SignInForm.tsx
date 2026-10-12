@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ArrowRight, Check } from 'lucide-react';
 import type { PersonaOption } from '@/lib/auth/personas';
 import { cn } from '@/lib/ui/cn';
@@ -18,7 +17,6 @@ export function SignInForm({
   /** The public default passcode, shown only when no passcode is configured. */
   passcodeHint: string | null;
 }) {
-  const router = useRouter();
   const [role, setRole] = useState<string | null>(preselected);
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -44,8 +42,15 @@ export function SignInForm({
         setBusy(false);
         return;
       }
-      router.replace(body.next ?? '/pulse');
-      router.refresh();
+      // A full document navigation, not router.replace(): the session cookie
+      // changes what every server component renders, so the client router
+      // cache built while signed out is wrong for every route. In particular a
+      // <Link> prefetched before sign-in (e.g. the landing page's "Hear the
+      // onboarding call" → /capture) holds the middleware's redirect back to
+      // /sign-in?next=/capture, and a soft navigation replays that stale
+      // redirect onto the current URL, leaving this form on "Signing in…".
+      // `busy` stays true until the page unloads.
+      window.location.assign(body.next ?? '/pulse');
     } catch {
       setError('Sign-in failed. Check your connection and try again.');
       setBusy(false);

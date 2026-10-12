@@ -53,6 +53,8 @@ function dataOf(store: GovernanceStore): GovernanceData {
     decisions: s.decisions,
     shadowRuns: s.shadowRuns,
     evidenceConfirmations: s.evidenceConfirmations,
+    outcomes: s.outcomes,
+    ruleReviews: s.ruleReviews,
   };
 }
 
@@ -120,6 +122,8 @@ const commandArb: fc.Arbitrary<Command> = fc.oneof(
 const APPROVED_PREFIX: Command[] = [
   { op: "setRole", role: "chief_engineer" },
   { op: "propose", base: "1.2.0", deadline: 10, reason: "fix" },
+  { op: "setRole", role: "asset_operations_manager" },
+  { op: "promote", version: "1.3.0" },
   { op: "setRole", role: "head_technical_services" },
   { op: "approve", version: "1.3.0", regressed: false, override: null },
 ];
@@ -203,7 +207,11 @@ function assertInvariants(store: GovernanceStore): void {
   // Nobody approved their own (non-rollback) version; every approved version has an approver.
   for (const v of history.slice(1)) {
     if (v.status === "Approved" || v.status === "Retired") expect(v.approvedBy).toBeDefined();
-    if (v.approvedBy && v.rollbackOf === undefined) expect(sameIdentity(v.approvedBy.name, v.createdBy.name)).toBe(false);
+    if (v.approvedBy && v.rollbackOf === undefined) {
+      // Three different people: author, Shadow promoter, approver.
+      expect(v.shadowedBy).toBeDefined();
+      expect(new Set([v.createdBy.name, v.shadowedBy!.name, v.approvedBy.name].map(identityKey)).size).toBe(3);
+    }
   }
   // Whatever the store publishes, its own snapshot validator accepts.
   const parsed = parseGovernanceSnapshot(JSON.parse(JSON.stringify(data)));
@@ -246,7 +254,7 @@ describe("governance store under random action sequences", () => {
     }
   });
 
-  it("an approval succeeds only for an authorised, non-author human on a Draft/Shadow version from the live base — and a regression override only for the pill's approver with a non-blank reason", () => {
+  it("an approval succeeds only for an authorised human who neither wrote nor shadowed a Shadow version from the live base — and a regression override only for the pill's approver with a non-blank reason", () => {
     fc.assert(
       fc.property(sequenceArb, (commands) => {
         const store = freshStore();
@@ -258,8 +266,9 @@ describe("governance store under random action sequences", () => {
           if (c.op !== "approve" || result !== "ok") continue;
           const actor = before.currentActor;
           expect(target).toBeDefined();
-          expect(["Draft", "Shadow"]).toContain(target!.status);
+          expect(target!.status).toBe("Shadow");
           expect(sameIdentity(actor.name, target!.createdBy.name)).toBe(false);
+          expect(sameIdentity(actor.name, target!.shadowedBy!.name)).toBe(false);
           expect(target!.parentVersion).toBe(live?.version);
           if (c.regressed) {
             expect(actor.role).toBe(target!.approverRole);
@@ -388,6 +397,9 @@ describe("separation of duties", () => {
     const s = () => store.getState();
     s().setRole("head_technical_services");
     s().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 9 } }], "self-serve");
+    s().setRole("asset_operations_manager");
+    s().promoteToShadow(PILL_ID, "1.3.0");
+    s().setRole("head_technical_services");
     // Same role → same human → blocked.
     expect(s().approveVersion(PILL_ID, "1.3.0", { regressions: [] }).allowed).toBe(false);
     // Another authorised role is another human (the demo's role switch models a hand-off).
@@ -404,16 +416,22 @@ describe("separation of duties", () => {
 // ---------------------------------------------------------------------------
 
 describe("version state machine", () => {
-  function withDraft() {
+  /** 1.3.0 proposed by the Chief Engineer; with `shadow`, the steward puts it into Shadow. */
+  function withDraft(shadow = false) {
     const store = freshStore();
     const s = () => store.getState();
     s().setRole("chief_engineer");
     s().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], "fix");
+    if (shadow) {
+      s().setRole("asset_operations_manager");
+      s().promoteToShadow(PILL_ID, "1.3.0");
+      s().setRole("chief_engineer");
+    }
     return { store, s };
   }
 
   it("approving an Approved, Retired or non-existent version is rejected and audited", () => {
-    const { s } = withDraft();
+    const { s } = withDraft(true);
     s().setRole("head_technical_services");
     for (const v of ["1.2.0", "7.7.7", "", "../../etc/passwd"]) {
       const n = s().audit.length;
@@ -445,7 +463,7 @@ describe("version state machine", () => {
   });
 
   it("a double rollback does not mint a duplicate version", () => {
-    const { s } = withDraft();
+    const { s } = withDraft(true);
     s().setRole("head_technical_services");
     expect(s().approveVersion(PILL_ID, "1.3.0", { regressions: [] }).allowed).toBe(true);
     const restored = s().rollback(PILL_ID, "1.2.0", "regression in prod");
@@ -460,7 +478,7 @@ describe("version state machine", () => {
   });
 
   it("a regression override needs a non-blank reason AND the pill's approver role", () => {
-    const { s } = withDraft();
+    const { s } = withDraft(true);
     const regressed = { regressions: [REGRESSION] };
     // Asset Operations Manager may promote, but is not this pill's approver → cannot override.
     s().setRole("asset_operations_manager");
@@ -477,6 +495,9 @@ describe("version state machine", () => {
   it("a stale draft (proposed from a since-retired base) cannot be approved over the live version", () => {
     const { s } = withDraft(); // 1.3.0 from 1.2.0
     s().proposeVersion(PILL_ID, "1.2.0", [{ op: "update", ruleId: "TS-02", patch: { deadline_minutes: 5 } }], "other fix"); // 1.4.0 from 1.2.0
+    s().setRole("asset_operations_manager");
+    s().promoteToShadow(PILL_ID, "1.3.0");
+    s().promoteToShadow(PILL_ID, "1.4.0");
     s().setRole("head_technical_services");
     expect(s().approveVersion(PILL_ID, "1.4.0", { regressions: [] }).allowed).toBe(true);
     const stale = s().approveVersion(PILL_ID, "1.3.0", { regressions: [] });

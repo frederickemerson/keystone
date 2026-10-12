@@ -21,6 +21,9 @@ export interface PillVersion {
   rules: Rule[];
   createdBy: Actor;
   createdAt: string;
+  /** Who put this version into Shadow (never its author, never its approver). */
+  shadowedBy?: Actor;
+  shadowedAt?: string;
   approvedBy?: Actor;
   approvedAt?: string;
   reason: string;
@@ -79,6 +82,25 @@ export function currentApproved(history: readonly PillVersion[]): PillVersion | 
  */
 export function liveVersion(history: readonly PillVersion[]): PillVersion | undefined {
   return currentApproved(history) ?? [...history].sort((a, b) => compareSemver(b.version, a.version))[0];
+}
+
+/**
+ * The change a pill's learning loop is about, read from the history alone:
+ * the version in review (Draft / Shadow) if there is one, else the most
+ * recent proposal (whatever became of it: Approved, or Retired by a later
+ * approval or a rollback). Never the seed baseline or a rollback version.
+ */
+export function latestProposal(history: readonly PillVersion[]): PillVersion | undefined {
+  const newestFirst = [...history].sort((a, b) => compareSemver(b.version, a.version));
+  return (
+    newestFirst.find((v) => v.status === "Draft" || v.status === "Shadow") ??
+    newestFirst.find((v) => v.parentVersion !== null && v.rollbackOf === undefined)
+  );
+}
+
+/** The rollback version that retired `version` while it was live, if any. */
+export function rollbackFrom(history: readonly PillVersion[], version: string): PillVersion | undefined {
+  return history.find((v) => v.rollbackOf !== undefined && v.parentVersion === version);
 }
 
 // ---------------------------------------------------------------------------
@@ -216,15 +238,23 @@ export function proposeVersion(
   };
 }
 
-/** Draft → Shadow (runs silently alongside the approved version). */
+/**
+ * Draft → Shadow (replayed beside the approved version). Records who promoted
+ * it: separation of duties (approval.ts) keeps that person from approving it.
+ * Authority lives in approval.ts — call shadowPromotionAuthority() first.
+ */
 export function promoteToShadow(
   history: readonly PillVersion[],
   version: string,
+  promoter: Actor,
+  at: string = new Date().toISOString(),
 ): PillVersion[] {
   const target = findVersion(history, version);
   if (!target) throw new Error(`Unknown version ${version}`);
   if (target.status !== "Draft") throw new Error(`Only Draft versions enter Shadow (v${version} is ${target.status})`);
-  return history.map((v) => (v.version === version ? { ...v, status: "Shadow" } : v));
+  return history.map((v) =>
+    v.version === version ? { ...v, status: "Shadow", shadowedBy: promoter, shadowedAt: at } : v,
+  );
 }
 
 /**
@@ -240,8 +270,8 @@ export function markApproved(
 ): PillVersion[] {
   const target = findVersion(history, version);
   if (!target) throw new Error(`Unknown version ${version}`);
-  if (target.status !== "Draft" && target.status !== "Shadow") {
-    throw new Error(`Only Draft or Shadow versions can be approved (v${version} is ${target.status})`);
+  if (target.status !== "Shadow") {
+    throw new Error(`Only Shadow versions can be approved (v${version} is ${target.status})`);
   }
   return history.map((v) => {
     if (v.version === version) return { ...v, status: "Approved", approvedBy: approver, approvedAt: at };

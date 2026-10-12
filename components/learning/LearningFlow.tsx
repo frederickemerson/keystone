@@ -1,30 +1,39 @@
 'use client';
 
 // Outcome & Learning (SPEC §1 step 3 — "how does it get smarter after
-// deployment?"). One page, seven numbered steps, all state through the
-// governance store so every action lands in the append-only audit log.
+// deployment?"). One page, seven numbered steps.
 //
 //   1 outcome capture → 2 expert correction → 3 diff → 4 eval replay
 //   → 5 shadow → 6 approve → 7 rollback
+//
+// Every step reads the shared governance store, never page-local state: the
+// confirmed outcome, the change in flight (latestProposal), who shadowed and
+// approved it, and whether it was rolled back are all in the persisted,
+// audited store. A reload, a role switch or navigating away and back resumes
+// at the same step. Local state holds only unsaved form drafts.
 
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Lock } from 'lucide-react';
-import { PageHeader, RomanList, SectionHeader, type RomanListItem } from '@/components/mosaic';
+import { PageHeader, RomanList, type RomanListItem } from '@/components/mosaic';
+import { useMounted } from '@/components/mosaic/useMounted';
 import { compareVersions, type EvalCase } from '@/lib/engine';
-import { canApprove, shadowPromotionAuthority, type ApprovalCheck } from '@/lib/governance/approval';
-import { hasCapability, personaLabel } from '@/lib/governance/access';
 import {
-  shadowKey,
-  useGovernanceStore,
-  type PillSeed,
-} from '@/lib/governance/store';
+  canApprove,
+  rollbackAuthority,
+  shadowPromotionAuthority,
+  type ApprovalCheck,
+} from '@/lib/governance/approval';
+import { hasCapability, personaFor, personaLabel, sameIdentity } from '@/lib/governance/access';
+import { shadowKey, useGovernanceStore, type PillSeed } from '@/lib/governance/store';
 import {
   bumpMinor,
   currentApproved,
   diffVersions,
   findVersion,
+  latestProposal,
   nextMinorVersion,
   pillAtVersion,
+  rollbackFrom,
   type PillVersion,
 } from '@/lib/governance/versions';
 import type { PillBundle } from '@/lib/pills/load';
@@ -52,6 +61,8 @@ import {
   type CorrectionDraft,
   type OutcomeDraft,
 } from './learning-utils';
+
+const EMPTY_HISTORY: readonly PillVersion[] = [];
 
 const STEP_IDS = ['learn-step-1', 'learn-step-2', 'learn-step-3', 'learn-step-4', 'learn-step-5', 'learn-step-6', 'learn-step-7'] as const;
 
@@ -123,6 +134,17 @@ function LearningStepsNav({ steps }: { steps: StepState[] }) {
   );
 }
 
+
+function outcomeFields(o: OutcomeDraft): OutcomeDraft {
+  return {
+    timeToIsolateMinutes: o.timeToIsolateMinutes,
+    tenantImpact: o.tenantImpact,
+    costSgd: o.costSgd,
+    causeConfirmed: o.causeConfirmed,
+    notes: o.notes,
+  };
+}
+
 export function LearningFlow({
   bundle,
   incident,
@@ -130,6 +152,7 @@ export function LearningFlow({
   bundle: PillBundle;
   incident: IncidentRecord | null;
 }) {
+  const mounted = useMounted();
   const seedPills = useGovernanceStore((s) => s.seedPills);
   const switchUser = useSwitchUser();
   const proposeVersion = useGovernanceStore((s) => s.proposeVersion);
@@ -137,111 +160,139 @@ export function LearningFlow({
   const recordShadowRun = useGovernanceStore((s) => s.recordShadowRun);
   const approveVersion = useGovernanceStore((s) => s.approveVersion);
   const rollback = useGovernanceStore((s) => s.rollback);
+  const recordOutcome = useGovernanceStore((s) => s.recordOutcome);
 
   const currentActor = useGovernanceStore((s) => s.currentActor);
-  const history = useGovernanceStore((s) => s.versions[bundle.id]);
-  const audit = useGovernanceStore((s) => s.audit);
+  const storedHistory = useGovernanceStore((s) => s.versions[bundle.id]);
+  const storedAudit = useGovernanceStore((s) => s.audit);
   const shadowRuns = useGovernanceStore((s) => s.shadowRuns);
+  const storedOutcome = useGovernanceStore((s) => (incident ? s.outcomes[incident.id] : undefined));
 
   // Seed this pill into the governance store. The acting identity is the
   // signed-in user (step 2 is typically the Chief Engineer's correction); step 5
-  // (Shadow) needs the pill-promotion grant, so it offers a switch-user hand-off
-  // to the steward when the signed-in user does not hold it.
+  // (Shadow) and step 6 (Approve) each need a different person, so they offer a
+  // switch-user hand-off when the signed-in user may not act.
   useEffect(() => {
     const seed: PillSeed = { id: bundle.id, pill: bundle.pill };
     seedPills([seed]);
   }, [bundle, seedPills]);
 
-  const [outcome, setOutcome] = useState<OutcomeDraft>(() => defaultOutcome(incident));
-  const [outcomeSaved, setOutcomeSaved] = useState(false);
+  // The persisted store is read only after mount, so the server HTML and the
+  // first client render agree.
+  const versions = (mounted && storedHistory) || EMPTY_HISTORY;
+  const audit = mounted ? storedAudit : [];
+  const outcomeRecord = mounted ? storedOutcome : undefined;
+
+  // Unsaved form drafts are the only page-local state.
+  const [outcomeDraft, setOutcomeDraft] = useState<OutcomeDraft>(() => defaultOutcome(incident));
+  const [editingOutcome, setEditingOutcome] = useState(false);
   const [correction, setCorrection] = useState<CorrectionDraft>(() => ({
     ruleId: bundle.pill.rules.find((r) => r.id === 'TS-02')?.id ?? bundle.pill.rules[0]?.id ?? '',
-    verdict: 'wrong_for_asset',
+    verdict: 'incomplete',
     after: 10,
     reason:
       'Branch-before-riser isolation must be decided in 10 minutes, not 15. At 15 minutes the team went to the riser valve and took out L17–L19. If tenant access is not granted in 10 minutes, isolate at the riser.',
   }));
-  const [proposalVersion, setProposalVersion] = useState<string | null>(null);
-  const [rolledBack, setRolledBack] = useState(false);
+  const [composing, setComposing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const versions = history ?? [];
+  // -------------------------------------------------------------------------
+  // Everything below is derived from the store
+  // -------------------------------------------------------------------------
+
   const approved = currentApproved(versions);
-  const target = proposalVersion ? findVersion(versions, proposalVersion) : undefined;
-  const baseVersion = target?.parentVersion ?? approved?.version ?? bundle.pill.manifest.version;
-  const base = findVersion(versions, baseVersion) ?? approved;
+  const target = latestProposal(versions);
+  const rolledBackAs = target ? rollbackFrom(versions, target.version) : undefined;
+  const pending = target && (target.status === 'Draft' || target.status === 'Shadow') ? target : undefined;
+  // Diff, evals and shadow compare the change against the version it came from.
+  const base = target?.parentVersion ? findVersion(versions, target.parentVersion) : approved;
+  const baseVersion = base?.version ?? bundle.pill.manifest.version;
+  const outcomeSaved = Boolean(outcomeRecord) && !editingOutcome;
 
   const cases = useMemo<EvalCase[]>(() => Object.values(bundle.pill.evals), [bundle.pill.evals]);
-  const liveRules = base?.rules ?? bundle.pill.rules;
+  // A new correction is proposed from what is live now.
+  const liveRules = approved?.rules ?? bundle.pill.rules;
+  const liveVersion = approved?.version ?? bundle.pill.manifest.version;
 
-  const basePill = useMemo(
-    () => (base ? pillAtVersion(bundle.pill, base) : bundle.pill),
-    [base, bundle.pill],
-  );
-  const targetPill = useMemo(
-    () => (target ? pillAtVersion(bundle.pill, target) : null),
-    [target, bundle.pill],
-  );
+  const basePill = useMemo(() => (base ? pillAtVersion(bundle.pill, base) : bundle.pill), [base, bundle.pill]);
+  const targetPill = useMemo(() => (target ? pillAtVersion(bundle.pill, target) : null), [target, bundle.pill]);
 
   const comparison = useMemo(
     () => (targetPill ? compareVersions(basePill, targetPill, cases) : null),
     [basePill, targetPill, cases],
   );
-  const matrixRows = useMemo(
-    () => (comparison ? buildEvalMatrix(cases, comparison) : []),
-    [comparison, cases],
-  );
-
-  const diff = useMemo(
-    () => (base && target ? diffVersions(base, target) : null),
-    [base, target],
-  );
+  const matrixRows = useMemo(() => (comparison ? buildEvalMatrix(cases, comparison) : []), [comparison, cases]);
+  const diff = useMemo(() => (base && target ? diffVersions(base, target) : null), [base, target]);
 
   const correctionCaseId = useMemo(() => findCorrectionCaseId(cases), [cases]);
   // The correction's field-level result comes straight from the engine
   // (compareVersions asserts status *and* deadline_minutes per case).
+  // The rule the stored change actually touched (from the versions' rules, not the form).
+  const changedRuleId =
+    (base &&
+      target?.rules.find(
+        (r) => JSON.stringify(r) !== JSON.stringify(base.rules.find((b) => b.id === r.id)),
+      )?.id) ??
+    correction.ruleId;
   const assertion = useMemo(
     () =>
       comparison && correctionCaseId
-        ? fieldAssertion(comparison, correctionCaseId, correction.ruleId, CORRECTION_FIELD)
+        ? fieldAssertion(comparison, correctionCaseId, changedRuleId, CORRECTION_FIELD)
         : null,
-    [comparison, correctionCaseId, correction.ruleId],
+    [comparison, correctionCaseId, changedRuleId],
   );
 
-  const runs = target ? shadowRuns[shadowKey(bundle.id, target.version)] ?? [] : [];
-  const nextVersion = versions.length
-    ? nextMinorVersion(versions)
-    : bumpMinor(bundle.pill.manifest.version);
+  const runs = target ? (shadowRuns[shadowKey(bundle.id, target.version)] ?? []) : [];
+  const nextVersion = versions.length ? nextMinorVersion(versions) : bumpMinor(bundle.pill.manifest.version);
 
-  // A Draft or Shadow version is already in flight; proposing another would
-  // fork the history, so the propose button is disabled with an explanation.
-  const pending = versions.find((v) => v.status === 'Draft' || v.status === 'Shadow');
+  // One version in review at a time; proposing another would fork the history.
   const proposeDisabledReason = pending
     ? pending.status === 'Draft'
       ? `Draft v${pending.version} is already awaiting promotion — run it through Shadow and approve it before proposing another version.`
       : `Shadow v${pending.version} is already awaiting approval — approve it in step 6 before proposing another version.`
     : undefined;
 
-  const canRollback =
-    hasCapability(currentActor.role, 'rollback_pill') || currentActor.role === base?.approverRole;
-  const evalReport = comparison ? { regressions: comparison.regressions } : null;
-  const check: ApprovalCheck | null = target
-    ? canApprove(target, evalReport, currentActor, undefined, { liveApprovedVersion: approved?.version })
-    : null;
-  // Shadow is the first step of promotion: the store refuses (and audits) it
-  // for roles without the pill-promotion grant, so the button follows the same
-  // policy and offers the hand-off to the pill's steward (or its approver).
+  // Step 5 — Shadow: the store's policy (grant + not the author).
   const promotion = target ? shadowPromotionAuthority(target, currentActor) : null;
+  const holdsPromotionGrant = Boolean(
+    target && (currentActor.role === target.approverRole || hasCapability(currentActor.role, 'promote_pill_version')),
+  );
+  const notAuthorOf = (role: string, v: PillVersion | undefined) =>
+    !v || !sameIdentity(personaFor(role).name, v.createdBy.name);
   const promoterRole = [bundle.pill.manifest.steward, bundle.pill.manifest.approver].find(
-    (r) => r === target?.approverRole || hasCapability(r, 'promote_pill_version'),
+    (r) => (r === target?.approverRole || hasCapability(r, 'promote_pill_version')) && notAuthorOf(r, target),
   );
   const promoteBlockedReason =
     target && target.status === 'Draft' && promotion && !promotion.allowed
-      ? `${roleDisplayName(currentActor.role)} has no pill-promotion grant — Shadow is started by ${roleDisplayName(promoterRole ?? target.approverRole)}.`
+      ? holdsPromotionGrant
+        ? `${promotion.reason}.`
+        : `${roleDisplayName(currentActor.role)} has no pill-promotion grant — Shadow is started by ${roleDisplayName(promoterRole ?? target.approverRole)}.`
       : undefined;
-  const canOverride = Boolean(
-    target && check && check.regressions > 0 && currentActor.role === target.approverRole,
+
+  // Step 6 — Approve: the store's gate (Shadow only; neither author nor Shadow promoter).
+  const evalReport = comparison ? { regressions: comparison.regressions } : null;
+  const check: ApprovalCheck | null =
+    pending ? canApprove(pending, evalReport, currentActor, undefined, { liveApprovedVersion: approved?.version }) : null;
+  const approverRole = target?.approverRole ?? bundle.pill.manifest.approver;
+  const approverIsIndependent =
+    target !== undefined &&
+    notAuthorOf(approverRole, target) &&
+    !(target.shadowedBy && sameIdentity(personaFor(approverRole).name, target.shadowedBy.name));
+  const needsHandOff = Boolean(
+    check?.reasons.some((r) =>
+      ['author_cannot_approve', 'shadow_promoter_cannot_approve', 'not_authorised'].includes(r.code),
+    ),
   );
+  const approveHandOff =
+    pending?.status === 'Shadow' && needsHandOff && approverIsIndependent && currentActor.role !== approverRole
+      ? { label: personaLabel(approverRole), onSwitch: () => void switchUser(approverRole) }
+      : undefined;
+  const canOverride = Boolean(target && check && check.regressions > 0 && currentActor.role === target.approverRole);
+
+  // Step 7 — Roll back: only while the change is live; grant + separation of duties.
+  const restoreVersion = target?.parentVersion ? findVersion(versions, target.parentVersion) : undefined;
+  const targetIsLive = Boolean(target && approved && target.version === approved.version);
+  const rollbackCheck = targetIsLive ? rollbackAuthority(restoreVersion, approved, currentActor) : null;
 
   // -------------------------------------------------------------------------
   // Step gating / progress
@@ -249,12 +300,12 @@ export function LearningFlow({
 
   const doneMap: Record<string, boolean> = {
     'learn-step-1': outcomeSaved,
-    'learn-step-2': Boolean(target),
+    'learn-step-2': Boolean(target) && !composing,
     'learn-step-3': Boolean(diff),
     'learn-step-4': Boolean(comparison),
-    'learn-step-5': Boolean(target && target.status !== 'Draft' && runs.length > 0),
-    'learn-step-6': Boolean(target && target.status === 'Approved'),
-    'learn-step-7': rolledBack,
+    'learn-step-5': Boolean(target?.shadowedBy && runs.length > 0),
+    'learn-step-6': Boolean(target?.approvedBy),
+    'learn-step-7': Boolean(rolledBackAs),
   };
   const blockedMap: Record<string, string> = {
     'learn-step-2': 'Confirm the outcome in step 1 first.',
@@ -263,10 +314,10 @@ export function LearningFlow({
     'learn-step-5': 'Propose the correction in step 2 first.',
     'learn-step-6': target
       ? target.status === 'Draft'
-        ? 'Promote v' + target.version + ' to Shadow in step 5 first.'
+        ? `Promote v${target.version} to Shadow in step 5 first.`
         : ''
       : 'Propose the correction in step 2 first.',
-    'learn-step-7': target && target.status === 'Approved' ? '' : 'Available once the new version is approved.',
+    'learn-step-7': target?.approvedBy ? '' : 'Available once the new version is approved.',
   };
 
   let activeIndex = STEP_IDS.findIndex((id) => !doneMap[id]);
@@ -281,20 +332,39 @@ export function LearningFlow({
   }));
 
   // -------------------------------------------------------------------------
-  // Actions
+  // Actions — each one goes through the audited store
   // -------------------------------------------------------------------------
 
+  function handleSaveOutcome() {
+    setError(null);
+    if (!incident) {
+      setError('No closed incident is loaded, so there is no outcome to record.');
+      return;
+    }
+    try {
+      recordOutcome({ ...outcomeFields(outcomeDraft), incidentId: incident.id, pillId: bundle.id });
+      setEditingOutcome(false);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  function handleEditOutcome() {
+    if (outcomeRecord) setOutcomeDraft(outcomeFields(outcomeRecord));
+    setEditingOutcome(true);
+  }
+
   function handlePropose() {
-    if (!base) return;
+    if (!approved) return;
     setError(null);
     try {
-      const proposed: PillVersion = proposeVersion(
+      proposeVersion(
         bundle.id,
-        base.version,
+        approved.version,
         [{ op: 'update', ruleId: correction.ruleId, patch: { deadline_minutes: correction.after } }],
         correctionReason(correction),
       );
-      setProposalVersion(proposed.version);
+      setComposing(false);
       goToStep('learn-step-3');
     } catch (err) {
       setError((err as Error).message);
@@ -332,16 +402,14 @@ export function LearningFlow({
   }
 
   function handleRollback(reason: string) {
+    if (!restoreVersion) return;
     setError(null);
     try {
-      rollback(bundle.id, baseVersion, reason);
-      setRolledBack(true);
+      rollback(bundle.id, restoreVersion.version, reason);
     } catch (err) {
       setError((err as Error).message);
     }
   }
-
-  const liveVersion = approved?.version ?? bundle.pill.manifest.version;
 
   return (
     <div className="mx-auto w-full max-w-[1200px] space-y-5">
@@ -361,11 +429,7 @@ export function LearningFlow({
         }
         meta={
           <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
-            {approved ? (
-              <VersionChip status={approved.status} version={approved.version} />
-            ) : (
-              <VersionChip status="Approved" version={liveVersion} />
-            )}
+            <VersionChip status="Approved" version={liveVersion} />
             <span>{bundle.pill.rules.length} rules</span>
             <span>·</span>
             <span>{cases.length} eval cases</span>
@@ -389,27 +453,34 @@ export function LearningFlow({
         <div className="min-w-0 space-y-8">
           <OutcomeForm
             incident={incident}
-            draft={outcome}
+            draft={outcomeSaved && outcomeRecord ? outcomeFields(outcomeRecord) : outcomeDraft}
             saved={outcomeSaved}
-            onChange={setOutcome}
-            onSave={() => setOutcomeSaved(true)}
-            onEdit={() => setOutcomeSaved(false)}
+            recordedBy={outcomeSaved && outcomeRecord ? outcomeRecord.actor.name : undefined}
+            onChange={setOutcomeDraft}
+            onSave={handleSaveOutcome}
+            onEdit={handleEditOutcome}
           />
 
           <CorrectionForm
             rules={liveRules}
-            baseVersion={baseVersion}
+            baseVersion={liveVersion}
             nextVersion={nextVersion}
             actor={currentActor}
             draft={correction}
-            before={
-              liveRules.find((r) => r.id === correction.ruleId)?.deadline_minutes ?? null
+            before={liveRules.find((r) => r.id === correction.ruleId)?.deadline_minutes ?? null}
+            disabledReason={outcomeSaved ? proposeDisabledReason : 'Confirm the outcome in step 1 first.'}
+            proposal={
+              target && !composing
+                ? {
+                    version: target.version,
+                    status: target.status,
+                    author: target.createdBy.name,
+                    reason: target.reason,
+                    changes: diff?.changes ?? [],
+                  }
+                : undefined
             }
-            disabledReason={
-              outcomeSaved
-                ? proposeDisabledReason
-                : 'Confirm the outcome in step 1 first.'
-            }
+            onNewCorrection={pending ? undefined : () => setComposing(true)}
             onChange={setCorrection}
             onPropose={handlePropose}
           />
@@ -439,7 +510,11 @@ export function LearningFlow({
               version={target}
               approvedVersion={approved?.version ?? null}
               canRun={target.status === 'Shadow'}
-              blockedReason={`Promote v${target.version} to Shadow first — a Draft version has not run anywhere yet.`}
+              blockedReason={
+                target.status === 'Draft'
+                  ? `Promote v${target.version} to Shadow first — a Draft version has not run anywhere yet.`
+                  : `v${target.version} is ${target.status}; shadow replays only run while a version is in Shadow.`
+              }
               promoteBlockedReason={promoteBlockedReason}
               switchRole={
                 promoteBlockedReason && promoterRole
@@ -455,39 +530,54 @@ export function LearningFlow({
             <LockedStep n={5} title="Run it in Shadow" reason={blockedMap['learn-step-5']} />
           )}
 
-          {target && check ? (
+          {target ? (
             <ApprovalPanel
               version={target}
               check={check}
               canOverride={canOverride}
-              disabledReason={
-                target.status === 'Approved'
-                  ? `v${target.version} is already approved.`
-                  : target.status === 'Draft'
-                    ? `Promote v${target.version} to Shadow in step 5 first.`
-                    : undefined
+              disabledReason={target.status === 'Draft' ? `Promote v${target.version} to Shadow in step 5 first.` : undefined}
+              record={
+                target.approvedBy
+                  ? {
+                      approvedBy: target.approvedBy.name,
+                      approvedAt: target.approvedAt ?? target.createdAt,
+                      liveVersion,
+                      rolledBackAs: rolledBackAs?.version,
+                      restored: rolledBackAs?.rollbackOf,
+                    }
+                  : undefined
               }
+              switchRole={approveHandOff}
               onApprove={handleApprove}
               onOverride={handleOverride}
             />
           ) : (
-            <LockedStep n={6} title="Steward approval" reason={blockedMap['learn-step-6']} />
+            <LockedStep n={6} title="Approval" reason={blockedMap['learn-step-6']} />
           )}
 
           <RollbackPanel
-            baseVersion={baseVersion}
+            baseVersion={restoreVersion?.version ?? baseVersion}
             approvedVersion={approved?.version ?? null}
-            canRollback={canRollback && Boolean(target) && target?.status === 'Approved'}
+            canRollback={Boolean(rollbackCheck?.allowed)}
             disabledReason={
               !target
                 ? 'Available once a new version is proposed and approved.'
-                : target.status !== 'Approved'
-                  ? `Approve v${target.version} in step 6 first — rollback restores what is live.`
-                  : canRollback
-                    ? undefined
-                    : `Only ${roleDisplayName(base?.approverRole ?? 'head_technical_services')} may roll back a pill version.`
+                : !targetIsLive
+                  ? `Approve v${target.version} in step 6 first — rollback restores what was live before it.`
+                  : rollbackCheck && !rollbackCheck.allowed
+                    ? `${rollbackCheck.reason}.`
+                    : undefined
             }
-            rolledBackTo={rolledBack ? baseVersion : null}
+            rolledBack={
+              rolledBackAs
+                ? {
+                    restored: rolledBackAs.rollbackOf ?? baseVersion,
+                    as: rolledBackAs.version,
+                    by: rolledBackAs.createdBy.name,
+                    reason: rolledBackAs.reason,
+                  }
+                : null
+            }
             onRollback={handleRollback}
           />
         </div>

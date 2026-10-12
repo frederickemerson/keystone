@@ -22,6 +22,10 @@ export const AUDIT_ACTIONS = [
   "action_decision_blocked",
   "evidence_confirmed",
   "evidence_confirmation_blocked",
+  "outcome_recorded",
+  "outcome_blocked",
+  "rule_reviewed",
+  "rule_review_blocked",
   "demo_reset",
   "snapshot_discarded",
 ] as const;

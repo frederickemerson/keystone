@@ -1,14 +1,13 @@
 "use client";
 
 import { Download, PackageCheck, History, ShieldAlert } from "lucide-react";
-import { useGovernanceStore, shadowKey, personaFor } from "@/lib/governance/store";
+import { useGovernanceStore, personaFor } from "@/lib/governance/store";
 import { currentApproved } from "@/lib/governance/versions";
-import { shadowSummary } from "@/lib/governance/approval";
 import { SectionHeader, EmptyState } from "@/components/mosaic";
 import type { PillBundle } from "@/lib/pills/load";
 import type { PillVersion, VersionStatus } from "@/lib/governance/versions";
 import { roleLabel } from "@/lib/governance/access";
-import { assetRefsFor, maxSensitivity, skillFrontmatter } from "./registry-utils";
+import { assetRefsFor, latestShadow, maxSensitivity, skillFrontmatter } from "./registry-utils";
 
 function plainList(items: readonly string[] | undefined): string {
   return items && items.length > 0 ? items.join(", ") : "—";
@@ -58,10 +57,10 @@ export function PillDetailPanel({
 
   const approved = currentApproved(history);
   const focus = approved ?? history[history.length - 1];
-  const sk =
-    approved && shadowRuns[shadowKey(bundle.id, approved.version)]
-      ? shadowSummary(shadowRuns[shadowKey(bundle.id, approved.version)])
-      : { agreements: 0, total: 0, label: "No shadow runs yet" };
+  const lastShadow = latestShadow(bundle.id, history, shadowRuns);
+  const shadowLabel = lastShadow
+    ? `${lastShadow.summary.label} (v${lastShadow.version}${lastShadow.version === approved?.version ? ", live" : ""})`
+    : "No shadow runs yet";
 
   const manifest = bundle.pill.manifest;
   const sensitivity = focus ? maxSensitivity(focus) : "internal";
@@ -120,7 +119,7 @@ export function PillDetailPanel({
           <dd className="text-ink">{roleList(manifest.access.denied)}</dd>
           <dt className="text-ink-muted">Asset types</dt>
           <dd className="text-ink">{plainList(manifest.scope.asset_types)}</dd>
-          <dt className="text-ink-muted">Assets covered</dt>
+          <dt className="text-ink-muted">Equipment classes (Brick)</dt>
           <dd className="font-mono text-[11px] text-ink [overflow-wrap:anywhere]">
             {focus ? plainList(assetRefsFor(focus)) : "—"}
           </dd>
@@ -138,7 +137,7 @@ export function PillDetailPanel({
             {personaFor(manifest.approver).name}
           </dd>
           <dt className="text-ink-muted">Shadow</dt>
-          <dd className="text-ink">{sk.label}</dd>
+          <dd className="text-ink">{shadowLabel}</dd>
         </dl>
       </section>
 

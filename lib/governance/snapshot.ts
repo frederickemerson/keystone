@@ -30,6 +30,8 @@ const pillVersionSchema = z.object({
   rules: z.array(ruleSchema),
   createdBy: actorSchema,
   createdAt: z.string(),
+  shadowedBy: actorSchema.optional(),
+  shadowedAt: z.string().optional(),
   approvedBy: actorSchema.optional(),
   approvedAt: z.string().optional(),
   reason: z.string(),
@@ -84,6 +86,28 @@ const shadowRunSchema = z.object({
   at: z.string(),
 });
 
+const outcomeSchema = z.object({
+  incidentId: z.string(),
+  pillId: z.string(),
+  timeToIsolateMinutes: z.number().finite().min(0),
+  tenantImpact: z.string(),
+  costSgd: z.number().finite().min(0),
+  causeConfirmed: z.string(),
+  notes: z.string(),
+  actor: actorSchema,
+  at: z.string(),
+});
+
+const ruleReviewSchema = z.object({
+  pillId: z.string(),
+  pillVersion: semverSchema,
+  ruleId: z.string(),
+  outcome: z.enum(["confirmed", "edited", "rejected"]),
+  decision: z.string().min(1).optional(),
+  actor: actorSchema,
+  at: z.string(),
+});
+
 const snapshotSchema = z.object({
   versions: z.record(z.string(), z.array(pillVersionSchema).min(1)),
   seedVersions: z.record(z.string(), z.array(pillVersionSchema).length(1)),
@@ -92,6 +116,8 @@ const snapshotSchema = z.object({
   shadowRuns: z.record(z.string(), z.array(shadowRunSchema)),
   // Absent in snapshots written before evidence confirmation existed.
   evidenceConfirmations: z.record(z.string(), z.record(z.string(), evidenceConfirmationSchema)).default({}),
+  outcomes: z.record(z.string(), outcomeSchema).default({}),
+  ruleReviews: z.record(z.string(), z.record(z.string(), ruleReviewSchema)).default({}),
 });
 
 export type SnapshotResult = { ok: true; data: PersistedGovernanceData } | { ok: false; reason: string };
@@ -152,10 +178,35 @@ function violation(data: PersistedGovernanceData): string | null {
       if (v.rollbackOf !== undefined) {
         const source = history.slice(0, i).find((h) => h.version === v.rollbackOf);
         if (!source || !sameJson(source.rules, v.rules)) return `${pillId}: v${v.version} is not a faithful rollback`;
+        if (v.shadowedBy) return `${pillId}: rollback v${v.version} claims a Shadow promoter`;
+        // Separation of duties on rollback (approval.ts rollbackAuthority).
+        const retired = history.slice(0, i).find((h) => h.version === v.parentVersion);
+        for (const involved of [source, retired]) {
+          if (!involved || involved.rollbackOf !== undefined) continue;
+          const people = [involved.createdBy, involved.shadowedBy].filter((p) => p !== undefined);
+          if (people.some((p) => sameIdentity(p.name, v.createdBy.name))) {
+            return `${pillId}: rollback v${v.version} made by the author or Shadow promoter of v${involved.version}`;
+          }
+        }
         if (!hasEvent(["version_rolled_back"], { pillId, pillVersion: v.version })) {
           return `${pillId}: v${v.version} has no rollback audit event`;
         }
         continue;
+      }
+
+      // Three different people: author → Shadow promoter → approver.
+      if (v.status === "Draft" && (v.shadowedBy || v.shadowedAt)) return `${pillId}: Draft v${v.version} carries a Shadow promoter`;
+      if (v.status !== "Draft" && (!v.shadowedBy || !v.shadowedAt)) {
+        return `${pillId}: v${v.version} is ${v.status} but never ran in Shadow`;
+      }
+      if (v.shadowedBy) {
+        if (sameIdentity(v.shadowedBy.name, v.createdBy.name)) return `${pillId}: v${v.version} put into Shadow by its own author`;
+        if (!hasEvent(["version_shadowed"], { pillId, pillVersion: v.version, actor: v.shadowedBy.name })) {
+          return `${pillId}: v${v.version} has no Shadow audit event`;
+        }
+        if (v.approvedBy && sameIdentity(v.approvedBy.name, v.shadowedBy.name)) {
+          return `${pillId}: v${v.version} approved by the person who put it into Shadow`;
+        }
       }
       if (!history.slice(0, i).some((h) => h.version === v.parentVersion)) {
         return `${pillId}: v${v.version} has unknown parent v${v.parentVersion}`;
@@ -190,6 +241,33 @@ function violation(data: PersistedGovernanceData): string | null {
       if (!isKnownRole(record.actor.role)) return `evidence confirmation ${incidentId}/${key} by undefined role`;
       if (!hasEvent(["evidence_confirmed"], { incidentId, evidenceKey: key, role: record.actor.role })) {
         return `evidence confirmation ${incidentId}/${key} has no audit event`;
+      }
+    }
+  }
+
+  for (const [incidentId, record] of Object.entries(data.outcomes)) {
+    if (record.incidentId !== incidentId) return `outcome ${incidentId} is misfiled`;
+    if (!isKnownRole(record.actor.role)) return `outcome ${incidentId} by undefined role`;
+    if (!data.versions[record.pillId]) return `outcome ${incidentId} for unknown pill ${record.pillId}`;
+    if (!hasEvent(["outcome_recorded"], { incidentId, pillId: record.pillId, actor: record.actor.name })) {
+      return `outcome ${incidentId} has no audit event`;
+    }
+  }
+
+  for (const [key, byRule] of Object.entries(data.ruleReviews)) {
+    const at = key.lastIndexOf("@");
+    const pillId = key.slice(0, at);
+    const version = data.versions[pillId]?.find((v) => v.version === key.slice(at + 1));
+    if (!version) return `rule reviews for unknown version ${key}`;
+    for (const [ruleId, record] of Object.entries(byRule)) {
+      if (record.ruleId !== ruleId || record.pillId !== pillId || record.pillVersion !== version.version) {
+        return `rule review ${key}/${ruleId} is misfiled`;
+      }
+      if (!version.rules.some((r) => r.id === ruleId)) return `rule review ${key}/${ruleId} for unknown rule`;
+      if ((record.outcome === "edited") !== (record.decision !== undefined)) return `rule review ${key}/${ruleId} is malformed`;
+      if (!isKnownRole(record.actor.role)) return `rule review ${key}/${ruleId} by undefined role`;
+      if (!hasEvent(["rule_reviewed"], { pillId, pillVersion: version.version, ruleId, actor: record.actor.name })) {
+        return `rule review ${key}/${ruleId} has no audit event`;
       }
     }
   }

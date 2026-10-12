@@ -1,8 +1,8 @@
-// Keystone governance — version approval gate + shadow-mode records.
-// Pure + client-safe.
+// Keystone governance — version approval gate, Shadow promotion, rollback
+// authority + shadow-mode records. Pure + client-safe.
 
 import type { ActionDecision, ActionStatus, ComparisonResult } from "@/lib/engine";
-import { hasCapability, sameIdentity } from "./access";
+import { hasCapability, roleLabel, sameIdentity } from "./access";
 import type { Actor, PillVersion } from "./versions";
 
 export interface ApprovalOverride {
@@ -10,10 +10,29 @@ export interface ApprovalOverride {
   reason: string;
 }
 
+/** Why approval is blocked: a stable code the UI can act on, plus the plain-English sentence. */
+export type ApprovalBlockerCode =
+  | "not_shadowed"
+  | "not_in_review"
+  | "author_cannot_approve"
+  | "shadow_promoter_cannot_approve"
+  | "author_shadowed_own"
+  | "stale_base"
+  | "not_authorised"
+  | "no_eval_report"
+  | "regressions";
+
+export interface ApprovalBlocker {
+  code: ApprovalBlockerCode;
+  message: string;
+}
+
 export interface ApprovalCheck {
   allowed: boolean;
-  /** Human-readable reasons approval is blocked (empty when allowed). */
+  /** Plain-English reasons approval is blocked (empty when allowed), in the same order as `reasons`. */
   blockers: string[];
+  /** The same reasons, with their codes. */
+  reasons: ApprovalBlocker[];
   regressions: number;
   /** True when regressions exist but an authorised override let approval through. */
   overridden: boolean;
@@ -32,10 +51,14 @@ export interface ApprovalContext {
  * Can `actor` approve `version`, given the eval comparison against the
  * currently approved version (engine compareVersions)?
  *
- * - Only Draft/Shadow versions can be approved.
- * - Separation of duties: the author can never approve their own version.
- *   Identities are compared canonically (identityKey), so case, whitespace,
- *   zero-width and Unicode-compatibility variants of a name are the same human.
+ * Separation of duties: three different people (DECISIONS.md D2). The author
+ * proposes, a second person puts the version into Shadow
+ * (shadowPromotionAuthority refuses the author), and a third person approves:
+ * - only a Shadow version can be approved (a Draft has not run anywhere);
+ * - the approver is neither the author nor the person who promoted the
+ *   version to Shadow. Identities are compared canonically (identityKey), so
+ *   case, whitespace, zero-width and Unicode-compatibility variants of a name
+ *   are the same human.
  * - The version must derive from the currently approved version (when known).
  * - Authority: the pill's approver role (manifest `approver`), or a role whose
  *   roles.json grants include pill version promotion.
@@ -49,14 +72,32 @@ export function canApprove(
   override?: ApprovalOverride,
   context: ApprovalContext = {},
 ): ApprovalCheck {
-  const blockers: string[] = [];
+  const reasons: ApprovalBlocker[] = [];
+  const block = (code: ApprovalBlockerCode, message: string) => void reasons.push({ code, message });
+  const v = `v${version.version}`;
 
-  if (version.status !== "Draft" && version.status !== "Shadow") {
-    blockers.push(`v${version.version} is ${version.status}; only Draft or Shadow versions can be approved`);
+  if (version.status === "Draft") {
+    block("not_shadowed", `${v} is still a Draft. It must run in Shadow before anyone can approve it`);
+  } else if (version.status !== "Shadow") {
+    block("not_in_review", `${v} is ${version.status}, so there is nothing to approve`);
   }
 
   if (sameIdentity(actor.name, version.createdBy.name)) {
-    blockers.push(`Separation of duties: ${actor.name} authored v${version.version} and cannot approve it`);
+    block("author_cannot_approve", `Separation of duties: ${actor.name} wrote ${v}, so someone else must approve it`);
+  }
+  // Defence in depth: the store never lets an author promote their own
+  // version, but a version that claims it can never be approved either.
+  if (version.shadowedBy && sameIdentity(version.shadowedBy.name, version.createdBy.name)) {
+    block(
+      "author_shadowed_own",
+      `Separation of duties: ${version.createdBy.name} both wrote ${v} and put it into Shadow, so it needs an independent Shadow run`,
+    );
+  }
+  if (version.shadowedBy && sameIdentity(actor.name, version.shadowedBy.name)) {
+    block(
+      "shadow_promoter_cannot_approve",
+      `Separation of duties: ${actor.name} put ${v} into Shadow, so someone else must approve it`,
+    );
   }
 
   if (
@@ -64,20 +105,21 @@ export function canApprove(
     version.parentVersion !== context.liveApprovedVersion &&
     (version.status === "Draft" || version.status === "Shadow")
   ) {
-    blockers.push(
-      `v${version.version} was proposed from v${version.parentVersion ?? "∅"} but v${context.liveApprovedVersion} is now approved — re-propose from v${context.liveApprovedVersion}`,
+    block(
+      "stale_base",
+      `${v} was proposed from v${version.parentVersion ?? "∅"} but v${context.liveApprovedVersion} is now approved — re-propose from v${context.liveApprovedVersion}`,
     );
   }
 
   const authorised = actor.role === version.approverRole || hasCapability(actor.role, "promote_pill_version");
   if (!authorised) {
-    blockers.push(`Role ${actor.role} is not authorised to approve pill versions (approver: ${version.approverRole})`);
+    block("not_authorised", `${roleLabel(actor.role)} is not authorised to approve pill versions (approver: ${roleLabel(version.approverRole)})`);
   }
 
   let regressions = 0;
   let overridden = false;
   if (!evalReport) {
-    blockers.push("No eval report — replay evals against the approved version before approving");
+    block("no_eval_report", "No eval report — replay evals against the approved version before approving");
   } else {
     regressions = evalReport.regressions.length;
     if (regressions > 0) {
@@ -87,18 +129,25 @@ export function canApprove(
         overridden = true;
       } else {
         const cases = evalReport.regressions.map((r) => `${r.caseId}/${r.ruleId}`).join(", ");
-        blockers.push(
-          `${regressions} eval regression${regressions === 1 ? "" : "s"} (${cases}) — only ${version.approverRole} may override, with a reason`,
+        block(
+          "regressions",
+          `${regressions} eval regression${regressions === 1 ? "" : "s"} (${cases}) — only ${roleLabel(version.approverRole)} may override, with a reason`,
         );
       }
     }
   }
 
-  return { allowed: blockers.length === 0, blockers, regressions, overridden };
+  return {
+    allowed: reasons.length === 0,
+    blockers: reasons.map((r) => r.message),
+    reasons,
+    regressions,
+    overridden,
+  };
 }
 
 // ---------------------------------------------------------------------------
-// Shadow mode
+// Shadow promotion + rollback authority
 // ---------------------------------------------------------------------------
 
 export interface ShadowPromotionAuthority {
@@ -111,19 +160,75 @@ export interface ShadowPromotionAuthority {
  * May `actor` put `version` into Shadow? Shadow is the first step of pill
  * promotion, so it needs the same authority as approval: the pill's approver
  * role, or a role whose roles.json grants include pill version promotion
- * (e.g. the steward's shadow-to-approved sign-off). The single policy both the
- * UI buttons and the governance store enforce.
+ * (e.g. the steward's shadow-to-approved sign-off). The author can never
+ * promote their own version. The single policy both the UI buttons and the
+ * governance store enforce.
  */
 export function shadowPromotionAuthority(version: PillVersion, actor: Actor): ShadowPromotionAuthority {
   if (version.status !== "Draft") {
     return { allowed: false, reason: `Only Draft versions enter Shadow (v${version.version} is ${version.status})` };
   }
-  if (actor.role === version.approverRole || hasCapability(actor.role, "promote_pill_version")) return { allowed: true };
-  return {
-    allowed: false,
-    reason: `Role ${actor.role} has no pill-promotion grant and cannot put v${version.version} into Shadow (approver: ${version.approverRole})`,
-  };
+  if (!(actor.role === version.approverRole || hasCapability(actor.role, "promote_pill_version"))) {
+    return {
+      allowed: false,
+      reason: `Role ${actor.role} has no pill-promotion grant and cannot put v${version.version} into Shadow (approver: ${version.approverRole})`,
+    };
+  }
+  if (sameIdentity(actor.name, version.createdBy.name)) {
+    return {
+      allowed: false,
+      reason: `Separation of duties: ${actor.name} wrote v${version.version}, so someone else must put it into Shadow`,
+    };
+  }
+  return { allowed: true };
 }
+
+export interface RollbackAuthority {
+  allowed: boolean;
+  /** Why not, when not allowed. */
+  reason?: string;
+}
+
+/**
+ * May `actor` roll the pill back to `target`'s rules, retiring `current` (the
+ * live Approved version)? Needs the rollback grant, or the pill's approver
+ * role. A rollback puts rules live without a fresh approval, so it must not be
+ * a way around separation of duties: the actor can be neither the author nor
+ * the Shadow promoter of the version being retired, nor of the version whose
+ * rules are being restored.
+ */
+export function rollbackAuthority(
+  target: PillVersion | undefined,
+  current: PillVersion | undefined,
+  actor: Actor,
+): RollbackAuthority {
+  const granted =
+    hasCapability(actor.role, "rollback_pill") || (target !== undefined && actor.role === target.approverRole);
+  if (!granted) return { allowed: false, reason: `${roleLabel(actor.role)} is not authorised to roll back pills` };
+  const involved: [PillVersion | undefined, string][] = [
+    [current, "retire"],
+    [target, "restore"],
+  ];
+  for (const [v, verb] of involved) {
+    // A rollback version carries rules that already passed the gate under
+    // three people; its creator only restored them, so it is not "authored".
+    if (!v || v.rollbackOf !== undefined) continue;
+    if (sameIdentity(actor.name, v.createdBy.name)) {
+      return { allowed: false, reason: `Separation of duties: ${actor.name} wrote v${v.version}, so someone else must ${verb} it` };
+    }
+    if (v.shadowedBy && sameIdentity(actor.name, v.shadowedBy.name)) {
+      return {
+        allowed: false,
+        reason: `Separation of duties: ${actor.name} put v${v.version} into Shadow, so someone else must ${verb} it`,
+      };
+    }
+  }
+  return { allowed: true };
+}
+
+// ---------------------------------------------------------------------------
+// Shadow mode records
+// ---------------------------------------------------------------------------
 
 /** One incident replayed through the approved and the shadow version side by side. */
 export interface ShadowRun {

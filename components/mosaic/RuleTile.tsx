@@ -16,8 +16,11 @@ export function RuleTile({
   onEdit,
   onReject,
   onShowProvenance,
+  actionsDisabledReason,
   className,
 }: {
+  /** When set, Confirm / Edit / Reject are disabled and this reason is shown. */
+  actionsDisabledReason?: string;
   rule: Rule;
   /** Confirmation state from the Decision Canvas: true=confirmed, false=rejected, undefined=pending. */
   confirmed?: boolean;
@@ -29,19 +32,24 @@ export function RuleTile({
   onShowProvenance?: () => void;
   className?: string;
 }) {
-  const [provOpen, setProvOpen] = useState(false);
+  // The provenance quote opens on hover or keyboard focus of the quote button
+  // (a preview), and a click pins it open. Escape or a click outside closes it.
+  const [pinned, setPinned] = useState(false);
+  const [peek, setPeek] = useState(false);
+  const provOpen = pinned || peek;
   const popRef = useRef<HTMLDivElement>(null);
+  const provId = `rule-${rule.id}-provenance`;
 
   useEffect(() => {
-    if (!provOpen) return;
+    if (!pinned) return;
     function onDown(event: MouseEvent) {
       if (popRef.current && !popRef.current.contains(event.target as Node)) {
-        setProvOpen(false);
+        setPinned(false);
       }
     }
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
-  }, [provOpen]);
+  }, [pinned]);
 
   const ring =
     confirmed === true
@@ -60,6 +68,11 @@ export function RuleTile({
       className={cn('flex flex-col gap-3 rounded-xl border bg-surface p-4 shadow-card', ring, className)}
       aria-labelledby={`rule-${rule.id}-title`}
     >
+      <div
+        className="flex flex-col gap-3"
+        onMouseEnter={() => setPeek(true)}
+        onMouseLeave={() => setPeek(false)}
+      >
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="font-mono text-xs font-medium text-ink-muted">{rule.id}</p>
@@ -70,11 +83,21 @@ export function RuleTile({
         <button
           type="button"
           onClick={() => {
-            setProvOpen((v) => !v);
+            setPinned((v) => !v);
             onShowProvenance?.();
           }}
+          onFocus={() => setPeek(true)}
+          onBlur={() => setPeek(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setPinned(false);
+              setPeek(false);
+            }
+          }}
           aria-expanded={provOpen}
-          aria-label="Show provenance"
+          aria-controls={provenance ? provId : undefined}
+          aria-label={`Show the expert's words for ${rule.id}`}
+          title="The expert's words this rule came from"
           className={cn(
             'grid size-9 shrink-0 place-items-center rounded-full border-[1.5px] border-ink text-ink transition-[background-color,scale] duration-150 hover:bg-dew-drop active:scale-[0.96]',
             provOpen && 'bg-dew-drop',
@@ -87,8 +110,9 @@ export function RuleTile({
       {provOpen && provenance ? (
         <div
           ref={popRef}
+          id={provId}
           role="note"
-          aria-label="Provenance"
+          aria-label={`Provenance for ${rule.id}`}
           className="relative rounded-lg border border-line bg-dew-drop/70 px-3 pb-3 pt-4"
         >
           <ExpertQuote
@@ -99,6 +123,7 @@ export function RuleTile({
           />
         </div>
       ) : null}
+      </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="rounded-full border border-line bg-dew-drop px-2 py-0.5 font-mono text-xs text-ink">
@@ -215,6 +240,8 @@ export function RuleTile({
         <button
           type="button"
           onClick={onConfirm}
+          disabled={Boolean(actionsDisabledReason)}
+          title={actionsDisabledReason}
           className={cn('btn-pill text-xs', confirmed === true && 'border-recommend bg-recommend-tint text-recommend')}
         >
           <Check className="size-3.5" aria-hidden="true" /> Confirm
@@ -222,6 +249,8 @@ export function RuleTile({
         <button
           type="button"
           onClick={onEdit}
+          disabled={Boolean(actionsDisabledReason)}
+          title={actionsDisabledReason}
           className="btn-pill text-xs"
         >
           <Pencil className="size-3.5" aria-hidden="true" /> Edit
@@ -229,6 +258,8 @@ export function RuleTile({
         <button
           type="button"
           onClick={onReject}
+          disabled={Boolean(actionsDisabledReason)}
+          title={actionsDisabledReason}
           className={cn('btn-pill text-xs', confirmed === false && 'border-blocked bg-blocked-tint text-blocked')}
         >
           <X className="size-3.5" aria-hidden="true" /> Reject

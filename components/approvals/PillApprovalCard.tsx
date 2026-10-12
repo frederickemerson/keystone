@@ -102,6 +102,7 @@ export function PillApprovalCard({
           </h3>
           <p className="font-mono text-[11px] tabular-nums text-ink-muted">
             v{version.version} · {version.status} · authored by {version.createdBy.name}
+            {version.shadowedBy ? ` · put into Shadow by ${version.shadowedBy.name}` : ""}
           </p>
         </div>
         <span className="rounded-full border border-line bg-dew-drop px-2.5 py-0.5 text-[11px] text-ink-muted">

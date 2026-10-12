@@ -4,7 +4,7 @@
 
 import { evaluate, type EvalCase, type EvalSummary, type Pill } from "@/lib/engine";
 import type { ComparisonResult, EvalCaseResult, EvalField, EvalValue } from "@/lib/engine";
-import { makeShadowRun, type ShadowRun } from "@/lib/governance/approval";
+import { makeShadowRun, type ApprovalBlocker, type ApprovalBlockerCode, type ShadowRun } from "@/lib/governance/approval";
 import { roleLabel } from "@/lib/governance/access";
 import type { IncidentRecord } from "@/lib/data/schemas";
 import type { DiffItem } from "@/components/mosaic/types";
@@ -89,7 +89,7 @@ export type Verdict =
 
 export const VERDICTS: { value: Verdict; label: string; hint: string }[] = [
   { value: "correct", label: "Correct", hint: "Behaviour matched the incident — no change needed." },
-  { value: "incomplete", label: "Incomplete", hint: "Right idea, missing a case or an asset type." },
+  { value: "incomplete", label: "Incomplete", hint: "Right idea, but a value (such as a deadline) or a case is wrong or missing." },
   {
     value: "wrong_for_asset",
     label: "Wrong for this asset",
@@ -282,15 +282,6 @@ export function simulateShadowRuns(
 // Roles + plain-English governance
 // ---------------------------------------------------------------------------
 
-/** Roles that appear on this screen: author, steward, approver, plus bystanders. */
-export const GOVERNANCE_ROLES = [
-  "chief_engineer",
-  "asset_operations_manager",
-  "head_technical_services",
-  "technician",
-  "executive",
-] as const;
-
 const EXTRA_ROLE_LABELS: Record<string, string> = {
   chief_engineer: "Chief Engineer",
   head_technical_services: "Head of Technical Services",
@@ -304,27 +295,18 @@ export function roleDisplayName(role: string): string {
   return EXTRA_ROLE_LABELS[role] ?? roleLabel(role);
 }
 
-/**
- * Make an approval blocker readable: swap raw role ids for role names and add
- * the next step the human can take.
- */
-export function explainBlocker(blocker: string, approverRole: string): string {
-  const readable = blocker.replace(/\b[a-z_]{4,}\b/g, (word) =>
-    GOVERNANCE_ROLES.includes(word as (typeof GOVERNANCE_ROLES)[number])
-      ? roleDisplayName(word)
-      : word,
-  );
-  if (/Separation of duties/i.test(blocker)) {
-    return `${readable}. Switch role to ${roleDisplayName(approverRole)} to approve.`;
-  }
-  if (/is not authorised/i.test(blocker)) {
-    return `${readable}. Switch role to ${roleDisplayName(approverRole)}.`;
-  }
-  if (/eval regression/i.test(blocker)) {
-    return `${readable}. Record the reason below and use “Override & approve”.`;
-  }
-  if (/No eval report/i.test(blocker)) {
-    return `${readable} — replay the evals in step 4 first.`;
-  }
-  return readable;
+/** The next step a human can take for one approval blocker, keyed by its code (never by its wording). */
+const NEXT_STEP: Partial<Record<ApprovalBlockerCode, (approverRole: string) => string>> = {
+  author_cannot_approve: (r) => `Hand over to ${roleDisplayName(r)} to approve.`,
+  shadow_promoter_cannot_approve: (r) => `Hand over to ${roleDisplayName(r)} to approve.`,
+  not_authorised: (r) => `Hand over to ${roleDisplayName(r)}.`,
+  not_shadowed: () => 'Promote it in step 5 first.',
+  regressions: () => 'Record the reason below and use “Override & approve”.',
+  no_eval_report: () => 'Replay the evals in step 4 first.',
+};
+
+/** An approval blocker in plain English, with the next step the human can take. */
+export function explainBlocker(blocker: ApprovalBlocker, approverRole: string): string {
+  const next = NEXT_STEP[blocker.code]?.(approverRole);
+  return next ? `${blocker.message}. ${next}` : `${blocker.message}.`;
 }

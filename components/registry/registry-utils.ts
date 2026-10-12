@@ -1,8 +1,9 @@
 // Pure helpers shared by the Registry client components. No React, no store.
 
 import * as yaml from "js-yaml";
-import { personaFor } from "@/lib/governance/store";
-import { pillAtVersion, type PillVersion } from "@/lib/governance/versions";
+import { personaFor, shadowKey } from "@/lib/governance/store";
+import { shadowSummary, type ShadowRun, type ShadowSummary } from "@/lib/governance/approval";
+import { compareSemver, pillAtVersion, type PillVersion } from "@/lib/governance/versions";
 import { runEvals } from "@/lib/engine";
 import type { Pill, PillManifest } from "@/lib/engine/types";
 import type { DiffItem } from "@/components/mosaic/types";
@@ -12,14 +13,34 @@ export function personaName(role: string): string {
   return personaFor(role).name;
 }
 
-/** Registry review cadence: an approved pill is reviewed quarterly. */
-const REVIEW_INTERVAL_DAYS = 90;
+/**
+ * Next review date as the pill's SKILL.md declares it (`review_cadence.next_review`)
+ * — the authored, authoritative date, not one computed from when the store seeded.
+ */
+export function nextReviewDate(manifest: PillManifest): string {
+  const iso = manifest.review_cadence?.next_review;
+  if (!iso) return "Not set";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+}
 
-export function nextReviewDate(approvedAt: string | undefined): string {
-  if (!approvedAt) return "Not set";
-  const d = new Date(approvedAt);
-  d.setDate(d.getDate() + REVIEW_INTERVAL_DAYS);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+/**
+ * The pill's most recent shadow replay, for any of its versions: a rollback
+ * retires the version that was shadowed, but its shadow evidence still exists.
+ */
+export function latestShadow(
+  pillId: string,
+  history: readonly PillVersion[],
+  shadowRuns: Readonly<Record<string, readonly ShadowRun[]>>,
+): { version: string; summary: ShadowSummary } | null {
+  const newestFirst = [...history].sort((a, b) => compareSemver(b.version, a.version));
+  for (const v of newestFirst) {
+    const runs = shadowRuns[shadowKey(pillId, v.version)];
+    if (runs && runs.length > 0) return { version: v.version, summary: shadowSummary(runs) };
+  }
+  return null;
 }
 
 /**

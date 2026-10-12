@@ -13,6 +13,7 @@ import { createStore, type Mutate, type StoreApi } from "zustand/vanilla";
 import type { ComparisonResult, EvidenceCatalog, Pill } from "@/lib/engine";
 import {
   canApprove,
+  rollbackAuthority,
   shadowPromotionAuthority,
   type ApprovalCheck,
   type ApprovalOverride,
@@ -21,14 +22,15 @@ import {
 import {
   decisionAuthority,
   evidenceConfirmAuthority,
-  hasCapability,
   isKnownRole,
   personaFor,
+  pillEditAuthority,
   roleLabel,
   UNRESOLVED_ACTOR,
   UNRESOLVED_ROLE,
   type DecisionOutcome,
   type DecisionSubject,
+  type PillEditPolicy,
 } from "./access";
 import { appendAudit, EMPTY_AUDIT_LOG, type AuditInput, type AuditLog } from "./audit";
 import { parseGovernanceSnapshot } from "./snapshot";
@@ -48,8 +50,9 @@ import {
 
 export const GOVERNANCE_STORE_KEY = "mosaic-governance";
 /** Bump when the persisted shape or role ids change; older snapshots are discarded.
- *  v2: role `tenant_experience` renamed to `tenant_experience_manager` in roles.json. */
-export const GOVERNANCE_STORE_VERSION = 2;
+ *  v2: role `tenant_experience` renamed to `tenant_experience_manager` in roles.json.
+ *  v3: versions record `shadowedBy` (three-person separation of duties); outcomes + Canvas rule reviews. */
+export const GOVERNANCE_STORE_VERSION = 3;
 
 // Personas (named human per role) live with the role policy in ./access.
 export { DEMO_PERSONAS, personaFor } from "./access";
@@ -94,6 +97,37 @@ export interface EvidenceConfirmationRecord {
   suggestion?: { model: string; probability: number };
 }
 
+/** What actually happened on a closed incident, confirmed by a named human (Learning step 1). */
+export interface OutcomeRecord {
+  incidentId: string;
+  pillId: string;
+  /** Measured: alarm → isolation sub-valve closed. */
+  timeToIsolateMinutes: number;
+  tenantImpact: string;
+  costSgd: number;
+  causeConfirmed: string;
+  notes: string;
+  actor: Actor;
+  at: string;
+}
+
+export type OutcomeInput = Omit<OutcomeRecord, "actor" | "at">;
+
+export type RuleReviewOutcome = "confirmed" | "edited" | "rejected";
+
+/** The expert's verdict on one rule tile of a pill version (Decision Canvas). */
+export interface RuleReviewRecord {
+  pillId: string;
+  /** The version whose rule was reviewed (the live Approved version at the time). */
+  pillVersion: string;
+  ruleId: string;
+  outcome: RuleReviewOutcome;
+  /** The edited `decision` text, when outcome is "edited". */
+  decision?: string;
+  actor: Actor;
+  at: string;
+}
+
 export interface GovernanceData {
   /** UNRESOLVED_ACTOR until the signed session's identity is bound (SSR, first render, no session). Never persisted. */
   currentActor: Actor;
@@ -108,6 +142,10 @@ export interface GovernanceData {
   shadowRuns: Record<string, ShadowRun[]>;
   /** incidentId → evidence key → human confirmation (full history is in `audit`). */
   evidenceConfirmations: Record<string, Record<string, EvidenceConfirmationRecord>>;
+  /** incidentId → latest confirmed outcome (full history is in `audit`). */
+  outcomes: Record<string, OutcomeRecord>;
+  /** "<pillId>@<version>" → ruleId → latest Canvas review (full history is in `audit`). */
+  ruleReviews: Record<string, Record<string, RuleReviewRecord>>;
 }
 
 /** Thrown when a store action is refused by governance policy (the refusal is audited first). */
@@ -147,7 +185,26 @@ export interface GovernanceActions {
     evalReport: Pick<ComparisonResult, "regressions"> | null,
     override?: ApprovalOverride,
   ) => ApprovalCheck;
+  /** Throws GovernanceError (after auditing the refusal) when the grant or separation of duties forbids it. */
   rollback: (pillId: string, toVersion: string, reason: string) => PillVersion;
+  /**
+   * Record what actually happened on a closed incident (Learning step 1).
+   * Only a role the pill's access block lets edit it; refusals are audited.
+   */
+  recordOutcome: (input: OutcomeInput) => OutcomeRecord;
+  /**
+   * Confirm, edit or reject one rule of the pill's live Approved version
+   * (Decision Canvas). Only a role the pill's access block lets edit it;
+   * refusals are audited.
+   */
+  reviewRule: (input: { pillId: string; ruleId: string; outcome: RuleReviewOutcome; decision?: string }) => RuleReviewRecord;
+  /**
+   * Publish a completed Canvas review as a Draft version: edited tiles change
+   * the rule's decision text, rejected tiles remove the rule, confirmed tiles
+   * stay as they are. Refused (and audited) until every tile is reviewed,
+   * while another version is in review, or when nothing would change.
+   */
+  publishReview: (pillId: string) => PillVersion;
   /** Throws GovernanceError (after auditing the refusal) when the acting role lacks the grant. */
   decideAction: (
     input: Omit<ActionDecisionRecord, "actor" | "at"> & { at?: string; subject?: DecisionSubject },
@@ -174,6 +231,8 @@ export type GovernanceState = GovernanceData & GovernanceActions;
 export type GovernanceStore = Mutate<StoreApi<GovernanceState>, [["zustand/persist", unknown]]>;
 
 export const shadowKey = (pillId: string, version: string): string => `${pillId}@${version}`;
+/** Key of a version's Canvas reviews in `ruleReviews`. */
+export const reviewKey = shadowKey;
 
 function initialData(
   seedVersions: Record<string, PillVersion[]> = {},
@@ -187,6 +246,8 @@ function initialData(
     decisions: {},
     shadowRuns: {},
     evidenceConfirmations: {},
+    outcomes: {},
+    ruleReviews: {},
   };
 }
 
@@ -299,6 +360,48 @@ export function createGovernanceStore(
         // Evidence catalogs of the seeded pills (from the pill files; not
         // persisted, so localStorage cannot widen who may confirm what).
         const catalogs = new Map<string, EvidenceCatalog>();
+        // Who may change each seeded pill: its SKILL.md RACI + access block
+        // (from the pill files; not persisted, for the same reason).
+        const policies = new Map<string, PillEditPolicy>();
+        const editAuthority = (pillId: string) => {
+          const policy = policies.get(pillId);
+          if (!policy) return { allowed: false, reason: `Unknown pill ${pillId}` };
+          return pillEditAuthority(get().currentActor.role, policy);
+        };
+        /** Propose + audit; the shared path of proposeVersion and publishReview. */
+        const propose = (pillId: string, baseVersion: string, changes: readonly RuleChange[], reason: string, via?: string) => {
+          const h = history(pillId);
+          const base = findVersion(h, baseVersion);
+          if (!base) throw new Error(`Unknown version ${pillId}@${baseVersion}`);
+          const refuse = (why: string): never => {
+            log({ ...actorFields(), action: "version_proposal_blocked", pillId, pillVersion: baseVersion, detail: why });
+            throw new GovernanceError(why);
+          };
+          if (!isKnownRole(get().currentActor.role)) {
+            // No session identity bound yet: nobody to author the version.
+            return refuse("No signed-in identity — sign in to propose a version");
+          }
+          const authority = editAuthority(pillId);
+          if (!authority.allowed) return refuse(authority.reason ?? "Not authorised");
+          let proposed: PillVersion;
+          try {
+            proposed = proposePure(base, changes, get().currentActor, reason, h, now());
+          } catch (err) {
+            // Malformed input (no reason, invalid rules) changes nothing; an
+            // empty proposal is a policy refusal and is audited.
+            if (!(err instanceof EmptyProposalError)) throw err;
+            return refuse(err.message);
+          }
+          set((s) => ({ versions: { ...s.versions, [pillId]: [...h, proposed] } }));
+          log({
+            ...actorFields(),
+            action: "version_proposed",
+            pillId,
+            pillVersion: proposed.version,
+            detail: `Proposed v${proposed.version} from v${baseVersion}${via ? ` ${via}` : ""}: ${reason}`,
+          });
+          return proposed;
+        };
 
         return {
           ...initialData(),
@@ -314,7 +417,11 @@ export function createGovernanceStore(
           },
 
           seedPills: (seeds) => {
-            for (const s of seeds) catalogs.set(s.id, s.pill.evidenceCatalog);
+            for (const s of seeds) {
+              catalogs.set(s.id, s.pill.evidenceCatalog);
+              const m = s.pill.manifest;
+              policies.set(s.id, { owner: m.owner, steward: m.steward, approver: m.approver, access: m.access });
+            }
             const at = now();
             const baseline = (pill: Pill, id: string) =>
               seedVersion(
@@ -362,42 +469,7 @@ export function createGovernanceStore(
             }
           },
 
-          proposeVersion: (pillId, baseVersion, changes, reason) => {
-            const h = history(pillId);
-            const base = findVersion(h, baseVersion);
-            if (!base) throw new Error(`Unknown version ${pillId}@${baseVersion}`);
-            if (!isKnownRole(get().currentActor.role)) {
-              // No session identity bound yet: nobody to author the version.
-              const why = "No signed-in identity — sign in to propose a version";
-              log({ ...actorFields(), action: "version_proposal_blocked", pillId, pillVersion: baseVersion, detail: why });
-              throw new GovernanceError(why);
-            }
-            let proposed: PillVersion;
-            try {
-              proposed = proposePure(base, changes, get().currentActor, reason, h, now());
-            } catch (err) {
-              // Malformed input (no reason, invalid rules) changes nothing; an
-              // empty proposal is a policy refusal and is audited.
-              if (!(err instanceof EmptyProposalError)) throw err;
-              log({
-                ...actorFields(),
-                action: "version_proposal_blocked",
-                pillId,
-                pillVersion: baseVersion,
-                detail: err.message,
-              });
-              throw new GovernanceError(err.message);
-            }
-            set((s) => ({ versions: { ...s.versions, [pillId]: [...h, proposed] } }));
-            log({
-              ...actorFields(),
-              action: "version_proposed",
-              pillId,
-              pillVersion: proposed.version,
-              detail: `Proposed v${proposed.version} from v${baseVersion}: ${reason}`,
-            });
-            return proposed;
-          },
+          proposeVersion: (pillId, baseVersion, changes, reason) => propose(pillId, baseVersion, changes, reason),
 
           promoteToShadow: (pillId, version) => {
             const h = history(pillId);
@@ -409,7 +481,7 @@ export function createGovernanceStore(
               log({ ...actorFields(), action: "version_shadow_blocked", pillId, pillVersion: version, detail: why });
               throw new GovernanceError(why);
             }
-            const next = promoteToShadow(h, version);
+            const next = promoteToShadow(h, version, get().currentActor, now());
             set((s) => ({ versions: { ...s.versions, [pillId]: next } }));
             log({ ...actorFields(), action: "version_shadowed", pillId, pillVersion: version, detail: `v${version} entered Shadow mode` });
           },
@@ -433,7 +505,13 @@ export function createGovernanceStore(
             const actor = get().currentActor;
             const check: ApprovalCheck = target
               ? canApprove(target, evalReport, actor, override, { liveApprovedVersion: currentApproved(h)?.version })
-              : { allowed: false, blockers: [`Unknown version ${pillId}@${version}`], regressions: 0, overridden: false };
+              : {
+                  allowed: false,
+                  blockers: [`Unknown version ${pillId}@${version}`],
+                  reasons: [{ code: "not_in_review", message: `Unknown version ${pillId}@${version}` }],
+                  regressions: 0,
+                  overridden: false,
+                };
             if (!check.allowed || !h) {
               log({
                 ...actorFields(),
@@ -469,9 +547,8 @@ export function createGovernanceStore(
               throw new GovernanceError(why);
             };
             if (!h) return refuse(`Unknown pill ${pillId}`);
-            const mayRollback =
-              hasCapability(actor.role, "rollback_pill") || (target !== undefined && actor.role === target.approverRole);
-            if (!mayRollback) return refuse(`Role ${actor.role} is not authorised to roll back pills`);
+            const authority = rollbackAuthority(target, currentApproved(h), actor);
+            if (!authority.allowed) return refuse(authority.reason ?? "Not authorised");
             let next: PillVersion[];
             try {
               next = rollbackPure(h, pillId, toVersion, actor, reason, now());
@@ -576,6 +653,101 @@ export function createGovernanceStore(
             return record;
           },
 
+          recordOutcome: (input) => {
+            const { incidentId, pillId } = input;
+            const numbers = [input.timeToIsolateMinutes, input.costSgd];
+            if (numbers.some((n) => !Number.isFinite(n) || n < 0)) {
+              throw new Error("Time-to-isolate and cost must be non-negative numbers");
+            }
+            const authority = editAuthority(pillId);
+            if (!authority.allowed) {
+              const why = authority.reason ?? "Not authorised";
+              log({ ...actorFields(), action: "outcome_blocked", incidentId, pillId, detail: `Outcome refused: ${why}` });
+              throw new GovernanceError(why);
+            }
+            const record: OutcomeRecord = { ...input, actor: get().currentActor, at: now() };
+            set((s) => ({ outcomes: { ...s.outcomes, [incidentId]: record } }));
+            log({
+              ...actorFields(),
+              action: "outcome_recorded",
+              incidentId,
+              pillId,
+              detail: `Outcome confirmed: isolated in ${record.timeToIsolateMinutes} min · ${record.causeConfirmed}`,
+            });
+            return record;
+          },
+
+          reviewRule: ({ pillId, ruleId, outcome, decision }) => {
+            const h = history(pillId);
+            const live = currentApproved(h);
+            if (!live) throw new Error(`${pillId} has no approved version to review`);
+            const rule = live.rules.find((r) => r.id === ruleId);
+            if (!rule) throw new Error(`Unknown rule ${ruleId} in ${pillId}@${live.version}`);
+            const text = decision?.trim() ?? "";
+            if (outcome === "edited" && !text) throw new Error("An edit needs the new decision text");
+            const authority = editAuthority(pillId);
+            if (!authority.allowed) {
+              const why = authority.reason ?? "Not authorised";
+              log({
+                ...actorFields(),
+                action: "rule_review_blocked",
+                pillId,
+                pillVersion: live.version,
+                ruleId,
+                detail: `${outcome} refused: ${why}`,
+              });
+              throw new GovernanceError(why);
+            }
+            const record: RuleReviewRecord = {
+              pillId,
+              pillVersion: live.version,
+              ruleId,
+              outcome,
+              ...(outcome === "edited" ? { decision: text } : {}),
+              actor: get().currentActor,
+              at: now(),
+            };
+            const key = reviewKey(pillId, live.version);
+            set((s) => ({ ruleReviews: { ...s.ruleReviews, [key]: { ...(s.ruleReviews[key] ?? {}), [ruleId]: record } } }));
+            log({
+              ...actorFields(),
+              action: "rule_reviewed",
+              pillId,
+              pillVersion: live.version,
+              ruleId,
+              detail: outcome === "edited" ? `${ruleId} edited: ${text}` : `${ruleId} ${outcome}`,
+            });
+            return record;
+          },
+
+          publishReview: (pillId) => {
+            const h = history(pillId);
+            const live = currentApproved(h);
+            if (!live) throw new Error(`${pillId} has no approved version to review`);
+            const refuse = (why: string): never => {
+              log({ ...actorFields(), action: "version_proposal_blocked", pillId, pillVersion: live.version, detail: why });
+              throw new GovernanceError(why);
+            };
+            const pending = h.find((v) => v.status === "Draft" || v.status === "Shadow");
+            if (pending) return refuse(`v${pending.version} is already in review — finish or roll it back before publishing another draft`);
+            const reviews = get().ruleReviews[reviewKey(pillId, live.version)] ?? {};
+            const undecided = live.rules.filter((r) => !reviews[r.id]).length;
+            if (undecided > 0) return refuse(`${undecided} of ${live.rules.length} rules are not reviewed yet — decide every tile first`);
+            const changes: RuleChange[] = [];
+            const tally = { confirmed: 0, edited: 0, rejected: 0 };
+            for (const r of live.rules) {
+              const review = reviews[r.id];
+              tally[review.outcome] += 1;
+              if (review.outcome === "edited" && review.decision !== undefined) {
+                changes.push({ op: "update", ruleId: r.id, patch: { decision: review.decision } });
+              } else if (review.outcome === "rejected") {
+                changes.push({ op: "remove", ruleId: r.id });
+              }
+            }
+            const reason = `Decision Canvas review: ${tally.confirmed} confirmed, ${tally.edited} edited, ${tally.rejected} rejected`;
+            return propose(pillId, live.version, changes, reason, "from the Decision Canvas");
+          },
+
           resetDemo: () => {
             // Versions, decisions and shadow runs return to the seed; the audit
             // log is append-only and survives (the reset itself is audited).
@@ -597,6 +769,8 @@ export function createGovernanceStore(
           decisions: s.decisions,
           shadowRuns: s.shadowRuns,
           evidenceConfirmations: s.evidenceConfirmations,
+          outcomes: s.outcomes,
+          ruleReviews: s.ruleReviews,
         }),
         // Unknown/older snapshot versions are discarded rather than half-migrated.
         migrate: () => undefined,

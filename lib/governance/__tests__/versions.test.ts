@@ -4,11 +4,14 @@ import {
   EmptyProposalError,
   currentApproved,
   diffVersions,
+  latestProposal,
   liveVersion,
   markApproved,
   nextMinorVersion,
+  promoteToShadow,
   proposeVersion,
   rollback,
+  rollbackFrom,
   seedVersion,
   type PillVersion,
 } from "../versions";
@@ -118,7 +121,7 @@ describe("rollback", () => {
   it("creates a new version, retires the rolled-back one, and preserves history", () => {
     const base = seeded();
     const v13 = proposeVersion(base, [{ op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } }], CE, "fix", [base], AT);
-    let history = markApproved([base, v13], "1.3.0", HTS, AT);
+    let history = markApproved(promoteToShadow([base, v13], "1.3.0", AOM, AT), "1.3.0", HTS, AT);
     expect(history.find((v) => v.version === "1.2.0")?.status).toBe("Retired");
 
     const before = structuredClone(history);
@@ -146,7 +149,7 @@ describe("rollback", () => {
   it("does not mutate its input and requires a reason", () => {
     const base = seeded();
     const v13 = proposeVersion(base, [TS03_TO_10], CE, "x", [base], AT);
-    const history = Object.freeze(markApproved([base, v13], "1.3.0", HTS, AT));
+    const history = Object.freeze(markApproved(promoteToShadow([base, v13], "1.3.0", AOM, AT), "1.3.0", HTS, AT));
     expect(() => rollback(history, PILL_ID, "1.2.0", AOM, "  ", AT)).toThrow(/reason/);
     rollback(history, PILL_ID, "1.2.0", AOM, "ok", AT);
     expect(history).toHaveLength(2);
@@ -155,6 +158,31 @@ describe("rollback", () => {
 
 const TS03_TO_10 = { op: "update", ruleId: "TS-03", patch: { deadline_minutes: 10 } } as const;
 
+describe("latestProposal / rollbackFrom (what Learning resumes from)", () => {
+  it("follows the change through Draft → Shadow → Approved → rolled back, never the seed or the rollback", () => {
+    const base = seeded();
+    expect(latestProposal([base])).toBeUndefined();
+    const v13 = proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT);
+    expect(latestProposal([base, v13])).toMatchObject({ version: "1.3.0", status: "Draft" });
+    const shadowedH = promoteToShadow([base, v13], "1.3.0", AOM, AT);
+    expect(latestProposal(shadowedH)).toMatchObject({ version: "1.3.0", status: "Shadow", shadowedBy: AOM });
+    const approved = markApproved(shadowedH, "1.3.0", HTS, AT);
+    expect(latestProposal(approved)).toMatchObject({ version: "1.3.0", status: "Approved" });
+    expect(rollbackFrom(approved, "1.3.0")).toBeUndefined();
+    const rolled = rollback(approved, PILL_ID, "1.2.0", HTS, "regression", AT);
+    expect(latestProposal(rolled)).toMatchObject({ version: "1.3.0", status: "Retired" });
+    expect(rollbackFrom(rolled, "1.3.0")).toMatchObject({ version: "1.4.0", rollbackOf: "1.2.0" });
+  });
+
+  it("prefers a version in review over an older finished one", () => {
+    const base = seeded();
+    const v13 = proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT);
+    const done = markApproved(promoteToShadow([base, v13], "1.3.0", AOM, AT), "1.3.0", HTS, AT);
+    const v14 = proposeVersion(done[1], [{ op: "update", ruleId: "TS-02", patch: { deadline_minutes: 5 } }], CE, "b", done, AT);
+    expect(latestProposal([...done, v14])?.version).toBe("1.4.0");
+  });
+});
+
 describe("liveVersion", () => {
   it("follows approvals and rollbacks rather than the seed", () => {
     const base = seeded();
@@ -162,7 +190,7 @@ describe("liveVersion", () => {
     const v13 = proposeVersion(base, [TS03_TO_10], CE, "a", [base], AT);
     // A draft does not go live.
     expect(liveVersion([base, v13])?.version).toBe("1.2.0");
-    const approved = markApproved([base, v13], "1.3.0", HTS, AT);
+    const approved = markApproved(promoteToShadow([base, v13], "1.3.0", AOM, AT), "1.3.0", HTS, AT);
     expect(liveVersion(approved)).toMatchObject({ version: "1.3.0", status: "Approved" });
     const rolled = rollback(approved, PILL_ID, "1.2.0", HTS, "regression", AT);
     expect(liveVersion(rolled)).toMatchObject({ version: "1.4.0", status: "Approved", rollbackOf: "1.2.0" });

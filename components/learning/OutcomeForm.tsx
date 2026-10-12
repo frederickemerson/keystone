@@ -1,7 +1,8 @@
 'use client';
 
 // Step 1 — Outcome capture. Prefilled from INC-2026-1011, every field editable:
-// the human confirms what actually happened before any rule is touched.
+// the human confirms what actually happened before any rule is touched. The
+// confirmed outcome is stored (and audited) in the governance store.
 
 import { ClipboardCheck, Pencil } from 'lucide-react';
 import { SectionHeader } from '@/components/mosaic';
@@ -15,6 +16,7 @@ export function OutcomeForm({
   incident,
   draft,
   saved,
+  recordedBy,
   onChange,
   onSave,
   onEdit,
@@ -22,6 +24,8 @@ export function OutcomeForm({
   incident: IncidentRecord | null;
   draft: OutcomeDraft;
   saved: boolean;
+  /** Who confirmed the stored outcome (shown once saved). */
+  recordedBy?: string;
   onChange: (draft: OutcomeDraft) => void;
   onSave: () => void;
   onEdit: () => void;
@@ -65,6 +69,9 @@ export function OutcomeForm({
               </div>
             ) : null}
           </dl>
+          {recordedBy ? (
+            <p className="text-[11px] text-ink-muted">Confirmed by {recordedBy} · recorded in the audit log.</p>
+          ) : null}
           <button
             type="button"
             onClick={onEdit}

@@ -291,3 +291,31 @@ export function evidenceConfirmAuthority(role: string, confirmableBy: readonly s
   }
   return { allowed: true };
 }
+
+/** The parts of a pill manifest that decide who may change the pill's content. */
+export interface PillEditPolicy {
+  owner: string;
+  steward: string;
+  approver: string;
+  access: { roles_allowed?: readonly string[]; roles_read_only?: readonly string[]; denied?: readonly string[] };
+}
+
+/**
+ * May `role` change a pill's content (review Canvas tiles, record an outcome,
+ * propose or publish a version)? Only a defined role that the pill's own
+ * SKILL.md `access` block grants: its RACI roles (owner, steward, approver) or
+ * a role in `roles_allowed`. `denied` and `roles_read_only` always lose, and a
+ * role the pill does not mention cannot edit it (fail closed).
+ */
+export function pillEditAuthority(role: string, policy: PillEditPolicy): DecisionAuthority {
+  if (!isKnownRole(role)) return { allowed: false, reason: "Sign in to change this pill." };
+  const who = roleLabel(role);
+  const { access } = policy;
+  if (access.denied?.includes(role)) return { allowed: false, reason: `${who} is denied access to this pill.` };
+  if (access.roles_read_only?.includes(role)) {
+    return { allowed: false, reason: `${who} has read-only access to this pill (SKILL.md access.roles_read_only).` };
+  }
+  const raci = [policy.owner, policy.steward, policy.approver];
+  if (raci.includes(role) || access.roles_allowed?.includes(role)) return { allowed: true };
+  return { allowed: false, reason: `${who} is not in this pill's access.roles_allowed, so cannot change it.` };
+}

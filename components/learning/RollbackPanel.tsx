@@ -13,14 +13,15 @@ export function RollbackPanel({
   approvedVersion,
   canRollback,
   disabledReason,
-  rolledBackTo,
+  rolledBack,
   onRollback,
 }: {
   baseVersion: string;
   approvedVersion: string | null;
   canRollback: boolean;
   disabledReason?: string;
-  rolledBackTo: string | null;
+  /** The stored rollback of this change, if it happened. */
+  rolledBack: { restored: string; as: string; by: string; reason: string } | null;
   onRollback: (reason: string) => void;
 }) {
   const [reason, setReason] = useState('');
@@ -35,11 +36,14 @@ export function RollbackPanel({
       />
 
       <div className="card-paper mt-3 space-y-3 p-6">
-        {rolledBackTo ? (
-          <p role="status" className="flex items-center gap-1.5 text-xs text-recommend">
-            <Undo2 className="size-3.5" aria-hidden="true" />
-            Rolled back — v{rolledBackTo} rules are live again as a new Approved version.
-          </p>
+        {rolledBack ? (
+          <div role="status" className="space-y-1 text-xs">
+            <p className="flex items-center gap-1.5 font-medium text-recommend">
+              <Undo2 className="size-3.5" aria-hidden="true" />
+              Rolled back by {rolledBack.by} — v{rolledBack.restored} rules are live again as v{rolledBack.as}.
+            </p>
+            <p className="text-ink-muted">Reason: {rolledBack.reason}</p>
+          </div>
         ) : (
           <>
             <div>

@@ -2,15 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Filter, Boxes } from "lucide-react";
-import { useGovernanceStore, shadowKey, personaFor } from "@/lib/governance/store";
+import { useGovernanceStore, personaFor } from "@/lib/governance/store";
 import { currentApproved, type PillVersion } from "@/lib/governance/versions";
-import { shadowSummary } from "@/lib/governance/approval";
 import { runEvals } from "@/lib/engine";
 import { PillCard, SectionHeader, EmptyState, KpiStat, PageHeader } from "@/components/mosaic";
 import type { PillCardData, PillStatus } from "@/components/mosaic/types";
 import type { PillBundle } from "@/lib/pills/load";
 import { PillDetailPanel } from "./PillDetailPanel";
-import { assetRefsFor, nextReviewDate } from "./registry-utils";
+import { assetRefsFor, latestShadow, nextReviewDate } from "./registry-utils";
 
 const STATUSES: PillStatus[] = ["Draft", "Shadow", "Approved", "Retired"];
 
@@ -55,9 +54,7 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
       const evalPass = { pass: summary.passed, total: summary.passed + summary.failed };
 
       const assets = focus ? assetRefsFor(focus) : [];
-      const sk = approved
-        ? shadowSummary(shadowRuns[shadowKey(bundle.id, approved.version)] ?? [])
-        : { agreements: 0, total: 0, label: "No shadow runs" };
+      const sk = latestShadow(bundle.id, history, shadowRuns)?.summary ?? { agreements: 0, total: 0, label: "No shadow runs" };
 
       const pendingCorrections = history.filter(
         (v) => v.status === "Draft" || v.status === "Shadow",
@@ -75,7 +72,7 @@ export function RegistryExplorer({ bundles }: { bundles: PillBundle[] }) {
         evalPass,
         shadowAgreements: sk.agreements,
         pendingCorrections,
-        nextReviewDate: nextReviewDate(approved?.approvedAt),
+        nextReviewDate: nextReviewDate(bundle.pill.manifest),
       };
       return { bundle, card, history };
     });

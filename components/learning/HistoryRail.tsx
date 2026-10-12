@@ -31,9 +31,14 @@ function VersionEntry({ version, isLive }: { version: PillVersion; isLive: boole
       <p className="mt-1 text-[11px] text-ink-muted">
         {version.createdBy.name} · {roleDisplayName(version.createdBy.role)} · {when(version.createdAt)}
       </p>
+      {version.shadowedBy ? (
+        <p className="text-[11px] text-ink-muted">
+          Put into Shadow by {version.shadowedBy.name} · {when(version.shadowedAt ?? version.createdAt)}
+        </p>
+      ) : null}
       {version.approvedBy ? (
         <p className="text-[11px] text-ink-muted">
-          Approved by {version.approvedBy.name} · {when(version.approvedAt ?? version.createdAt)}
+          {version.rollbackOf ? "Restored by" : "Approved by"} {version.approvedBy.name} · {when(version.approvedAt ?? version.createdAt)}
         </p>
       ) : null}
       {version.rollbackOf ? (

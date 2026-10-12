@@ -18,9 +18,15 @@ export function CorrectionForm({
   draft,
   before,
   disabledReason,
+  proposal,
+  onNewCorrection,
   onChange,
   onPropose,
 }: {
+  /** The stored change this step produced (from the governance store); shown instead of the form. */
+  proposal?: { version: string; status: string; author: string; reason: string; changes: readonly string[] };
+  /** Start another correction (offered only when no version is in review). */
+  onNewCorrection?: () => void;
   rules: readonly Rule[];
   baseVersion: string;
   /** Version the proposal will create (bumped from the pill's history). */
@@ -47,6 +53,30 @@ export function CorrectionForm({
     if (unchanged) return 'The corrected value is the same as today — nothing would change.';
     if (reasonMissing) return 'A correction needs a reason (it becomes the version record).';
     return '';
+  }
+
+  if (proposal) {
+    return (
+      <section aria-labelledby="learn-step-2-title" id="learn-step-2" tabIndex={-1} className="scroll-mt-4">
+        <SectionHeader
+          title="2. Expert correction"
+          description={`v${proposal.version} proposed by ${proposal.author} · now ${proposal.status}`}
+        />
+        <div className="mt-3 space-y-2 rounded-card border border-line bg-surface p-4 text-sm">
+          <ul className="space-y-0.5 font-mono text-[12px] text-ink">
+            {proposal.changes.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+          <p className="text-xs text-ink">{proposal.reason}</p>
+          {onNewCorrection ? (
+            <button type="button" onClick={onNewCorrection} className="btn-pill text-xs">
+              <GitBranch className="size-3.5" aria-hidden="true" /> Propose another correction
+            </button>
+          ) : null}
+        </div>
+      </section>
+    );
   }
 
   return (

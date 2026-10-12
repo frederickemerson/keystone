@@ -34,6 +34,12 @@ const JUMP_MOMENTS = [
   { t: '00:23:10', label: 'Contradiction caught', ruleId: null },
 ];
 
+/**
+ * Shown wherever the call is heard: the audio is the browser's speech
+ * synthesis reading the transcript, never the expert's own voice.
+ */
+export const SYNTHETIC_VOICE_CAPTION = 'Synthetic voice reading his recorded words';
+
 function Waveform({ active, expert }: { active: boolean; expert: boolean }) {
   const heights = [45, 75, 100, 60, 85];
   return (
@@ -189,7 +195,8 @@ function IdleView({
         Accept call
       </button>
       <p className="text-xs text-ink-muted">
-        Simulated, fully offline voice call — no network, no API key.
+        Simulated, fully offline voice call — no network, no API key. {SYNTHETIC_VOICE_CAPTION}; it is not his own
+        voice.
       </p>
     </div>
   );
@@ -239,8 +246,18 @@ function ActiveView({
       <div className="flex flex-wrap items-center gap-2">
         <Waveform active={running} expert={isExpert} />
         <span className="text-[13px] font-medium text-ink">
-          {isExpert ? expert.name : 'Keystone'} {running ? 'is speaking…' : paused ? 'paused' : ''}
+          {isExpert ? `${expert.name}'s words` : 'Keystone'}
+          {paused ? ' · paused' : running && !isExpert ? ' is speaking…' : ''}
         </span>
+        {/* Honest audio label: the voice is browser text-to-speech, not a recording of him. */}
+        {isExpert ? (
+          <span
+            className="rounded-full border border-line bg-dew-drop px-2 py-0.5 text-[11px] text-ink-muted"
+            aria-label={`Audio: ${SYNTHETIC_VOICE_CAPTION}. This is not ${expert.name}'s own voice.`}
+          >
+            {SYNTHETIC_VOICE_CAPTION}
+          </span>
+        ) : null}
       </div>
 
       <PhaseChips current={playback.phase as PhaseLabel} />
