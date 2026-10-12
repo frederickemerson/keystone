@@ -1,40 +1,53 @@
 @import 'tailwindcss';
 
 /*
- * Keystone — "the expert's field notebook" (docs/design/DESIGN.md).
+ * Keystone: "dusk over the city" (the landing hero is the visual source).
  *
- * Geist throughout; Caveat only for the landing notebook's expert quote.
- * Cream paper, thin ink borders, whisper shadows, marker-orange accents.
+ * Night ink and lavender accents on a cool, quiet canvas; white cards with
+ * hairline borders; page titles in Instrument Serif like the hero headline.
+ * Geist for everything else. No handwriting in the app: the legacy
+ * `font-hand` utility is re-mapped to the serif italic inside the app shell.
  *
- * Dark mode: intentionally dropped. The paper look is the product's identity and
- * a dark "paper" fights it (status tints and marker strokes lose meaning on a
- * dark canvas). The page is pinned to `color-scheme: light`. The class-based
- * `dark:` variant is kept only so stray `dark:` utilities never fire from the OS
- * preference; nothing sets `.dark`.
+ * Token NAMES are kept (screens owned by other builders use them); only their
+ * VALUES moved to the dusk palette, so the whole app follows from here.
+ *
+ * Dark mode: intentionally dropped; the page is pinned to `color-scheme:
+ * light`. The class-based `dark:` variant is kept only so stray `dark:`
+ * utilities never fire from the OS preference; nothing sets `.dark`.
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   color-scheme: light;
 
-  /* --- Raw palette (Superr-derived, adapted) ------------------------------ */
-  --cream-paper: #fdfbf9;
-  --paper-white: #fffefc;
-  --dew-drop: #f7efe9;
-  --dew-drop-deep: #efe3d9;
-  --charcoal: #171717;
-  --cocoa-ink: #2b1a07;
-  --graphite: #5f5750; /* muted ink: 6.8:1 on cream, 6.2:1 on dew drop */
-  --pencil: #ddd2c8; /* hairline dividers */
-  --shadow-mist: #bebcbb;
+  /* --- Dusk palette (from components/landing/Hero.tsx) --------------------- */
+  --night: #15121f; /* hero button, app sidebar */
+  --night-raised: #221c33; /* hover / raised surfaces on night */
+  --dusk: #5d5577; /* hero sky top */
+  --lavender: #8b7cf6; /* decorative accent: strokes, bars, dots (never body text) */
+  --lavender-ink: #5643c4; /* accent as text: 7.0:1 on white, 6.5:1 on the canvas, 6.0:1 on its tint */
+  --lavender-tint: #efecfd; /* selected / current backgrounds */
+  --lavender-on-night: #c9c0ff; /* accent text on night: 11:1 */
+  --brand-keystone: #ff6f1e; /* the logo's keystone only */
 
-  /* Marker orange is a stroke/brand colour only (2.7:1 on cream — never body
-     text). Handwritten marginalia text uses the darker marker ink (4.8:1). */
-  --marker-orange: #ff6f1e;
-  --marker-ink: #c4470c;
+  /* --- Neutrals (legacy names, dusk values) -------------------------------- */
+  --cream-paper: #f6f5fa; /* app canvas: cool lavender-white */
+  --paper-white: #ffffff; /* cards */
+  --dew-drop: #eeecf4; /* quiet fills, hovers */
+  --dew-drop-deep: #e3e0ec;
+  --charcoal: #1d1a2b; /* night ink: 16:1 on the canvas */
+  --cocoa-ink: #1d1a2b;
+  --graphite: #57526b; /* muted ink: 7.4:1 on white, 6.9:1 on the canvas, 6.4:1 on dew drop */
+  --pencil: #e0dde9; /* hairline dividers */
+  --shadow-mist: #bdb9cc;
+
+  /* "Marker" is now the lavender accent. Strokes/bars use --marker-orange
+     (decorative, 3.1:1); text uses --marker-ink (AA). Names kept for screens. */
+  --marker-orange: var(--lavender);
+  --marker-ink: var(--lavender-ink);
   --burnt-sienna: #ce500a;
 
-  /* Stickers — decorative only, never in data areas. */
+  /* Stickers: decorative only, never in data areas. */
   --sticker-blue: #3b82f6;
   --sticker-pink: #ff66cf;
   --sticker-green: #22c55e;
@@ -42,9 +55,6 @@
   /* --- Status ink / tint pairs (icon + text, never colour alone) ---------- */
   --blocked: #b42318; /* 5.7:1 on its tint */
   --blocked-tint: #fdecea;
-  /* Brief value is #ce500a; as text it only reaches 3.9:1 on its tint, so the
-     ink is deepened to meet the brief's own ≥4.5:1 rule. #ce500a remains
-     available as `escalate-mark` for borders and icons. */
   --escalate: #a8410a; /* 5.4:1 on its tint */
   --escalate-mark: #ce500a;
   --escalate-tint: #fdf0e6;
@@ -52,24 +62,23 @@
   --approval-tint: #fdf6e3;
   --recommend: #2f7d32; /* 4.7:1 on its tint */
   --recommend-tint: #eef7ee;
-  --na: #6b6560;
-  --na-tint: #f7efe9;
+  --na: #625d72;
+  --na-tint: #eeecf4;
 
   /* --- Semantic aliases (names screens already use) ----------------------- */
   --canvas: var(--cream-paper);
   --surface: var(--paper-white);
   --surface-raised: var(--dew-drop);
   --line: var(--pencil);
-  --line-strong: var(--charcoal);
+  --line-strong: #8f8aa3; /* outlines of cards and controls: 3.3:1 on white (WCAG non-text contrast), softer than ink */
   --ink: var(--charcoal);
   --ink-muted: var(--graphite);
   --heading: var(--cocoa-ink);
 
-  /* "accent" was an indigo brand colour; in the notebook the system's accent is
-     ink itself. Primary actions = charcoal fill + cream text (one per view). */
+  /* Primary actions = night fill + white text (one per view). */
   --accent: var(--charcoal);
-  --accent-ink: var(--cream-paper);
-  --focus: var(--marker-ink);
+  --accent-ink: #ffffff;
+  --focus: var(--lavender-ink);
 }
 
 @theme inline {
@@ -97,6 +106,13 @@
   --color-sticker-blue: var(--sticker-blue);
   --color-sticker-pink: var(--sticker-pink);
   --color-sticker-green: var(--sticker-green);
+  --color-night: var(--night);
+  --color-night-raised: var(--night-raised);
+  --color-dusk: var(--dusk);
+  --color-lavender: var(--lavender);
+  --color-lavender-ink: var(--lavender-ink);
+  --color-lavender-tint: var(--lavender-tint);
+  --color-lavender-on-night: var(--lavender-on-night);
 
   /* Status pairs */
   --color-blocked: var(--blocked);
@@ -116,6 +132,7 @@
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-display: var(--font-geist), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-hand: var(--font-caveat), 'Comic Sans MS', cursive;
+  --font-serif: var(--font-serif-display), Georgia, 'Times New Roman', serif;
 
   /* Radii: pill buttons/tags 20px, cards 12px, inputs 8px, brand band 56px */
   --radius-pill: 20px;
@@ -123,11 +140,11 @@
   --radius-input: 8px;
   --radius-band: 56px;
 
-  /* Whisper-light shadows */
-  --shadow-card: 0 2px 20px rgb(0 0 0 / 0.06);
-  --shadow-lift: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 28px rgb(0 0 0 / 0.08);
-  --shadow-button: 0 1px 2px rgb(0 0 0 / 0.25);
-  --shadow-sticker: 0 1px 1px rgb(0 0 0 / 0.08), 0 4px 12px rgb(43 26 7 / 0.08);
+  /* Soft, night-tinted shadows */
+  --shadow-card: 0 1px 2px rgb(21 18 31 / 0.04), 0 6px 24px -8px rgb(21 18 31 / 0.10);
+  --shadow-lift: 0 1px 2px rgb(21 18 31 / 0.05), 0 18px 40px -16px rgb(21 18 31 / 0.22);
+  --shadow-button: 0 1px 2px rgb(21 18 31 / 0.12);
+  --shadow-sticker: 0 1px 1px rgb(21 18 31 / 0.08), 0 4px 12px rgb(21 18 31 / 0.08);
 }
 
 @layer base {
@@ -176,7 +193,7 @@
   }
 
   ::selection {
-    background-color: color-mix(in srgb, var(--marker-orange) 28%, transparent);
+    background-color: color-mix(in srgb, var(--lavender) 30%, transparent);
   }
 
   :focus-visible {
@@ -193,28 +210,48 @@
 
 /*
  * Page titles. Screens render `<h1 className="text-xl font-semibold …">`; this
- * unlayered rule deliberately wins over those utilities so every screen gets a
- * notebook-scale display title without per-screen edits. Phase B screens can
- * drop the size utilities. Case is a content choice (sentence case, per
- * DESIGN.md); it is never forced with text-transform because titles contain ids.
+ * unlayered rule deliberately wins over those utilities so every screen gets
+ * the hero's editorial serif without per-screen edits. Case is a content
+ * choice (sentence case); never forced, because titles contain ids.
  */
 main h1 {
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 1.35rem + 0.9vw, 2.25rem);
-  font-weight: 650;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 1.55rem + 1.1vw, 2.75rem);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.012em;
   color: var(--heading);
 }
 
-/* --- Reusable notebook utilities ------------------------------------------ */
+/*
+ * No handwriting inside the app: the few screens that still use the legacy
+ * `font-hand` utility (expert quotes, pill names) get the serif italic, the
+ * hero's voice for quoted words. The landing page keeps its own choice.
+ */
+[data-app-shell] .font-hand {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
 
-/* Paper card: cream, thin ink border, 12px radius, whisper shadow. */
+/* --- Reusable utilities --------------------------------------------------- */
+
+/* Card: white, hairline border, 14px radius, soft night shadow. */
 @utility card-paper {
   background-color: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  box-shadow: 0 2px 20px rgb(0 0 0 / 0.06);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Glass on night (the hero's floating cards): for panels over dark surfaces. */
+@utility glass-night {
+  background-color: rgb(30 24 52 / 0.92);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  color: #ffffff;
+  box-shadow: 0 18px 50px -20px rgb(10 8 30 / 0.6);
+  backdrop-filter: blur(18px);
 }
 
 /* Outlined pill button (the default action style). */
@@ -225,15 +262,15 @@ main h1 {
   gap: 0.375rem;
   min-height: 2.25rem;
   padding-inline: 0.875rem;
-  border: 1.5px solid var(--charcoal);
-  border-radius: 20px;
+  border: 1px solid var(--dew-drop-deep);
+  border-radius: 9999px;
   background-color: var(--surface);
   color: var(--charcoal);
   font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  box-shadow: var(--shadow-button);
   cursor: pointer;
   transition-property: background-color, color, scale, box-shadow;
   transition-duration: 150ms;
@@ -241,6 +278,7 @@ main h1 {
 
   &:hover:not(:disabled) {
     background-color: var(--dew-drop);
+    border-color: var(--shadow-mist);
   }
   &:active:not(:disabled) {
     scale: 0.96;
@@ -254,11 +292,13 @@ main h1 {
 
 /* Filled pill: ONLY for the single most important action per view. */
 @utility btn-pill-primary {
-  background-color: var(--charcoal);
-  color: var(--cream-paper);
+  background-color: var(--night);
+  border-color: var(--night);
+  color: #ffffff;
 
   &:hover:not(:disabled) {
-    background-color: #2e2b28;
+    background-color: #000000;
+    border-color: #000000;
   }
 }
 

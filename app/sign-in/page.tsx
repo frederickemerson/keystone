@@ -5,7 +5,10 @@ import { demoPasscode, sessionSecret } from '@/lib/auth/config';
 import { personaOptions } from '@/lib/auth/personas';
 import { safeNextPath } from '@/lib/auth/redirect';
 import { getSession } from '@/lib/auth/session';
+import { initialPersona } from '@/lib/auth/sign-in-choice';
 import { isKnownRole } from '@/lib/governance/access';
+import { splitCast, storyLine } from '@/lib/guide/cast';
+import { DEMO_PATH } from '@/lib/journey';
 import { SignInForm } from './SignInForm';
 
 export const metadata: Metadata = {
@@ -25,13 +28,17 @@ export default async function SignInPage({
   const params = await searchParams;
   const next = safeNextPath(first(params.next));
   const as = first(params.as);
+  // Only an explicit ?as= preselects; a leftover session never does, so Enter
+  // on this form cannot sign in as someone the visitor did not pick.
+  const preselected = initialPersona(as, isKnownRole);
   const session = await getSession();
-  const preselected = as && isKnownRole(as) ? as : (session?.role ?? null);
+  const { cast, others } = splitCast(personaOptions());
+  const guideSteps = DEMO_PATH.length;
   const { isDefault } = demoPasscode();
   const configured = sessionSecret() !== null;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-canvas text-ink">
+    <div data-app-shell className="flex min-h-dvh flex-col bg-canvas text-ink">
       <header className="mx-auto flex w-full max-w-[1040px] items-center justify-between gap-4 px-4 pt-5 sm:px-8 sm:pt-7">
         <Link href="/" aria-label="Keystone home" className="inline-flex items-center rounded-lg focus-visible:outline-offset-4">
           <BrandLogo markSize={32} textClassName="text-[24px]" />
@@ -44,18 +51,25 @@ export default async function SignInPage({
       <main id="main" className="mx-auto w-full max-w-[1040px] flex-1 px-4 pb-16 pt-10 sm:px-8 sm:pt-14">
         <div className="max-w-[640px] space-y-2">
           <p className="inline-flex items-center rounded-full border border-line bg-surface px-2.5 py-0.5 text-[12px] font-medium text-ink-muted">
-            Demo login
+            Demo sign-in
           </p>
           <h1>Sign in to Keystone</h1>
           <p className="text-[15px] text-ink-muted">
-            Choose who you are. What you see — and what you may approve — follows that person&apos;s role in{' '}
-            <span className="font-mono text-[13px]">roles.json</span>; masked data never leaves the server.
+            What you see and what you may approve depends on the person you pick. Masked data never leaves the server.
+            {session ? (
+              <>
+                {' '}
+                You are signed in as <span className="font-medium text-ink">{session.name}</span>; pick again to switch.
+              </>
+            ) : null}
           </p>
         </div>
 
         {configured ? (
           <SignInForm
-            personas={personaOptions()}
+            cast={cast.map((p) => ({ ...p, story: storyLine(p.role) }))}
+            others={others}
+            guideSteps={guideSteps}
             next={next}
             preselected={preselected}
             passcodeHint={isDefault ? 'keystone' : null}

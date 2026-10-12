@@ -11,6 +11,7 @@ import { OpenCaptureTasks } from '@/components/pulse/OpenCaptureTasks';
 import type { IncidentRecord } from '@/lib/data';
 import { sessionRole } from '@/lib/auth/session';
 import { scopeAssets, scopeIncidents } from '@/lib/governance/scope';
+import { StartHereCard } from '@/components/journey/StartHereCard';
 
 // Stable demo clock so "time since detection" / durations are deterministic.
 const DEMO_NOW = new Date('2026-10-11T11:30:00+08:00');
@@ -99,6 +100,9 @@ export default async function PortfolioPulsePage() {
           Where judgement is applied, what awaits a human, and where coverage is missing.
         </p>
       </header>
+
+      {/* Role-aware first step: the guided demo, or this person's part in it. */}
+      <StartHereCard role={role} />
 
       {/* Header KPIs */}
       <section aria-label="Portfolio KPIs">
