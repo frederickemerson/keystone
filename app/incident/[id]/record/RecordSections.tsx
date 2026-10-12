@@ -10,15 +10,29 @@ import { pillDisplayName } from '@/components/mosaic/pillTitle';
 import { humanizeKey } from '@/components/incident/labels';
 import { roleLabel } from '@/lib/governance/access';
 import { routes } from '@/lib/journey/routes';
-import type { EvidenceOrigin, IncidentDecisionRecord, RecordActor, RecordDecision } from '@/lib/record/types';
+import type { EvidenceOrigin, IncidentDecisionRecord, RecordActor, RecordDecision, RecordPill } from '@/lib/record/types';
 
-// Deterministic Singapore wall-clock, identical on server and client.
+// Two clocks, always labelled so they never read as one:
+// - the incident clock (timeline), in the site's Singapore time, identical on server and client;
+// - the real time a person acted in Keystone, in the viewer's own time zone. Those values
+//   come from the browser's governance store, so they only render after mount (no hydration drift).
 const SGT = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', hourCycle: 'h23', timeZone: 'Asia/Singapore' });
+const LOCAL = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', hourCycle: 'h23' });
 
-function when(iso: string | undefined): string {
+function format(fmt: Intl.DateTimeFormat, iso: string | undefined): string {
   if (!iso) return '—';
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : SGT.format(d);
+  return Number.isNaN(d.getTime()) ? iso : fmt.format(d);
+}
+
+/** A time on the incident clock. */
+function when(iso: string | undefined): string {
+  return format(SGT, iso);
+}
+
+/** A real time an action was recorded in Keystone, e.g. "recorded 12 Oct 2026, 15:54 your time". */
+function recorded(iso: string | undefined): string {
+  return `recorded ${format(LOCAL, iso)} your time`;
 }
 
 function person(a: RecordActor | undefined): string {
@@ -55,8 +69,10 @@ function Origin({ origin }: { origin?: EvidenceOrigin }) {
   return (
     <span>
       {source}
-      {origin.confirmedBy ? ` · ${person(origin.confirmedBy)}` : ''} · <span className="font-mono text-[12px]">{origin.eventId}</span> ·{' '}
-      {when(origin.at)}
+      {origin.confirmedBy ? ` · ${person(origin.confirmedBy)}` : ''}
+      {origin.pillVersion ? ` under v${origin.pillVersion}` : ''} · <span className="font-mono text-[12px]">{origin.eventId}</span> ·{' '}
+      {when(origin.incidentTime)}
+      {origin.recordedAt ? ` · ${recorded(origin.recordedAt)}` : ''}
     </span>
   );
 }
@@ -65,10 +81,22 @@ function Decision({ decision }: { decision?: RecordDecision }) {
   if (!decision) return <span className="text-ink-muted">No decision recorded</span>;
   return (
     <span>
-      {humanizeKey(decision.outcome)} by {person(decision.actor)} · {when(decision.at)}
+      {humanizeKey(decision.outcome)} by {person(decision.actor)}
+      {decision.pillVersion ? ` under v${decision.pillVersion}` : ''} · {recorded(decision.recordedAt)}
       {decision.note ? <span className="block text-ink-muted">“{decision.note}”</span> : null}
     </span>
   );
+}
+
+function approval(v: RecordPill['current'], withTime: boolean): string {
+  if (!v.approvedBy) return '';
+  return ` (approved by ${person(v.approvedBy)}${withTime && v.approvedRecordedAt ? `, ${recorded(v.approvedRecordedAt)}` : ''})`;
+}
+
+/** "opened under v1.2.0 · now v1.3.0 (approved by …, recorded … your time)", or one version when nothing changed. */
+function pillVersions(p: RecordPill): string {
+  if (p.openedUnder.version === p.current.version) return `v${p.current.version}${approval(p.current, false)}`;
+  return `opened under v${p.openedUnder.version} · now v${p.current.version}${approval(p.current, true)}`;
 }
 
 const TH = 'py-2 pr-3 text-left text-[12px] font-medium text-ink-muted';
@@ -78,6 +106,11 @@ export function RecordSections({ record }: { record: IncidentDecisionRecord }) {
   const { incident } = record;
   return (
     <>
+      <p className="text-[13px] text-ink-muted">
+        Times on the incident timeline are on the incident clock (Singapore time). Actions taken in Keystone show the real time they were
+        recorded, in your time zone, and the pill version live at that moment.
+      </p>
+
       <Section title="Incident">
         <dl className="grid grid-cols-[9rem_1fr] gap-x-4 gap-y-1.5 text-sm">
           <dt className="text-ink-muted">Incident</dt>
@@ -113,21 +146,26 @@ export function RecordSections({ record }: { record: IncidentDecisionRecord }) {
         </dl>
       </Section>
 
-      <Section title="Pills applied" description="Every approved pill runs on the incident; each decides only its own rules.">
+      <Section
+        title="Pills applied"
+        description="Every approved pill runs on the incident; each decides only its own rules. A version approved after the incident opened is shown separately."
+      >
         <ul className="space-y-1.5 text-sm">
           {record.pills.map((p) => (
             <li key={p.pillId}>
               <Link href={routes.pill(p.pillId)} className="font-medium underline-offset-2 hover:underline">
-                {pillDisplayName(p.name)} v{p.version}
+                {pillDisplayName(p.name)}
               </Link>{' '}
-              · {p.rulesTriggered} of {p.rulesTotal} rules fired · approved by {person(p.approvedBy)}
-              {p.approvedAt ? `, ${when(p.approvedAt)}` : ''}
+              {pillVersions(p)} · {p.rulesTriggered} of {p.rulesTotal} rules fired
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section title="Gates and actions" description="One row per rule that fired, decided by the deterministic engine on the full timeline.">
+      <Section
+        title="Gates and actions"
+        description="One row per rule that fired, decided by the deterministic engine on the full timeline under the version live now. Each decision names the version it was made under."
+      >
         {record.gates.length === 0 ? (
           <Empty>No rule fired on this incident.</Empty>
         ) : (
@@ -136,7 +174,7 @@ export function RecordSections({ record }: { record: IncidentDecisionRecord }) {
               <li key={`${g.pillId}-${g.ruleId}`} className="rounded-xl border border-line bg-surface p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <Link href={routes.pill(g.pillId, g.ruleId)} className="font-mono text-sm font-semibold underline-offset-2 hover:underline">
-                    {g.ruleId} v{g.pillVersion}
+                    {g.ruleId} v{g.evaluatedUnder}
                   </Link>
                   <span className="text-sm font-medium">{g.title}</span>
                   <StatusBadge status={g.status} />
@@ -173,7 +211,7 @@ export function RecordSections({ record }: { record: IncidentDecisionRecord }) {
             {record.aiProposals.map((p) => (
               <li key={p.proposalId} className="rounded-xl border border-line bg-surface p-4 text-[13px]">
                 <p className="text-[12px] text-ink-muted">
-                  {p.proposalId} · {p.model} · recorded ({p.fixtureId}) · after {p.afterEventId}
+                  {p.proposalId} · {p.model} · recorded ({p.fixtureId}) · after {p.afterEventId}, {when(p.incidentTime)}
                 </p>
                 <p className="mt-1 text-sm font-medium">“{p.text}”</p>
                 <p className="mt-1">{p.fate}</p>
@@ -237,7 +275,7 @@ export function RecordSections({ record }: { record: IncidentDecisionRecord }) {
           <ol className="space-y-1 text-[13px]">
             {record.audit.map((e) => (
               <li key={e.id}>
-                <span className="font-mono text-ink-muted">{e.id}</span> · {when(e.at)} · {e.actor} ({roleLabel(e.role)}) ·{' '}
+                <span className="font-mono text-ink-muted">{e.id}</span> · {recorded(e.recordedAt)} · {e.actor} ({roleLabel(e.role)}) ·{' '}
                 {humanizeKey(e.action)}
                 {e.ruleId ? ` · ${e.ruleId}` : ''} — {e.detail}
               </li>

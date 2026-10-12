@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { ArrowLeft, Download, Printer } from 'lucide-react';
 import type { Pill } from '@/lib/engine';
 import { useGovernanceStore } from '@/lib/governance/store';
-import { currentApproved, pillAtVersion } from '@/lib/governance/versions';
 import { roleLabel } from '@/lib/governance/access';
 import { buildDecisionRecord, type RecordPillInput } from '@/lib/record/build';
 import type { RecordScenario } from '@/lib/record/scenario.server';
@@ -37,7 +36,8 @@ const PRINT_CSS = `@media print {
   .decision-record section { break-inside: avoid-page; }
 }`;
 
-function useApprovedPills(pills: Props['pills']): RecordPillInput[] {
+/** Each pill with its whole version history: the record picks the version live at each moment. */
+function usePillHistories(pills: Props['pills']): RecordPillInput[] {
   const mounted = useMounted();
   const versions = useGovernanceStore((s) => s.versions);
   const seedPills = useGovernanceStore((s) => s.seedPills);
@@ -45,14 +45,8 @@ function useApprovedPills(pills: Props['pills']): RecordPillInput[] {
     seedPills(pills.map((p) => ({ id: p.id, pill: p.pill })));
   }, [pills, seedPills]);
   return useMemo(
-    () =>
-      pills.flatMap((p) => {
-        const history = mounted ? versions[p.id] : undefined;
-        // Before the store is readable, show the file version (what the store seeds).
-        if (!history) return [{ pillId: p.id, pill: p.pill, version: p.pill.manifest.version }];
-        const v = currentApproved(history);
-        return v ? [{ pillId: p.id, pill: pillAtVersion(p.pill, v), version: v.version, approvedBy: v.approvedBy, approvedAt: v.approvedAt }] : [];
-      }),
+    // Before the store is readable (history null), the record shows the file version (what the store seeds).
+    () => pills.map((p) => ({ pillId: p.id, pill: p.pill, history: (mounted ? versions[p.id] : undefined) ?? null })),
     [pills, mounted, versions],
   );
 }
@@ -63,7 +57,7 @@ function jsonFilename(record: IncidentDecisionRecord): string {
 
 export function RecordView({ scenario, pills, role }: Props) {
   const mounted = useMounted();
-  const approved = useApprovedPills(pills);
+  const pillInputs = usePillHistories(pills);
   const decisions = useGovernanceStore((s) => s.decisions[scenario.incident.id]) ?? EMPTY;
   const confirmations = useGovernanceStore((s) => s.evidenceConfirmations[scenario.incident.id]) ?? EMPTY;
   const audit = useGovernanceStore((s) => s.audit);
@@ -72,14 +66,14 @@ export function RecordView({ scenario, pills, role }: Props) {
     () =>
       buildDecisionRecord({
         ...scenario,
-        pills: approved,
+        pills: pillInputs,
         decisions: mounted ? decisions : EMPTY,
         confirmations: mounted ? confirmations : EMPTY,
         audit: mounted ? audit : [],
         role,
         generatedAt: new Date().toISOString(),
       }),
-    [scenario, approved, decisions, confirmations, audit, role, mounted],
+    [scenario, pillInputs, decisions, confirmations, audit, role, mounted],
   );
 
   const { incident } = record;

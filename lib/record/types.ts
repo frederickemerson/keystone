@@ -1,12 +1,24 @@
 // The incident decision record: what was decided on an incident, by which
 // pill versions and which named people, on what evidence. Plain JSON (it is
 // also the "Download JSON" payload). Built only from role-scoped data.
+//
+// Two clocks, never mixed in one field:
+// - `incidentTime`: the recorded incident clock (the timeline), as are
+//   incident.openedAt / closedAt;
+// - `recordedAt`: the real time a person did something in the app (a decision,
+//   a confirmation, a version approval, an audit event).
 
 import type { ActionClass, ActionStatus, EscalateTarget } from '@/lib/engine';
 import type { AuditEvent } from '@/lib/governance/audit';
 import type { SensitivityLevel } from '@/lib/data/schemas';
 
-export const DECISION_RECORD_SCHEMA = 'keystone.decision-record/1';
+export const DECISION_RECORD_SCHEMA = 'keystone.decision-record/2';
+
+/** What each clock means; carried in the JSON so the export explains itself. */
+export const RECORD_CLOCKS = {
+  incidentTime: 'Recorded incident clock: when it happened on the incident timeline (incident.openedAt and closedAt are on this clock too).',
+  recordedAt: 'Real time a person acted in Keystone (decisions, confirmations, version approvals, audit events). It is not on the incident clock.',
+} as const;
 
 export interface RecordActor {
   name: string;
@@ -29,14 +41,22 @@ export interface RecordIncident {
   affectedParty?: { name: string; where: string };
 }
 
+export interface RecordPillVersion {
+  version: string;
+  approvedBy?: RecordActor;
+  /** Real time the version was approved (or seeded) in Keystone. */
+  approvedRecordedAt?: string;
+}
+
 export interface RecordPill {
   pillId: string;
   /** Manifest name, e.g. "chilled-water-leak". */
   name: string;
-  version: string;
-  approvedBy?: RecordActor;
-  approvedAt?: string;
-  /** Rules of this pill that fired on the incident. */
+  /** The version live when the incident opened. */
+  openedUnder: RecordPillVersion;
+  /** The version live now; the gates below are evaluated under it. Equals openedUnder unless a later version was approved. */
+  current: RecordPillVersion;
+  /** Rules of this pill (current version) that fired on the incident. */
   rulesTriggered: number;
   rulesTotal: number;
 }
@@ -47,9 +67,14 @@ export interface EvidenceOrigin {
   source: string;
   connectorId?: string;
   eventId: string;
-  at: string;
+  /** Incident clock of the timeline event (for a confirmation, the event it is anchored to). */
+  incidentTime: string;
   /** A named person, when a person confirmed it in Keystone. Timeline entries name people in their text. */
   confirmedBy?: RecordActor;
+  /** Real time of the confirmation in Keystone. */
+  recordedAt?: string;
+  /** The pill version live when the person confirmed it. */
+  pillVersion?: string;
 }
 
 export interface RecordEvidence extends EvidenceOrigin {
@@ -73,13 +98,18 @@ export interface RecordRequiredEvidence {
 export interface RecordDecision {
   outcome: string;
   actor: RecordActor;
-  at: string;
+  /** Real time the person decided in Keystone. */
+  recordedAt: string;
   note?: string;
+  pillId?: string;
+  /** The pill version live when the decision was made (never relabelled by a later approval). */
+  pillVersion?: string;
 }
 
 export interface RecordGate {
   pillId: string;
-  pillVersion: string;
+  /** The pill version this gate's status was evaluated under (the version live now). */
+  evaluatedUnder: string;
   ruleId: string;
   title: string;
   status: ActionStatus;
@@ -101,14 +131,25 @@ export interface RecordAiProposal {
   ruleId: string;
   /** The timeline event after which the model made the proposal. */
   afterEventId: string;
-  /** The gate's status when the proposal was made, and what it was waiting for. */
-  gateThen: { status: ActionStatus; missing: string[] };
-  /** The gate's status on the full record. */
-  gateNow: { status: ActionStatus; missing: string[] };
+  /** Incident clock of the event after which it was proposed. */
+  incidentTime: string;
+  /** The gate's status when the proposal was made, under the version the incident opened under. */
+  gateThen: RecordGateState;
+  /** The gate's status on the full record, under the version live now. */
+  gateNow: RecordGateState;
   /** One sentence: what happened to the proposal. */
   fate: string;
   decision?: RecordDecision;
 }
+
+export interface RecordGateState {
+  status: ActionStatus;
+  missing: string[];
+  pillVersion?: string;
+}
+
+/** An audit event with its real time named as such. */
+export type RecordAuditEvent = Omit<AuditEvent, 'at'> & { recordedAt: string };
 
 export interface RecordTenantMessage {
   draftId: string;
@@ -120,7 +161,9 @@ export interface RecordTenantMessage {
 
 export interface IncidentDecisionRecord {
   schema: typeof DECISION_RECORD_SCHEMA;
+  /** Real time the record was generated. */
   generatedAt: string;
+  clocks: typeof RECORD_CLOCKS;
   /** The role the record was scoped to: values above its clearance are masked. */
   scopedForRole: string;
   incident: RecordIncident;
@@ -129,6 +172,6 @@ export interface IncidentDecisionRecord {
   evidence: RecordEvidence[];
   aiProposals: RecordAiProposal[];
   tenantMessages: RecordTenantMessage[];
-  audit: AuditEvent[];
+  audit: RecordAuditEvent[];
   notes: string[];
 }
