@@ -97,6 +97,10 @@ export function ApprovalsQueue({
             incidents={incidents}
             replayEnd={replayEnd}
             originIncidentId={originIncident(versions[pillId]?.find((v) => v.version === version))}
+            focusRuleId={(() => {
+              const v = versions[pillId]?.find((x) => x.version === version);
+              return v?.capture?.ruleId ?? v?.correction?.ruleId;
+            })()}
             onDismiss={() => setJustApproved((prev) => prev.filter((p) => p.pillId !== pillId))}
           />
         ) : null;

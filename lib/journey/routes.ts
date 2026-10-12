@@ -38,6 +38,11 @@ export const GUIDE_ANCHORS = {
 } as const;
 
 /** `href` with its fragment set to `anchorId` (any existing fragment replaced). */
+/** DOM id of a rule's action card in the incident room ("See it in …" lands here). */
+export function actionAnchorId(ruleId: string): string {
+  return `action-${ruleId}`;
+}
+
 export function withAnchor(href: string, anchorId: string): string {
   return `${href.split('#')[0]}#${anchorId}`;
 }

@@ -1013,8 +1013,10 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
 
       {/* ------------------------------------------------------- Footer */}
       {/* Compact audit status for this incident. The full log is the app-shell
-          "Audit log" drawer; this opens that same drawer. */}
-      <footer className="fixed inset-x-0 z-40 border-t border-line bg-canvas/95 backdrop-blur md:left-64" style={{ bottom: 'var(--guide-bar-h, 0px)' }}>
+          "Audit log" drawer; this opens that same drawer. Hidden on phones, where
+          it would sit over the guide bar and cover what the guide points at; the
+          header's audit button opens the same drawer there. */}
+      <footer className="fixed inset-x-0 z-40 hidden border-t border-line bg-canvas/95 backdrop-blur md:left-64 md:block" style={{ bottom: 'var(--guide-bar-h, 0px)' }}>
         <button
           type="button"
           onClick={() => setAuditOpen(true)}

@@ -11,7 +11,7 @@ import { pillDisplayName } from '@/components/mosaic';
 import { incidentsUsingPill } from '@/components/registry/hub-utils';
 import type { IncidentRecord } from '@/lib/data/schemas';
 import type { PillBundle } from '@/lib/pills/load';
-import { routes } from '@/lib/journey/routes';
+import { actionAnchorId, routes, withAnchor } from '@/lib/journey/routes';
 
 export function LiveNowCard({
   bundle,
@@ -20,6 +20,7 @@ export function LiveNowCard({
   incidents,
   replayEnd,
   originIncidentId,
+  focusRuleId,
   onDismiss,
 }: {
   bundle: PillBundle;
@@ -31,6 +32,8 @@ export function LiveNowCard({
   replayEnd: Readonly<Record<string, number>>;
   /** The incident the version's change came from (its note's task, or its correction), if known. */
   originIncidentId: string | undefined;
+  /** The rule this version added or changed: "See it in …" lands on its action card. */
+  focusRuleId: string | undefined;
   onDismiss: () => void;
 }) {
   const name = pillDisplayName(bundle.name);
@@ -67,7 +70,13 @@ export function LiveNowCard({
         </p>
         <div className="flex flex-wrap gap-2">
           {openId ? (
-            <Link href={routes.incident(openId, replayEnd[openId])} className="btn-pill btn-pill-primary text-xs">
+            <Link
+              href={
+                focusRuleId
+                  ? withAnchor(routes.incident(openId, replayEnd[openId]), actionAnchorId(focusRuleId))
+                  : routes.incident(openId, replayEnd[openId])
+              }
+              className="btn-pill btn-pill-primary text-xs">
               {origin ? `See it in ${openId}, where it came from` : `See it in ${openId}`}{' '}
               <ArrowRight className="size-3.5" aria-hidden="true" />
             </Link>

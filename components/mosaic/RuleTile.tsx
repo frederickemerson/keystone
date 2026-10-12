@@ -33,17 +33,20 @@ export function RuleTile({
   className?: string;
 }) {
   // The provenance quote opens on hover or keyboard focus of the quote button
-  // (a preview), and a click pins it open. Escape or a click outside closes it.
+  // (a preview), and a click pins it open. Escape or a click outside the TILE
+  // closes it: a click on the tile's own Confirm/Edit/Reject must not collapse
+  // the quote on mousedown, or the button moves before mouseup and the click is lost.
   const [pinned, setPinned] = useState(false);
   const [peek, setPeek] = useState(false);
   const provOpen = pinned || peek;
   const popRef = useRef<HTMLDivElement>(null);
+  const tileRef = useRef<HTMLElement>(null);
   const provId = `rule-${rule.id}-provenance`;
 
   useEffect(() => {
     if (!pinned) return;
     function onDown(event: MouseEvent) {
-      if (popRef.current && !popRef.current.contains(event.target as Node)) {
+      if (tileRef.current && !tileRef.current.contains(event.target as Node)) {
         setPinned(false);
       }
     }
@@ -65,6 +68,7 @@ export function RuleTile({
 
   return (
     <article
+      ref={tileRef}
       className={cn('flex flex-col gap-3 rounded-xl border bg-surface p-4 shadow-card', ring, className)}
       aria-labelledby={`rule-${rule.id}-title`}
     >

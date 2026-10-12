@@ -136,8 +136,18 @@ export function useCallPlayback(args: {
             ? pick(['en-us', 'en-au']) ?? voices[0]
             : pick(['en-gb', 'en-sg', 'en-uk']) ?? voices[0];
         if (voice) u.voice = voice;
-        u.onend = advance;
-        u.onerror = advance;
+        // Advance when the voice ends, but never before the caption has had its
+        // reading time: a voice that fails or ends instantly (no voices, a
+        // blocked or headless synth) must not skip the call.
+        const startedAt = Date.now();
+        const minReadMs = Math.min(durationMs, Math.max(MIN_TURN_MS, durationMs * 0.6));
+        const advanceAfterReading = () => {
+          const wait = minReadMs - (Date.now() - startedAt);
+          if (wait <= 0) advance();
+          else timerRef.current = setTimeout(advance, wait);
+        };
+        u.onend = advanceAfterReading;
+        u.onerror = advanceAfterReading;
         synth.cancel();
         synth.speak(u);
         // Safety net in case onend never fires.

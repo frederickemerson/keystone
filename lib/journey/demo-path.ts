@@ -76,7 +76,7 @@ export const DEMO_PATH: readonly DemoStep[] = [
     role: 'technician',
     href: withAnchor(routes.incident(DEMO_INCIDENT_ID, DEMO_GATE_STEP), GUIDE_ANCHORS.captureTask),
     doThis:
-      'Escalating opened the "Tell us why — 20 seconds" task. Choose "Demo note", then "Use this demo note" (the recorded note for this incident), mark each highlighted value "Right", then press "Draft rule".',
+      'Escalating opened the "Tell us why — 20 seconds" task below. Accept the recording notice if asked, choose "Demo note", then "Use this demo note" (the recorded note for this incident), mark each highlighted value "Right", then press "Draft rule".',
     notice: 'Your note becomes one draft rule, credited to you. Nothing is live yet.',
   },
   {

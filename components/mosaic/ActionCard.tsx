@@ -8,6 +8,7 @@ import { ActionClassChip } from './ActionClassChip';
 import { StatusBadge } from './StatusBadge';
 import { PersonaName } from './PersonaName';
 import { Disclosure, firstSentence } from './Disclosure';
+import { actionAnchorId } from '@/lib/journey/routes';
 
 /**
  * The status an action class yields on its own, when no evidence gate
@@ -42,10 +43,12 @@ function useCountdown(deadlineMinutes: number | null): number | null {
   return remainingMs;
 }
 
+/** "4:56" under an hour; "23 h 59 min" from an hour up (a 24-hour deadline is not "1439:57"). */
 function formatCountdown(ms: number): string {
   const totalSec = Math.round(ms / 1000);
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
+  if (m >= 60) return `${Math.floor(m / 60)} h ${m % 60} min`;
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
@@ -80,7 +83,9 @@ export function ActionCard({
 
   return (
     <article
+      id={actionAnchorId(action.ruleId)}
       className={cn(
+        'scroll-mt-24',
         // min-w-0: as a grid/flex item the card must shrink to its track, never
         // grow to fit a long nowrap child (that pushed actions off-screen).
         'flex min-w-0 flex-col gap-3 rounded-xl border border-line-strong bg-surface p-5 shadow-card',
