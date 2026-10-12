@@ -918,7 +918,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                     key={`${entry.bundle.id}:${trace.ruleId}`}
                     className="rounded-md border border-line px-2.5 py-1.5 text-xs"
                   >
-                    <span className="font-mono text-ink">{trace.ruleId}</span>{' '}
+                    <RuleIdLink pillId={entry.bundle.id} ruleId={trace.ruleId} className="text-ink" />{' '}
                     <span className="text-ink">{trace.ruleTitle}</span>
                     <span className="block text-[11px] text-ink-muted">{trace.triggerReason}</span>
                   </li>

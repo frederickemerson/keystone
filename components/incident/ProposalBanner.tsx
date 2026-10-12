@@ -71,7 +71,7 @@ export function ProposalBanner({
       <div className="rounded-xl border border-line bg-surface p-3">
         {head}
         <p className="mt-1 text-xs text-ink">
-          Gate {proposal.ruleId} v{item.entry.version}: <span className="font-semibold">{item.action.status}</span> —
+          Gate <RuleIdLink pillId={item.entry.bundle.id} ruleId={proposal.ruleId} /> v{item.entry.version}: <span className="font-semibold">{item.action.status}</span> —
           required evidence confirmed; still executed only by {personLabel(target.role, people)}.
         </p>
       </div>
