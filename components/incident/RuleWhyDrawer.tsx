@@ -60,6 +60,7 @@ export function RuleWhyDrawer({
   action,
   rule,
   pillVersion,
+  pillName,
   evidence,
   evidenceKeys,
   expert,
@@ -75,6 +76,8 @@ export function RuleWhyDrawer({
   action: ActionDecision;
   rule: Rule;
   pillVersion: string;
+  /** Human pill name ("Chilled water leak"); the id is shown without it. */
+  pillName?: string;
   evidence: EvidenceState;
   /** Evidence keys the rule reads here (engineInputs.evidenceKeysForRule). */
   evidenceKeys: string[];
@@ -102,8 +105,8 @@ export function RuleWhyDrawer({
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={action.status} />
           <ActionClassChip actionClass={action.actionClass} />
-          <span className="font-mono text-[11px] text-ink-muted">
-            {action.pillId}@{action.pillVersion}
+          <span className="text-[12px] text-ink-muted">
+            {pillName ? `${pillName} v${action.pillVersion}` : `${action.pillId}@${action.pillVersion}`}
           </span>
         </div>
 

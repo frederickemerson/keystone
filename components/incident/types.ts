@@ -3,6 +3,7 @@
 // the (pure) engine runs on every replay step.
 
 import type { PillBundle } from '@/lib/pills/load';
+import type { ActionDecision, Pill, Rule, TraceStep } from '@/lib/engine/types';
 import type {
   AssetRecord,
   IncidentRecord,
@@ -63,4 +64,19 @@ export interface IncidentRoomProps {
    * null without a session (fails closed to the unresolved actor).
    */
   sessionActor?: { role: string; name: string } | null;
+}
+
+/** A pill at its approved version (governance store), as the room evaluates it. */
+export interface ApprovedPill {
+  bundle: RoomPill;
+  pill: Pill;
+  version: string;
+}
+
+/** One triggered rule on the decision board. */
+export interface BoardItem {
+  entry: ApprovedPill;
+  action: ActionDecision;
+  trace: TraceStep;
+  rule: Rule;
 }

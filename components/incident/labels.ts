@@ -109,3 +109,10 @@ export function formatSgtClock(iso: string): string {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? iso : SGT_CLOCK.format(d);
 }
+
+/** "LEW written sign-off missing (+2 more)" for an action's missing evidence keys. */
+export function missingSummary(missing: readonly string[]): string {
+  if (missing.length === 0) return '';
+  const first = humanizeKey(missing[0]);
+  return missing.length > 1 ? `${first} missing (+${missing.length - 1} more)` : `${first} missing`;
+}

@@ -1,28 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Ban,
-  Bot,
-  Check,
-  ChevronDown,
-  Clock,
-  HelpCircle,
-  RotateCcw,
-  ScrollText,
-  Server,
-  Building2,
-  ArrowUpRight,
-  Volume2,
-  Mic,
-} from 'lucide-react';
+import { Ban, ChevronDown, Clock, ScrollText, Server, Building2, Mic } from 'lucide-react';
 import {
   ActionCard,
   CHIP_BASE,
   ConfidenceMeter,
   EvidenceTimeline,
   PageHeader,
-  PillLabel,
   TONE_CHIP,
   type Tone,
 } from '@/components/mosaic';
@@ -31,7 +16,7 @@ import { pillDisplayName } from '@/components/mosaic/pillTitle';
 import { AuditLogDrawer } from '@/components/shell/AuditLogDrawer';
 import { evaluate } from '@/lib/engine/evaluate';
 import { counterfactual } from '@/lib/engine/counterfactual';
-import type { ActionDecision, ActionStatus, Pill, Rule, TraceStep } from '@/lib/engine/types';
+import type { ActionStatus } from '@/lib/engine/types';
 import { canSee, redact, redactText, UNRESOLVED_ACTOR } from '@/lib/governance/access';
 import { auditFor } from '@/lib/governance/audit';
 import {
@@ -66,6 +51,7 @@ import {
   formatElapsed,
   formatSgtClock,
   humanizeKey,
+  missingSummary,
   personForRole,
   personLabel,
 } from './labels';
@@ -74,7 +60,13 @@ import { expertQuoteFor } from './provenance';
 import { ReplayControls, type Speed } from './ReplayControls';
 import { RuleWhyDrawer } from './RuleWhyDrawer';
 import { TenantMessagePanel } from './TenantMessagePanel';
-import type { AiProposal, IncidentRoomProps, IncidentScenario, RoomPill } from './types';
+import type { ApprovedPill, BoardItem, IncidentRoomProps, IncidentScenario } from './types';
+import { ProposalBanner } from './ProposalBanner';
+import { ResetDemoControl } from './ResetDemoControl';
+import { EvidenceStatePanel } from './EvidenceStatePanel';
+import { PillsInUse } from './PillsInUse';
+import { pillsInUse } from './pill-usage';
+import { RuleIdLink, RuleSourceLine, WhyDrawerLinks } from './RuleLinks';
 import { useExpertVoice } from './useExpertVoice';
 import { CaptureTaskCard } from '@/components/pulse/CaptureTaskCard';
 import type { CaptureTask, VoiceNote } from '@/lib/capture';
@@ -88,19 +80,6 @@ import { proposablePill } from '@/components/canvas/noteDraftUtils';
 // ---------------------------------------------------------------------------
 
 type ScenarioKey = 'primary' | 'overlay';
-
-interface ApprovedPill {
-  bundle: RoomPill;
-  pill: Pill;
-  version: string;
-}
-
-interface BoardItem {
-  entry: ApprovedPill;
-  action: ActionDecision;
-  trace: TraceStep;
-  rule: Rule;
-}
 
 const GROUPS: { status: ActionStatus; title: string; hint: string }[] = [
   {
@@ -139,26 +118,12 @@ const GROUP_INK: Partial<Record<ActionStatus, string>> = {
   allowed: 'text-recommend',
 };
 
-/** "technical-services" → "Technical Services". */
-function titleCase(slug: string): string {
-  return slug
-    .split(/[-_]/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
-}
-
 function sentenceCase(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ');
 }
 
 const EMPTY_DECISIONS: Record<string, ActionDecisionRecord> = {};
 const EMPTY_CONFIRMATIONS: Record<string, EvidenceConfirmationRecord> = {};
-
-function missingSummary(missing: string[]): string {
-  if (missing.length === 0) return '';
-  const first = humanizeKey(missing[0]);
-  return missing.length > 1 ? `${first} missing (+${missing.length - 1} more)` : `${first} missing`;
-}
 
 /** Missing evidence of an action, labelled from its pill's evidence catalogue. */
 function missingOptions(item: BoardItem): MissingEvidenceOption[] {
@@ -294,6 +259,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
       ),
     [evaluations],
   );
+  const inUse = useMemo(() => pillsInUse(approved, items, scenario.incident), [approved, items, scenario.incident]);
   const notApplicable = useMemo(
     () =>
       evaluations.flatMap(({ entry, result }) =>
@@ -396,6 +362,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
       drawerItem.action.ruleId,
     );
   }, [drawerItem, scenario, evidence]);
+  const drawerExpert = drawerItem ? expertQuoteFor(drawerItem.entry.pill, drawerItem.rule) : null;
   const stopVoice = voice.stop;
   const closeDrawer = useCallback(() => {
     stopVoice();
@@ -630,7 +597,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
         {blocked ? (
           <p className="flex items-center gap-1.5 rounded-t-xl border border-b-0 border-blocked/45 bg-blocked-tint px-4 py-2 text-[13px] font-semibold text-blocked">
             <Ban className="size-3.5 shrink-0" aria-hidden="true" />
-            Blocked · rule <span className="font-mono">{item.rule.id}</span> v{item.entry.version} —{' '}
+            Blocked · rule <RuleIdLink pillId={item.entry.bundle.id} ruleId={item.rule.id} /> v{item.entry.version} —{' '}
             {missingSummary(item.action.missingEvidence)}
           </p>
         ) : null}
@@ -639,11 +606,19 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
           title={item.rule.title}
           escalateLabel={target ? personLabel(target.role, people) : undefined}
           details={
-            item.trace.exceptionApplied && item.trace.exceptionNote ? (
-              <p className="text-ink">
-                <span className="font-medium">Exception:</span> {item.trace.exceptionNote}
-              </p>
-            ) : undefined
+            <>
+              <RuleSourceLine
+                pillId={item.entry.bundle.id}
+                pillName={pillDisplayName(item.entry.bundle.name)}
+                version={item.entry.version}
+                ruleId={item.rule.id}
+              />
+              {item.trace.exceptionApplied && item.trace.exceptionNote ? (
+                <p className="text-ink">
+                  <span className="font-medium">Exception:</span> {item.trace.exceptionNote}
+                </p>
+              ) : null}
+            </>
           }
           onWhy={() => setDrawer({ pillId: item.entry.bundle.id, ruleId: item.rule.id })}
           className={cn(blocked && 'rounded-t-none border-blocked/45')}
@@ -762,27 +737,7 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                 })}
               </div>
             ) : null}
-            <div
-              className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,15rem),19.5rem))] gap-2.5"
-              role="group"
-              aria-label="Pills in use"
-            >
-              {approved.map((p) => (
-                <PillLabel
-                  key={p.bundle.id}
-                  size="sm"
-                  name={pillDisplayName(p.bundle.name)}
-                  pillClass={titleCase(p.bundle.domain)}
-                  version={p.version}
-                  className="min-w-0"
-                />
-              ))}
-              {unapproved.map((p) => (
-                <span key={p.id} className={cn(CHIP_BASE, TONE_CHIP.approval)}>
-                  {p.id}: no approved version
-                </span>
-              ))}
-            </div>
+            <PillsInUse pills={inUse} unapproved={unapproved} />
           </div>
         }
         actions={
@@ -1047,13 +1002,14 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
           action={drawerItem.action}
           rule={drawerItem.rule}
           pillVersion={drawerItem.entry.version}
+          pillName={pillDisplayName(drawerItem.entry.bundle.name)}
           evidence={evidence}
           evidenceKeys={evidenceKeysForRule(drawerItem.rule, {
             asset: toEngineAsset(scenario.asset),
             incident: toEngineIncident(scenario.incident),
             evidence: toEngineEvidence(evidence),
           })}
-          expert={expertQuoteFor(drawerItem.entry.pill, drawerItem.rule)}
+          expert={drawerExpert}
           expertName={personForRole(drawerItem.rule.owner, people).name ?? humanizeKey(drawerItem.rule.owner)}
           counterfactual={drawerCounterfactual}
           voice={voice}
@@ -1075,6 +1031,12 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
                   onRequestEvidence={(keys) => requestEvidence(drawerItem, keys)}
                 />
               ) : null}
+              <WhyDrawerLinks
+                pillId={drawerItem.entry.bundle.id}
+                ruleId={drawerItem.rule.id}
+                incidentId={incidentId}
+                expert={drawerExpert}
+              />
               <p className="text-[11px] text-ink-muted">
                 Escalation goes to {personLabel(drawerItem.trace.escalateTo.role, people)}
                 {drawerItem.trace.escalateTo.fallback
@@ -1087,264 +1049,5 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
         />
       ) : null}
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Wow 1: the AI proposal and the gate that stops it
-// ---------------------------------------------------------------------------
-
-function ProposalBanner({
-  proposal,
-  item,
-  naReason,
-  people,
-  role,
-  record,
-  captureTask,
-  activeTaskId,
-  onAnswerTask,
-  onWhy,
-  onEscalate,
-}: {
-  proposal: AiProposal;
-  item: BoardItem | undefined;
-  naReason: string | undefined;
-  people: readonly { name: string; role: string }[];
-  role: string;
-  /** Latest recorded human decision on the proposal's gating rule. */
-  record: ActionDecisionRecord | undefined;
-  /** The signed-in role's capture task about this gate, if any. */
-  captureTask: CaptureTask | undefined;
-  activeTaskId: string | null;
-  onAnswerTask: (taskId: string) => void;
-  onWhy: (item: BoardItem) => void;
-  onEscalate: (item: BoardItem) => void;
-}) {
-  // Proposals are recorded fixtures replayed with the timeline, not live
-  // model calls: say so, and keep the provenance one hover/focus away.
-  const provenance = `Recorded proposal from fixture ${proposal.source.fixtureId} (labelled ${proposal.model}, recorded ${formatClock(proposal.source.generatedAt)} SGT). Replayed with the timeline; no model is called.`;
-  const head = (
-    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-muted">
-      <Bot className="size-4" aria-hidden="true" />
-      <span title={provenance}>
-        AI proposal <span aria-hidden="true">·</span> recorded
-        <span className="sr-only">. {provenance}</span>
-      </span>
-      <span className="font-medium text-ink">“{proposal.text}”</span>
-    </p>
-  );
-
-  if (!item) {
-    return (
-      <div className="rounded-xl border border-dashed border-line bg-surface p-3">
-        {head}
-        <p className="mt-1 text-xs text-ink-muted">
-          Held for a named human — gate {proposal.ruleId} not triggered at this step
-          {naReason ? ` (${naReason})` : ''}.
-        </p>
-      </div>
-    );
-  }
-
-  const target = item.trace.escalateTo;
-  if (item.action.status !== 'blocked') {
-    return (
-      <div className="rounded-xl border border-line bg-surface p-3">
-        {head}
-        <p className="mt-1 text-xs text-ink">
-          Gate {proposal.ruleId} v{item.entry.version}: <span className="font-semibold">{item.action.status}</span> —
-          required evidence confirmed; still executed only by {personLabel(target.role, people)}.
-        </p>
-      </div>
-    );
-  }
-
-  const escalated = record?.outcome === 'escalated' ? record : undefined;
-  const perms = withRecordedDecision(actionPermissions(item.action, role, target.role), record, formatSgtClock);
-  return (
-    <div
-      className="overflow-hidden rounded-xl border-[1.5px] border-blocked/70 bg-blocked-tint shadow-card"
-      role="alert"
-    >
-      <div className="p-5">
-        {head}
-        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="inline-flex items-center gap-2 rounded-full bg-blocked px-3.5 py-1.5 text-[15px] font-semibold text-white">
-            <Ban className="size-4" aria-hidden="true" />
-            Blocked
-          </span>
-          <span className="font-display-soft text-[19px] font-semibold leading-snug text-blocked">
-            Rule <span className="font-mono text-[16px]">{item.rule.id}</span> v{item.entry.version} —{' '}
-            {missingSummary(item.action.missingEvidence)}
-          </span>
-        </p>
-        <p className="mt-2.5 text-[13px] leading-relaxed text-ink">
-          {item.rule.title}. Deterministic gate — the model cannot override it. Missing:{' '}
-          <span className="font-mono text-[12px]">{item.action.missingEvidence.join(', ')}</span>
-        </p>
-        {escalated ? (
-          <p className="mt-4 flex items-start gap-2 rounded-lg border border-escalate-mark/40 bg-surface px-3 py-2 text-[13px] leading-snug text-ink">
-            <Check className="mt-0.5 size-4 shrink-0 text-recommend" aria-hidden="true" />
-            <span>
-              <span className="font-semibold">Escalated to {personLabel(target.role, people)}</span> at{' '}
-              <time dateTime={escalated.at} className="font-mono tabular-nums">
-                {formatSgtClock(escalated.at)}
-              </time>{' '}
-              by {escalated.actor.name}. The gate stays blocked until the missing evidence is confirmed.
-            </span>
-          </p>
-        ) : null}
-        {captureTask?.status === 'open' && captureTask.id !== activeTaskId ? (
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-line bg-surface px-3 py-2">
-            <p className="flex min-w-0 flex-1 basis-60 items-start gap-2 text-[13px] leading-snug text-ink">
-              <Mic className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <span>
-                <span className="font-semibold">Tell us why — 20 seconds.</span> What did you know that{' '}
-                <span className="font-mono">{item.rule.id}</span> didn&apos;t? It can wait: the question stays on Pulse.
-              </span>
-            </p>
-            <button type="button" onClick={() => onAnswerTask(captureTask.id)} className="btn-pill text-xs">
-              <Mic className="size-3.5" aria-hidden="true" />
-              Answer now
-            </button>
-          </div>
-        ) : null}
-        <div className="mt-4 flex min-w-0 flex-wrap gap-2">
-          {escalated ? null : (
-            <button
-              type="button"
-              onClick={() => onEscalate(item)}
-              disabled={!perms.escalate.enabled}
-              title={perms.escalate.reason}
-              className={cn('btn-pill btn-pill-primary text-xs', WRAPPING_PILL)}
-            >
-              <ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" />
-              Escalate to {personLabel(target.role, people)}
-            </button>
-          )}
-          <button type="button" onClick={() => onWhy(item)} className="btn-pill text-xs">
-            <HelpCircle className="size-3.5" aria-hidden="true" />
-            Why?
-            <span aria-hidden="true" className="text-ink-muted">
-              ·
-            </span>
-            <Volume2 className="size-3.5" aria-hidden="true" />
-            Hear the expert
-          </button>
-        </div>
-        {!perms.escalate.enabled && !escalated ? (
-          <p className="mt-2 text-[12px] text-ink-muted">{perms.escalate.reason}</p>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Reset demo: an inline, non-blocking confirm step
-// ---------------------------------------------------------------------------
-
-function ResetDemoControl({ onConfirm }: { onConfirm: () => void }) {
-  const [confirming, setConfirming] = useState(false);
-  const [resetAt, setResetAt] = useState<string | null>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const confirmRef = useRef<HTMLButtonElement>(null);
-  const returnFocus = useRef(false);
-
-  useEffect(() => {
-    if (confirming) confirmRef.current?.focus();
-    else if (returnFocus.current) {
-      returnFocus.current = false;
-      triggerRef.current?.focus();
-    }
-  }, [confirming]);
-
-  const cancel = () => {
-    returnFocus.current = true;
-    setConfirming(false);
-  };
-  const confirm = () => {
-    onConfirm();
-    setResetAt(new Date().toISOString());
-    returnFocus.current = true;
-    setConfirming(false);
-  };
-
-  if (confirming) {
-    return (
-      <div
-        role="group"
-        aria-labelledby="reset-demo-question"
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            cancel();
-          }
-        }}
-        className="flex flex-col items-end gap-2 rounded-xl border border-blocked/45 bg-blocked-tint px-3 py-2.5"
-      >
-        <p id="reset-demo-question" className="text-[12px] leading-snug text-ink">
-          Reset versions, decisions and evidence?
-          <span className="block text-ink-muted">The audit log is kept.</span>
-        </p>
-        <div className="flex gap-2">
-          <button type="button" onClick={cancel} className="btn-pill text-xs">
-            Cancel
-          </button>
-          <button ref={confirmRef} type="button" onClick={confirm} className="btn-pill btn-pill-primary text-xs">
-            <RotateCcw className="size-3.5" aria-hidden="true" />
-            Reset demo
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-end gap-1">
-      <button ref={triggerRef} type="button" onClick={() => setConfirming(true)} className="btn-pill text-xs">
-        <RotateCcw className="size-3.5" aria-hidden="true" />
-        Reset demo
-      </button>
-      {resetAt ? (
-        <p role="status" className="text-[11px] text-ink-muted">
-          Reset at{' '}
-          <time dateTime={resetAt} className="font-mono tabular-nums">
-            {formatSgtClock(resetAt)}
-          </time>
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Accumulated evidence (role-redacted values)
-// ---------------------------------------------------------------------------
-
-function EvidenceStatePanel({ evidence, role }: { evidence: EvidenceState; role: string }) {
-  const entries = Object.entries(evidence);
-  const confirmed = entries.filter(([, e]) => e.confirmed).length;
-  return (
-    <details className="rounded-xl border border-line bg-surface px-4 py-3 text-xs">
-      <summary className="cursor-pointer select-none text-[13px] font-medium text-ink">
-        Evidence state · {entries.length} key(s), {confirmed} confirmed
-      </summary>
-      {entries.length === 0 ? (
-        <p className="mt-2 text-ink-muted">No evidence yet.</p>
-      ) : (
-        <ul className="mt-2 max-h-60 space-y-0.5 overflow-y-auto">
-          {entries.map(([key, e]) => (
-            <li key={key} className="flex gap-2">
-              <span className={cn('font-mono', e.confirmed ? 'text-recommend' : 'text-approval')}>{key}</span>
-              <span className="truncate text-ink-muted">
-                {redactText(JSON.stringify(e.value), role, e.sensitivity)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </details>
   );
 }
