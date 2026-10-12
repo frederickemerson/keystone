@@ -54,6 +54,59 @@ export function candidateToRule(c: RuleCandidate): Rule {
 
 const extractionOutputSchema = z.object({ rule_candidates: z.array(z.unknown()).max(20) });
 
+// ---------------------------------------------------------------------------
+// Structured-output contract (what a schema-constrained provider must emit)
+// ---------------------------------------------------------------------------
+//
+// Providers that support strict JSON-schema output (OpenAI) are constrained to
+// this schema at decode time, so they cannot invent shapes the guard rejects
+// (e.g. a bare condition where an exception object belongs). It is expressed
+// in the OpenAI strict subset: every property required, no additional
+// properties, no open types. It is deliberately a SUBSET of what the guard
+// accepts — the guard (draftExtractionSchema) still runs on the result and
+// stays the only authority. Fields the guard treats as optional are either
+// required here (escalate_to.fallback, add_required_evidence: [] allowed) or
+// not offered (asset_overrides, exception escalate_to).
+
+const wirePath = z.string().regex(/^(evidence|asset|incident)(\.[A-Za-z0-9_]+)+$/);
+const wireScalar = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+/** One variant per operator family so the value type matches what the engine evaluates. */
+const wireCondition = z.union([
+  z.strictObject({ path: wirePath, op: z.enum(["eq", "neq"]), value: wireScalar }),
+  z.strictObject({ path: wirePath, op: z.enum(["gt", "gte", "lt", "lte"]), value: z.number() }),
+  z.strictObject({ path: wirePath, op: z.literal("in"), value: z.array(wireScalar).min(1) }),
+  z.strictObject({ path: wirePath, op: z.literal("exists") }),
+]);
+const wireCandidate = z.strictObject({
+  rule_id: z.string().regex(/^[A-Z]{2,5}-\d{2,3}$/),
+  title: z.string(),
+  trigger: z.strictObject({ incident_type: z.string(), all: z.array(wireCondition), any: z.array(wireCondition) }),
+  required_evidence: z.array(z.string()),
+  decision: z.string(),
+  allowed_actions: z.array(z.string()),
+  forbidden_actions: z.array(z.string()),
+  exceptions: z.array(z.strictObject({
+    when: z.array(wireCondition),
+    note: z.string(),
+    add_required_evidence: z.array(z.string()),
+  })),
+  action_class: z.enum(["recommend", "requires_approval", "must_escalate"]),
+  forbidden_if_missing_evidence: z.boolean(),
+  escalate_to: z.strictObject({ role: z.string(), fallback: z.string() }),
+  owner: z.string(),
+  deadline_minutes: z.number().nullable(),
+  provenance: z.array(z.string().regex(/^[A-Za-z0-9-]+#\d{2}:[0-5]\d:[0-5]\d$/)),
+  confirmation_status: z.literal("pending_expert_review"),
+  confidence: z.number(),
+});
+
+/**
+ * The structured-output schema for the `extract` task. Passed to providers as
+ * the decode-time contract; its output is then re-validated by
+ * `draftExtractionSchema`, which never trusts it.
+ */
+export const extractionWireSchema = z.strictObject({ rule_candidates: z.array(wireCandidate).max(4) });
+
 /** Use the existing field-by-field guard for both provider output and fixtures. */
 export const draftExtractionSchema = extractionOutputSchema.transform((raw, ctx) => {
   const parsed = toDraftCandidates(raw);

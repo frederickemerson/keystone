@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import extraction from '@/data/fixtures/llm/extraction.json';
-import { draftExtractionSchema } from '../candidates';
-import { generateJson, type GenerateOptions } from '../providers';
-import { generationLabel } from '../attribution';
+import { draftExtractionSchema, extractionWireSchema } from '../candidates';
+import { BUDGET_MS, generateJson, type GenerateOptions } from '../providers';
+import { generationLabel, LLM_CLIENT_WAIT_MS } from '../attribution';
+import sample from './fixtures/openai-extract-sample.json';
 
 const mocks = vi.hoisted(() => ({
   query: vi.fn(), generateText: vi.fn(), openaiGenerate: vi.fn(), existsSync: vi.fn(), readFileSync: vi.fn(), interrupt: vi.fn(),
@@ -16,7 +17,7 @@ const { NoObjectGeneratedError } = vi.hoisted(() => {
 vi.mock('ai', () => ({
   // Route by the model object so TokenHub and OpenAI can be mocked independently.
   generateText: (args: { model: { provider: string } }) => (String(args.model.provider).startsWith('openai') ? mocks.openaiGenerate : mocks.generateText)(args),
-  Output: { json: () => ({ type: 'json' }) },
+  Output: { json: () => ({ type: 'json' }), object: (options: object) => ({ type: 'object', ...options }) },
   NoObjectGeneratedError,
 }));
 vi.mock('node:fs', async (original) => ({ ...await original<typeof import('node:fs')>(), existsSync: mocks.existsSync, readFileSync: mocks.readFileSync }));
@@ -148,12 +149,12 @@ describe('live output boundary', () => {
     respond(json, true);
     expect((await generate()).source).toBe('recorded');
   });
-  it('default 25 s CodeBuddy timeout aborts and interrupts then returns the recorded fixture', async () => {
+  it('default 15 s CodeBuddy timeout aborts and interrupts then returns the recorded fixture', async () => {
     vi.useFakeTimers();
     mocks.query.mockReturnValue({ interrupt: mocks.interrupt, async *[Symbol.asyncIterator]() { await new Promise(() => {}); } });
     const pending = generate();
-    await vi.advanceTimersByTimeAsync(25_000);
-    expect(await pending).toMatchObject({ source: 'recorded', provider: 'fixtures', latencyMs: 25_000, reason: 'CodeBuddy timed out after 25 s; showing the recorded fixture.' });
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(await pending).toMatchObject({ source: 'recorded', provider: 'fixtures', latencyMs: 15_000, reason: 'CodeBuddy timed out after 15 s; showing the recorded fixture.' });
     expect(mocks.query.mock.calls[0][0].options.abortController.signal.aborted).toBe(true);
     expect(mocks.interrupt).toHaveBeenCalledOnce();
   });
@@ -217,7 +218,8 @@ describe('fall-through chain with truthful attribution', () => {
     ]);
     expect(generationLabel(result)).toMatch(/^Live · gpt-5\.4-mini via OpenAI · \d+\.\d s$/);
     const args = mocks.openaiGenerate.mock.calls[0][0];
-    expect(args).toMatchObject({ output: { type: 'json' }, maxRetries: 0, providerOptions: { openai: { store: false } } });
+    // Extraction uses strict structured output with the wire contract, not free-form JSON mode.
+    expect(args).toMatchObject({ output: { type: 'object', schema: extractionWireSchema }, maxRetries: 0, providerOptions: { openai: { store: false } } });
     expect(args.model.modelId).toBe('gpt-5.4-mini');
   });
 
@@ -239,30 +241,50 @@ describe('fall-through chain with truthful attribution', () => {
   it('each provider gets its own timeout; a hung CodeBuddy hands over to TokenHub', async () => {
     vi.useFakeTimers();
     mocks.query.mockReturnValue({ interrupt: mocks.interrupt, async *[Symbol.asyncIterator]() { await hang(); } });
-    mocks.generateText.mockImplementation(() => hang());
     const pending = generate();
-    await vi.advanceTimersByTimeAsync(25_000);
-    expect(mocks.interrupt).toHaveBeenCalledOnce();
-    expect(mocks.generateText).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(15_000);
-    expect(mocks.generateText.mock.calls[0][0].abortSignal.aborted).toBe(true);
-    // 5 s of the 45 s budget remain, so OpenAI still runs, capped at 5 s.
+    expect(mocks.interrupt).toHaveBeenCalledOnce();
     const result = await pending;
-    expect(result).toMatchObject({ source: 'live', provider: 'openai', latencyMs: 40_000 });
-    expect(result.reason).toBe('Answered by OpenAI after: CodeBuddy timed out after 25 s; TokenHub timed out after 15 s.');
+    expect(result).toMatchObject({ source: 'live', provider: 'tokenhub', latencyMs: 15_000 });
+    expect(result.reason).toBe('Answered by TokenHub after: CodeBuddy timed out after 15 s.');
   });
 
-  it('budget exhaustion skips remaining providers and returns fixtures', async () => {
+  it('the default 20 s budget caps the chain so it always answers before the 25 s client wait', async () => {
     vi.useFakeTimers();
     mocks.query.mockReturnValue({ interrupt: mocks.interrupt, async *[Symbol.asyncIterator]() { await hang(); } });
     mocks.generateText.mockImplementation(() => hang());
-    const pending = generate({ budgetMs: 30_000 });
-    await vi.advanceTimersByTimeAsync(30_000);
+    const pending = generate();
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(mocks.generateText).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(mocks.generateText.mock.calls[0][0].abortSignal.aborted).toBe(true);
     const result = await pending;
-    expect(result).toMatchObject({ source: 'recorded', provider: 'fixtures', latencyMs: 30_000 });
+    expect(BUDGET_MS).toBeLessThan(LLM_CLIENT_WAIT_MS);
+    expect(result).toMatchObject({ source: 'recorded', provider: 'fixtures', latencyMs: 20_000 });
     expect(result.attempts.map((a) => [a.provider, a.outcome])).toEqual([['codebuddy', 'timeout'], ['tokenhub', 'timeout'], ['openai', 'budget-exhausted']]);
-    expect(result.reason).toBe('CodeBuddy timed out after 25 s; TokenHub timed out after 5 s; OpenAI skipped (time budget exhausted); showing the recorded fixture.');
+    expect(result.reason).toBe('CodeBuddy timed out after 15 s; TokenHub timed out after 5 s; OpenAI skipped (time budget exhausted); showing the recorded fixture.');
     expect(mocks.openaiGenerate).not.toHaveBeenCalled();
+  });
+
+  it('a hung OpenAI call is aborted at its 15 s timeout', async () => {
+    vi.stubEnv('MOSAIC_LLM_PROVIDER', 'openai');
+    vi.useFakeTimers();
+    mocks.openaiGenerate.mockImplementation(() => hang());
+    const pending = generate();
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(await pending).toMatchObject({ source: 'recorded', provider: 'fixtures', latencyMs: 15_000, reason: 'OpenAI timed out after 15 s; showing the recorded fixture.' });
+    expect(mocks.openaiGenerate.mock.calls[0][0].abortSignal.aborted).toBe(true);
+  });
+
+  it('structured output that passes the wire contract but fails the engine guard is still rejected', async () => {
+    vi.stubEnv('MOSAIC_LLM_PROVIDER', 'openai');
+    const base = sample.structured.output.rule_candidates[0];
+    // Allowed and forbidden at once: expressible on the wire, refused by the engine rule schema.
+    const clash = { ...base, allowed_actions: [...base.allowed_actions, base.forbidden_actions[0]] };
+    const output = { rule_candidates: [clash] };
+    expect(extractionWireSchema.safeParse(output).success).toBe(true);
+    mocks.openaiGenerate.mockResolvedValue({ output });
+    expect(await generate()).toMatchObject({ source: 'recorded', provider: 'fixtures', attempts: [{ provider: 'openai', outcome: 'rejected' }] });
   });
 
   it('OpenAI is skipped without OPENAI_API_KEY', async () => {

@@ -1,0 +1,269 @@
+{
+  "_note": "Real OpenAI Responses API outputs for the /api/llm/extract prompt over data/transcripts/ce-interview-2026-10-02.json, recorded 2026-10-12. Sanitised: response ids, usage and headers removed; content verbatim.",
+  "structured": {
+    "model": "gpt-5.4-mini-2026-03-17",
+    "mode": "Output.object(extractionWireSchema), strict json_schema",
+    "output": {
+      "rule_candidates": [
+        {
+          "rule_id": "TS-01",
+          "title": "No re-energisation before LEW sign-off",
+          "trigger": {
+            "incident_type": "water_ingress",
+            "all": [
+              {
+                "path": "evidence.water_near_electrical_equipment",
+                "op": "eq",
+                "value": true
+              }
+            ],
+            "any": []
+          },
+          "required_evidence": [
+            "lew_physical_inspection",
+            "insulation_resistance_test",
+            "written_lew_signoff"
+          ],
+          "decision": "Do not re-energise until the LEW inspects, tests insulation resistance, and signs off in writing",
+          "allowed_actions": [
+            "Isolate water source",
+            "Cordon area",
+            "Call LEW"
+          ],
+          "forbidden_actions": [
+            "Enter electrical area before LEW says safe",
+            "Re-energise before LEW sign-off"
+          ],
+          "exceptions": [],
+          "action_class": "must_escalate",
+          "forbidden_if_missing_evidence": true,
+          "escalate_to": {
+            "role": "duty_lew",
+            "fallback": "chief_engineer"
+          },
+          "owner": "chief_engineer",
+          "deadline_minutes": null,
+          "provenance": [
+            "ce-interview-2026-10-02#00:14:32",
+            "ce-interview-2026-10-02#00:18:15"
+          ],
+          "confirmation_status": "pending_expert_review",
+          "confidence": 0.98
+        },
+        {
+          "rule_id": "TS-02",
+          "title": "Use a 2 metre electrical hazard threshold",
+          "trigger": {
+            "incident_type": "water_ingress",
+            "all": [
+              {
+                "path": "evidence.water_distance_to_energised_electrical_equipment_m",
+                "op": "lte",
+                "value": 2
+              }
+            ],
+            "any": []
+          },
+          "required_evidence": [
+            "distance_estimate",
+            "equipment_type_identified"
+          ],
+          "decision": "Treat water within two metres of energised electrical equipment as an electrical hazard",
+          "allowed_actions": [
+            "Cordon threshold",
+            "Isolate water from outside the room",
+            "Call LEW"
+          ],
+          "forbidden_actions": [
+            "Treat as routine cleaning",
+            "Enter the room before clearance"
+          ],
+          "exceptions": [],
+          "action_class": "requires_approval",
+          "forbidden_if_missing_evidence": true,
+          "escalate_to": {
+            "role": "duty_lew",
+            "fallback": "chief_engineer"
+          },
+          "owner": "chief_engineer",
+          "deadline_minutes": null,
+          "provenance": [
+            "ce-interview-2026-10-02#00:16:30",
+            "ce-interview-2026-10-02#00:25:30"
+          ],
+          "confirmation_status": "pending_expert_review",
+          "confidence": 0.94
+        },
+        {
+          "rule_id": "TS-03",
+          "title": "Close the branch valve first if it stops the leak",
+          "trigger": {
+            "incident_type": "chilled_water_leak",
+            "all": [
+              {
+                "path": "evidence.branch_leak_confirmed",
+                "op": "eq",
+                "value": true
+              },
+              {
+                "path": "evidence.sub_valve_accessible",
+                "op": "eq",
+                "value": true
+              },
+              {
+                "path": "evidence.sub_valve_effective",
+                "op": "eq",
+                "value": true
+              }
+            ],
+            "any": []
+          },
+          "required_evidence": [
+            "leak_source_traced",
+            "sub_valve_access_checked"
+          ],
+          "decision": "Isolate the branch only; do not shut the riser if the branch sub-valve is accessible and stops the flow",
+          "allowed_actions": [
+            "Isolate sub-valve",
+            "Use shutoff map",
+            "Contain leakage"
+          ],
+          "forbidden_actions": [
+            "Shut the whole riser when branch isolation works"
+          ],
+          "exceptions": [
+            {
+              "when": [
+                {
+                  "path": "evidence.source_uncertain_minutes",
+                  "op": "gte",
+                  "value": 10
+                },
+                {
+                  "path": "evidence.sub_valve_inaccessible",
+                  "op": "eq",
+                  "value": true
+                }
+              ],
+              "note": "Use riser isolation if the source cannot be confirmed within ten minutes or the sub-valve is inaccessible",
+              "add_required_evidence": [
+                "source_trace_attempted"
+              ]
+            }
+          ],
+          "action_class": "recommend",
+          "forbidden_if_missing_evidence": true,
+          "escalate_to": {
+            "role": "chief_engineer",
+            "fallback": "duty_manager"
+          },
+          "owner": "chief_engineer",
+          "deadline_minutes": 15,
+          "provenance": [
+            "ce-interview-2026-10-02#00:23:30",
+            "ce-interview-2026-10-02#00:24:30"
+          ],
+          "confirmation_status": "pending_expert_review",
+          "confidence": 0.92
+        },
+        {
+          "rule_id": "TS-04",
+          "title": "Meet the 15-minute isolation window in tenant areas",
+          "trigger": {
+            "incident_type": "water_ingress",
+            "all": [
+              {
+                "path": "evidence.location_type",
+                "op": "eq",
+                "value": "tenant_occupied_area"
+              }
+            ],
+            "any": []
+          },
+          "required_evidence": [
+            "time_to_isolation_minutes"
+          ],
+          "decision": "Isolate within fifteen minutes; if not possible, escalate to Duty Manager and consider riser isolation",
+          "allowed_actions": [
+            "Isolate source",
+            "Escalate to Duty Manager",
+            "Consider riser isolation"
+          ],
+          "forbidden_actions": [
+            "Delay beyond fifteen minutes without escalation"
+          ],
+          "exceptions": [],
+          "action_class": "must_escalate",
+          "forbidden_if_missing_evidence": true,
+          "escalate_to": {
+            "role": "duty_manager",
+            "fallback": "chief_engineer"
+          },
+          "owner": "chief_engineer",
+          "deadline_minutes": 15,
+          "provenance": [
+            "ce-interview-2026-10-02#00:11:35"
+          ],
+          "confirmation_status": "pending_expert_review",
+          "confidence": 0.9
+        }
+      ]
+    }
+  },
+  "json_mode_rejected": {
+    "model": "gpt-5.4-mini-2026-03-17",
+    "mode": "Output.json() (free-form JSON mode, pre-fix)",
+    "candidate": {
+      "rule_id": "TS-04",
+      "title": "Fire-protection impairments need FSM authorisation",
+      "trigger": {
+        "incident_type": "fire_protection_impairment",
+        "all": [
+          {
+            "path": "evidence.system_type",
+            "op": "in",
+            "value": [
+              "sprinkler",
+              "wet_riser",
+              "hose_reel",
+              "fire_pump"
+            ]
+          }
+        ],
+        "any": []
+      },
+      "required_evidence": [
+        "fsm_authorisation"
+      ],
+      "decision": "Do not touch the valve without FSM authorisation",
+      "allowed_actions": [
+        "Raise red-tag permit",
+        "Notify insurer",
+        "Post fire watch",
+        "Isolate smallest zone"
+      ],
+      "forbidden_actions": [
+        "Alter fire-protection valves without authorisation"
+      ],
+      "exceptions": [
+        {
+          "path": "evidence.immediate_life_safety",
+          "op": "eq",
+          "value": true
+        }
+      ],
+      "action_class": "must_escalate",
+      "forbidden_if_missing_evidence": true,
+      "escalate_to": {
+        "role": "fsm"
+      },
+      "owner": "chief_engineer",
+      "deadline_minutes": 5,
+      "provenance": [
+        "ce-interview-2026-10-02#00:28:30"
+      ],
+      "confirmation_status": "pending_expert_review",
+      "confidence": 0.96
+    }
+  }
+}

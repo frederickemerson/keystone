@@ -7,9 +7,10 @@ import type { query } from '@tencent-ai/agent-sdk';
 import { generateText, NoObjectGeneratedError, Output } from 'ai';
 import type { z } from 'zod';
 import extraction from '@/data/fixtures/llm/extraction.json';
+import { extractionWireSchema } from './candidates';
 import tenantMessage from '@/data/fixtures/llm/tenant-message-INC-2026-1011.json';
 import {
-  PROVIDER_NAMES, type AttemptOutcome, type Generation, type LiveProvider, type ProviderAttempt,
+  LLM_SERVER_BUDGET_MS, PROVIDER_NAMES, type AttemptOutcome, type Generation, type LiveProvider, type ProviderAttempt,
 } from './attribution';
 import { DEFAULT_MODEL, getModel, getModelId, getOpenAIModel, getOpenAIModelId } from './client';
 
@@ -21,12 +22,24 @@ const fixtures = {
   'tenant-message-INC-2026-1011': { data: tenantMessage.drafts[0], model: tenantMessage.model },
 };
 
+/**
+ * Decode-time output contracts for providers that support strict JSON-schema
+ * output (OpenAI). Free-form JSON mode let the model invent shapes the guard
+ * then rejected (e.g. a bare condition inside `exceptions`). These schemas only
+ * constrain generation; the caller's `zodSchema` guard still validates the result.
+ */
+const STRUCTURED_OUTPUT: Partial<Record<LlmTask, z.ZodType>> = { extract: extractionWireSchema };
+
 /** Auto chain order. Each provider is tried only when it has credentials. */
 export const CHAIN: readonly LiveProvider[] = ['codebuddy', 'tokenhub', 'openai'];
 /** Per-provider timeouts; each is further capped by what is left of the budget. */
-export const PROVIDER_TIMEOUT_MS: Readonly<Record<LiveProvider, number>> = { codebuddy: 25_000, tokenhub: 15_000, openai: 20_000 };
-/** Overall budget for the whole chain (routes allow 60 s; clients wait 50 s). */
-export const BUDGET_MS = 45_000;
+export const PROVIDER_TIMEOUT_MS: Readonly<Record<LiveProvider, number>> = { codebuddy: 15_000, tokenhub: 10_000, openai: 15_000 };
+/**
+ * Overall budget for the whole chain. Clients wait LLM_CLIENT_WAIT_MS, which is
+ * this plus headroom, so the server always answers (live or recorded, with a
+ * reason) before the client gives up.
+ */
+export const BUDGET_MS = LLM_SERVER_BUDGET_MS;
 /** A provider is skipped when less than this is left of the budget. */
 export const MIN_ATTEMPT_MS = 3_000;
 
@@ -111,7 +124,9 @@ function modelFor(provider: LiveProvider): string {
 type ProviderOutput = { json: unknown; model: string };
 
 /** One provider call bounded by its own timeout. Resolves to parsed JSON or throws AttemptFailure. */
-async function callProvider(provider: LiveProvider, model: string, prompt: string, timeoutMs: number): Promise<ProviderOutput> {
+async function callProvider(
+  provider: LiveProvider, model: string, prompt: string, timeoutMs: number, structured: z.ZodType | undefined,
+): Promise<ProviderOutput> {
   const controller = new AbortController();
   let activeQuery: ReturnType<typeof query> | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -160,9 +175,11 @@ async function callProvider(provider: LiveProvider, model: string, prompt: strin
       });
       return { json: firstJsonObject(result.text), model: result.response?.modelId || model };
     }
-    // OpenAI JSON mode: the SDK parses the response and throws NoObjectGeneratedError on invalid JSON.
+    // OpenAI: strict structured output when the task has a contract, else JSON mode.
+    // The SDK throws NoObjectGeneratedError when the response does not parse/validate.
     const result = await generateText({
-      model: getOpenAIModel(model), system: SYSTEM_PROMPT, prompt, output: Output.json(),
+      model: getOpenAIModel(model), system: SYSTEM_PROMPT, prompt,
+      output: structured ? Output.object({ schema: structured, name: 'keystone_draft' }) : Output.json(),
       abortSignal: controller.signal, maxRetries: 0, maxOutputTokens: 6_000,
       providerOptions: { openai: { store: false, reasoningEffort: 'low' } },
     });
@@ -232,7 +249,7 @@ export async function generateJson<T>(
     const timeoutMs = Math.min(timeoutsMs[provider] ?? PROVIDER_TIMEOUT_MS[provider], remaining);
     let outcome: AttemptOutcome;
     try {
-      const output = await callProvider(provider, model, prompt, timeoutMs);
+      const output = await callProvider(provider, model, prompt, timeoutMs, STRUCTURED_OUTPUT[task]);
       const parsed = zodSchema.safeParse(output.json);
       if (parsed.success) {
         return {

@@ -1,43 +1,78 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LlmBadge } from '@/components/mosaic/LlmBadge';
-import type { Generation } from '@/lib/llm/attribution';
+import { LLM_CLIENT_WAIT_MS, type Generation } from '@/lib/llm/attribution';
 import type { CandidateParse } from '@/lib/llm/candidates';
+import { requestLive } from '@/lib/llm/live-request';
 import type { CaptureProps } from './types';
 
-export function LiveExtractionPanel({ transcript, rules }: Pick<CaptureProps, 'transcript' | 'rules'>) {
+const WAIT_S = LLM_CLIENT_WAIT_MS / 1000;
+
+type Props = Pick<CaptureProps, 'transcript' | 'rules'> & {
+  /** Display name of the configured live provider, if the page knows it (e.g. "OpenAI"). */
+  liveProviderName?: string;
+};
+
+export function LiveExtractionPanel({ transcript, rules, liveProviderName = 'the live model' }: Props) {
   const [result, setResult] = useState<Generation<CandidateParse> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+  const inFlight = useRef<AbortController | null>(null);
+  const loading = startedAt !== null;
+
+  useEffect(() => {
+    if (startedAt === null) return;
+    const tick = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 250);
+    return () => clearInterval(tick);
+  }, [startedAt]);
+  useEffect(() => () => inFlight.current?.abort(), []);
+
   async function extract() {
-    setLoading(true);
+    const controller = new AbortController();
+    inFlight.current = controller;
     setResult(null);
+    setElapsed(0);
+    setStartedAt(Date.now());
     try {
-      const response = await fetch('/api/llm/extract', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ interviewId: transcript.interview_id, turns: transcript.turns.map(({ t, speaker, text }) => ({ t, speaker, text })) }),
-        signal: AbortSignal.timeout(50_000),
+      const generation = await requestLive<CandidateParse>('/api/llm/extract', {
+        interviewId: transcript.interview_id, turns: transcript.turns.map(({ t, speaker, text }) => ({ t, speaker, text })),
+      }, {
+        signal: controller.signal,
+        fallback: (reason) => ({
+          data: { candidates: rules.map((rule) => ({ rule, status: 'draft', requiresExpertConfirmation: true })), rejected: [] },
+          source: 'recorded', provider: 'fixtures', model: 'hy4-preview', latencyMs: 0, attempts: [], reason,
+        }),
       });
-      if (!response.ok) throw new Error('request-failed');
-      setResult(await response.json());
+      setResult(generation);
     } catch {
-      setResult({ data: { candidates: rules.map((rule) => ({ rule, status: 'draft', requiresExpertConfirmation: true })), rejected: [] }, source: 'recorded', provider: 'fixtures', model: 'hy4-preview', latencyMs: 0, attempts: [], reason: 'Live request unavailable; showing the recorded candidates.' });
+      // Aborted by unmount; nothing to show.
     } finally {
-      setLoading(false);
+      if (inFlight.current === controller) {
+        inFlight.current = null;
+        setStartedAt(null);
+      }
     }
   }
+
+  const outcome = result?.reason ?? (result?.source === 'live' ? 'Live model output — a draft, not an approval.' : null);
   return (
     <section className="space-y-3 rounded-xl border border-line bg-surface px-4 py-3" aria-label="Optional live extraction" aria-busy={loading}>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn-pill text-xs" disabled={loading} onClick={extract}>
-          {loading ? 'Drafting live…' : 'Re-extract live'}
+          {loading ? `Drafting with ${liveProviderName}…` : 'Re-extract live'}
         </button>
-        <span role="status"><LlmBadge result={result} /></span>
+        <span role="status" className="text-xs text-ink-muted">
+          {loading
+            ? <span className="tabular-nums">{elapsed} s of {WAIT_S} s, then the recorded output</span>
+            : <LlmBadge result={result} />}
+        </span>
         {result ? <button type="button" className="btn-pill text-xs" onClick={() => setResult(null)}>Dismiss preview</button> : null}
         <p className="text-xs text-ink-muted">Optional · up to four live candidates · the recorded call below is unchanged</p>
       </div>
       {result ? (
         <div className="space-y-3">
+          {outcome ? <p className="text-xs text-ink-muted">{result.source === 'live' ? 'Live' : 'Recorded'} · {outcome}</p> : null}
           <p className="text-xs font-medium text-approval">Draft — requires {transcript.expert.name}’s review and named human approval. Not applied to a pill or copied to the Decision Canvas.</p>
           {result.data.candidates.length === 0 ? <p className="text-xs text-ink-muted">No rule candidates extracted.</p> : null}
           {result.data.candidates.map(({ rule }) => (
