@@ -178,6 +178,18 @@ export function nextRuleId(ruleIds: readonly string[]): string {
 }
 
 /**
+ * Is this the unedited recorded demo note? Then its recorded draft is used
+ * without calling the live extractor, so the demo is deterministic. Exact
+ * transcript equality: an amended or retyped note is a real note.
+ */
+export function isRecordedDemoNote(
+  note: Pick<VoiceNote, "transcript">,
+  recorded: { transcript: string } | null,
+): boolean {
+  return recorded !== null && recorded.transcript === note.transcript;
+}
+
+/**
  * Which extraction a note's drafts may come from. A live result is for this
  * note. The server's recorded fixture is the onboarding-interview extraction,
  * NOT this note, so it is never shown as a draft from it; the recorded

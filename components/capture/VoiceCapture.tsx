@@ -39,6 +39,7 @@ import {
   draftInputs,
   extractRequestFor,
   extractionForNote,
+  isRecordedDemoNote,
   flagChip,
   hasCorrections,
   noteDraftGate,
@@ -87,6 +88,11 @@ function message(err: unknown, fallback: string): string {
 // Consent given in this tab, per speaker (the notice is shown before the first recording).
 const consentBySpeaker = new Map<string, Consent>();
 const NO_DRAFTS: DraftFromNote[] = [];
+
+/** A "recorded" generation result: no model was called. */
+function recordedGeneration(reason: string): Generation<CandidateParse> {
+  return { data: { candidates: [], rejected: [] }, source: 'recorded', provider: 'fixtures', model: 'none', latencyMs: 0, attempts: [], reason };
+}
 
 export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptureProps) {
   const actor = useGovernanceStore((s) => s.currentActor);
@@ -200,13 +206,18 @@ export function VoiceCapture({ assetId, taskId, pills = [], onNote }: VoiceCaptu
     inFlight.current = controller;
     setDrafting(n.amendedFrom ? 'redrafting' : 'drafting');
     try {
-      const generation = await requestLive<CandidateParse>('/api/llm/extract', extractRequestFor(n, speaker), {
-        signal: controller.signal,
-        fallback: (reason) => ({ data: { candidates: [], rejected: [] }, source: 'recorded', provider: 'fixtures', model: 'none', latencyMs: 0, attempts: [], reason }),
-      });
       const fixture = captured?.fixtureId ? fixturesForAsset(assetId).find((f) => f.id === captured.fixtureId) : undefined;
       const recordedDrafts = fixture?.extractionFor(n.id) ?? null;
-      const chosen = extractionForNote(generation, n, fixture && recordedDrafts ? { transcript: fixture.transcript, extraction: recordedDrafts } : null);
+      const recorded = fixture && recordedDrafts ? { transcript: fixture.transcript, extraction: recordedDrafts } : null;
+      // The unedited recorded demo note always drafts the same rule (the guided
+      // demo depends on it); anything a person typed or said goes to the live extractor.
+      const generation = isRecordedDemoNote(n, recorded)
+        ? recordedGeneration('This is the recorded demo note, so its recorded draft is used.')
+        : await requestLive<CandidateParse>('/api/llm/extract', extractRequestFor(n, speaker), {
+            signal: controller.signal,
+            fallback: recordedGeneration,
+          });
+      const chosen = extractionForNote(generation, n, recorded);
       if (chosen.data === null || chosen.data.candidates.length === 0) {
         const reason = chosen.data === null ? chosen.reason : 'The extractor found no rule in this note. It is saved as a note.';
         setOutcome({ kind: 'none', noteId: n.id, reason });

@@ -170,3 +170,13 @@ describe("draft from note, through the governance store", () => {
     expect(extractionForNote({ source: "recorded", data: fake }, note, own).data).toBeNull();
   });
 });
+
+describe("isRecordedDemoNote", () => {
+  it("uses the recorded draft only for the unedited demo transcript", async () => {
+    const { isRecordedDemoNote } = await import("../note-flow");
+    const recorded = { transcript: "Closed ISV-L23-CHW at 08:20." };
+    expect(isRecordedDemoNote({ transcript: "Closed ISV-L23-CHW at 08:20." }, recorded)).toBe(true);
+    expect(isRecordedDemoNote({ transcript: "Closed ISV-L23-CHW at 08:25." }, recorded)).toBe(false);
+    expect(isRecordedDemoNote({ transcript: "anything" }, null)).toBe(false);
+  });
+});
