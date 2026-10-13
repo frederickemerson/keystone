@@ -25,6 +25,7 @@ import { useCallPlayback } from './useCallPlayback';
 import { CallPanel } from './CallPanel';
 import { CapturedPanel } from './CapturedPanel';
 import { LiveExtractionPanel } from './LiveExtractionPanel';
+import { LiveProbePanel } from './LiveProbePanel';
 import type { CaptureProps } from './types';
 
 const NO_REVIEWS: Record<string, RuleReviewRecord> = {};
@@ -176,6 +177,13 @@ export function ExpertCallClient(
         </p>
       ) : null}
       <LiveExtractionPanel transcript={transcript} rules={rules} liveProvider={props.liveProvider} />
+      <LiveProbePanel
+        transcript={transcript}
+        rules={rules}
+        liveProvider={props.liveProvider}
+        turnIndex={playback.turnIndex}
+        revealedRuleIds={playback.revealedRuleIds}
+      />
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <CallPanel
           playback={playback}

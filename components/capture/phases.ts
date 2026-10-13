@@ -4,6 +4,12 @@
 // coverage_audit, contrast_and_contradiction, confirmation) into the 5 labels the
 // on-call UI surfaces: Incident account -> Timeline -> Deepening probes ->
 // What-if -> Knowledge audit.
+//
+// The probe ids come from the one library the live interviewer also draws from
+// (lib/llm/interview PROBE_IDS), and the Record below is keyed by it, so a probe
+// the library knows about cannot be missing a phase here.
+
+import { baseProbeId, isProbeId, type ProbeId } from '@/lib/llm/interview';
 
 export const PHASE_ORDER = [
   'Incident account',
@@ -15,7 +21,7 @@ export const PHASE_ORDER = [
 
 export type PhaseLabel = (typeof PHASE_ORDER)[number];
 
-const PROBE_PHASE: Record<string, PhaseLabel> = {
+const PROBE_PHASE: Record<ProbeId, PhaseLabel> = {
   P01: 'Incident account',
   P02: 'Timeline',
   // Deepening probes (CDM sweep 3)
@@ -64,11 +70,16 @@ export function computePhaseByTurn(
   let current: PhaseLabel = 'Incident account';
   for (const t of turns) {
     if (t.speaker === 'Keystone' && t.probe_id) {
-      const base = t.probe_id.replace(/-.*$/, ''); // strip "-follow_up"
-      const mapped = PROBE_PHASE[base];
-      if (mapped) current = mapped;
+      const base = baseProbeId(t.probe_id); // strip "-follow_up"
+      if (isProbeId(base)) current = PROBE_PHASE[base];
     }
     out.push(current);
   }
   return out;
+}
+
+/** The sweep a probe belongs to, for labelling one probe on its own. */
+export function probePhase(probeId: string): PhaseLabel | undefined {
+  const base = baseProbeId(probeId);
+  return isProbeId(base) ? PROBE_PHASE[base] : undefined;
 }

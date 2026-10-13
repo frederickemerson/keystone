@@ -10,6 +10,32 @@ export const extractRequestSchema = z.object({
   }).strict()).min(1).max(100),
 }).strict();
 
+/**
+ * One live elicitation probe: the window of the call so far, plus the rules the
+ * pill already holds. `capturedRules` and `expertName` are REQUIRED and carry no
+ * default — a probe that is not compared against what the expert has already
+ * said, by someone the transcript names, is not an elicitation probe, and a
+ * fail-open default here would silently produce ungrounded suggestions.
+ */
+export const probeRequestSchema = z.object({
+  interviewId: z.string().regex(/^[a-zA-Z0-9-]{1,80}$/),
+  expertName: z.string().trim().min(1).max(100),
+  turns: z.array(z.object({
+    t: z.string().regex(/^\d{2}:[0-5]\d:[0-5]\d$/),
+    speaker: z.string().trim().min(1).max(100),
+    text: z.string().trim().min(1).max(4_000),
+    /** Interviewer turns: the probe asked (transcript `probe_id`). */
+    probe_id: z.string().regex(/^P\d{2}(-[a-z_]{1,20})?$/).nullish(),
+    /** Expert turns: the rules this span produced (transcript `extracted_rule_ids`). */
+    rule_ids: z.array(z.string().regex(/^[A-Za-z0-9-]{1,40}$/)).max(20).optional(),
+  }).strict()).min(1).max(80),
+  capturedRules: z.array(z.object({
+    rule_id: z.string().regex(/^[A-Za-z0-9-]{1,40}$/),
+    title: z.string().trim().min(1).max(200),
+    decision: z.string().trim().min(1).max(600),
+  }).strict()).min(1).max(24),
+}).strict();
+
 export const tenantRequestSchema = z.object({
   incidentId: z.string().regex(/^INC-\d{4}-\d{4}$/),
 }).strict();
