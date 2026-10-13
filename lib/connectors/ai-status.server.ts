@@ -4,6 +4,7 @@
 // what Keystone actually does.
 
 import 'server-only';
+import { adpSummary } from '@/lib/adp/status';
 import { serverAsrSummary } from '@/lib/capture/asr';
 import { isJevConfigured } from '@/lib/jev/client';
 import { expectedLiveProvider } from '@/lib/llm/providers';
@@ -14,5 +15,6 @@ export function readAiConfig(): AiConfigProbe {
     llmFirstProvider: expectedLiveProvider(),
     jevConfigured: isJevConfigured(),
     asr: serverAsrSummary().providers,
+    adp: adpSummary(),
   };
 }

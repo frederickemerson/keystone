@@ -9,12 +9,16 @@
 //   4. roles — every role referenced anywhere exists in data/roles.json with
 //      a named persona;
 //   6. fixtures / incidents — pill versions, rule ids and recorded LLM
-//      outputs point at things that exist.
+//      outputs point at things that exist;
+//   7. evidence ingestion — the binding table that POST /api/ingest maps with
+//      reports only keys its connector owns, and never binds a feed that
+//      cannot confirm gate evidence to a key that can gate a rule.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import * as yaml from "js-yaml";
 import { describe, expect, it } from "vitest";
+import { INGEST_SOURCES } from "@/lib/ingest/sources";
 import { approvalGrantSchema } from "../schemas";
 
 const ROOT = process.cwd();
@@ -518,5 +522,46 @@ describe("6. incidents and fixtures", () => {
   it("incident summaries cite real rules", () => {
     for (const f of readdirSync(join(ROOT, FIXTURES)).filter((x) => x.startsWith("incident-summary-")))
       for (const k of json(join(FIXTURES, f)).summary.key_decisions) expect(RULE_IDS.has(k.rule_id), `${f} ${k.rule_id}`).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. Evidence ingestion — the binding table against the connectors and pills
+// ---------------------------------------------------------------------------
+
+describe("7. evidence ingestion bindings (lib/ingest/sources.ts)", () => {
+  const CONNECTOR_ROWS: { id: string; evidenceKeys?: string[]; canConfirmGateEvidence: boolean; label: string }[] =
+    json("data/connectors.json");
+  const GATING = new Set(ALL_RULES.flatMap(gatingKeys));
+  const row = (id: string) => CONNECTOR_ROWS.find((c) => c.id === id);
+
+  it("binds every signal to a key its own connector may report, and some pill declares", () => {
+    // Guard against a vacuous pass: there is a table, and gating keys exist.
+    expect(Object.keys(INGEST_SOURCES).length).toBeGreaterThan(0);
+    expect(GATING.has("shutoff_map_available")).toBe(true);
+    for (const [system, source] of Object.entries(INGEST_SOURCES)) {
+      const connector = row(source.connectorId);
+      expect(connector, `${system}: ${source.connectorId}`).toBeDefined();
+      expect(Object.keys(source.bindings).length, system).toBeGreaterThan(0);
+      for (const [signal, binding] of Object.entries(source.bindings)) {
+        const where = `${system}.${signal}`;
+        expect(connector!.evidenceKeys ?? [], where).toContain(binding.key);
+        expect(DECLARED[binding.key], `${where}: ${binding.key} undeclared`).toBeDefined();
+        expect(DECLARED[binding.key].type, where).toBe("boolean");
+      }
+    }
+  });
+
+  it("never binds a feed that cannot confirm gate evidence to a key that can gate a rule", () => {
+    const offenders: string[] = [];
+    for (const [system, source] of Object.entries(INGEST_SOURCES)) {
+      if (row(source.connectorId)!.canConfirmGateEvidence) continue;
+      for (const [signal, binding] of Object.entries(source.bindings))
+        if (GATING.has(binding.key)) offenders.push(`${system}.${signal} → ${binding.key}`);
+    }
+    expect(offenders).toEqual([]);
+    // The filter above is real: one binding IS a gating key, on a connector that may hold one.
+    expect(GATING.has(INGEST_SOURCES.cmms.bindings.isolation_diagram.key)).toBe(true);
+    expect(row("cmms_work_orders")!.canConfirmGateEvidence).toBe(true);
   });
 });
