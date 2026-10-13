@@ -89,17 +89,21 @@ mishear numbers and tags.
 
 ### Screenshots
 
-| Expert Call — contradiction detected | Decision Canvas — resolved + confirm |
+| Expert Call — a live probe, grounded in what he just said | Decision Canvas — resolved + confirm |
 |---|---|
-| ![Expert Onboarding Call with contradiction detected](docs/screens/expert-call-contradiction.png) | ![Decision Canvas with resolved contradiction and rule tiles](docs/screens/decision-canvas.png) |
+| ![Expert onboarding call with a live elicitation probe from Hunyuan hy4-preview via TokenHub](docs/screens/expert-call-live-probe.png) | ![Decision Canvas with resolved contradiction and rule tiles](docs/screens/decision-canvas.png) |
 
 | Incident Room — TS-07 blocks the AI | Why drawer — hear the expert |
 |---|---|
 | ![Incident Decision Room with TS-07 blocked](docs/screens/incident-blocked-ts07.png) | ![Why drawer showing expert source and missing evidence](docs/screens/why-drawer-hear-expert.png) |
 
-| Learning — outcome, correction, diff, evals, rollback | Portfolio Pulse |
+| Cross-pill conflict — two pills, one human decides | Portfolio Pulse |
 |---|---|
-| ![Outcome and Learning flow](docs/screens/learning.png) | ![Portfolio Pulse dashboard](docs/screens/portfolio-pulse.png) |
+| ![Cross-pill conflict panel showing TE-04 against TS-07 and the named adjudicator](docs/screens/cross-pill-conflict.png) | ![Portfolio Pulse dashboard](docs/screens/portfolio-pulse.png) |
+
+| Learning — outcome, correction, diff, evals, rollback | |
+|---|---|
+| ![Outcome and Learning flow](docs/screens/learning.png) | |
 
 ---
 
