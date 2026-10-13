@@ -25,6 +25,56 @@ _(8 words, under the 10-word hard limit.)_
 
 ## 3. Project Overview
 
+### Which part of the problem this solves
+
+The challenge owner was explicit about how this is judged: *"We're not looking at the whole
+rocket ship. If you can build a better combustion engine, that will be cool. A landing gear
+will also be cool — but you have to link it back to what part of a problem it is that
+you're trying to solve."*
+
+So, plainly.
+
+**The part Keystone takes.** One expert's judgement about one recurring operational
+situation, turned into an artifact that survives them: elicited in a structured interview or
+a frontline note, compiled into versioned rules with provenance back to the sentence that
+produced them, gated so only a named person in an allowed role can act on them, and reused
+by someone who was not in the room. That is the handoff — the point where know-how either
+becomes institutional or leaves with the person.
+
+Keppel's own framing of the unit is the one this product is built around: *"distil that into
+an **intelligence pill**, so that when I give this pill in the form of — can be a **skill**,
+could be an **agent**, could be a whole **platform** — to someone who is new, that person
+will be able to function as if Paul is sitting next to this person."* A Keystone pill is all
+three, from one source of truth: it exports as a **CodeBuddy skill** (`SKILL.md`, rules,
+evidence, evals, `DIGEST.txt`), publishes as a **Tencent Cloud ADP agent** that answers
+grounded in the pill, and runs in **this platform** where it is captured, approved and
+versioned.
+
+**The part Keystone does not take, and does not claim to.**
+
+- **It does not write to building systems.** No BMS, CMMS or access-control write-back. The
+  product reads evidence and governs decisions; a person acts.
+- **It is not a domain model for energy, leasing or asset enhancement.** Chilled-water leaks
+  are the *worked example*, not the product. The product is the pill format and the loop
+  around it, which is why the challenge owner's instruction that solutions *"do not need to
+  be strictly related to our domains"* is a fit rather than a concession.
+- **It does not invent expertise.** A pill is only as good as the expert who was elicited.
+  Keystone's job is to make that judgement explicit, checkable and versioned — not to
+  synthesise it. Where the record does not yet corroborate a rule, the registry says so
+  (see §7.3).
+- **It is not an enterprise deployment.** One pill domain is carried end to end. There is no
+  SSO, no tenancy model, and rate limiting is per-instance and in-memory
+  (`lib/ratelimit/sliding-window.ts` states this limitation in the code). §10 is the
+  credible path, not a claim about today.
+
+**Why this part and not another.** Every other part of the problem assumes this one is
+solved. An energy agent that converses with management, a copilot that onboards a new hire,
+a next-best-action recommender — each needs a governed, attributable, versioned body of
+expert judgement underneath it, or it is a confident voice with nothing behind it. §4 shows
+what that failure actually looks like when the same agent is asked the same question with
+and without a governed source.
+
+
 ### Target scenarios
 
 Incident response and operational decision-making in commercial real estate, where
@@ -81,6 +131,60 @@ provenance to the spoken word, tests, an owner and a version — that:
 ---
 
 ## 4. Real-World Scenario Insights
+
+### The three problems Keppel says it has not solved
+
+Describing an internal experiment — an agent that turns raw chiller and meter data into an
+analysed report and then answers management's questions about it — the challenge owner named
+what is still open, and said so directly: *"these are the things that we are now
+contemplating, but **we have not solved the problem** of how do we actually do this from end
+to end."*
+
+The three, in his words, and where each is answered in this repository:
+
+| Keppel's open problem | Keystone's answer | Where |
+| --- | --- | --- |
+| *"the **human in the loop cannot be missing**. So the energy manager — what's the role of this energy manager?"* | The role is structural, not advisory. A gate is opened by a **named person in a role the pill permits**, and evidence can only be confirmed by a role the pill's `evidence.yaml` lists as able to confirm it. Telemetry can raise an incident; it can never satisfy a gate. The expert's role is the thing the system is built around rather than a courtesy step bolted on. | `lib/governance/access.ts`, `lib/engine`, `/connectors` |
+| *"How do we then **govern that the knowledge is not tainted by hallucination**?"* | The gate engine takes **no model input at all** — `evaluate()` reads rules and evidence, nothing else, so no generated text can move a decision. Model output is only ever a draft or an unconfirmed suggestion, labelled as such. Where a model *is* asked a question (the published ADP agent), the answer reports how many knowledge passages actually grounded it, so an ungrounded answer is **marked** rather than trusted. | `lib/engine/evaluate.ts`, `lib/adp/contract.ts`, §5.4 |
+| *"how do we then **capture if there's a new skill discovered**... is this a new skill? So how does that then get captured back into the system?"* | The learn loop. A frontline note or an interview turn becomes a **draft** candidate with a verbatim quote; the outcome is confirmed by a human; the diff against the governed version is shown; an approver accepts or rejects; the pill gets a **new version** in the registry with provenance intact, and the eval corpus re-runs against it. | `lib/capture/note-flow.ts`, `/learning`, §7.6 |
+
+#### What an ungrounded answer actually looks like
+
+This is not hypothetical, and it is worth showing because the failure is invisible in the
+output. The same published ADP agent, asked the same question before and after the approved
+pill was loaded as its knowledge base:
+
+| | Answer |
+| --- | --- |
+| **No knowledge base** | "Re-energising requires approval from the **Duty Engineer**, as per TS-07 (**Pill v2.1**)." |
+| **Pill loaded** | "The **Duty LEW** must inspect and certify before re-energisation. Required evidence (all must be confirmed): `lew_signoff`, `insulation_resistance_ok`, `area_dry`. Rule TS-07, pill version 1.2.0." |
+
+Ground truth is Duty LEW, version 1.2.0, three required evidence items. The ungrounded answer
+invented the approver *and* a pill version that does not exist, and omitted every evidence
+item — while reading like a quotation.
+
+Worse, on the live deployment the same question asked twice a minute apart returned a grounded
+answer once and an ungrounded one the next time, because retrieval is not guaranteed per
+question. The ungrounded one was the **more** authoritative-looking of the two: a numbered list
+and a version in italics. This is why Keystone reports the retrieval count rather than trusting
+the prose — a grounded answer and a confident fabrication are indistinguishable by reading
+them. Full record: `docs/submission/adp/grounding-before-after.md`.
+
+A fourth point he made is the one that changed the product rather than being answered by it.
+Asked what expertise *is*, he described a triage: *"when you have an anomaly — is it a
+typical problem every year? Or is this a one-time problem? ... it's a one-time problem, it's
+never going to happen again, so we just solve the problem — **it's not an AI issue**. But if
+it's a **systemic problem**, this is a recurring problem — now how can we have this as a
+skill?"*
+
+A rule in a pill is a standing claim that its situation recurs, and nothing was checking that
+claim. The registry now reports, per rule, whether the operational record shows it recurring
+— with the denominator, because "fired in two incidents" is unreadable without knowing out of
+how many. Against the current record: **4 rules recurring, 3 seen once, 6 not in the record
+at all**. That last group is the honest finding, and it is shown rather than hidden: most of
+the pill rests on the expert's assertion and is not yet corroborated by operations. An
+incident that cannot be replayed is reported as skipped, never as evidence that the situation
+does not happen. See §7.3 and `lib/learning/recurrence.ts`.
 
 ### Source of pain points
 
@@ -423,7 +527,15 @@ It is **compiled into a pill** — a plain-text package (`SKILL.md`, `rules.yaml
 `evidence.yaml`, `provenance.json`, `evals/`, `CHANGELOG.md`) with an owner, a steward,
 an approver, a version and tests. The same package is applied to a **second asset type**
 (Harbourfront DC1, a colocation data centre) through asset overrides, and it installs
-unchanged as a CodeBuddy skill (verified: CodeBuddy Code reached the same TS-07 decision as our engine — `docs/proof/04a`, `04b`), with WorkBuddy/ADP as the designed, untested next hosts. It is a file, not an answer.
+unchanged as a CodeBuddy skill (verified: CodeBuddy Code reached the same TS-07 decision as our engine — `docs/proof/04a`, `04b`). The same pill is also published to **Tencent Cloud ADP** as a knowledge base, where the live agent answers from it and reports its retrieval count (`docs/proof/05a`); WorkBuddy remains designed-for, not tested. It is a file, not an answer.
+
+Reuse is also a claim that has to survive contact with the record. A rule earns its place by
+recurring, so each rule in the registry reports whether the replayed incidents actually show
+its situation happening again — **recurring**, **seen once**, or **not in the record** —
+always with the denominator and with the count of incidents that could not be replayed. The
+engine's own step-by-step replay is the source (`ruleApplications()`); nothing is inferred
+from an incident's prose. This is what separates a reusable rule from a one-off that was
+written down: `lib/learning/recurrence.ts`.
 
 ### 7.4 How an Asset Operations Manager uses, supervises, verifies and escalates
 
