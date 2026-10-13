@@ -19,6 +19,8 @@ import type { IncidentRecord } from '@/lib/data/schemas';
 import type { PillBundle } from '@/lib/pills/load';
 import { humanizeKey } from '@/components/incident/labels';
 import { recurrenceOf, type ReplayCoverage } from '@/lib/learning/recurrence';
+import { coverageSentence, type CoverageReport } from '@/lib/learning/coverage';
+import { BlindSpotPanel } from './BlindSpotPanel';
 import { HubRuleList } from './HubRuleList';
 import { PillDetailPanel } from './PillDetailPanel';
 import { incidentsUsingPill, ruleApplications, rulesView, type ReplayScenario } from './hub-utils';
@@ -41,6 +43,7 @@ export function PillHub({
   incidents,
   scenarios,
   coverage,
+  gaps,
 }: {
   bundle: PillBundle;
   /** Every incident, scoped to the viewer's role on the server. */
@@ -49,6 +52,8 @@ export function PillHub({
   scenarios: ReplayScenario[];
   /** Which incidents the replay could and could not reach — the denominator. */
   coverage: ReplayCoverage;
+  /** Facts the record keeps that no approved pill reads. */
+  gaps: CoverageReport;
 }) {
   const mounted = useMounted();
   const router = useRouter();
@@ -192,6 +197,8 @@ export function PillHub({
           />
           <HubRuleList pillId={bundle.id} rows={rows} applications={applications} recurrence={recurrence} />
         </section>
+
+        <BlindSpotPanel report={gaps} sentence={coverageSentence(gaps)} />
       </div>
 
       <PillDetailPanel bundle={bundle} history={history} onClose={() => router.push(routes.registry())} />

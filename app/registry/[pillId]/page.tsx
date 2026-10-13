@@ -7,8 +7,10 @@ import { notFound } from 'next/navigation';
 import { PillHub } from '@/components/registry/PillHub';
 import type { ReplayScenario } from '@/components/registry/hub-utils';
 import type { ExcludedIncidentFromReplay, ReplayCoverage } from '@/lib/learning/recurrence';
+import { blindSpots, observedEvidence } from '@/lib/learning/coverage';
+import { evidenceUses } from '@/lib/connectors/evidence-uses';
 import { loadAssets, loadIncidents, loadTimeline } from '@/lib/data';
-import { loadPill } from '@/lib/pills/load';
+import { loadAllPills, loadPill } from '@/lib/pills/load';
 import { sessionRole } from '@/lib/auth/session';
 import { scopeAsset, scopeIncidents, scopeTimeline } from '@/lib/governance/scope';
 import { pillTitle } from '@/components/mosaic/pillTitle';
@@ -57,5 +59,24 @@ export default async function PillHubPage({ params }: { params: Promise<{ pillId
   }
   const coverage: ReplayCoverage = { replayed: scenarios.map((s) => s.incident.id), excluded };
 
-  return <PillHub bundle={bundle} incidents={incidents} scenarios={scenarios} coverage={coverage} />;
+  // Facts the record keeps that no rule reads. Searched across EVERY approved
+  // pill: a key this pill ignores is usually another pill's business, and
+  // judging it against one pill would report scope boundaries as findings.
+  // Read from the same role-scoped timelines as the replay, so the report can
+  // never surface an evidence key this viewer is not allowed to see.
+  const pills = loadAllPills();
+  const labels: Record<string, string> = {};
+  for (const { pill: p } of pills) {
+    for (const [key, entry] of Object.entries(p.evidenceCatalog)) labels[key] ??= entry.label;
+  }
+  const gaps = blindSpots(
+    observedEvidence(scenarios.map((s) => s.timeline)),
+    evidenceUses(pills.map((b) => ({ id: b.id, pill: b.pill }))),
+    labels,
+    pills.map((b) => b.id),
+  );
+
+  return (
+    <PillHub bundle={bundle} incidents={incidents} scenarios={scenarios} coverage={coverage} gaps={gaps} />
+  );
 }
