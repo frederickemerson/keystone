@@ -18,7 +18,7 @@
     ],
     "canConfirmGateEvidence": false,
     "label": "iBMS alarm",
-    "description": "Replays recorded alarm and trend events from the incident timelines; no building system is connected. In production it would read alarm points bound by Brick class, so one pill runs at any site whose points are tagged.",
+    "description": "Replays recorded alarm and trend events from the incident timelines; no building system is connected. In production it would read alarm points bound by Brick class, so one pill runs at any site whose points are tagged. An authenticated endpoint (POST /api/ingest) accepts this system's own payload today and maps it to evidence keys; nothing it posts can confirm an item a gate needs.",
     "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-02"
   },
   {
@@ -35,7 +35,7 @@
     ],
     "canConfirmGateEvidence": false,
     "label": "Leak detector",
-    "description": "In the demo, detector alarms such as LD-23-04 and LD-DH2-01 arrive as recorded iBMS events. In production the panel's points would be read through the same iBMS adapter; a detector can raise an incident, never confirm where the water is.",
+    "description": "In the demo, detector alarms such as LD-23-04 and LD-DH2-01 arrive as recorded iBMS events. In production the panel's points would be read through the same iBMS adapter; a detector can raise an incident, never confirm where the water is. An authenticated endpoint (POST /api/ingest) accepts this system's own payload today and maps it to evidence keys; nothing it posts can confirm an item a gate needs.",
     "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-01"
   },
   {
@@ -53,7 +53,7 @@
     ],
     "canConfirmGateEvidence": true,
     "label": "CMMS work order",
-    "description": "Replays recorded work orders. A work order that links the isolation diagram is accepted as the shut-off map being in hand: a document on file, not a sensor reading. In production, work orders would be matched to assets by CMMS asset code.",
+    "description": "Replays recorded work orders. A work order that links the isolation diagram is accepted as the shut-off map being in hand: a document on file, not a sensor reading. In production, work orders would be matched to assets by CMMS asset code. The same payload can arrive live at POST /api/ingest; an ingested work order reports the map as unconfirmed, because the person who read it is the one who confirms it.",
     "samplePayload": "data/timelines/INC-2026-1011.json#EV-1011-04"
   },
   {
@@ -254,6 +254,19 @@
     "canConfirmGateEvidence": false,
     "label": "Jev suggestion",
     "description": "Suggests which evidence items look likely from the incident so far. A suggestion is never evidence: a person in an allowed role must confirm it before a gate reads it."
+  },
+  {
+    "id": "adp_chat",
+    "name": "Tencent Cloud ADP agent",
+    "system": "Tencent Cloud ADP Chat API (wss.lke.tencentcloud.com/adp/v2/chat)",
+    "kind": "ai_service",
+    "status": "adapter_not_configured",
+    "statusFrom": "config",
+    "timelineSources": [],
+    "evidenceKeys": [],
+    "canConfirmGateEvidence": false,
+    "label": "ADP agent",
+    "description": "Asks an agent on Tencent Cloud ADP, the enterprise platform a pill would be published to, a question in plain language. The adapter posts to the documented chat endpoint with an AppKey and no request signing, which a live probe confirmed is the whole credential; this account has no AppKey yet, so Keystone does not call it. An answer would be drafting help for a person, never a gate decision."
   },
   {
     "id": "tencent_asr",

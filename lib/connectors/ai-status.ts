@@ -17,6 +17,13 @@ export interface AiConfigProbe {
   jevConfigured: boolean;
   /** `serverAsrChain()` (lib/capture/asr): state and reason of each server ASR provider. */
   asr: readonly { provider: string; state: string; detail: string }[];
+  /**
+   * `adpSummary()` (lib/adp/status): "verified" only after a real ADP chat
+   * response arrived in this process. Optional so a probe written before ADP
+   * existed still type-checks; an absent reading is NOT a pass — it resolves to
+   * "adapter not configured", the same as any check that is not wired.
+   */
+  adp?: { state: string; detail: string };
 }
 
 /** Where the status was decided: on the server from configuration, or in the viewer's browser. */
@@ -55,6 +62,13 @@ export function resolveStatus(connector: Connector, probe: AiConfigProbe): Resol
       return probe.jevConfigured
         ? { status: 'live', detail: 'An API key is set: the incident room asks Jev for suggestions.', checkedIn: 'server' }
         : { status: 'adapter_not_configured', detail: 'No Jev API key is set: no suggestions are shown.', checkedIn: 'server' };
+    case 'adp_chat': {
+      // Live only on proof of a real answer: an AppKey alone is "not verified".
+      if (!probe.adp) return { status: 'adapter_not_configured', detail: 'No ADP check was read for this request.', checkedIn: 'server' };
+      return probe.adp.state === 'verified'
+        ? { status: 'live', detail: probe.adp.detail, checkedIn: 'server' }
+        : { status: 'adapter_not_configured', detail: probe.adp.detail, checkedIn: 'server' };
+    }
     case 'tencent_asr':
       return asrStatus(probe, 'tencent_asr', 'Tencent Cloud ASR');
     case 'openai_transcribe':
