@@ -1,6 +1,6 @@
 # Keystone: production-readiness and security audit
 
-Date: 2026-10-12 · Scope: `/Users/frederick/Documents/Projects/acdi` at `b9ffca6` (main, clean apart from one untracked PNG) and the live deployment `https://mosaic-psi-rouge.vercel.app`. This was a read-only review: no code was changed. Against the live site I sent only single, normal requests: one demo sign-in and one tenant-message draft. Nothing was load-tested.
+Date: 2026-10-12 · Scope: `/Users/frederick/Documents/Projects/acdi` at `b9ffca6` (main, clean apart from one untracked PNG) and the live deployment `https://keystone-tencent.vercel.app`. This was a read-only review: no code was changed. Against the live site I sent only single, normal requests: one demo sign-in and one tenant-message draft. Nothing was load-tested.
 
 **Production audit: 70/100, launchable with caveats.** Auth, secrets handling and git history are clean. The one material risk is cost. Any visitor can reach a live OpenAI model (`gpt-5.4-mini-2026-03-17`, confirmed live) and the Jev API through the public demo passcode `keystone`, with no quota or rate limit. A second, lower-priority gap is the missing security headers and indexing controls.
 

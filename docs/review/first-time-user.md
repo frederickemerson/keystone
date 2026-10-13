@@ -1,7 +1,7 @@
 # First-time user walkthrough: why "there's no flow"
 
 Reviewer: first-time visitor acting as a hackathon judge (Tencent Cloud AI CAN DO IT 2026, Keppel "AI HARVEST" track).
-Site: https://mosaic-psi-rouge.vercel.app, desktop 1440x900, 12 Oct 2026.
+Site: https://keystone-tencent.vercel.app, desktop 1440x900, 12 Oct 2026.
 Method: no README or docs read beforehand. Landing, sign in, then every sidebar screen, switching between Technician (Rajesh), Chief Engineer (Tan Wei Ming), Asset Operations Manager (Priya) and Head of Technical Services (Goh).
 Screenshots: `.playwright-mcp/ftue/NN-name.png`.
 

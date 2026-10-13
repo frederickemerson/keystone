@@ -182,7 +182,7 @@ Keystone was built with CodeBuddy Code (Plan mode on Hunyuan hy4-preview, sub-ag
 ## Project link (optional, earns bonus points)
 
 ```
-https://mosaic-psi-rouge.vercel.app
+https://keystone-tencent.vercel.app
 Demo passcode: keystone (it is also shown on the sign-in page). Pick any persona. Each one sees what its role allows, enforced on the server.
 Fastest path: sign in as Priya Nair (Asset Operations Manager), then go to /incident/INC-2026-1011?step=10 to see TS-07 block the AI proposal.
 Frontline capture: sign in as Rajesh Kumar (Technician) and open /c/AHU-23-01, or escalate at step 10 of the same incident and answer "Tell us why — 20 seconds".
@@ -193,7 +193,7 @@ All assets, people, tenants and incidents are fictional.
 ## Source code (GitHub)
 
 ```
-https://github.com/frederickemerson/mosaic
+https://github.com/frederickemerson/keystone
 ```
 
 See the "Verify before submitting" checklist: the repository is currently private.

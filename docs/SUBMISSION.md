@@ -661,8 +661,8 @@ Replace each placeholder before submitting. Copy-paste-ready answers for every f
 - [x] **Cover image (16:9, 380×216 recommended):** `docs/submission/cover-small.png` (380×216); 4× master `docs/submission/cover.png` (1520×864); source `docs/submission/cover.html`
 - [ ] **Demo video (5–8 min):** TODO — `[VIDEO LINK]`; script, shot list and 60-second backup cut in `docs/submission/video-script.md`
 - [x] **Solution diagram (8 required points):** `docs/submission/solution-diagram.png` (1920×1080); source `docs/submission/solution-diagram.html`
-- [x] **Live URL / demo link (optional, bonus):** https://mosaic-psi-rouge.vercel.app (demo passcode `keystone`, shown on the sign-in page; demo: /incident/INC-2026-1011?step=10)
-- [ ] **Source code (GitHub repository):** https://github.com/frederickemerson/mosaic (private — grant judges access)
+- [x] **Live URL / demo link (optional, bonus):** https://keystone-tencent.vercel.app (demo passcode `keystone`, shown on the sign-in page; demo: /incident/INC-2026-1011?step=10)
+- [ ] **Source code (GitHub repository):** https://github.com/frederickemerson/keystone (private — grant judges access)
 
 ### Open TODOs to resolve before submission
 

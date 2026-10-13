@@ -1,6 +1,6 @@
 # Final browser QA: Keystone (live)
 
-- **Target:** https://mosaic-psi-rouge.vercel.app (build up to `4457d03`)
+- **Target:** https://keystone-tencent.vercel.app (build up to `4457d03`)
 - **Date:** 2026-10-12, about 09:17–09:35 SGT
 - **Mode:** read-only. No code was edited. The only state that changed was the demo's own governance state, through the scripted demo path (propose, shadow, approve, roll back), plus one canvas confirm and one canvas edit. Live AI was called once ("Re-extract live"). Jev was used twice, which made 4 requests, one per pill per click.
 - **Tooling:** Playwright (Chromium). Cookies and localStorage were cleared first. CDP `Log`, `Runtime` and `Audits` listeners captured console output, exceptions and CSP Issues. Width was checked with `scrollWidth === clientWidth`. CLS was measured with a PerformanceObserver.

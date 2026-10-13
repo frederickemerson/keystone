@@ -1,6 +1,6 @@
 # Browser QA: Keystone (live)
 
-- **Target:** https://mosaic-psi-rouge.vercel.app
+- **Target:** https://keystone-tencent.vercel.app
 - **Date:** 2026-10-12
 - **Mode:** read-only. No approvals, publishes or other changes were submitted. Sign-in used the public demo passcode.
 - **Tooling:** Playwright (Chromium), with an isolated browser context per run. axe-core 4.10.2 was injected from cdnjs. LCP and CLS were measured with a PerformanceObserver.
