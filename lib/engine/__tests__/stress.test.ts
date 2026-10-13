@@ -78,33 +78,42 @@ function time<T>(label: string, fn: () => T): { ms: number; value: T } {
   return { ms, value };
 }
 
-/** Samples taken of each size, and calls batched into one sample. */
-const SAMPLES = 5;
-const BATCH = 20;
 
 /**
- * Cost of one call, as the fastest of `SAMPLES` batches of `BATCH` calls.
+ * The same rules, with every read of `id` counted.
  *
- * Two deliberate choices, both learned from this test flaking in CI:
- *  - BATCHING. A single 500-rule evaluation runs in about 1.7 ms, which
- *    performance.now() cannot resolve precisely on a busy machine; the ratio
- *    below swung between 4.1x and 6.1x across runs of identical code. Timing
- *    20 calls at once puts every sample in the tens of milliseconds, where the
- *    measurement is stable.
- *  - MINIMUM, not mean. Scheduler noise only ever ADDS time, so the fastest
- *    sample is the best estimate of real cost. A single sample on a loaded
- *    machine can be several times the true figure.
+ * This is how the linearity check below asserts a COMPLEXITY bound, and the
+ * history is worth keeping because three timing-based versions of that check
+ * were wrong in three different ways:
+ *   - a single wall-clock sample flaked (38.5 ms loaded vs 6.0 ms idle);
+ *   - batching and taking the minimum was still not enough — under the full
+ *     suite's 87 workers a CLEAN engine measured 12.36x, 25.45x and 21.02x
+ *     against a 12x bound, i.e. higher than an actual injected quadratic
+ *     regression measures when run alone (17.81x). At that point the number
+ *     is not a weak signal, it is noise with a unit attached;
+ *   - process.cpuUsage() is immune to that contention but bills GC to the
+ *     caller, and GC scales with pill size, so it diluted the very thing under
+ *     test: clean 18.28x vs quadratic 25.77x, a margin too thin to trust.
+ *
+ * Counting property reads removes time from the question entirely. The clean
+ * engine reads `rule.id` a fixed number of times per rule, so the count is
+ * O(n); anything that scans the rule list once per rule makes it O(n²). The
+ * result is deterministic — identical on an idle laptop and a loaded CI box.
  */
-function perCall<T>(label: string, fn: () => T): { ms: number; value: T } {
-  let best = Infinity;
-  let value!: T;
-  for (let s = 0; s < SAMPLES; s++) {
-    const t0 = performance.now();
-    for (let i = 0; i < BATCH; i++) value = fn();
-    best = Math.min(best, (performance.now() - t0) / BATCH);
-  }
-  console.log(`[stress] ${label}: ${best.toFixed(2)} ms/call (best of ${SAMPLES} × ${BATCH})`);
-  return { ms: best, value };
+function countingRules(src: Rule[]): { rules: Rule[]; reads: () => number } {
+  let reads = 0;
+  const rules = src.map((rule) => {
+    const { id, ...rest } = rule;
+    return Object.defineProperty(rest as Rule, "id", {
+      get: () => {
+        reads++;
+        return id;
+      },
+      enumerable: true,
+      configurable: true,
+    });
+  });
+  return { rules, reads: () => reads };
 }
 
 describe(`stress: ${N_RULES} rules × ${N_KEYS} evidence keys`, () => {
@@ -138,38 +147,22 @@ describe(`stress: ${N_RULES} rules × ${N_KEYS} evidence keys`, () => {
 
   it("evaluate() is linear in rules", () => {
     const ev = bigEvidence(1);
-    // Both pills are built OUTSIDE the timed region. The earlier version built
-    // the 1,000-rule pill inside it, so that sample timed construction AND
-    // evaluation while the 2,000-rule sample timed evaluation alone — an
-    // inflated denominator that could have hidden quadratic evaluation.
-    const quarterPill = makePill(rules.slice(0, N_RULES / 8));
-    evaluate(pill, asset, incident, ev); // warm up both paths
-    evaluate(quarterPill, asset, incident, ev);
+    const big = countingRules(rules);
+    const small = countingRules(rules.slice(0, N_RULES / 8));
 
-    const full = perCall("evaluate × 2000 rules", () => evaluate(pill, asset, incident, ev));
-    const half = perCall("evaluate × 250 rules", () => evaluate(quarterPill, asset, incident, ev));
-    console.log(`[stress] ratio 2000/250 = ${(full.ms / half.ms).toFixed(2)}x (linear ~8, quadratic ~64)`);
+    const full = evaluate(makePill(big.rules), asset, incident, ev);
+    const half = evaluate(makePill(small.rules), asset, incident, ev);
 
-    expect(full.value.trace).toHaveLength(N_RULES);
-    expect(half.value.trace).toHaveLength(N_RULES / 8);
-    expect(full.ms).toBeLessThan(500);
+    expect(full.trace).toHaveLength(N_RULES);
+    expect(half.trace).toHaveLength(N_RULES / 8);
 
-    // The small sample must be big enough to measure, or the ratio below is
-    // noise. Failing loudly beats skipping: on hardware fast enough to make
-    // 250 rules unmeasurable even batched, raise N_RULES rather than ignore it.
-    expect(half.ms, "250 rules is too fast to time; raise N_RULES").toBeGreaterThan(0.05);
+    // Guard against a silently vacuous check: if the engine stopped reading
+    // `id` the counts would both be 0 and the ratio below would be NaN.
+    expect(small.reads(), "evaluate() no longer reads rule.id; recount on another field").toBeGreaterThan(0);
 
-    // 8x the rules is 8x the work when evaluation is linear, and about 64x
-    // when it is quadratic. Measured on this pill, over repeated runs:
-    //   as written                                    8.09x, 8.89x, 9.31x
-    //   with `pill.rules.findIndex(...)` per rule    15.37x, 17.76x
-    // so 12 separates them with room on both sides.
-    //
-    // The 8x spread is deliberate. An earlier 2,000-vs-1,000 version of this
-    // check could not tell the two apart at all: the same injected regression
-    // measured 2.19x against a 3.5x bound and passed. The wider the spread,
-    // the more the quadratic term dominates and the clearer the signal.
-    expect(full.ms).toBeLessThan(half.ms * 12);
+    const ratio = big.reads() / small.reads();
+    console.log(`[stress] rule.id reads, 2000/250 = ${ratio.toFixed(2)}x (linear ~8, quadratic ~64)`);
+    expect(ratio).toBeLessThan(16);
   });
 
   it("counterfactual() re-evaluates one rule, not the whole pill per hypothesis", () => {
