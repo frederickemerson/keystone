@@ -5,14 +5,49 @@
 // every incident whose replay triggered it.
 
 import Link from 'next/link';
-import { AudioLines, Ban, Clock, ExternalLink, Quote, Siren } from 'lucide-react';
+import { AudioLines, Ban, Clock, ExternalLink, Quote, Repeat, Siren } from 'lucide-react';
 import { ActionClassChip, CHIP_BASE, TONE_CHIP } from '@/components/mosaic';
 import { Term } from '@/components/journey/Term';
 import { roleLabel } from '@/lib/governance/access';
 import { routes } from '@/lib/journey/routes';
 import { cn } from '@/lib/ui/cn';
 import { expertCallHref } from '@/components/incident/expertCall';
+import {
+  RECURRENCE_LABEL,
+  recurrenceSentence,
+  type RecurrenceClass,
+  type RecurrenceReport,
+} from '@/lib/learning/recurrence';
 import type { RuleApplication, RuleRow } from './hub-utils';
+
+/**
+ * Whether the record shows this rule's situation recurring.
+ *
+ * A rule in a pill is a standing claim that its situation happens again. This
+ * says what the replayed incidents actually support — including when they
+ * support nothing, which is not the same as the situation never occurring.
+ */
+const RECURRENCE_TONE: Record<RecurrenceClass, string> = {
+  systemic: 'border-line-strong bg-dew-drop text-ink',
+  single: 'border-line bg-surface text-ink-muted',
+  unseen: 'border-line bg-surface text-ink-muted',
+};
+
+function RecurrenceLine({ ruleId, report }: { ruleId: string; report: RecurrenceReport }) {
+  const entry = report.rules.find((r) => r.ruleId === ruleId);
+  if (!entry) return null;
+  return (
+    <p className="flex items-start gap-1.5 text-[12px] leading-snug text-ink-muted">
+      <Repeat className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+      <span>
+        <span className={cn(CHIP_BASE, 'mr-1.5 align-baseline', RECURRENCE_TONE[entry.classification])}>
+          {RECURRENCE_LABEL[entry.classification]}
+        </span>
+        {recurrenceSentence(entry, report)}
+      </span>
+    </p>
+  );
+}
 
 function SourceLine({ row }: { row: RuleRow }) {
   const src = row.source;
@@ -67,10 +102,12 @@ export function HubRuleList({
   pillId,
   rows,
   applications,
+  recurrence,
 }: {
   pillId: string;
   rows: readonly RuleRow[];
   applications: Readonly<Record<string, readonly RuleApplication[]>>;
+  recurrence: RecurrenceReport;
 }) {
   return (
     <ol className="space-y-3">
@@ -86,6 +123,7 @@ export function HubRuleList({
             <ActionClassChip actionClass={row.actionClass} />
           </div>
           <p className="text-[13px] leading-relaxed text-ink">{row.decision}</p>
+          <RecurrenceLine ruleId={row.id} report={recurrence} />
 
           <dl className="grid gap-x-4 gap-y-1.5 text-[13px] sm:grid-cols-[9rem_1fr]">
             <dt className="text-ink-muted">

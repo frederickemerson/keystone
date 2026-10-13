@@ -18,6 +18,7 @@ import { routes } from '@/lib/journey/routes';
 import type { IncidentRecord } from '@/lib/data/schemas';
 import type { PillBundle } from '@/lib/pills/load';
 import { humanizeKey } from '@/components/incident/labels';
+import { recurrenceOf, type ReplayCoverage } from '@/lib/learning/recurrence';
 import { HubRuleList } from './HubRuleList';
 import { PillDetailPanel } from './PillDetailPanel';
 import { incidentsUsingPill, ruleApplications, rulesView, type ReplayScenario } from './hub-utils';
@@ -39,12 +40,15 @@ export function PillHub({
   bundle,
   incidents,
   scenarios,
+  coverage,
 }: {
   bundle: PillBundle;
   /** Every incident, scoped to the viewer's role on the server. */
   incidents: IncidentRecord[];
   /** Incidents with a recorded timeline, scoped on the server, for the engine replay. */
   scenarios: ReplayScenario[];
+  /** Which incidents the replay could and could not reach — the denominator. */
+  coverage: ReplayCoverage;
 }) {
   const mounted = useMounted();
   const router = useRouter();
@@ -67,6 +71,14 @@ export function PillHub({
   const captures = useMemo(() => history.flatMap((v) => (v.capture ? [v.capture] : [])), [history]);
   const rows = useMemo(() => rulesView(governed, governed.rules, captures), [governed, captures]);
   const applications = useMemo(() => ruleApplications(governed, scenarios), [governed, scenarios]);
+  // Whether the record shows each rule's situation recurring. Derived from the
+  // replay above, not a second opinion about it.
+  const recurrence = useMemo(() => {
+    const firedByRule = Object.fromEntries(
+      Object.entries(applications).map(([ruleId, apps]) => [ruleId, apps.map((a) => a.incidentId)]),
+    );
+    return recurrenceOf(governed.rules, firedByRule, coverage);
+  }, [governed.rules, applications, coverage]);
   const uses = useMemo(
     () => incidentsUsingPill(bundle.id, incidents, applications),
     [bundle.id, incidents, applications],
@@ -178,7 +190,7 @@ export function PillHub({
             title="What it decides"
             description={`The ${governed.rules.length} rules of v${liveVersion}, each with the words it came from.`}
           />
-          <HubRuleList pillId={bundle.id} rows={rows} applications={applications} />
+          <HubRuleList pillId={bundle.id} rows={rows} applications={applications} recurrence={recurrence} />
         </section>
       </div>
 
