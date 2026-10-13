@@ -30,6 +30,7 @@ import { currentApproved, pillAtVersion } from '@/lib/governance/versions';
 import type { TimelineEvent as DisplayTimelineEvent } from '@/components/mosaic/types';
 import { cn } from '@/lib/ui/cn';
 import { AssetOverlayPanel } from './AssetOverlayPanel';
+import { ConflictPanel } from './ConflictPanel';
 import {
   DecisionButtons,
   DecisionStamp,
@@ -916,6 +917,9 @@ export function IncidentRoom({ primary, liveProvider, overlay, pills, initialSte
             confirmed={confidence.confirmed}
             label={`Across ${items.length} triggered rule(s) in ${approved.length} approved pill(s)`}
           />
+
+          {/* Coordination across domains: where the two pills' obligations collide (lib/coordination). */}
+          <ConflictPanel pills={approved} scenario={scenario} evidence={evidence} role={role} />
 
           {items.length === 0 ? (
             <p className="rounded-lg border border-dashed border-line px-3 py-6 text-center text-sm text-ink-muted">

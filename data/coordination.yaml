@@ -1,0 +1,83 @@
+# Keystone cross-pill coordination contract.
+#
+# Two pills can each be right on their own and still leave a human holding two
+# obligations that cannot both be honoured. Neither pill can see that: each one
+# only knows its own domain. This file is where the LINK between them is
+# authored — the one fact no single pill holds.
+#
+# Everything the coordinator then SAYS is computed, not authored here: whether
+# each rule triggered, the gate's effective gating set, which keys are still
+# outstanding and which named human adjudicates all come from the deterministic
+# engine (lib/engine) and data/roles.json. Nothing in this file is a claim
+# about live state, and no model touches any of it.
+#
+# Shape: lib/coordination/contract.ts (zod).
+# Enforced against the real pills and data/roles.json by
+# lib/coordination/__tests__/contract.test.ts.
+#
+# Coordination output is NEVER a pill. Nothing here is loaded by
+# lib/pills/load.ts, and contract.test.ts pins listPillRefs() to the two real
+# pill folders so this file can never grow into a third one.
+
+version: 1.0.0
+
+# A conflict CLASS is a predicate over two triggered rules, one per pill. A
+# class earns its place only if it can be FALSE: `falsified_when` names the
+# realistic input that makes it false, and detect.test.ts proves that input
+# produces no conflict. "Two triggered must_escalate rules in different pills"
+# is not a class — every deadline on one incident runs off the same clock, so
+# an overlap predicate would be vacuously true.
+classes:
+  - id: deadline_before_gate_clears
+    label: Deadline before the gate clears
+    description: >-
+      One pill puts a named human on a clock. The other pill's gate — the gate
+      that governs the very thing that human has to speak to — has not cleared.
+      Either the clock is honoured or the gate is respected; both cannot be
+      satisfied in substance, and neither pill alone can see the collision.
+    predicate: >-
+      Both rules are triggered on this incident; the obligation rule has a
+      finite effective deadline; and the gate rule's effective gating set
+      (required_evidence union the add_required_evidence of every matching
+      exception) still holds at least one key the engine counts as missing.
+    falsified_when: >-
+      Every key in the gate's effective gating set is satisfied. The obligation
+      still fires and still carries its deadline, the gate is clear, and there
+      is nothing to adjudicate — so the predicate is false on an input that
+      really occurs, at the end of the INC-2026-1011 timeline.
+
+# One entry per authored cross-domain link. `obligation` and `gate` must sit in
+# different pills; the contract test also asserts they sit in different domains.
+conflicts:
+  - id: XP-01
+    class: deadline_before_gate_clears
+    obligation:
+      pill: tenant-experience-incident-comms
+      rule: TE-04
+    gate:
+      pill: technical-services-chilled-water-leak
+      rule: TS-07
+    dependency: >-
+      The first thing the bank's anchor tenant asks on that call is when power
+      comes back to their floor. TS-07 is the gate that answers it, and it does
+      not clear until the duty LEW has signed off. The call still has to be
+      made inside its window — saying, in terms, that the answer is not
+      available yet.
+    grounding:
+      incident: INC-2026-1011
+      asset_type: grade_a_office
+      # The gate's FULL effective gating set in this context. The contract test
+      # asserts EQUALITY with what the engine computes for TS-07 — a subset
+      # check would not catch a key quietly dropping off this list.
+      unresolved_until:
+        - area_dry
+        - insulation_resistance_ok
+        - lew_signoff
+      # Derived, never authored into the output: both pills name the same
+      # steward and the same approver, and the shared steward
+      # (asset_operations_manager) is not cleared for TE-04's commercial
+      # sensitivity, so adjudication falls to the shared approver. The contract
+      # test asserts the detector derives exactly this from data/roles.json.
+      expected_adjudicator:
+        role: head_technical_services
+        basis: approver
