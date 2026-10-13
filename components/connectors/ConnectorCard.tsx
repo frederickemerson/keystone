@@ -8,6 +8,7 @@ import type { EvidenceUse } from '@/lib/connectors/evidence-uses';
 import type { TimelineEvent } from '@/lib/data/schemas';
 import { routes } from '@/lib/journey/routes';
 import { EvidenceTimeline } from '@/components/mosaic/EvidenceTimeline';
+import { AdpAgentProbe } from './AdpAgentProbe';
 import { BrowserSpeechStatus } from './BrowserSpeechStatus';
 import { StatusChip } from './StatusChip';
 
@@ -23,6 +24,12 @@ type Props = {
   keys: ConnectorKeyView[];
   /** The sample event, already scoped to the viewer's role on the server. */
   sample?: TimelineEvent;
+  /**
+   * Offer the live "ask the agent" control. Only true for the ADP row, and
+   * only when an AppKey is actually set — with none there is nothing to ask,
+   * and a button that always fails is worse than no button.
+   */
+  canAsk?: boolean;
 };
 
 function gateLine(c: Connector): string | null {
@@ -60,7 +67,7 @@ function KeyList({ keys }: { keys: ConnectorKeyView[] }) {
   );
 }
 
-export function ConnectorCard({ connector: c, status, keys, sample }: Props) {
+export function ConnectorCard({ connector: c, status, keys, sample, canAsk = false }: Props) {
   const gate = gateLine(c);
   return (
     <li id={c.id} className="card-paper scroll-mt-24 space-y-3 p-5 target:ring-2 target:ring-accent">
@@ -82,6 +89,7 @@ export function ConnectorCard({ connector: c, status, keys, sample }: Props) {
         </div>
       ) : null}
       {gate ? <p className="text-[13px] text-ink">{gate}</p> : null}
+      {canAsk ? <AdpAgentProbe /> : null}
       {sample ? (
         <details className="rounded-lg border border-line bg-surface p-3">
           <summary className="cursor-pointer text-[13px] font-medium text-ink">Sample event ({sample.id}, recorded)</summary>

@@ -25,6 +25,21 @@ export const LIMITS = {
     globalPerMinute: 60,
     globalPerDay: 500,
   },
+  /**
+   * The tightest limits here, and deliberately so. Every ADP call spends the
+   * account's own agent quota at Tencent, and the demo passcode ships with the
+   * submission — so "has a session" says nothing about who is asking. These
+   * numbers are a demo budget (a judge can ask a handful of questions), not a
+   * production allowance.
+   */
+  adp: {
+    sessionPerMinute: 3,
+    sessionPerDay: 15,
+    ipPerMinute: 5,
+    ipPerDay: 30,
+    globalPerMinute: 10,
+    globalPerDay: 100,
+  },
   jev: {
     sessionPerMinute: 60,
     ipPerMinute: 120,
@@ -58,6 +73,15 @@ const llm = windows("llm", {
   globalDay: [LIMITS.llm.globalPerDay, DAY],
 });
 
+const adp = windows("adp", {
+  sessionMinute: [LIMITS.adp.sessionPerMinute, MINUTE],
+  sessionDay: [LIMITS.adp.sessionPerDay, DAY],
+  ipMinute: [LIMITS.adp.ipPerMinute, MINUTE],
+  ipDay: [LIMITS.adp.ipPerDay, DAY],
+  globalMinute: [LIMITS.adp.globalPerMinute, MINUTE],
+  globalDay: [LIMITS.adp.globalPerDay, DAY],
+});
+
 const jev = windows("jev", {
   sessionMinute: [LIMITS.jev.sessionPerMinute, MINUTE],
   ipMinute: [LIMITS.jev.ipPerMinute, MINUTE],
@@ -86,6 +110,26 @@ export function takeLlmCall({ sessionId, ip }: Caller, now?: number): LimitResul
     [llm.globalDay, "global"],
   ];
   return consume(checks, now);
+}
+
+/**
+ * Spend one live ADP agent call for this caller, or say why not.
+ *
+ * Checked in the same all-or-nothing way as the LLM windows: a refused call
+ * records nothing, so being over one limit never burns another's quota.
+ */
+export function takeAdpCall({ sessionId, ip }: Caller, now?: number): LimitResult {
+  return consume(
+    [
+      [adp.sessionMinute, `session:${sessionId}`],
+      [adp.sessionDay, `session:${sessionId}`],
+      [adp.ipMinute, `ip:${ip}`],
+      [adp.ipDay, `ip:${ip}`],
+      [adp.globalMinute, "global"],
+      [adp.globalDay, "global"],
+    ],
+    now,
+  );
 }
 
 /** Spend one Jev call for this caller, or say why not. */
@@ -133,5 +177,5 @@ export function retryHeaders(result: Extract<LimitResult, { ok: false }>): Recor
 
 /** Test helper: clear every window. */
 export function resetAllLimits(): void {
-  for (const group of [llm, jev, signIn]) for (const w of Object.values(group)) w.reset();
+  for (const group of [llm, adp, jev, signIn]) for (const w of Object.values(group)) w.reset();
 }

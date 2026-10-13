@@ -34,7 +34,12 @@ function keyViews(c: Connector, labels: Record<string, string>, uses: Record<str
 
 export default async function ConnectorsPage() {
   const role = (await getSession())?.role ?? UNRESOLVED_ROLE;
-  const statuses = resolveStatuses(CONNECTORS, readAiConfig());
+  const aiConfig = readAiConfig();
+  const statuses = resolveStatuses(CONNECTORS, aiConfig);
+  // The ADP row gets a live "ask the agent" control, but only where there is an
+  // agent to ask. Asking is also what proves the connection: the status is
+  // "live" on evidence of a real answer, never on a key being present.
+  const adpAskable = aiConfig.adp?.state !== undefined && aiConfig.adp.state !== 'not_configured';
   const pills = loadAllPills();
   const uses = evidenceUses(pills);
   const labels: Record<string, string> = {};
@@ -83,6 +88,7 @@ export default async function ConnectorsPage() {
                 status={statuses[c.id]}
                 keys={keyViews(c, labels, uses)}
                 sample={sampleEvent(c, role)}
+                canAsk={c.id === 'adp_chat' && adpAskable}
               />
             ))}
           </ul>

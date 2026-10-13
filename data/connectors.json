@@ -266,7 +266,7 @@
     "evidenceKeys": [],
     "canConfirmGateEvidence": false,
     "label": "ADP agent",
-    "description": "Asks an agent on Tencent Cloud ADP, the enterprise platform a pill would be published to, a question in plain language. The adapter posts to the documented chat endpoint with an AppKey and no request signing, which a live probe confirmed is the whole credential; this account has no AppKey yet, so Keystone does not call it. An answer would be drafting help for a person, never a gate decision."
+    "description": "Asks an agent on Tencent Cloud ADP, the enterprise platform a pill would be published to, a question in plain language. The adapter posts to the documented chat endpoint with an AppKey and no request signing, which a live probe confirmed is the whole credential. The approved pill is published there as a knowledge base, and the answer below reports how many of its passages the agent actually retrieved: none means it answered from its prompt alone. Either way the answer is drafting help for a person, never a gate decision."
   },
   {
     "id": "tencent_asr",
