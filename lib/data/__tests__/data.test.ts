@@ -38,7 +38,7 @@ describe("data loaders (zod-validated)", () => {
     for (const inc of loadIncidents().filter((i) => i.timeline_ref)) {
       expect(loadTimeline(inc.id)?.incident_id).toBe(inc.id);
     }
-    expect(loadAllTimelines().length).toBe(2);
+    expect(loadAllTimelines().length).toBe(3);
     expect(loadTimeline("INC-NOPE")).toBeUndefined();
   });
 

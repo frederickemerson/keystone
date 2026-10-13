@@ -189,6 +189,25 @@
     "description": "Condensate drain blockage on AHU-15-02 causing minor ceiling staining. Isolated at unit level. No tenant impact. Condensate, not chilled water — riser isolation not required.",
     "pill_applied": "technical-services/chilled-water-leak",
     "pill_version": "1.2.0",
+    "timeline_ref": "data/timelines/INC-2026-0901.json",
+    "actions": [
+      {
+        "rule_id": "TS-04",
+        "decision": "Condensate, not an active chilled-water branch leak — treat as a unit-level drain fault",
+        "action_class": "recommend",
+        "status": "allowed",
+        "note": "Ambient-temperature drip from the AHU-15-02 drain pan. CHW-R1 riser flow normal, so no riser isolation was called for.",
+        "provenance": "ce-interview-2026-10-02#00:27:30"
+      },
+      {
+        "rule_id": "TS-09",
+        "decision": "Start extraction and drying within 24 hours, verify dry within 48",
+        "action_class": "recommend",
+        "status": "allowed",
+        "note": "Extraction and air movers set at 16:30, moisture map taken, porous tiles discarded. Dry standard confirmed at 18:20.",
+        "provenance": "ce-interview-2026-10-02#00:31:30"
+      }
+    ],
     "eval_expected": "recommend",
     "eval_actual": "recommend",
     "eval_pass": true,

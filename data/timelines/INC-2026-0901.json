@@ -1,0 +1,132 @@
+{
+  "incident_id": "INC-2026-0901",
+  "asset_id": "asset-hf1",
+  "asset_name": "Harbourfront One",
+  "timeline_version": "1.0.0",
+  "events": [
+    {
+      "id": "EV-0901-01",
+      "at": "2026-09-04T14:22:00+08:00",
+      "source": "iBMS",
+      "type": "alarm",
+      "text": "AHU-15-02 drain-pan high-level alarm, L15 plant. No chilled-water flow anomaly on the CHW-R1 branch — the riser is reading normal, so this is a unit-level fault and not a branch leak.",
+      "evidence_updates": {
+        "chw_flow_anomaly": { "value": false, "confirmed": true },
+        "active_water_release": { "value": true, "confirmed": false }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-02",
+      "at": "2026-09-04T14:29:00+08:00",
+      "source": "tenant",
+      "type": "call",
+      "text": "L15 occupier reports a damp patch spreading on a ceiling tile above the circulation corridor, with an occasional drip onto the floor. Nothing of theirs is under it.",
+      "evidence_updates": {
+        "ceiling_stain_or_drip": { "value": true, "confirmed": true },
+        "tenant_report_drip": { "value": true, "confirmed": true },
+        "tenant_property_damage": { "value": false, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-03",
+      "at": "2026-09-04T14:44:00+08:00",
+      "source": "technician",
+      "type": "inspection",
+      "text": "Attended L15 void. Water is ambient temperature and dripping from the AHU-15-02 drain pan, not pressurised — condensate from a blocked trap, not an active chilled-water branch leak. Nearest electrical is the L15 lighting DB, 6 m away across the void and dry.",
+      "evidence_updates": {
+        "visual_inspection": { "value": true, "confirmed": true },
+        "location_confirmed": { "value": true, "confirmed": true },
+        "active_water_release": { "value": true, "confirmed": true },
+        "water_category": { "value": "category_1", "confirmed": true },
+        "water_near_electrical": { "value": false, "confirmed": true },
+        "distance_to_electrical_m": { "value": 6, "confirmed": true },
+        "water_flowing_toward_electrical": { "value": false, "confirmed": true },
+        "equipment_wetted_or_isolated": { "value": false, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-04",
+      "at": "2026-09-04T15:02:00+08:00",
+      "source": "CMMS",
+      "type": "work_order",
+      "text": "Work order WO-2026-0901-0334 raised, priority P3, asset AHU-15-02. Isolation diagram attached — unit-level shutoff only, no riser sub-valve required.",
+      "evidence_updates": {
+        "shutoff_map_available": { "value": true, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-05",
+      "at": "2026-09-04T15:20:00+08:00",
+      "source": "technician",
+      "type": "action",
+      "text": "AHU-15-02 stopped at the unit and its condensate drain isolated. Sub-valve reachable from the L15 plant walkway but not needed. CHW-R1 riser left in service — no other unit on the branch is affected.",
+      "evidence_updates": {
+        "sub_valve_accessible": { "value": true, "confirmed": true },
+        "isolation_complete": { "value": true, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-06",
+      "at": "2026-09-04T15:50:00+08:00",
+      "source": "technician",
+      "type": "photo",
+      "text": "Eleven photographs of the drain pan, the stained tiles and the void, all taken before any cleanup started.",
+      "evidence_updates": {
+        "pre_cleanup_photos": { "value": true, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-07",
+      "at": "2026-09-04T16:05:00+08:00",
+      "source": "technical_services",
+      "type": "note",
+      "text": "Blocked drain trap removed and retained in a labelled bag for the failure review, with the work order number on the label.",
+      "evidence_updates": {
+        "failed_component_retained": { "value": true, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-08",
+      "at": "2026-09-04T16:30:00+08:00",
+      "source": "technician",
+      "type": "action",
+      "text": "Extraction and two air movers set in the L15 void. Moisture map taken across the affected bay at 21 percent. Four ceiling tiles and one section of fibreglass insulation logged as porous and discarded.",
+      "evidence_updates": {
+        "moisture_meter_readings": { "value": true, "confirmed": true },
+        "moisture_reading_pct": { "value": 21, "confirmed": true },
+        "affected_materials_inventory": { "value": true, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-09",
+      "at": "2026-09-04T17:40:00+08:00",
+      "source": "tenant",
+      "type": "call",
+      "text": "Occupier confirms the damp patch has stopped spreading and nothing of theirs was affected. Bay is landlord plant space above a circulation corridor.",
+      "evidence_updates": {
+        "wet_building_fabric": { "value": true, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0901-10",
+      "at": "2026-09-04T18:20:00+08:00",
+      "source": "lew",
+      "type": "signoff",
+      "text": "Duty LEW attended to close out the electrical question rather than to lift a gate: no equipment was wetted at any point, the L15 lighting DB is dry and was never isolated, so no re-energisation applies. Re-check at 18:20 shows moisture back to the dry standard for the bay.",
+      "evidence_updates": {
+        "area_dry": { "value": true, "confirmed": true },
+        "moisture_reading_pct": { "value": 12, "confirmed": true }
+      },
+      "sensitivity": "internal"
+    }
+  ]
+}
