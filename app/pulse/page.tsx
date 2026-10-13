@@ -8,6 +8,7 @@ import { ClosedIncidentsList } from '@/components/pulse/ClosedIncidentsList';
 import { PillCoverageStrip } from '@/components/pulse/PillCoverageStrip';
 import { LiveGovernanceKpis } from '@/components/pulse/LiveGovernance';
 import { OpenCaptureTasks } from '@/components/pulse/OpenCaptureTasks';
+import { OverrideRate } from '@/components/pulse/OverrideRate';
 import type { IncidentRecord } from '@/lib/data';
 import { sessionRole } from '@/lib/auth/session';
 import { scopeAssets, scopeIncidents } from '@/lib/governance/scope';
@@ -152,6 +153,12 @@ export default async function PortfolioPulsePage() {
           title="Recently closed"
         />
         <ClosedIncidentsList incidents={visibleIncidents} pillId={tsPillId} />
+      </section>
+
+      {/* Override rate — who went against a pill, and on which rule */}
+      <section className="space-y-3" aria-label="Override rate">
+        <SectionHeader title="Override rate" />
+        <OverrideRate />
       </section>
 
       {/* Pill coverage strip */}
