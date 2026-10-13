@@ -33,6 +33,9 @@ export function SkillPackageExport({ pill, history, diskVersion }: Props) {
   const approved = currentApproved(history);
   const [busy, setBusy] = useState<Busy>(null);
   const [error, setError] = useState<string | null>(null);
+  // Shown only after a real build, so the hash on screen is always the hash of
+  // the bytes that just downloaded — never one computed for display.
+  const [digest, setDigest] = useState<string | null>(null);
 
   async function handleExport(kind: Exclude<Busy, null>) {
     if (!approved) return;
@@ -40,6 +43,7 @@ export function SkillPackageExport({ pill, history, diskVersion }: Props) {
     setError(null);
     try {
       const pkg = await buildChecked(pill.id, approved, history);
+      setDigest(pkg.digest);
       if (kind === 'zip') {
         downloadFile(pkg.filename, zipFiles(pkg.files), 'application/zip');
       } else {
@@ -77,15 +81,25 @@ export function SkillPackageExport({ pill, history, diskVersion }: Props) {
       <p className="flex items-start gap-1.5 text-[12px] leading-snug text-ink-muted">
         <PackageCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
         <span>
-          v{approved.version} · {approvedBy}. SKILL.md, rules, evidence, provenance, evals and changelog, with SKILL.md at
-          the root. Checked to load back with the same eval results before it downloads. Loading in CodeBuddy was verified
-          for the file version (v{diskVersion}); WorkBuddy and ADP import are designed for, not tested.
+          v{approved.version} · {approvedBy}. SKILL.md, rules, evidence, provenance, evals, changelog and DIGEST.txt, with
+          SKILL.md at the root. Checked to load back with the same eval results before it downloads. Loading in CodeBuddy
+          was verified for the file version (v{diskVersion}); WorkBuddy and ADP import are designed for, not tested.
         </span>
       </p>
       {error ? (
         <p role="alert" className="text-[12px] text-blocked">
           {error}
         </p>
+      ) : null}
+      {digest ? (
+        <div className="rounded-lg border border-line bg-dew-drop/50 p-3">
+          <p className="text-xs font-medium text-ink">DIGEST.txt · SHA-256 over every other file</p>
+          <pre className="mt-1.5 overflow-x-auto rounded bg-canvas p-2 font-mono text-[11px] text-ink">{digest}</pre>
+          <p className="mt-1.5 text-[12px] leading-snug text-ink-muted">
+            Tamper-evident, not a signature. There is no key here, so this says what the package contained, never who
+            built it — anyone who edits a rule can recompute it. Compare it against the DIGEST.txt inside the download.
+          </p>
+        </div>
       ) : null}
       <div className="rounded-lg border border-line bg-dew-drop/50 p-3">
         <p className="text-xs font-medium text-ink">Install as a CodeBuddy skill</p>
