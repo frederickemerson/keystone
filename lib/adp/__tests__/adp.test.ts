@@ -1,5 +1,11 @@
 // Tencent Cloud ADP adapter: the wire shape, and the honesty of its status.
 //
+// The wire shapes here are LIVE-PROBED, not read off the docs. The docs got
+// three things wrong (contract.ts says which), so the decisive test in this
+// file replays `fixtures/live-stream-2026-10-13.sse` — the verbatim bytes of a
+// real answer from the published "Keystone Pill Agent" — and asserts the
+// client recovers the answer and the knowledge grounding from them.
+//
 // The status rule under test is the one that matters for the submission: with
 // no AppKey the adapter says "not configured", with an AppKey but no answer it
 // says "not verified", and the only way anything says "live" is a real ADP
@@ -32,11 +38,15 @@ function sseResponse(chunks: readonly string[]): Response {
   return new Response(body, { status: 200, headers: { 'content-type': 'text/event-stream' } });
 }
 
+/**
+ * The DOCUMENTED shape: `text.delta` fragments that append. No live account has
+ * been seen to send these, but the client still accepts them, so this fixture
+ * pins that fallback. The real shape is the replay test further down.
+ */
 const ANSWER = [
   'event: text.delta\ndata: {"Content":"Isolate the branch "}\n\nevent: text.del',
   'ta\ndata: {"Content":"sub-valve first."}\n\n',
-  'event: reference.added\ndata: {"DocId":"sop-12"}\n\n',
-  'event: response.completed\ndata: {}\n\nevent: done\ndata: {}\n\n',
+  'event: response.completed\ndata: {}\n\nevent: done\ndata: [DONE]\n\n',
 ];
 
 function stub(response: Response | (() => Promise<Response>)): { fetchImpl: typeof fetch; calls: { url: string; init?: RequestInit }[] } {
@@ -66,9 +76,13 @@ describe('ADP wire contract', () => {
       AppKey: 'k',
       Contents: [{ Type: 'text', Text: 'Why is TS-07 blocked?' }],
       VisitorId: 'session-A',
-      Stream: true,
+      Stream: 'true',
     };
     expect(adpChatRequestSchema.safeParse(valid).success).toBe(true);
+    // Live ADP refuses a boolean here: "json: cannot unmarshal bool into Go
+    // struct field RequestV2.Stream of type string". The schema refuses it too,
+    // so the mistake cannot reach the wire a second time.
+    expect(adpChatRequestSchema.safeParse({ ...valid, Stream: true }).success).toBe(false);
     expect(adpChatRequestSchema.safeParse({ ...valid, SecretId: 'nope' }).success).toBe(false);
     expect(adpChatRequestSchema.safeParse({ ...valid, ConversationId: 'short' }).success).toBe(false);
     expect(adpChatRequestSchema.safeParse({ ...valid, Contents: [] }).success).toBe(false);
@@ -107,11 +121,12 @@ describe('ADP chat client', () => {
     expect(calls[0].url).toBe(ADP_CHAT_URL);
     const body = JSON.parse(String(calls[0].init?.body));
     expect(body.AppKey).toBe(KEY_SET.ADP_APP_KEY);
-    expect(body).toMatchObject({ Stream: true, Contents: [{ Type: 'text', Text: 'Why is TS-07 blocked?' }] });
+    expect(body).toMatchObject({ Stream: 'true', Contents: [{ Type: 'text', Text: 'Why is TS-07 blocked?' }] });
     expect(Object.keys(calls[0].init?.headers as Record<string, string>)).toEqual(['Content-Type', 'Accept']);
     if (result.ok) {
       expect(result.text).toBe('Isolate the branch sub-valve first.');
-      expect(result.references).toBe(1);
+      // No knowledge procedure in this stream, so nothing grounded it.
+      expect(result.knowledgePassages).toBe(0);
     }
   });
 
@@ -163,6 +178,44 @@ describe('ADP chat client', () => {
   it('reports a network error as a network error', async () => {
     const fetchImpl = (() => Promise.reject(new TypeError('fetch failed'))) as unknown as typeof fetch;
     expect(await askAdp('hello', { visitorId: 'v', fetchImpl, env: KEY_SET })).toMatchObject({ ok: false, reason: 'network_error' });
+  });
+});
+
+describe('the live stream, replayed', () => {
+  // Captured 2026-10-13 from the published "Keystone Pill Agent" after its
+  // knowledge base was loaded with the chilled-water-leak pill. Kept verbatim:
+  // these bytes are the evidence that the shapes in contract.ts are the real
+  // ones, and they carry no credential (the AppKey travels in the request).
+  const LIVE = readFileSync(join(process.cwd(), 'lib/adp/__tests__/fixtures/live-stream-2026-10-13.sse'), 'utf8');
+
+  it('recovers the answer and the knowledge grounding from the real bytes', async () => {
+    // Split mid-stream, so framing is exercised the way a socket delivers it.
+    const half = Math.floor(LIVE.length / 2);
+    const { fetchImpl } = stub(sseResponse([LIVE.slice(0, half), LIVE.slice(half)]));
+    const result = await askAdp('Who must approve re-energising?', { visitorId: 'v', fetchImpl, env: KEY_SET });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // The grounded answer: the right approver, the right version, every item.
+    expect(result.text).toContain('Licensed Electrical Worker');
+    expect(result.text).toContain('TS-07');
+    expect(result.text).toContain('1.2.0');
+    for (const item of ['LEW sign-off', 'insulation resistance', 'area confirmed dry']) {
+      expect(result.text).toContain(item);
+    }
+    // ADP's own Procedures record says five passages were retrieved.
+    expect(result.knowledgePassages).toBe(5);
+  });
+
+  it('is not a vacuous replay: a docs-shaped client would read these bytes as empty', () => {
+    // Why the rewrite was necessary. The documented events never appear, so a
+    // client that only appends text.delta and counts reference.added finishes
+    // with no answer and no grounding — which is what this one used to do.
+    expect(LIVE).not.toContain('event: text.delta');
+    expect(LIVE).not.toContain('event: reference.added');
+    expect(LIVE).toContain('event: text.replace');
+    expect(LIVE).toContain('event: message.done');
+    expect(LIVE).toContain('data: [DONE]');
   });
 });
 

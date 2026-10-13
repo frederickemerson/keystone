@@ -3,13 +3,20 @@ import 'server-only';
 import {
   ADP_CHAT_URL,
   ADP_DEFAULT_TIMEOUT_MS,
+  ADP_DONE_SENTINEL,
   ADP_MAX_ANSWER_CHARS,
   adpAppKey,
   adpChatRequestSchema,
   adpErrorSchema,
+  adpMessageDoneSchema,
+  adpResponseCompletedSchema,
   adpTextDeltaSchema,
+  adpTextReplaceSchema,
   deltaText,
+  knowledgePassages,
+  messageDoneText,
   newAdpId,
+  responseCompletedText,
 } from './contract';
 import { createSseParser, type SseEvent } from './sse';
 import { recordAdpSuccess, type Env } from './status';
@@ -24,6 +31,9 @@ import { recordAdpSuccess, type Env } from './status';
  *
  * The AppKey is read from the server environment and never logged, returned, or
  * put in an error message. Never throws: every failure is a typed `ok: false`.
+ *
+ * The event handling follows the LIVE stream, not the published docs; the three
+ * places they disagree are written up at the top of ./contract.ts.
  */
 
 export type AdpFailureReason =
@@ -39,8 +49,11 @@ export type AdpChatResult =
   | {
       ok: true;
       text: string;
-      /** Knowledge-base citations the agent attached. */
-      references: number;
+      /**
+       * Knowledge-base passages the agent retrieved before answering, read from
+       * ADP's own Procedures record. 0 means it answered from its prompt alone.
+       */
+      knowledgePassages: number;
       requestId: string;
       conversationId: string;
       latencyMs: number;
@@ -108,7 +121,7 @@ export async function askAdp(prompt: string, options: AdpAskOptions): Promise<Ad
     AppKey: appKey,
     Contents: [{ Type: 'text', Text: prompt }],
     VisitorId: visitorId,
-    Stream: true,
+    Stream: 'true',
   });
   if (!request.success) {
     // ADP pins ConversationId/VisitorId formats; a bad one is our bug, not theirs.
@@ -148,34 +161,70 @@ export async function askAdp(prompt: string, options: AdpAskOptions): Promise<Ad
 
     const decoder = new TextDecoder();
     const parser = createSseParser();
-    let text = '';
-    let references = 0;
+    /** Built from the streaming events: appended by delta, replaced by replace. */
+    let streamed = '';
+    /** The finished reply, which outranks whatever streaming left behind. */
+    let settled: string | null = null;
+    let passages = 0;
     let finished = false;
 
+    /** A runaway stream must not fill memory, whichever event carried it. */
+    const tooLong = (): AdpChatResult => ({
+      ok: false,
+      reason: 'invalid_response',
+      latencyMs: elapsed(),
+      detail: 'The ADP answer exceeded the size Keystone accepts.',
+    });
+
     const handle = (event: SseEvent): AdpChatResult | null => {
+      // The stream closes with the literal `[DONE]`, which is not JSON.
+      if (event.event === 'done' || event.data === ADP_DONE_SENTINEL) {
+        finished = true;
+        return null;
+      }
       const envelope = errorEnvelope(event);
       if (envelope) return { ok: false, reason: 'api_error', latencyMs: elapsed(), code: envelope.code, detail: envelope.message };
+
       switch (event.event) {
         case 'text.delta': {
           const parsed = adpTextDeltaSchema.safeParse(JSON.parse(event.data));
           if (!parsed.success) {
             return { ok: false, reason: 'invalid_response', latencyMs: elapsed(), detail: 'A text.delta event did not carry readable text.' };
           }
-          text += deltaText(parsed.data);
-          if (text.length > ADP_MAX_ANSWER_CHARS) {
-            return { ok: false, reason: 'invalid_response', latencyMs: elapsed(), detail: 'The ADP answer exceeded the size Keystone accepts.' };
-          }
-          return null;
+          streamed += deltaText(parsed.data);
+          return streamed.length > ADP_MAX_ANSWER_CHARS ? tooLong() : null;
         }
-        case 'reference.added':
-          references += 1;
-          return null;
-        case 'response.completed':
-        case 'done':
+        case 'text.replace': {
+          const parsed = adpTextReplaceSchema.safeParse(JSON.parse(event.data));
+          if (!parsed.success) {
+            return { ok: false, reason: 'invalid_response', latencyMs: elapsed(), detail: 'A text.replace event did not carry readable text.' };
+          }
+          streamed = parsed.data.Text;
+          return streamed.length > ADP_MAX_ANSWER_CHARS ? tooLong() : null;
+        }
+        case 'message.done': {
+          const parsed = adpMessageDoneSchema.safeParse(JSON.parse(event.data));
+          if (!parsed.success) {
+            return { ok: false, reason: 'invalid_response', latencyMs: elapsed(), detail: 'The finished ADP reply did not carry readable text.' };
+          }
+          const text = messageDoneText(parsed.data);
+          if (text !== '') settled = text;
+          return settled && settled.length > ADP_MAX_ANSWER_CHARS ? tooLong() : null;
+        }
+        case 'response.completed': {
+          const parsed = adpResponseCompletedSchema.safeParse(JSON.parse(event.data));
+          // A stream that sends an empty completion is not an error: the text
+            // may already have arrived on message.done or the replace events.
+          if (parsed.success) {
+            const text = responseCompletedText(parsed.data);
+            if (text !== '') settled = text;
+            passages = knowledgePassages(parsed.data);
+          }
           finished = true;
-          return null;
+          return settled && settled.length > ADP_MAX_ANSWER_CHARS ? tooLong() : null;
+        }
         default:
-          // An event ADP added since the docs were written: ignored, not failed.
+          // A progress event (request_ack, response.processing, …): nothing to collect.
           return null;
       }
     };
@@ -203,6 +252,8 @@ export async function askAdp(prompt: string, options: AdpAskOptions): Promise<Ad
       reader.releaseLock();
     }
 
+    // The finished reply wins; streaming text is the fallback when none arrived.
+    const text = settled ?? streamed;
     if (!finished || text === '') {
       return {
         ok: false,
@@ -215,7 +266,7 @@ export async function askAdp(prompt: string, options: AdpAskOptions): Promise<Ad
     const latencyMs = elapsed();
     // The one place a status can become "verified": a real answer, in hand.
     recordAdpSuccess({ requestId, at: new Date().toISOString(), latencyMs, answerChars: text.length });
-    return { ok: true, text, references, requestId, conversationId, latencyMs };
+    return { ok: true, text, knowledgePassages: passages, requestId, conversationId, latencyMs };
   } catch (err) {
     const aborted = controller.signal.aborted || (err as { name?: string } | null)?.name === 'AbortError';
     return { ok: false, reason: aborted ? 'timeout' : 'network_error', latencyMs: elapsed() };
