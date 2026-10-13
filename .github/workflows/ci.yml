@@ -1,0 +1,63 @@
+# Keystone's verification gate, run by CI instead of from a human's memory.
+#
+# CLAUDE.md requires `npx tsc --noEmit && npx vitest run && npx next build` to pass
+# before anything reaches main, and main auto-deploys to Vercel. These are the same
+# three commands in the same order, so a red check here means exactly what a red gate
+# means on a laptop.
+name: Verification gate
+
+on:
+  # main is the branch that deploys, so every push to it is gated. Other branches are
+  # gated through their pull request; gating their pushes too would run everything twice.
+  push:
+    branches: [main]
+  pull_request:
+  # So the gate can be run on a branch by hand before that branch reaches main.
+  workflow_dispatch:
+
+# A newer push to the same branch or pull request supersedes the run in flight.
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          # Node 24, the active LTS. The floor comes from the installed dependencies,
+          # not from a guess: vitest 5.0.3 declares engines ^22.12.0 || ^24.0.0 ||
+          # >=26.0.0 (so 23 and 25 are out), the AI SDK 7 packages need >=22, undici
+          # >=20.18.1 and sharp >=20.9.0 — and README.md records the same floor as
+          # "Node 22.12+". 24.x satisfies every one of them. package.json declares no
+          # engines field, so this file is the only place the version is pinned.
+          node-version: 24.x
+          cache: npm
+
+      - run: npm ci
+
+      # No secrets, by design, and the gate must not need any: lib/llm/providers.ts
+      # tries a live provider only when that provider has credentials and otherwise
+      # serves the recorded fixtures (and GitHub sets CI=true, which also stops it
+      # looking for a local CodeBuddy CLI login); lib/capture/asr.ts reports
+      # 'not_configured'; lib/auth/config.ts returns null for the session key in a
+      # production build rather than throwing, so sessions fail closed at run time
+      # without failing the build. Each command is its own step so a red check names
+      # which of the three failed.
+      - name: Types
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npx vitest run
+
+      - name: Production build
+        run: npx next build
