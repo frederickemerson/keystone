@@ -1,12 +1,15 @@
 // Governed skill package: the approved version of a pill (from the governance
 // store) written back as the folder the pill loader and CodeBuddy read —
 // SKILL.md at the root, rules.yaml, evidence.yaml, provenance.json, evals/,
-// CHANGELOG.md. Pure and client-safe: the caller supplies the pill's source
-// files (lib/export/pill-source.server.ts) and the version history.
+// CHANGELOG.md, plus the DIGEST.txt manifest that makes alteration of any of
+// them evident (lib/export/digest.ts). Pure and client-safe: the caller
+// supplies the pill's source files (lib/export/pill-source.server.ts) and the
+// version history.
 
 import yaml from 'js-yaml';
 import { extractFrontmatter, parsePill, type Pill, type Provenance, type ProvenanceRuleEntry } from '@/lib/engine';
 import { compareSemver, type PillVersion } from '@/lib/governance/versions';
+import { DIGEST_FILE, digestPackage, renderDigestFile } from './digest';
 
 /** A pill's files exactly as they are on disk (pills/<domain>/<name>/). */
 export interface PillSource {
@@ -33,6 +36,11 @@ export interface SkillPackage {
   /** The folder name a skill host installs it under, e.g. "chilled-water-leak". */
   folder: string;
   version: string;
+  /**
+   * SHA-256 over every file below except DIGEST.txt, which records it.
+   * Tamper-evident, not a signature: see lib/export/digest.ts.
+   */
+  digest: string;
   files: PackageFiles;
 }
 
@@ -148,18 +156,34 @@ export function buildSkillPackage(source: PillSource, version: PillVersion, hist
     throw new SkillPackageError(`Version belongs to ${version.pillId}, not ${source.id}`);
   }
   const lineage = governedLineage(history, version);
-  const files: PackageFiles = {
+  const covered: PackageFiles = {
     'SKILL.md': skillMd(source, version),
     'rules.yaml': rulesYaml(source, version),
     'provenance.json': provenanceJson(source, version, lineage),
     'CHANGELOG.md': changelogMd(source, version, lineage),
   };
-  if (source.evidenceYaml.trim()) files['evidence.yaml'] = source.evidenceYaml;
-  for (const [id, text] of Object.entries(source.evals)) files[`evals/${id}.yaml`] = text;
-  return { filename: `${source.name}-v${version.version}.zip`, folder: source.name, version: version.version, files };
+  if (source.evidenceYaml.trim()) covered['evidence.yaml'] = source.evidenceYaml;
+  for (const [id, text] of Object.entries(source.evals)) covered[`evals/${id}.yaml`] = text;
+  // Last, over everything above: the digest covers the files a recipient gates
+  // on, and DIGEST.txt cannot cover itself.
+  const digest = digestPackage(covered);
+  const label = { pill: `${source.domain}/${source.name}`, version: version.version };
+  const files: PackageFiles = { ...covered, [DIGEST_FILE]: renderDigestFile(digest, label) };
+  return {
+    filename: `${source.name}-v${version.version}.zip`,
+    folder: source.name,
+    version: version.version,
+    digest: digest.digest,
+    files,
+  };
 }
 
-/** Parse a package back exactly the way the pill loader parses a folder. Throws when it would not load. */
+/**
+ * Parse a package back exactly the way the pill loader parses a folder. Throws
+ * when it would not load. Says nothing about alteration — DIGEST.txt is ignored
+ * here, because a package that predates the digest must still import; call
+ * verifyPackageDigest() for that, separately.
+ */
 export function parsePackage(files: PackageFiles): Pill {
   const evals: Record<string, string> = {};
   for (const [file, text] of Object.entries(files)) {
