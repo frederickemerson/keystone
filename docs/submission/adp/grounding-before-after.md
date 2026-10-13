@@ -70,6 +70,27 @@ AppKey sitting in the environment is never treated as proof (`lib/adp/status.ts`
 
 Screenshot: `docs/proof/05a-adp-agent-live-grounded.png`.
 
+## The indicator is load-bearing, not decoration (observed in production)
+
+Caught on the live deployment on 14 Oct 2026, asking the same question twice in a row:
+
+| | Retrieved | Answer |
+| --- | --- | --- |
+| Call A | **5 passages** | "Pre-cleanup photos with timestamps must be taken, and the failed component must be retained and tagged… required for insurer notification." |
+| Call B | **0 passages** | "1. The location of the leak. 2. The time the leak was discovered. *(Rule TS-07, Keystone Intelligence Pill v2.0)*" |
+
+Call A matches the pill (`pre_cleanup_photos`, `failed_component_retained`). Call B is
+generic building practice, cites the wrong rule — TS-07 governs re-energisation, not
+pre-cleanup evidence — and invents **v2.0**, a version that does not exist.
+
+Same agent, same question, same minute. The only difference was whether retrieval hit. This
+is why the grounding count is reported rather than assumed: an agent with a knowledge base
+attached is not the same thing as an agent that used it, and the failure is invisible in the
+answer itself. Call B reads *more* authoritative than Call A — it has a numbered list and a
+version in italics.
+
+Keystone labels Call B ungrounded and marks its rule id and version unverified.
+
 ## What the live wire actually looks like
 
 The published docs were wrong in three ways that each silently break a client, so the
