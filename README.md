@@ -336,7 +336,7 @@ Session tokens carry a `jti`, so sessions issued before 12 Oct need one re-sign-
 
 ## Tests
 
-`npm test` runs the regression suite (876 tests in 76 files, 13 Oct 2026) across the deterministic core, LLM boundary, governance layer and frontline capture,
+`npm test` runs the regression suite (1,061 tests in 87 files, 13 Oct 2026) across the deterministic core, LLM boundary, governance layer and frontline capture,
 including the safety invariants that make the demo defensible:
 
 - **Evidence can never be faked open** — a required item counts only when it is
@@ -372,7 +372,7 @@ no-spawn fallback, timeout, malformed JSON, injected controls, bounded HTTP inpu
 and TE-02/TE-03 rejection). Tests make no inference requests. One test — the
 client-bundle scan in `lib/jev/__tests__/jev.test.ts`, which greps `.next/static`
 for a leaked Jev key — only runs when a build output exists, so a run on a clean
-tree reports 875 passed and 1 skipped. Run `npx next build` first for 876 passed.
+tree reports 1,060 passed and 1 skipped. Run `npx next build` first for 1,061 passed.
 
 ---
 
