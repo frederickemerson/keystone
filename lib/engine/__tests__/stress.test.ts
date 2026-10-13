@@ -78,6 +78,35 @@ function time<T>(label: string, fn: () => T): { ms: number; value: T } {
   return { ms, value };
 }
 
+/** Samples taken of each size, and calls batched into one sample. */
+const SAMPLES = 5;
+const BATCH = 20;
+
+/**
+ * Cost of one call, as the fastest of `SAMPLES` batches of `BATCH` calls.
+ *
+ * Two deliberate choices, both learned from this test flaking in CI:
+ *  - BATCHING. A single 500-rule evaluation runs in about 1.7 ms, which
+ *    performance.now() cannot resolve precisely on a busy machine; the ratio
+ *    below swung between 4.1x and 6.1x across runs of identical code. Timing
+ *    20 calls at once puts every sample in the tens of milliseconds, where the
+ *    measurement is stable.
+ *  - MINIMUM, not mean. Scheduler noise only ever ADDS time, so the fastest
+ *    sample is the best estimate of real cost. A single sample on a loaded
+ *    machine can be several times the true figure.
+ */
+function perCall<T>(label: string, fn: () => T): { ms: number; value: T } {
+  let best = Infinity;
+  let value!: T;
+  for (let s = 0; s < SAMPLES; s++) {
+    const t0 = performance.now();
+    for (let i = 0; i < BATCH; i++) value = fn();
+    best = Math.min(best, (performance.now() - t0) / BATCH);
+  }
+  console.log(`[stress] ${label}: ${best.toFixed(2)} ms/call (best of ${SAMPLES} × ${BATCH})`);
+  return { ms: best, value };
+}
+
 describe(`stress: ${N_RULES} rules × ${N_KEYS} evidence keys`, () => {
   const rules = bigRules();
   const pill = makePill(rules);
@@ -109,13 +138,38 @@ describe(`stress: ${N_RULES} rules × ${N_KEYS} evidence keys`, () => {
 
   it("evaluate() is linear in rules", () => {
     const ev = bigEvidence(1);
-    evaluate(pill, asset, incident, ev); // warm-up
-    const { ms, value } = time("evaluate × 1", () => evaluate(pill, asset, incident, ev));
-    expect(value.trace).toHaveLength(N_RULES);
-    const half = time("evaluate × 1 (1000 rules)", () => evaluate(makePill(rules.slice(0, 1000)), asset, incident, ev));
-    expect(ms).toBeLessThan(500);
-    // Doubling the rules should not quadruple the time (allow noise).
-    expect(ms).toBeLessThan(Math.max(20, half.ms * 3.5));
+    // Both pills are built OUTSIDE the timed region. The earlier version built
+    // the 1,000-rule pill inside it, so that sample timed construction AND
+    // evaluation while the 2,000-rule sample timed evaluation alone — an
+    // inflated denominator that could have hidden quadratic evaluation.
+    const quarterPill = makePill(rules.slice(0, N_RULES / 8));
+    evaluate(pill, asset, incident, ev); // warm up both paths
+    evaluate(quarterPill, asset, incident, ev);
+
+    const full = perCall("evaluate × 2000 rules", () => evaluate(pill, asset, incident, ev));
+    const half = perCall("evaluate × 250 rules", () => evaluate(quarterPill, asset, incident, ev));
+    console.log(`[stress] ratio 2000/250 = ${(full.ms / half.ms).toFixed(2)}x (linear ~8, quadratic ~64)`);
+
+    expect(full.value.trace).toHaveLength(N_RULES);
+    expect(half.value.trace).toHaveLength(N_RULES / 8);
+    expect(full.ms).toBeLessThan(500);
+
+    // The small sample must be big enough to measure, or the ratio below is
+    // noise. Failing loudly beats skipping: on hardware fast enough to make
+    // 250 rules unmeasurable even batched, raise N_RULES rather than ignore it.
+    expect(half.ms, "250 rules is too fast to time; raise N_RULES").toBeGreaterThan(0.05);
+
+    // 8x the rules is 8x the work when evaluation is linear, and about 64x
+    // when it is quadratic. Measured on this pill, over repeated runs:
+    //   as written                                    8.09x, 8.89x, 9.31x
+    //   with `pill.rules.findIndex(...)` per rule    15.37x, 17.76x
+    // so 12 separates them with room on both sides.
+    //
+    // The 8x spread is deliberate. An earlier 2,000-vs-1,000 version of this
+    // check could not tell the two apart at all: the same injected regression
+    // measured 2.19x against a 3.5x bound and passed. The wider the spread,
+    // the more the quadratic term dominates and the clearer the signal.
+    expect(full.ms).toBeLessThan(half.ms * 12);
   });
 
   it("counterfactual() re-evaluates one rule, not the whole pill per hypothesis", () => {
