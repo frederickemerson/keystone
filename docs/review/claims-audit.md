@@ -1,5 +1,22 @@
 # Keystone public-claims accuracy audit
 
+> **Stale as of 13 Oct 2026.** This audit is a record of what was true on 12 Oct,
+> not a current checklist. Most of the claims it flagged were fixed, and the repo
+> has moved since. Re-measured on 13 Oct 2026, three of its "Facts measured"
+> entries no longer hold:
+>
+> - `npx vitest run` is now **76 test files, 876 tests** (875 passed and 1 skipped
+>   without a prior `npx next build`), not 33 files / 515 tests.
+> - The provider chain timeouts and budget have changed (now CodeBuddy 15 s,
+>   TokenHub 22 s, OpenAI 15 s, under a 35 s budget; see `README.md`).
+> - **TokenHub now has a Production key and answers first on the deployed site**,
+>   on a dedicated ap-singapore endpoint. The line below saying "Hunyuan never
+>   answers there" was true on 12 Oct and is false now; every FALSE/OVERSTATED row
+>   below that rests on "Vercel has no TOKENHUB_API_KEY" is superseded.
+>
+> The remaining rows have not been re-adjudicated. Treat a verdict here as needing
+> a fresh check against the current tree before acting on it.
+
 Audit date: 12 Oct 2026. This was a read-only audit: no source file was edited. The method was the Santa method. Two reviewers, B and C, worked separately with the same 9-point rubric and no shared context. C read the sources in reverse order. Their results were then merged. Where they disagreed, the stricter verdict was kept unless a direct check settled it (see the Disagreements section).
 
 ## Facts measured during the audit

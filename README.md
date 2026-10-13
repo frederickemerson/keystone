@@ -200,9 +200,18 @@ The pill folder is a standard `SKILL.md` skill package. **Verified in CodeBuddy 
 - **WorkBuddy** *(designed for, untested)* — would import via **Skills & Expert Center**, where `SKILL.md`
   would become a skill. WorkBuddy documents a security scan before installation; the
   pill's `access` frontmatter could map to WorkBuddy's RBAC.
-- **Tencent Cloud ADP** *(designed for, untested)* — would be packaged as a ZIP with `SKILL.md` at the root.
-  ADP documents YAML metadata, semantic versioning, sandbox security review, and
+- **Tencent Cloud ADP** *(designed for, untested)* — would be packaged as a ZIP with
+  `SKILL.md` at the root. ADP's own documentation (fetched 13 Oct 2026:
+  [1254/81539](https://www.tencentcloud.com/document/product/1254/81539),
+  [1254/81540](https://www.tencentcloud.com/document/product/1254/81540)) requires
+  `SKILL.md` "included in the root directory of the ZIP package"; "Only .zip format
+  is supported"; "Maximum 10 MB"; metadata "in YAML format, including at least the
+  Skill name and feature description fields"; and a Version Number, with
+  "Recommended semantic versioning". It also documents sandbox security review and
   enterprise sharing through the Approval Center.
+  `lib/export/__tests__/adp-package.test.ts` enforces each of those constraints
+  against the package Keystone exports, so a drift in the exporter or a pill fails
+  the test suite rather than the import. No pill has been imported into ADP.
 - **Any SKILL.md-compatible host** — the structure follows the Anthropic agentskills
   convention (the same shape is used by Claude Code, CodeBuddy and Cursor).
 
@@ -327,7 +336,7 @@ Session tokens carry a `jti`, so sessions issued before 12 Oct need one re-sign-
 
 ## Tests
 
-`npm test` runs the regression suite (712 tests in 46 files, 12 Oct 2026) across the deterministic core, LLM boundary, governance layer and frontline capture,
+`npm test` runs the regression suite (876 tests in 76 files, 13 Oct 2026) across the deterministic core, LLM boundary, governance layer and frontline capture,
 including the safety invariants that make the demo defensible:
 
 - **Evidence can never be faked open** — a required item counts only when it is
@@ -353,12 +362,17 @@ including the safety invariants that make the demo defensible:
   until every chip is confirmed.
 
 Coverage spans `lib/engine` (conditions, evaluate, counterfactual, evals, schema,
-real-pill conformance), `lib/governance` (versions, approval, access, audit, store,
-capture store actions), `lib/capture` (contract, read-back, peer gate, ASR chain),
-`lib/data` (schema + cross-file consistency), `lib/pills` (package loading), and
-`lib/llm` (mocked SDK/provider selection, no-spawn fallback, timeout, malformed JSON,
-injected controls, bounded HTTP inputs, and TE-02/TE-03 rejection). Tests make no
-inference requests.
+real-pill conformance, the no-model-input boundary), `lib/governance` (versions,
+approval, access, audit, store, capture store actions), `lib/capture` (contract,
+read-back, peer gate, ASR chain), `lib/data` (schema + cross-file consistency),
+`lib/pills` (package loading), `lib/export` (skill package, audit export, and the
+ADP import constraints), `lib/auth`, `lib/ratelimit`, `lib/connectors`, `lib/guide`,
+`lib/journey`, `lib/record`, `lib/jev`, and `lib/llm` (mocked SDK/provider selection,
+no-spawn fallback, timeout, malformed JSON, injected controls, bounded HTTP inputs,
+and TE-02/TE-03 rejection). Tests make no inference requests. One test — the
+client-bundle scan in `lib/jev/__tests__/jev.test.ts`, which greps `.next/static`
+for a leaked Jev key — only runs when a build output exists, so a run on a clean
+tree reports 875 passed and 1 skipped. Run `npx next build` first for 876 passed.
 
 ---
 

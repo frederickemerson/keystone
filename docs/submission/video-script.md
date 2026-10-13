@@ -11,7 +11,7 @@
 - Use a fresh browser profile, or clear the site's localStorage, so the governance store starts at v1.2.0 with nothing approved.
 - Browser at 1440 x 900, zoom 110 %, cursor highlight on, notifications off.
 - Have CodeBuddy Code open in a terminal in the repo, with `.codebuddy/skills/chilled-water-leak/` present, for the reflection section. The screenshots `docs/proof/04a-codebuddy-skill-invoked.png` and `04b-codebuddy-skill-ts07-answer.png` are the fallback if a live run is not possible.
-- Have `npx vitest run` ready in a second terminal. Last verified run (12 Oct 2026): **46 test files, 712 tests, all passing.** Re-run before recording; the narration says "over 700 tests".
+- Have `npx vitest run` ready in a second terminal. Last verified run (13 Oct 2026): **76 test files, 876 tests, all passing.** Re-run before recording; the narration says "over 850 tests". Run `npx next build` first: one test scans the build output for a leaked key, so without a build the terminal reads "875 passed | 1 skipped" instead of "876 passed". One timing-sensitive test (`lib/engine/__tests__/stress.test.ts`, "evaluate() is linear in rules") compares wall-clock timings and fails on a loaded machine in roughly one run in ten; close other apps, and re-run if it trips while recording.
 - Live AI on the Vercel deployment is Hunyuan hy4-preview via TokenHub, served from a dedicated Singapore endpoint, or recorded output, and the badge says which (OpenAI gpt-5.4-mini is a fallback).
 - Frontline capture segment: use the labelled **demo note** (or type a note) on `/c/AHU-23-01`. Do not present hold-to-talk as working on Singapore-accented speech; real microphone speech is untested. Do **not** propose the captured draft in the recording profile: proposing it creates v1.3.0, which would change the version numbers in the Learning segment. The peer-gate shots use `docs/capture/screens/c7-approvals-peer-gate-blocks-shadow.png` and `c8-hafiz-peer-confirmed.png`. Sign in once more if you have an older session (tokens now carry a `jti`). This script does not show a live AI call. If you record one locally with CodeBuddy credentials, the badge will read Hunyuan hy4-preview via CodeBuddy; narrate whatever the badge shows.
 
@@ -112,10 +112,10 @@
 
 ### 5:45 to 6:10 · Responsible AI, briefly
 
-**On screen:** Split screen. On the left, the terminal runs `npx vitest run` and ends on the "Test Files … passed · Tests … passed" summary (last run: 46 files, 712 tests). On the right, use **Switch user** to choose **Rajesh Kumar · Technician** and show that the incident's tenant name is masked.
+**On screen:** Split screen. On the left, the terminal runs `npx vitest run` and ends on the "Test Files … passed · Tests … passed" summary (last run: 76 files, 876 passed). On the right, use **Switch user** to choose **Rajesh Kumar · Technician** and show that the incident's tenant name is masked.
 
 **Narration:**
-> Here's the responsible-AI part in one breath. Gates are deterministic and evidence counts only when it's confirmed true. Redaction happens on the server, so a technician's browser never receives the tenant's name. Every decision is audited. And it's all tested: over 700 tests, including adversarial and property-based tests on the gates and the governance rules. The language model handles language. It never decides on a safety action.
+> Here's the responsible-AI part in one breath. Gates are deterministic and evidence counts only when it's confirmed true. Redaction happens on the server, so a technician's browser never receives the tenant's name. Every decision is audited. And it's all tested: over 850 tests, including adversarial and property-based tests on the gates and the governance rules. The language model handles language. It never decides on a safety action.
 
 ### 6:10 to 7:10 · Reflection: how we built it with CodeBuddy
 
@@ -160,7 +160,7 @@
 | 16 | 5:05 | Learning step 4: eval replay | same | v1.2.0 passes 5/6; the correction fixes the failing case. |
 | 17 | 5:20 | Learning steps 5 and 6: hand-off to Priya, shadow 6/6, Priya refused approval, switch to Goh Boon Kheng, approve | same | Three different people: author, steward, approver. Hold on the "Separation of duties" refusal. |
 | 18 | 5:35 | Learning step 7: Goh rolls back with a reason (v1.4.0), history and audit kept | same | |
-| 19 | 5:45 | Split: vitest (700+ passing), and the Technician view with masking | terminal + app | |
+| 19 | 5:45 | Split: vitest (876 passing), and the Technician view with masking | terminal + app | |
 | 20 | 6:10 | CodeBuddy proof screenshots 01a, 01b, 01c, 02c, 03a | `docs/proof/` | Ken Burns pan, about 4 s each. |
 | 21 | 6:35 | CodeBuddy skill run: same TS-07 decision | live CodeBuddy, or `docs/proof/04a`, `04b` | |
 | 22 | 7:10 | Landing hero, then the cover card with the URL | `/`, `docs/submission/cover.png` | End card for 3 s. |
@@ -186,7 +186,7 @@ Use this if the full video can't be recorded, or as a teaser. It reuses shots 1,
 
 | Claim | Source in the repo |
 |---|---|
-| Over 700 tests (last run: 46 files, 712 tests, all passing) | `npx vitest run`, run 12 Oct 2026 |
+| Over 850 tests (last run: 76 files, 876 passed) | `npx vitest run` after `npx next build`, run 13 Oct 2026 |
 | A gate block asks the technician "why, in twenty seconds" | `components/incident/captureTasks.ts`, `components/incident/IncidentRoom.tsx` ("Tell us why — 20 seconds") |
 | QR page for AHU-23-01; consent notice before recording; demo note labelled | `app/c/[assetId]/page.tsx`, `components/capture/ConsentNotice.tsx`, `data/fixtures/capture/qr-ahu-23-01.json` |
 | Every number, tag and role is checked (read-back) | `lib/capture/contract.ts` (`READ_BACK_KINDS`, `draftProposalReadiness`) |

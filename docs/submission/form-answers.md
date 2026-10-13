@@ -10,7 +10,7 @@ The code blocks below contain only claims backed by this repository or by a cite
 - [ ] **[verify]** About 40% of Singapore's Built Environment PMETs are aged 50+ (MND, 2022). If confirmed, you may add: `• About 40% of Singapore's Built Environment PMETs are aged 50+ (MND, 2022).`
 - [ ] **[verify]** No pilot cost has been estimated, so the answers do not claim that one avoided flood "pays for the pilot". Add that only with a cost estimate.
 - [ ] **[verify]** The GitHub repository is private. Grant the judges access, or make it public.
-- [ ] **[verify]** Re-run `npx vitest run` just before submitting. The answers say "700+ automated tests"; the last run (12 Oct 2026) was 46 files, 712 tests, all passing.
+- [ ] **[verify]** Re-run `npx vitest run` just before submitting. The answers say "850+ automated tests"; the last run (13 Oct 2026) was 76 files, 876 tests, all passing. Build first (`npx next build`), or the client-bundle scan is skipped and the run reads 875 passed, 1 skipped. One timing-sensitive engine stress test fails on a loaded machine in roughly one run in ten; re-run on a quiet machine before quoting a number.
 - [ ] **[verify]** Sign in on the live URL and check that the live drafting badge reads `Live · hy4-preview via TokenHub` (or `Recorded output`), as described below.
 - [ ] **[verify]** Walk the frontline capture path on the live URL from a fresh browser profile: Rajesh is blocked by TS-07 at step 10 → note → read-back → draft → Tan Wei Ming proposes TS-14 in v1.3.0 → Priya is refused at Promote to Shadow → Muhammad Hafiz confirms → Priya promotes.
 - [ ] **[do not claim]** Speech recognition on real Singapore-accented speech is untested. The Tencent Cloud ASR adapter reports "not configured", and the OpenAI transcription path has never been run live. Do not claim accuracy, and do not claim that speech is processed in Singapore: the browser's speech service decides where audio goes.
@@ -52,7 +52,7 @@ Users
 • The domain expert and pill owner: Tan Wei Ming, Chief Engineer, 18 years of M&E experience, retiring. He confirms, edits or rejects every extracted rule and corrects the rules later.
 • The Asset Operations Manager and pill steward: Priya Nair. She supervises AI recommendations in the Incident Room, approves actions that need approval, escalates, and promotes new versions into shadow mode. She cannot approve a version she shadowed.
 • Frontline staff: Rajesh Kumar (Technician) records what the gate didn't know; Muhammad Hafiz (Technical Services Lead) confirms it as a peer.
-• Supporting roles (14 personas in data/roles.json): Head of Technical Services (approver of record), duty Licensed Electrical Worker, DC Critical Facilities Manager, Tenant Experience Manager, Technician, Executive and others.
+• Supporting roles (15 personas in data/roles.json): Head of Technical Services (approver of record), duty Licensed Electrical Worker, DC Critical Facilities Manager, Tenant Experience Manager, Technician, Executive and others.
 
 Value proposition
 Keystone compiles expert judgement into an Intelligence Pill: a plain-text, versioned, tested artefact with an owner and an approver. It outlives the expert, can be reused at every asset of the same type, has deterministic gates an LLM cannot talk past, proves itself against replayed past incidents before release, rolls back in one click, and stays the organisation's property rather than a vendor's.
@@ -110,7 +110,7 @@ The decision path is deterministic and takes no model input, so changing the mod
 Responsible AI
 Every rule has an action class. Evidence counts only when it is confirmed and exactly true. A blocked gate outranks escalate and requires-approval. Exceptions can add required evidence but never remove it. No AI proposal executes: each is held for a named human, and blocked outright when its gate's evidence is missing. The author of a version can't put it into Shadow or approve it, and whoever shadowed it can't approve it. Rollback never deletes history. Keystone never actuates building systems: it recommends, drafts and escalates.
 Frontline notes need consent before recording, a speaker-checked read-back, and a peer confirmation from someone who neither said nor proposed the rule.
-These invariants are executable: 700+ automated tests, including adversarial and property-based tests (fast-check) on the engine and the governance layer.
+These invariants are executable: 850+ automated tests, including adversarial and property-based tests (fast-check) on the engine and the governance layer.
 The design is mapped (design alignment, not certification) to the IMDA Model AI Governance Framework (2020 and the 2026 Agentic AI edition), AI Verify, ISO/IEC 42001 and the NIST AI RMF. The mapping is in docs/SUBMISSION.md §9.
 
 Path to production on Tencent Cloud

@@ -61,10 +61,11 @@ Two primary users, per the challenge's own roles. Everyone else is a name in the
    promotes a corrected pill version into Shadow and replays it, and escalates. She
    cannot approve a version she shadowed; the Head of Technical Services does.
 
-Supporting roles (implemented in `data/roles.json`, 14 in total): Head of Technical
+Supporting roles (implemented in `data/roles.json`, 15 in total): Head of Technical
 Services (approver of record), Duty Licensed Electrical Worker (electrical-safety
 sign-off), Fire Safety Manager, Tenant Experience Manager, Duty Facilities Manager,
-DC Critical Facilities Manager, Technician, Executive, and others.
+DC Critical Facilities Manager, Technician, Senior Technician, Technical Services
+Lead, Property Manager, Account Manager, Security / FCC Operator, and Executive.
 
 ### Value proposition
 
@@ -183,10 +184,13 @@ Next.js 15 (App Router, TS) · React 19 · Tailwind v4
 └─ data/                  mock assets, incidents, timelines, transcripts, roles, fixtures
 ```
 
-Eleven pages ship: `/` (landing), `/sign-in`, `/pulse` (Portfolio Pulse), `/capture`,
-`/canvas/[pillId]`, `/registry`, `/incident/[id]`, `/approvals`, `/learning/[pillId]`,
-`/c/[assetId]` (QR tap-to-teach) and `/c/[assetId]/qr` (printable label), plus API
-routes for auth, LLM, Jev and capture transcription. Full Mermaid diagrams in `docs/ARCHITECTURE.md`.
+Sixteen pages ship (`npx next build`, 13 Oct 2026): `/` (landing), `/sign-in`,
+`/pulse` (Portfolio Pulse), `/capture`, `/canvas/[pillId]`, `/registry`,
+`/registry/[pillId]`, `/incidents`, `/incident/[id]`, `/incident/[id]/record`
+(printable decision record), `/approvals`, `/learning/[pillId]`, `/connectors`,
+`/c` (equipment index), `/c/[assetId]` (QR tap-to-teach) and `/c/[assetId]/qr`
+(printable label), plus seven API routes for auth, LLM, Jev and capture
+transcription. Full Mermaid diagrams in `docs/ARCHITECTURE.md`.
 
 ### 5.3 How prompts drive AI generation
 
@@ -564,7 +568,7 @@ TokenHub in ap-singapore, with OpenAI gpt-5.4-mini as a fallback. Rows marked
 | **Speech recognition (adapter only)** | **Tencent Cloud ASR**, `asr.ap-singapore.tencentcloudapi.com` | The only option found with documented Singapore-region processing. The adapter in `lib/capture/asr.ts` reports "not configured": no credentials, not verified against the live API. Today hold-to-talk uses the browser's Web Speech API (audio processed by the browser vendor). Singapore-accented speech is untested. |
 | **Builder skills (verified)** | **CodeBuddy** — `.codebuddy/skills/<name>/SKILL.md` | The same pill loads as a CodeBuddy skill (`docs/proof/04a`, `04b`); `rules.yaml` and `evals/` are executed only by the Keystone engine. |
 | **Expert host (proposed)** | **WorkBuddy** — Skills & Expert Center, Experts, Expert Teams | A pill would become a Skill; a domain pill + persona an Expert; the Asset Ops orchestrator an Expert Team leader. WorkBuddy documents a security scan before install; `access` could map to its RBAC. |
-| **Enterprise governance (proposed)** | **ADP** (Agent Development Platform) — custom skills as a ZIP with `SKILL.md` at the root, YAML metadata, semantic versioning, sandbox security review, **Approval Center** for enterprise sharing | The governed distribution path for pills across business units. |
+| **Enterprise governance (proposed)** | **ADP** (Agent Development Platform) — custom skills imported as a ZIP. Its documentation (fetched 2026-10-13: [1254/81539](https://www.tencentcloud.com/document/product/1254/81539), [1254/81540](https://www.tencentcloud.com/document/product/1254/81540)) requires `SKILL.md` *"included in the root directory of the ZIP package"*; *"Only .zip format is supported"*; *"Maximum 10 MB"*; metadata *"in YAML format, including at least the Skill name and feature description fields"*; and a Version Number, *"Recommended semantic versioning"*. It also documents sandbox security review and an **Approval Center** for enterprise sharing. | The governed distribution path for pills across business units. `lib/export/__tests__/adp-package.test.ts` enforces every one of those documented constraints against the package Keystone exports for each pill, so exporter or pill drift fails the test suite instead of the import. No pill has been imported into ADP. |
 | **Sandbox (proposed)** | **Agent Runtime / CubeSandbox** | Isolated execution for deterministic rule checks (architecture reference; not built). |
 | **Voice (proposed)** | **TRTC Conversational AI** (STT + LLMConfig OpenAI-compatible + TTS; captions via custom messages) | The live Expert Onboarding Call: real-time captions and "rule extracted" chips. Today the demo uses a scripted transcript read by browser text-to-speech; TRTC is the proposed production path. |
 | **Hosting (proposed)** | **EdgeOne Pages** (Next.js SSR, free HTTPS) with **Lighthouse** (Singapore) for a persistent backend | Today the app runs on Vercel. Lighthouse if a long-lived Node backend (TRTC token service) is needed. |
