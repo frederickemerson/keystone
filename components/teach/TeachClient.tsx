@@ -38,7 +38,9 @@ import {
 } from '@/lib/teach/exercise';
 import { draftRuleFrom, draftProvenance } from '@/lib/teach/draft';
 import { useVoice } from '@/lib/speech/useVoice';
+import type { Rule } from '@/lib/engine/types';
 import { speechRecognitionCtor, mediaRecorderSupported } from '@/components/capture/useSpeechCapture';
+import { AccountExtraction } from './AccountExtraction';
 import { CoverageBoard } from './CoverageBoard';
 import { DraftPreview } from './DraftPreview';
 import { Dictation } from './Dictation';
@@ -66,6 +68,7 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
   const [muted, setMuted] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [justCaptured, setJustCaptured] = useState(false);
+  const [confirmedFromAccount, setConfirmedFromAccount] = useState<Rule[]>([]);
   const clock = useRef(0);
 
   const stage: ScenarioStageId = SCENARIO_STAGES[stageAt]?.id ?? 'calm';
@@ -75,6 +78,7 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
   const resolution = resolutionQuestion(exercise);
   const resolved = answers.some((a) => a.questionId === resolution?.id);
   const { done, of } = progress(exercise, answers);
+  const account = answers.find((a) => a.questionId === exercise.opening.id)?.text?.trim() ?? '';
   const draft = useMemo(() => draftRuleFrom(exercise, answers), [exercise, answers]);
   const provenance = useMemo(() => draftProvenance(exercise, answers), [exercise, answers]);
 
@@ -300,6 +304,15 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
             />
           ) : null}
 
+          {account && phase !== 'scenario' ? (
+            <AccountExtraction
+              account={account}
+              onConfirm={(rule) =>
+                setConfirmedFromAccount((prev) => (prev.some((r) => r.id === rule.id) ? prev : [...prev, rule]))
+              }
+            />
+          ) : null}
+
           {phase === 'done' ? (
             <>
               <p className="text-[17px] leading-snug text-ink">
@@ -310,6 +323,7 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
                 provenance={provenance}
                 pillId={exercise.pillId}
                 missing={[...reachable].filter((part) => !covered.has(part))}
+                fromAccount={confirmedFromAccount}
               />
             </>
           ) : null}

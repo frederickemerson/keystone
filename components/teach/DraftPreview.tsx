@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { LayoutGrid } from 'lucide-react';
 import { routes } from '@/lib/journey/routes';
 import { PART_LABELS, type RulePart } from '@/lib/teach/parts';
+import type { Rule } from '@/lib/engine/types';
 import type { DraftedRule } from '@/lib/teach/draft';
 import type { Claim } from '@/lib/teach/exercise';
 
@@ -26,6 +27,14 @@ export interface DraftPreviewProps {
   pillId: string;
   /** Parts no answer settled — named, so the gap is visible rather than implied. */
   missing: RulePart[];
+  /**
+   * Candidates a model read out of the typed account and the expert then
+   * confirmed. Kept separate from the tapped fields above, because how a line
+   * got here changes how much it should be trusted: a tap is a structured
+   * answer, a confirmed candidate is a model's reading that a person agreed
+   * with.
+   */
+  fromAccount: readonly Rule[];
 }
 
 /** The patch field each part writes, so the preview shows the real shape. */
@@ -53,7 +62,7 @@ function valueFor(draft: DraftedRule, part: RulePart): string[] {
   }
 }
 
-export function DraftPreview({ draft, provenance, pillId, missing }: DraftPreviewProps) {
+export function DraftPreview({ draft, provenance, pillId, missing, fromAccount }: DraftPreviewProps) {
   return (
     <section className="rounded-xl border border-line-strong bg-surface p-5">
       <h2 className="text-[17px] text-ink">What this would become</h2>
@@ -93,6 +102,25 @@ export function DraftPreview({ draft, provenance, pillId, missing }: DraftPrevie
           );
         })}
       </dl>
+
+      {fromAccount.length > 0 ? (
+        <div className="mt-4">
+          <h3 className="font-mono text-[10px] uppercase tracking-wide text-ink-muted">
+            Also, from your written account
+          </h3>
+          <ul className="mt-2 space-y-2">
+            {fromAccount.map((rule) => (
+              <li key={rule.id} className="rounded-lg border border-line bg-cream-paper px-3.5 py-3">
+                <p className="text-[13.5px] leading-snug text-ink">{rule.title}</p>
+                <p className="mt-1 text-[12px] leading-snug text-ink-muted">
+                  Read out of your prose by a model, and confirmed by you. The fields above came from answers you
+                  tapped, which need no reading at all.
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {missing.length > 0 ? (
         <p className="mt-4 text-[13px] leading-relaxed text-ink-muted">
