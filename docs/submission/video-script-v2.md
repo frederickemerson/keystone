@@ -220,3 +220,85 @@ riser — that's the default."]**
   `distance_to_electrical_m`. Nothing in this script needs a mock-up.
 - **Music:** "Beauty Flow" (CC BY 4.0) with its credit card, or swap for more drive — if
   swapped, re-check the licence and change the credit with it.
+
+---
+
+## Addendum — three beats added 14 Oct 2026
+
+Three more real screens exist since this script was written. All three answer something Sean
+said out loud, all three are live in the product, and none of them is in the cut above. They
+are also the cheapest way to close the gap between this script's ~3:35 and the form's stated
+5 to 8 minutes, because they need no mock-up.
+
+Shoot them in this order, after Act 5 and before Act 6.
+
+### Act 5a — Keep talking to it (~35 s)
+
+**The problem:** *"the agent should then be able to start discussing things together with the
+management ... as if the energy manager is in front of them."*
+
+On screen: the connectors page, ADP row. Ask the preset about who may approve re-energising.
+Answer lands with **5 passages**. Then click the follow-up chip — **"Does that change if the
+area is still wet?"** — and let the answer land. Hold on the word *that* in the question for
+a beat.
+
+VO: "Ask it a follow-up with the word *that* in it. A question box can't answer that. This
+can — the thread is held on the server, against your session, and the conversation id never
+touches the browser, so nobody can resume your thread. Eight questions, then it starts
+fresh."
+
+**Why it earns its place:** it is the only beat where the agent behaves like a colleague
+rather than a lookup. The pronoun is the proof.
+
+**Shooting note.** The live agent is not deterministic. All three follow-up presets resolved
+their reference correctly when last measured, but phrasing and retrieval vary run to run, so
+shoot two or three takes and keep the clearest. If it answers *"the pill does not specify an
+alternative approver"* — which is what *"what if that person is not on site?"* tends to get —
+**that is a usable take, not a failed one**: it resolved the pronoun and then refused to
+invent, which is the behaviour the whole submission argues for. Do not re-shoot until it says
+something more impressive.
+
+### Act 5b — Top five, and why (~25 s)
+
+**The problem:** *"these are the top five issues that management should be looking into
+because of ABCD."*
+
+On screen: `/pulse`, **"What to look at first"**. Push in on the first row and let the reason
+sentence read on screen: *"TS-07 is holding this until LEW sign-off, Insulation resistance
+within limits and Area dry are confirmed by someone the pill allows."*
+
+VO: "Five things, worst first, each one saying why it's there. Not a score — there's nothing
+to tune. A gate blocking work, then a decision someone owes, then an escalation still open,
+and inside each, whoever's waited longest."
+
+**Why it earns its place:** it is his own artifact, built his way, and the "because of ABCD"
+is visible rather than described.
+
+### Act 5c — Is this a new skill? (~45 s, the strongest of the three)
+
+**The problem:** *"how do we then capture if there's a new skill discovered ... it's a problem
+that we've never faced before and we've actually solved that problem. So is this a new skill?"*
+
+On screen: `/pulse`, **"Is this a new skill?"**. The sentence reads itself. Then `INC-2026-0923`
+— plant 18% over baseline for four days, every point inside its limits. Cut to the pill hub
+for one second: **no rule fired on it**. Back to the card, press **"How did you solve it?"**,
+and let the task land addressed to the Chief Engineer.
+
+VO: "Here's one the record can't explain. Solved — someone read the façade and the humidity
+before they suspected the plant. Not one rule in any approved pill fired on it. So Keystone
+doesn't write a rule from the outcome, because that would be a guess. It asks the person who
+knew. Forty-five seconds. Then it goes through the same approval as everything else."
+
+**Why it earns its place:** this is the one act where the *system* notices the gap instead of
+a human reporting it — and it is the third of the three problems Keppel said they had not
+solved. If one of these three makes the cut, make it this one.
+
+### Running total
+
+| | |
+| --- | --- |
+| Script above | ~3:35 |
+| + 5a, 5b, 5c | **~5:20** |
+| + frontline capture path, eval/drift replay, CodeBuddy install (already listed as TODO) | 6:30–7:30 |
+
+That clears the 5-minute floor on the three new beats alone.

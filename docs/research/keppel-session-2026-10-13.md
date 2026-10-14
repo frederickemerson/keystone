@@ -147,6 +147,14 @@ The honest shape is therefore the same one the eval corpus already uses: report 
 **and** the denominator — "seen in 2 of 3 incidents with a replayable timeline; 5 further
 closed incidents carry no evidence map and were not counted."
 
+> **Update, 14 Oct 2026.** Built as described (`lib/learning/recurrence.ts`), and the
+> denominator has since moved: the corpus is **9 incidents, 4 with replayable timelines**,
+> after `INC-2026-0923` was added to exercise the inverse finding — a solved incident that
+> fires no rule in any approved pill (`lib/learning/uncovered.ts`). The classification
+> counts for the Technical Services pill are unchanged at 4 recurring / 3 seen once / 6 not
+> in the record, because the new incident fires nothing. The figures in this section are
+> left as written: they record what the corpus was on the day of the session.
+
 ## 8. Enterprise, not personal
 
 > "if you're developing something that can be applied maybe to yourself or to your team
