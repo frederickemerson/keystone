@@ -23,7 +23,7 @@ import { coverageSentence, type CoverageReport } from '@/lib/learning/coverage';
 import { BlindSpotPanel } from './BlindSpotPanel';
 import { HubRuleList } from './HubRuleList';
 import { PillDetailPanel } from './PillDetailPanel';
-import { incidentsUsingPill, ruleApplications, rulesView, type ReplayScenario } from './hub-utils';
+import { contributors, incidentsUsingPill, ruleApplications, rulesView, type ReplayScenario } from './hub-utils';
 
 const EMPTY_HISTORY: PillVersion[] = [];
 
@@ -74,7 +74,13 @@ export function PillHub({
     .sort((a, b) => compareSemver(a.version, b.version));
 
   const captures = useMemo(() => history.flatMap((v) => (v.capture ? [v.capture] : [])), [history]);
-  const rows = useMemo(() => rulesView(governed, governed.rules, captures), [governed, captures]);
+  const rows = useMemo(
+    () => rulesView(governed, governed.rules, captures, bundle.expert ?? null),
+    [governed, captures, bundle.expert],
+  );
+  // Whose knowledge this version holds. Derived from the rows, so it can never
+  // disagree with the attribution shown against each rule.
+  const whose = useMemo(() => contributors(rows), [rows]);
   const applications = useMemo(() => ruleApplications(governed, scenarios), [governed, scenarios]);
   // Whether the record shows each rule's situation recurring. Derived from the
   // replay above, not a second opinion about it.
@@ -195,6 +201,18 @@ export function PillHub({
             title="What it decides"
             description={`The ${governed.rules.length} rules of v${liveVersion}, each with the words it came from.`}
           />
+          {whose.length > 0 ? (
+            <p className="max-w-[80ch] text-[13px] leading-snug text-ink-muted">
+              <span className="font-medium text-ink">Whose knowledge this is: </span>
+              {whose
+                .map((c) => `${c.name} (${c.ruleIds.length} rule${c.ruleIds.length === 1 ? '' : 's'})`)
+                .join(', ')}
+              .{' '}
+              {whose.length === 1
+                ? 'One person so far — a pill grows by adding others, and every rule keeps the name of whoever it came from.'
+                : 'One pill, several people: each rule keeps the name of whoever it came from.'}
+            </p>
+          ) : null}
           <HubRuleList pillId={bundle.id} rows={rows} applications={applications} recurrence={recurrence} />
         </section>
 

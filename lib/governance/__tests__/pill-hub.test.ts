@@ -8,6 +8,7 @@ import {
   pillIdFromRef,
   pillsAppliedTo,
   ruleApplications,
+  contributors,
   rulesView,
   type ReplayScenario,
 } from "@/components/registry/hub-utils";
@@ -34,8 +35,11 @@ describe("pillIdFromRef", () => {
   });
 });
 
+/** The expert the pill's provenance.json names — what the loader carries on the bundle. */
+const EXPERT = ts.expert ?? null;
+
 describe("rulesView", () => {
-  const rows = rulesView(ts.pill, ts.pill.rules);
+  const rows = rulesView(ts.pill, ts.pill.rules, [], EXPERT);
 
   it("gives every rule the shared anchor id that routes.pill links to", () => {
     expect(rows.map((r) => r.id)).toEqual(ts.pill.rules.map((r) => r.id));
@@ -68,8 +72,55 @@ describe("rulesView", () => {
       quoteSpan: { start: 0, end: 12, text: "check the cable" },
       author: { name: "Rajesh Kumar", role: "technician" },
     };
-    const row = rulesView(ts.pill, [...ts.pill.rules, added], [capture]).find((r) => r.id === "TS-14")!;
-    expect(row.source).toEqual({ kind: "frontline", quote: "check the cable", source: "VN-1" });
+    const row = rulesView(ts.pill, [...ts.pill.rules, added], [capture], EXPERT).find((r) => r.id === "TS-14")!;
+    expect(row.source).toEqual({
+      kind: "frontline",
+      quote: "check the cable",
+      source: "VN-1",
+      person: { name: "Rajesh Kumar", role: "technician" },
+    });
+  });
+
+  it("names the expert a file rule came from", () => {
+    const row = rulesView(ts.pill, ts.pill.rules, [], EXPERT).find((r) => r.source?.kind === "expert")!;
+    expect(row.source?.person?.name).toBe("Tan Wei Ming");
+  });
+});
+
+describe("contributors", () => {
+  const base = ts.pill.rules.find((r) => r.id === "TS-07")!;
+  const added = { ...base, id: "TS-14", title: "Check the leak sensor cable first" };
+  const capture: CaptureProvenance = {
+    noteId: "VN-1",
+    draftRuleId: "DRAFT-01",
+    ruleId: "TS-14",
+    quoteSpan: { start: 0, end: 12, text: "check the cable" },
+    author: { name: "Rajesh Kumar", role: "technician" },
+  };
+
+  it("is one person before anyone else has added to the pill", () => {
+    const whose = contributors(rulesView(ts.pill, ts.pill.rules, [], EXPERT));
+    expect(whose.map((c) => c.name)).toEqual(["Tan Wei Ming"]);
+    expect(whose[0].ruleIds.length).toBeGreaterThan(0);
+  });
+
+  it("becomes several once a frontline note adds a rule — one pill, more than one person", () => {
+    const whose = contributors(rulesView(ts.pill, [...ts.pill.rules, added], [capture], EXPERT));
+    expect(whose.map((c) => c.name).sort()).toEqual(["Rajesh Kumar", "Tan Wei Ming"]);
+    expect(whose.find((c) => c.name === "Rajesh Kumar")!.ruleIds).toEqual(["TS-14"]);
+  });
+
+  it("counts every rule it names, and names nobody it cannot attribute", () => {
+    const rows = rulesView(ts.pill, [...ts.pill.rules, added], [capture], EXPERT);
+    const named = rows.filter((r) => r.source?.person).length;
+    const counted = contributors(rows).reduce((n, c) => n + c.ruleIds.length, 0);
+    expect(counted).toBe(named);
+    // Derived from the rows, so the summary can never contradict the rule list.
+    for (const c of contributors(rows)) {
+      for (const id of c.ruleIds) {
+        expect(rows.find((r) => r.id === id)?.source?.person?.name).toBe(c.name);
+      }
+    }
   });
 });
 

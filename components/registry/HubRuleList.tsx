@@ -59,10 +59,15 @@ function SourceLine({ row }: { row: RuleRow }) {
       <figcaption className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-muted">
         {src.kind === 'frontline' ? (
           <span className="inline-flex items-center gap-1">
-            <AudioLines className="size-3.5" aria-hidden="true" /> From a frontline note
+            <AudioLines className="size-3.5" aria-hidden="true" />
+            {src.person ? `${src.person.name}, from a frontline note` : 'From a frontline note'}
           </span>
         ) : (
-          <span>From the expert call{src.timestamp ? ` at ${src.timestamp}` : ''}</span>
+          <span>
+            {src.person ? `${src.person.name}, ` : ''}
+            {src.person ? 'from the expert call' : 'From the expert call'}
+            {src.timestamp ? ` at ${src.timestamp}` : ''}
+          </span>
         )}
         {src.confirmedBy ? <span>· confirmed by {src.confirmedBy}</span> : null}
         {hear ? (

@@ -4,7 +4,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { parsePill, type Pill } from "@/lib/engine";
+import { parsePill, type Pill, type ProvenanceExpert } from "@/lib/engine";
 
 /** Serialisable (plain JSON) view of a pill for client components. */
 export interface PillBundle {
@@ -19,6 +19,17 @@ export interface PillBundle {
   skillBody: string;
   /** CHANGELOG.md contents ("" when absent). */
   changelog: string;
+  /**
+   * The expert provenance.json names, when it names one.
+   *
+   * `Pill.provenance` is keyed by rule id and drops the wrapper, so the person
+   * the pill was elicited from does not survive parsing. It is carried here,
+   * on the serialisable bundle, because the registry has to be able to say
+   * WHOSE knowledge a rule is — a pill is "what Paul knows, what I know, what
+   * another colleague knows", and a rule list that shows the words but not the
+   * author cannot show that.
+   */
+  expert?: ProvenanceExpert;
 }
 
 export function pillsDir(): string {
@@ -57,6 +68,22 @@ export function listPillRefs(): { id: string; domain: string; name: string }[] {
   return refs;
 }
 
+/** The `expert` block of provenance.json, or undefined when it names none. */
+function expertFrom(provenanceJson: string): ProvenanceExpert | undefined {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(provenanceJson);
+  } catch {
+    return undefined;
+  }
+  if (!parsed || typeof parsed !== "object") return undefined;
+  const expert = (parsed as { expert?: unknown }).expert;
+  if (!expert || typeof expert !== "object") return undefined;
+  const { name, role } = expert as { name?: unknown; role?: unknown };
+  if (typeof name !== "string" || name.length === 0) return undefined;
+  return { name, role: typeof role === "string" ? role : "" };
+}
+
 function loadFromFolder(domain: string, name: string): PillBundle {
   const rel = join("pills", domain, name);
   const dir = join(pillsDir(), domain, name);
@@ -72,12 +99,13 @@ function loadFromFolder(domain: string, name: string): PillBundle {
     }
   }
 
+  const provenanceJson = readFileSync(join(dir, "provenance.json"), "utf8");
   let pill: Pill;
   try {
     pill = parsePill({
       skillMd,
       rulesYaml: readFileSync(join(dir, "rules.yaml"), "utf8"),
-      provenanceJson: readFileSync(join(dir, "provenance.json"), "utf8"),
+      provenanceJson,
       evidenceYaml: readOptional(join(dir, "evidence.yaml")),
       evals,
     });
@@ -93,6 +121,7 @@ function loadFromFolder(domain: string, name: string): PillBundle {
     pill,
     skillBody: stripFrontmatter(skillMd),
     changelog: readOptional(join(dir, "CHANGELOG.md")),
+    expert: expertFrom(provenanceJson),
   };
 }
 

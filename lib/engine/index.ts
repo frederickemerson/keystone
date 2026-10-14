@@ -29,6 +29,7 @@ export type {
   Pill,
   PillManifest,
   Provenance,
+  ProvenanceExpert,
   ProvenanceMap,
   ProvenanceRuleEntry,
   Regression,

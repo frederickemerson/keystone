@@ -14,6 +14,7 @@ import {
   toEngineIncident,
 } from '@/components/incident/engineInputs';
 import { humanizeKey } from '@/components/incident/labels';
+import type { ProvenanceExpert } from '@/lib/engine';
 import { expertQuoteFor } from '@/components/incident/provenance';
 
 /**
@@ -35,6 +36,44 @@ export interface RuleSource {
   /** Transcript id or voice-note id. */
   source: string;
   confirmedBy?: string;
+  /**
+   * WHOSE knowledge this rule is.
+   *
+   * A pill is not one person's. The challenge owner put it as "what Paul
+   * knows, what I know, what another colleague knows" — one skill, several
+   * people, which is exactly what happens here once a frontline note adds a
+   * rule to a pill elicited from someone else. The name was already recorded
+   * on both paths and was simply not carried to the one screen that lists
+   * what a pill contains, so a reader could see the words and not the author.
+   */
+  person?: { name: string; role: string };
+}
+
+/** Who contributed the rules of a pill, in the order they first appear. */
+export interface Contributor {
+  name: string;
+  role: string;
+  /** Rules of this version that rest on their words. */
+  ruleIds: string[];
+}
+
+/**
+ * Whose knowledge a version holds.
+ *
+ * Derived from the rows, so it can never disagree with the attribution shown
+ * against each rule. Rules whose source names nobody are left out rather than
+ * guessed at.
+ */
+export function contributors(rows: readonly RuleRow[]): Contributor[] {
+  const byName = new Map<string, Contributor>();
+  for (const row of rows) {
+    const person = row.source?.person;
+    if (!person) continue;
+    const found = byName.get(person.name);
+    if (found) found.ruleIds.push(row.id);
+    else byName.set(person.name, { name: person.name, role: person.role, ruleIds: [row.id] });
+  }
+  return [...byName.values()];
 }
 
 export interface RuleRow {
@@ -50,9 +89,21 @@ export interface RuleRow {
   source: RuleSource | null;
 }
 
-function sourceFor(pill: Pill, rule: Rule, captures: readonly CaptureProvenance[]): RuleSource | null {
+function sourceFor(
+  pill: Pill,
+  rule: Rule,
+  captures: readonly CaptureProvenance[],
+  expertOf: ProvenanceExpert | null,
+): RuleSource | null {
   const capture = captures.find((c) => c.ruleId === rule.id);
-  if (capture) return { kind: 'frontline', quote: capture.quoteSpan.text, source: capture.noteId };
+  if (capture) {
+    return {
+      kind: 'frontline',
+      quote: capture.quoteSpan.text,
+      source: capture.noteId,
+      person: { name: capture.author.name, role: capture.author.role },
+    };
+  }
   const expert = expertQuoteFor(pill, rule);
   if (!expert) return null;
   return {
@@ -61,6 +112,7 @@ function sourceFor(pill: Pill, rule: Rule, captures: readonly CaptureProvenance[
     timestamp: expert.start || undefined,
     source: expert.source,
     confirmedBy: expert.confirmedBy,
+    person: expertOf ? { name: expertOf.name, role: expertOf.role } : undefined,
   };
 }
 
@@ -69,8 +121,19 @@ function sourceFor(pill: Pill, rule: Rule, captures: readonly CaptureProvenance[
  * the file's), with evidence labels from the pill's catalogue and the words
  * the rule rests on. `captures` are the capture provenances of the pill's
  * versions, so a rule proposed from a frontline note quotes that note.
+ *
+ * `captures` and `expert` are both REQUIRED and neither has a default. An
+ * empty-array default for `captures` once meant a caller could silently drop
+ * frontline attribution; `expert` defaulting to null would silently drop the
+ * elicited expert's. Both are the name against a rule, and a rule list that
+ * quietly shows no name is the failure this is here to fix.
  */
-export function rulesView(pill: Pill, rules: readonly Rule[], captures: readonly CaptureProvenance[] = []): RuleRow[] {
+export function rulesView(
+  pill: Pill,
+  rules: readonly Rule[],
+  captures: readonly CaptureProvenance[],
+  expert: ProvenanceExpert | null,
+): RuleRow[] {
   return rules.map((rule) => ({
     id: rule.id,
     anchorId: ruleAnchorId(rule.id),
@@ -84,7 +147,7 @@ export function rulesView(pill: Pill, rules: readonly Rule[], captures: readonly
     escalateRole: rule.escalate_to.role,
     escalateFallback: rule.escalate_to.fallback,
     deadlineMinutes: rule.deadline_minutes,
-    source: sourceFor(pill, rule, captures),
+    source: sourceFor(pill, rule, captures, expert),
   }));
 }
 
