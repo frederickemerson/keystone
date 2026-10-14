@@ -1,5 +1,12 @@
 import { askAdp } from '@/lib/adp/client';
-import { adpAskRequestSchema, composeAdpPrompt, failureDetail, type AdpAskResponse } from '@/lib/adp/ask';
+import {
+  MAX_THREAD_TURNS,
+  adpAskRequestSchema,
+  composeAdpPrompt,
+  failureDetail,
+  type AdpAskResponse,
+} from '@/lib/adp/ask';
+import { commitTurn, newThreadId, threadFor } from '@/lib/adp/conversations';
 import { readRequest } from '@/lib/llm/requests';
 import { callerOf, signInRequired } from '@/lib/ratelimit/caller';
 import { retryHeaders, takeAdpCall } from '@/lib/ratelimit/policies';
@@ -17,6 +24,15 @@ import { retryHeaders, takeAdpCall } from '@/lib/ratelimit/policies';
 //
 // The answer is a DRAFT for a person to read. No gate decision reads it:
 // lib/engine takes no model input at all.
+//
+// FOLLOW-UPS. A reader can continue the exchange, because what the challenge
+// owner asked for is a discussion with the agent and not a question box. The
+// ADP conversation id is resolved server-side from the signed session
+// (lib/adp/conversations.ts) and never crosses the wire, so one session cannot
+// resume another's thread. Resolving it runs BEFORE the quota check: a
+// follow-up with no thread left to continue is refused for free, since a
+// reader who lands on a cold instance should not lose one of very few calls to
+// a refusal they did not cause.
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -34,6 +50,17 @@ export async function POST(request: Request) {
   const input = await readRequest(request, adpAskRequestSchema);
   if (input instanceof Response) return input;
 
+  const now = Date.now();
+  const thread = input.turn === 'follow_up' ? threadFor(caller.sessionId, now) : null;
+  if (input.turn === 'follow_up') {
+    if (!thread) return reply({ ok: false, reason: 'no_thread', detail: failureDetail('no_thread') }, 409);
+    if (thread.turns >= MAX_THREAD_TURNS) {
+      return reply({ ok: false, reason: 'thread_full', detail: failureDetail('thread_full') }, 409);
+    }
+  }
+  const conversationId = thread?.conversationId ?? newThreadId();
+  const turn = (thread?.turns ?? 0) + 1;
+
   const quota = takeAdpCall(caller);
   if (!quota.ok) {
     return reply(
@@ -47,15 +74,23 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await askAdp(composeAdpPrompt(input.question), { visitorId: caller.sessionId });
+  const result = await askAdp(composeAdpPrompt(input.question, input.turn, thread?.lastQuestion ?? null), {
+    visitorId: caller.sessionId,
+    conversationId,
+  });
   if (!result.ok) {
+    // Nothing is committed: a failed call must not consume a turn, and must not
+    // leave the reader in a thread whose first answer never arrived.
     return reply({ ok: false, reason: result.reason, detail: failureDetail(result.reason, result.detail) }, 502);
   }
+  commitTurn(caller.sessionId, conversationId, input.question, now);
 
   return reply({
     ok: true,
     text: result.text,
     knowledgePassages: result.knowledgePassages,
+    turn,
+    turnsLeft: MAX_THREAD_TURNS - turn,
     latencyMs: result.latencyMs,
     requestId: result.requestId,
   });

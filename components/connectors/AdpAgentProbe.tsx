@@ -11,10 +11,17 @@
 // knowledge-base passages the agent retrieved. Zero means it answered from its
 // prompt alone, and the answer is labelled ungrounded rather than quietly
 // presented as if the pill had backed it.
+//
+// The exchange is a THREAD, not a question box. The challenge owner's ask was
+// for management to be able to keep going — "these five issues, are there any
+// cost implications? ... do we need to invest more?" — so a follow-up carries
+// the previous turns with it. The follow-up presets below are deliberately
+// written with pronouns ("that", "it"), because a one-shot endpoint cannot
+// answer them and a threaded one can: the difference is visible on screen.
 
 import { useState } from 'react';
-import { BookOpenCheck, CircleAlert, Loader2, MessageSquareWarning, Send, TriangleAlert } from 'lucide-react';
-import type { AdpAskResponse } from '@/lib/adp/ask';
+import { BookOpenCheck, CircleAlert, CornerDownRight, Loader2, MessageSquareWarning, RotateCcw, Send, TriangleAlert } from 'lucide-react';
+import { MAX_THREAD_TURNS, type AdpAskResponse, type AdpTurnKind } from '@/lib/adp/ask';
 import { buildAgentDisputeTask } from '@/components/incident/captureTasks';
 import { roleLabel } from '@/lib/governance/access';
 import { useGovernanceStore } from '@/lib/governance/store';
@@ -35,47 +42,98 @@ const PRESETS = [
   'What has to be recorded before cleanup starts?',
 ] as const;
 
+/** Openers for a follow-up. Each one only makes sense if the thread was kept. */
+const FOLLOW_UPS = [
+  'Does that change if the area is still wet?',
+  'What if that person is not on site?',
+  'Which of those items can telemetry confirm on its own?',
+] as const;
+
 const MAX_CHARS = 300;
+
+/** One question and what came back. */
+interface Exchange {
+  question: string;
+  answer: AdpAskResponse;
+}
 
 export function AdpAgentProbe({ dispute }: { dispute: DisputeContext }) {
   const [question, setQuestion] = useState<string>(PRESETS[0]);
   const [busy, setBusy] = useState(false);
-  const [answer, setAnswer] = useState<AdpAskResponse | null>(null);
+  const [exchanges, setExchanges] = useState<Exchange[]>([]);
+
+  // The thread's state comes from the last answer the server gave, never from
+  // counting on this side: the server owns the thread and is the only thing
+  // that knows whether it survived.
+  const last = exchanges.at(-1)?.answer;
+  const live = last?.ok === true;
+  const turnsLeft = live ? last.turnsLeft : 0;
+  const canFollowUp = live && turnsLeft > 0;
+  const turn: AdpTurnKind = canFollowUp ? 'follow_up' : 'new';
 
   async function ask() {
+    const asked = question;
     setBusy(true);
-    setAnswer(null);
     try {
       const response = await fetch('/api/adp/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question: asked, turn }),
       });
       const body: unknown = await response.json().catch(() => null);
-      setAnswer(
+      const answer: AdpAskResponse =
         body && typeof body === 'object' && 'ok' in body
           ? (body as AdpAskResponse)
-          : { ok: false, reason: 'invalid_response', detail: 'ADP answered in a shape this screen does not accept.' },
-      );
+          : { ok: false, reason: 'invalid_response', detail: 'ADP answered in a shape this screen does not accept.' };
+      setExchanges((prior) => [...prior, { question: asked, answer }]);
+      if (answer.ok) setQuestion('');
     } catch {
-      setAnswer({ ok: false, reason: 'network_error', detail: 'The request to Keystone’s own server did not complete.' });
+      setExchanges((prior) => [
+        ...prior,
+        {
+          question: asked,
+          answer: { ok: false, reason: 'network_error', detail: 'The request to Keystone\u2019s own server did not complete.' },
+        },
+      ]);
     } finally {
       setBusy(false);
     }
   }
+
+  function startOver() {
+    setExchanges([]);
+    setQuestion(PRESETS[0]);
+  }
+
+  const openers = exchanges.length === 0 ? PRESETS : FOLLOW_UPS;
+  const started = exchanges.length > 0;
 
   return (
     <div className="space-y-3 rounded-lg border border-line bg-surface p-3">
       <div>
         <p className="text-[13px] font-medium text-ink">Ask the published agent</p>
         <p className="mt-0.5 max-w-[75ch] text-[12px] leading-snug text-ink-muted">
-          The pill is published to ADP as a knowledge base. This asks that agent the question, live. The answer is a
-          draft for a person to read — no gate reads it.
+          The pill is published to ADP as a knowledge base. This asks that agent the question, live, and keeps the
+          thread so you can follow up on the answer. Every answer is a draft for a person to read — no gate reads it.
         </p>
       </div>
 
+      {exchanges.length > 0 ? (
+        <ol className="space-y-2.5">
+          {exchanges.map((exchange, i) => (
+            <li key={`${i}-${exchange.question}`} className="space-y-1.5">
+              <p className="flex items-start gap-1.5 text-[12px] leading-snug text-ink-muted">
+                {i > 0 ? <CornerDownRight className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /> : null}
+                <span className="font-medium text-ink">{exchange.question}</span>
+              </p>
+              <Answer answer={exchange.answer} asked={exchange.question} dispute={dispute} />
+            </li>
+          ))}
+        </ol>
+      ) : null}
+
       <div className="flex flex-wrap gap-1.5">
-        {PRESETS.map((preset) => (
+        {openers.map((preset) => (
           <button
             key={preset}
             type="button"
@@ -85,19 +143,20 @@ export function AdpAgentProbe({ dispute }: { dispute: DisputeContext }) {
               question === preset ? 'border-accent bg-dew-drop text-ink' : 'border-line text-ink-muted hover:text-ink'
             }`}
           >
-            {preset.length > 52 ? `${preset.slice(0, 52)}…` : preset}
+            {preset.length > 52 ? `${preset.slice(0, 52)}\u2026` : preset}
           </button>
         ))}
       </div>
 
       <label className="block">
-        <span className="sr-only">Question for the ADP agent</span>
+        <span className="sr-only">{canFollowUp ? 'Follow-up for the ADP agent' : 'Question for the ADP agent'}</span>
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value.slice(0, MAX_CHARS))}
           rows={2}
           maxLength={MAX_CHARS}
           disabled={busy}
+          placeholder={canFollowUp ? 'Follow up on that answer\u2026' : 'Ask the agent about the approved pill\u2026'}
           className="w-full resize-y rounded-lg border border-line bg-canvas p-2 font-sans text-[13px] text-ink"
         />
       </label>
@@ -105,14 +164,23 @@ export function AdpAgentProbe({ dispute }: { dispute: DisputeContext }) {
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={ask} disabled={busy || question.trim().length < 5} className="btn-pill btn-pill-primary">
           {busy ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : <Send className="size-3.5" aria-hidden="true" />}
-          {busy ? 'Asking the agent…' : 'Ask the ADP agent'}
+          {busy ? 'Asking the agent\u2026' : canFollowUp ? 'Ask as a follow-up' : 'Ask the ADP agent'}
         </button>
+        {started ? (
+          <button type="button" onClick={startOver} disabled={busy} className="btn-pill">
+            <RotateCcw className="size-3.5" aria-hidden="true" />
+            Start a new question
+          </button>
+        ) : null}
         <span className="text-[12px] text-ink-muted">
-          {question.trim().length}/{MAX_CHARS} · rate-limited, because each call spends real agent quota
+          {question.trim().length}/{MAX_CHARS} ·{' '}
+          {canFollowUp
+            ? `follow-up ${exchanges.length + 1} of ${MAX_THREAD_TURNS} in this thread`
+            : live
+              ? `this thread is full at ${MAX_THREAD_TURNS} questions, so the next one starts fresh`
+              : 'rate-limited, because each call spends real agent quota'}
         </span>
       </div>
-
-      {answer ? <Answer answer={answer} asked={question} dispute={dispute} /> : null}
     </div>
   );
 }
@@ -127,6 +195,19 @@ function Answer({ answer, asked, dispute }: { answer: AdpAskResponse; asked: str
     );
   }
   const grounded = answer.knowledgePassages > 0;
+  // Three states, not two. A follow-up that retrieved nothing is NOT the same
+  // as a fresh question that retrieved nothing: it may be resting on what the
+  // thread retrieved on an earlier turn — which is a real source, and one
+  // Keystone cannot see. Calling that "answered from its prompt alone" would
+  // be wrong; calling it grounded would be wrong the other way. So it gets its
+  // own sentence, and still carries the warning, because an unseeable source
+  // is not a checkable one.
+  const carried = !grounded && answer.turn > 1;
+  const note = grounded
+    ? `Grounded: the agent retrieved ${answer.knowledgePassages} passage${answer.knowledgePassages === 1 ? '' : 's'} from its knowledge base before answering.`
+    : carried
+      ? 'Nothing retrieved on this turn: a follow-up can rest on what the thread retrieved earlier, which Keystone cannot see. Treat any rule id or version in it as unverified.'
+      : 'Ungrounded: the agent retrieved nothing from its knowledge base, so this answer came from its prompt alone. Treat any rule id or version in it as unverified.';
   return (
     <div className="space-y-2 rounded-lg border border-line bg-canvas p-2.5">
       <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-ink">{answer.text}</p>
@@ -137,9 +218,7 @@ function Answer({ answer, asked, dispute }: { answer: AdpAskResponse; asked: str
           <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
         )}
         <span>
-          {grounded
-            ? `Grounded: the agent retrieved ${answer.knowledgePassages} passage${answer.knowledgePassages === 1 ? '' : 's'} from its knowledge base before answering.`
-            : 'Ungrounded: the agent retrieved nothing from its knowledge base, so this answer came from its prompt alone. Treat any rule id or version in it as unverified.'}{' '}
+          {note}{' '}
           {answer.latencyMs} ms · request {answer.requestId.slice(0, 8)}…
         </span>
       </p>
