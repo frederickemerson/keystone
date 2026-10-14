@@ -36,9 +36,11 @@ import {
   type Answer,
   type Exercise,
 } from '@/lib/teach/exercise';
+import { draftRuleFrom, draftProvenance } from '@/lib/teach/draft';
 import { useVoice } from '@/lib/speech/useVoice';
 import { speechRecognitionCtor, mediaRecorderSupported } from '@/components/capture/useSpeechCapture';
 import { CoverageBoard } from './CoverageBoard';
+import { DraftPreview } from './DraftPreview';
 import { Dictation } from './Dictation';
 import { Mascot, moodFor } from './Mascot';
 import { QuestionCard } from './QuestionCard';
@@ -73,6 +75,8 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
   const resolution = resolutionQuestion(exercise);
   const resolved = answers.some((a) => a.questionId === resolution?.id);
   const { done, of } = progress(exercise, answers);
+  const draft = useMemo(() => draftRuleFrom(exercise, answers), [exercise, answers]);
+  const provenance = useMemo(() => draftProvenance(exercise, answers), [exercise, answers]);
 
   const reachable = useMemo(
     () =>
@@ -297,18 +301,17 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
           ) : null}
 
           {phase === 'done' ? (
-            <section className="rounded-xl border border-line-strong bg-surface p-5">
-              <h2 className="text-[17px] text-ink">
+            <>
+              <p className="text-[17px] leading-snug text-ink">
                 {done} of {of} parts of the rule, from one situation.
-              </h2>
-              <p className="mt-1.5 text-[14px] leading-relaxed text-ink-muted">
-                None of it is a rule yet. It is a draft with your name on it, and someone who may edit this pill has
-                to review each line before anything can fire.
               </p>
-              <Link href={routes.canvas(exercise.pillId)} className="btn-pill btn-pill-primary mt-4 text-xs">
-                <LayoutGrid className="size-3.5" aria-hidden="true" /> Review it on the decision canvas
-              </Link>
-            </section>
+              <DraftPreview
+                draft={draft}
+                provenance={provenance}
+                pillId={exercise.pillId}
+                missing={[...reachable].filter((part) => !covered.has(part))}
+              />
+            </>
           ) : null}
         </div>
 
