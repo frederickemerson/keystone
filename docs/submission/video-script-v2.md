@@ -172,9 +172,12 @@ raised. `~/Desktop/keystone-voice/` can stay empty.
 > And now the pill says whose knowledge it is. Thirteen rules from the chief engineer, one
 > from a technician — and it'll name the next person too."
 
-**Shooting prerequisite:** walk this path once on the live URL before filming — Rajesh →
-read-back → draft → propose → Hafiz confirms → promote. It is the one demo path not yet
-verified end-to-end in production.
+**Walked end-to-end on the live URL (14 Oct), 11 checks, all passing.** Rajesh blocked by
+TS-07 → escalate → the capture task opens → consent (two boxes, and "Continue" stays dead
+until both are ticked) → demo note → four read-back values he confirms himself → draft rule
+credited to him by name → Tan proposes it on the canvas → Hafiz, who neither spoke nor
+proposed, confirms. Shoot it in that order; the consent step is worth two seconds on screen
+rather than cutting around.
 
 ---
 
@@ -399,8 +402,10 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
   v2.1, five passages, the follow-up thread counter, the attribution line, the reason
   sentence, `INC-2026-0923`, 4/3/6 recurrence, `distance_to_electrical_m`. Nothing in this
   script needs a mock-up.
-- **One thing to verify before filming:** the frontline capture path in Act 3, end-to-end on
-  the live URL. Everything else in this script has been run in production.
+- **Every path in this script has now been run in production**, including the frontline
+  capture path in Act 3, which was the last one outstanding: 11 checks, all passing. The
+  only thing left to confirm on the day is that the recording you make matches the figures
+  in the VO, which the production notes below already list.
 - **The fictional-scenario disclosure in Act 1 is mandatory, not a nicety.** Tan Wei Ming,
   Rajesh Kumar, the tower and every incident are invented, and the narration speaks about
   them as if they were real because that is how a worked example reads. A review of the

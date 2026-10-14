@@ -664,6 +664,22 @@ the equipment, and turns a short note into a draft rule that the speaker checks 
 peer confirms. In the demo, Rajesh Kumar (Technician) explains a drain-trap step on
 AHU-23-01 after TS-07 blocks him; it becomes TS-14 in v1.3.0.
 
+That path was walked end-to-end on the deployed site on 14 Oct 2026 — 11 checks, all
+passing: the gate holds, escalating opens the capture task, recording is refused until
+consent is given (two boxes, and the control stays disabled until both are ticked), the
+note is read back as four values *the speaker himself* confirms, the draft carries his
+name, the chief engineer proposes it, and a peer who neither spoke nor proposed is the
+one who confirms it.
+
+The same elicitation shape is not limited to the one pill. Where no questions have been
+written, they are **derived from the pill's own rules and evidence catalogue**
+(`lib/teach/generate`) — including the wrong answers, which are lifted from what the pill
+says is allowed, or required by a different rule, so a distractor is plausible by
+construction rather than invented. A rule's own `exceptions` carry a written
+distinguishing condition, which is what lets a generated exercise catch a contradiction
+at all; a pill whose rules have no exceptions simply gets no contradiction beat, rather
+than a manufactured one.
+
 ### 7.3 How the captured expertise becomes reusable rather than a one-off
 
 It is **compiled into a pill** — a plain-text package (`SKILL.md`, `rules.yaml`,
