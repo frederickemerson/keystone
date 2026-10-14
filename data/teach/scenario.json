@@ -1,0 +1,10 @@
+{
+  "id": "hf1-l28-coupling",
+  "stages": [
+    { "id": "calm", "caption": "02:14. Level 28. Nothing unusual yet." },
+    { "id": "alarm", "caption": "A chilled-water coupling fails in the ceiling void. The leak detector goes into alarm." },
+    { "id": "spread", "caption": "Water comes through onto Level 27 — a bank tenant floor." },
+    { "id": "tracking", "caption": "It is not pooling. It is tracking along a conduit." },
+    { "id": "hazard", "caption": "Toward the electrical riser cupboard. There is a distribution board in there: DB-27B." }
+  ]
+}

@@ -255,6 +255,15 @@
     },
     {
       "role": "interviewer",
+      "text": "First call. What do you isolate?",
+      "file": "/speech/interviewer-014e4dbd12f2db5a.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 22845
+    },
+    {
+      "role": "interviewer",
       "text": "Good morning, Wei Ming. I'm Keystone, the AI interviewer for the Expert Onboarding Call. Today I'll walk you through your experience with water-leak and chilled-water incidents using a structured interview method. The goal is to capture your judgement so it can be turned into governed decision rules. Ready to start?",
       "file": "/speech/interviewer-0393d66f4d1c1bcd.mp3",
       "model": "gpt-4o-mini-tts",
@@ -270,6 +279,15 @@
       "voice": "sage",
       "region": "us",
       "bytes": 52509
+    },
+    {
+      "role": "interviewer",
+      "text": "02:14. Level 28. Nothing unusual yet.",
+      "file": "/speech/interviewer-06fb096e79f65c74.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 35373
     },
     {
       "role": "interviewer",
@@ -309,6 +327,15 @@
     },
     {
       "role": "interviewer",
+      "text": "Both of those are things you have said, and neither of them is wrong. So what is the condition that tells them apart? Say it as the thing that has to be true for the second answer to be the right one.",
+      "file": "/speech/interviewer-18d0f18f68a3deff.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 96861
+    },
+    {
+      "role": "interviewer",
       "text": "So the distinguishing condition is: is the leak on the riser pipe itself, or on a branch where the sub-valve is accessible and stops the flow?",
       "file": "/speech/interviewer-1b6342e06fa1b5df.mp3",
       "model": "gpt-4o-mini-tts",
@@ -324,6 +351,15 @@
       "voice": "sage",
       "region": "us",
       "bytes": 75261
+    },
+    {
+      "role": "interviewer",
+      "text": "You said the water being near electrical equipment is what made this different. So where is the line? How close is too close?",
+      "file": "/speech/interviewer-3beed44f5133e713.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 59421
     },
     {
       "role": "interviewer",
@@ -363,6 +399,15 @@
     },
     {
       "role": "interviewer",
+      "text": "Whose sign-off does the re-energisation need? Not who you would phone — whose name has to be on it.",
+      "file": "/speech/interviewer-4b40a3be361c5d66.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 54237
+    },
+    {
+      "role": "interviewer",
       "text": "I have written this up as: WHEN a chilled-water leak is detected near electrical equipment within 2 m, DO isolate the water source and block re-energisation; NEVER re-energise before LEW sign-off and insulation resistance test; EXCEPT when the LEW confirms the affected section is a spare or dead board; ESCALATE to duty LEW immediately; SUCCESS = no person enters until LEW declares safe and no re-energisation without certification. Is that right? What is wrong or missing?",
       "file": "/speech/interviewer-4dc1d0f094afef43.mp3",
       "model": "gpt-4o-mini-tts",
@@ -396,6 +441,15 @@
       "voice": "sage",
       "region": "us",
       "bytes": 50061
+    },
+    {
+      "role": "interviewer",
+      "text": "The tenant is calling every ten minutes and it is 03:40. Which of these must still not happen?",
+      "file": "/speech/interviewer-735e1b9bd86254b8.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 40125
     },
     {
       "role": "interviewer",
@@ -444,6 +498,24 @@
     },
     {
       "role": "interviewer",
+      "text": "Toward the electrical riser cupboard. There is a distribution board in there: DB-27B.",
+      "file": "/speech/interviewer-95743cb4b0cdce84.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 45597
+    },
+    {
+      "role": "interviewer",
+      "text": "It is not pooling. It is tracking along a conduit.",
+      "file": "/speech/interviewer-9b9c52930a59bb20.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 30909
+    },
+    {
+      "role": "interviewer",
       "text": "Let's put that in order. What was the very first signal, who got it, and roughly how many minutes passed before each of the next things happened?",
       "file": "/speech/interviewer-a3b5348b8eaf13cc.mp3",
       "model": "gpt-4o-mini-tts",
@@ -462,6 +534,15 @@
     },
     {
       "role": "interviewer",
+      "text": "A bank tenant floor is wet and the source is not isolated. How long before this stops being yours and has to go up?",
+      "file": "/speech/interviewer-aed75cf18bcf191f.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 57261
+    },
+    {
+      "role": "interviewer",
       "text": "What's a leak that doesn't behave like a normal leak — say, water turning up in a lift pit?",
       "file": "/speech/interviewer-ba19d43172d99495.mp3",
       "model": "gpt-4o-mini-tts",
@@ -471,12 +552,30 @@
     },
     {
       "role": "interviewer",
+      "text": "The water is stopped and the AHU circuit is isolated. Before anyone re-energises it, what has to be confirmed? Pick everything that must be true.",
+      "file": "/speech/interviewer-bd7c23c89149c931.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 75549
+    },
+    {
+      "role": "interviewer",
       "text": "Suppose one thing had been different — say the water was coming from the ceiling above the switchroom instead of the pantry. What changes?",
       "file": "/speech/interviewer-c2fd38ba347048b8.mp3",
       "model": "gpt-4o-mini-tts",
       "voice": "sage",
       "region": "us",
       "bytes": 55821
+    },
+    {
+      "role": "interviewer",
+      "text": "An AHU branch leak on Level 27. The branch sub-valve is accessible, and closing it stops the flow.",
+      "file": "/speech/interviewer-c3c8d805f70c29f4.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 59709
     },
     {
       "role": "interviewer",
@@ -498,12 +597,57 @@
     },
     {
       "role": "interviewer",
+      "text": "Water comes through onto Level 27 — a bank tenant floor.",
+      "file": "/speech/interviewer-cffc67da13916d17.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 34797
+    },
+    {
+      "role": "interviewer",
+      "text": "A chilled-water coupling fails in the ceiling void. The leak detector goes into alarm.",
+      "file": "/speech/interviewer-d25dc2cb4cf3968e.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 50061
+    },
+    {
+      "role": "interviewer",
       "text": "Big picture — when the source is a fire-protection system, who has to know, and who decides?",
       "file": "/speech/interviewer-d3d4625c69d141c1.mp3",
       "model": "gpt-4o-mini-tts",
       "voice": "sage",
       "region": "us",
       "bytes": 43437
+    },
+    {
+      "role": "interviewer",
+      "text": "02:14. A leak detector on Level 28 of Harbourfront One is in alarm. Water is coming through the ceiling void onto Level 27, a bank tenant floor, and it is tracking along a conduit toward the electrical riser cupboard. There is a distribution board in that cupboard, DB-27B.",
+      "file": "/speech/interviewer-d72016b847b15b8e.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 135885
+    },
+    {
+      "role": "interviewer",
+      "text": "Different night, smaller job. What do you isolate here?",
+      "file": "/speech/interviewer-da28f2369fb3d647.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 34221
+    },
+    {
+      "role": "interviewer",
+      "text": "You are duty engineer. Walk me through what you do, and why — from the first moment you hear about it. Do not tidy it up; the order you actually did things in is the part I want.",
+      "file": "/speech/interviewer-e4587ad6c25a486b.mp3",
+      "model": "gpt-4o-mini-tts",
+      "voice": "sage",
+      "region": "us",
+      "bytes": 79149
     }
   ]
 }

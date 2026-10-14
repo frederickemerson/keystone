@@ -19,21 +19,11 @@
 // anything.
 
 import { cn } from '@/lib/ui/cn';
+import { SCENARIO_STAGES, stageIndex, type ScenarioStageId } from '@/lib/teach/scenario';
 
-/** How far the situation has developed. The narration advances it; nothing is on a timer. */
-export const SCENARIO_STAGES = [
-  { id: 'calm', caption: '02:14. Level 28. Nothing unusual yet.' },
-  { id: 'alarm', caption: 'A chilled-water coupling fails in the ceiling void. The leak detector goes into alarm.' },
-  { id: 'spread', caption: 'Water comes through onto Level 27 — a bank tenant floor.' },
-  { id: 'tracking', caption: 'It is not pooling. It is tracking along a conduit.' },
-  { id: 'hazard', caption: 'Toward the electrical riser cupboard. There is a distribution board in there: DB-27B.' },
-] as const;
 
-export type ScenarioStageId = (typeof SCENARIO_STAGES)[number]['id'];
-
-export function stageIndex(id: ScenarioStageId): number {
-  return SCENARIO_STAGES.findIndex((s) => s.id === id);
-}
+export { SCENARIO_STAGES, stageIndex } from '@/lib/teach/scenario';
+export type { ScenarioStageId } from '@/lib/teach/scenario';
 
 export interface ScenarioStageProps {
   stage: ScenarioStageId;

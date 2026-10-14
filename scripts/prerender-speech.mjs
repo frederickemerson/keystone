@@ -20,6 +20,8 @@ const ROOT = new URL('..', import.meta.url).pathname;
 const AUDIO_DIR = join(ROOT, 'public', 'speech');
 const MANIFEST = join(ROOT, 'data', 'speech', 'manifest.json');
 const TRANSCRIPT = join(ROOT, 'data', 'transcripts', 'ce-interview-2026-10-02.json');
+const EXERCISE = join(ROOT, 'data', 'teach', 'chilled-water-leak.json');
+const SCENARIO = join(ROOT, 'data', 'teach', 'scenario.json');
 
 const force = process.argv.includes('--force');
 const dryRun = process.argv.includes('--dry-run');
@@ -75,20 +77,45 @@ function voiceTable() {
   return { model, table };
 }
 
-/** Every piece of fixed text that is spoken, with who says it. */
+/**
+ * Every piece of fixed text that is spoken, with who says it:
+ *
+ *   - the recorded call's 56 turns (/capture), and
+ *   - the exercise's scenario captions and question prompts (/teach).
+ *
+ * The second group is why this list is not just the transcript. The first run
+ * covered only the transcript, so every line /teach speaks went to the live
+ * route instead — and a walk through the exercise hit 429 after six lines,
+ * because the live budget is ten calls a minute. Fixed text belongs here.
+ */
 function texts() {
-  const transcript = JSON.parse(readFileSync(TRANSCRIPT, 'utf8'));
-  const expertName = transcript.expert.name;
   const seen = new Set();
   const out = [];
-  for (const turn of transcript.turns) {
-    const role = turn.speaker === expertName ? 'expert' : 'interviewer';
-    const text = turn.text.trim();
+  const add = (role, raw) => {
+    const text = (raw ?? '').trim();
     const k = `${role}\u0000${text}`;
-    if (seen.has(k) || !text) continue;
+    if (!text || seen.has(k)) return;
     seen.add(k);
     out.push({ role, text });
+  };
+
+  const transcript = JSON.parse(readFileSync(TRANSCRIPT, 'utf8'));
+  for (const turn of transcript.turns) {
+    add(turn.speaker === transcript.expert.name ? 'expert' : 'interviewer', turn.text);
   }
+
+  // Scenario captions, from the same file the app renders.
+  for (const stage of JSON.parse(readFileSync(SCENARIO, 'utf8')).stages) {
+    add('interviewer', stage.caption);
+  }
+
+  // The exercise asks the questions, so the interviewer speaks them.
+  const exercise = JSON.parse(readFileSync(EXERCISE, 'utf8'));
+  for (const question of [exercise.opening, ...exercise.questions]) {
+    add('interviewer', question.given);
+    add('interviewer', question.prompt);
+  }
+
   return out;
 }
 

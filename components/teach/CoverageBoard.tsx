@@ -69,11 +69,22 @@ export function CoverageBoard({ covered, reachable, active, className }: Coverag
                 <span className={cn('text-[13px]', isCovered ? 'text-ink' : 'text-ink-muted')}>
                   {PART_LABELS[part].label}
                 </span>
+                {/* Both markers are aria-hidden: the sr-only line below says the
+                    same thing in a sentence, and reading a bare "needed" after
+                    the label is worse than reading the sentence. */}
                 {essential && !isCovered ? (
-                  <span className="ml-1.5 font-mono text-[10px] uppercase tracking-wide text-marker">needed</span>
+                  <span
+                    className="ml-1.5 font-mono text-[10px] uppercase tracking-wide text-marker"
+                    aria-hidden="true"
+                  >
+                    needed
+                  </span>
                 ) : null}
                 {!isReachable ? (
-                  <span className="ml-1.5 font-mono text-[10px] uppercase tracking-wide text-ink-muted">
+                  <span
+                    className="ml-1.5 font-mono text-[10px] uppercase tracking-wide text-ink-muted"
+                    aria-hidden="true"
+                  >
                     not asked here
                   </span>
                 ) : null}
@@ -81,7 +92,13 @@ export function CoverageBoard({ covered, reachable, active, className }: Coverag
                   <span className="block text-[12px] leading-snug text-ink-muted">{PART_LABELS[part].asks}</span>
                 ) : null}
                 <span className="sr-only">
-                  {isCovered ? ' — answered' : isReachable ? ' — still open' : ' — no question in this exercise covers it'}
+                  {isCovered
+                    ? ' — answered'
+                    : !isReachable
+                      ? ' — no question in this exercise covers it'
+                      : essential
+                        ? ' — still open, and no rule can be drafted without it'
+                        : ' — still open'}
                 </span>
               </span>
             </li>
