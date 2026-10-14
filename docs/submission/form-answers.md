@@ -195,6 +195,22 @@ Suggested caption:
 Keystone was built with CodeBuddy Code (Plan mode on Hunyuan hy4-preview, sub-agents; hy3 and deepseek-v4.1-flash were also used) and Claude Code. CodeBuddy built the initial scaffold and first versions of both Intelligence Pills, the deterministic engine, the mock data and the UI. Claude Code was used for planning, code review, the governance, data, auth and LLM-provider layers, engine hardening and the landing page. Screenshots 04a and 04b show the pill copied unchanged into .codebuddy/skills/, where CodeBuddy (model selector: Auto) invoked it as a skill and reached the same TS-07 decision as our engine: blocked, escalate to the duty LEW, quoting the Chief Engineer.
 ```
 
+## Solution diagram
+
+Upload `docs/submission/solution-diagram.png` (1920×1080) for a single-image
+field. The eight required points are panels 1–8 on it.
+
+Where the form takes a deck, upload the twelve-slide version instead:
+
+```
+docs/submission/deck/keystone-solution-diagram.pptx   (16:9, speaker notes on every slide)
+docs/submission/deck/keystone-solution-diagram.pdf    (same slides, for PDF-only fields)
+```
+
+It carries the diagram as slide 3 and adds two flowcharts (how a gate decides;
+draft to released version and back), the technical architecture, the feature
+set, and what is novel. Built from `deck.html`; see `deck/README.md`.
+
 ## Cover image (16:9, 380×216 recommended)
 
 - Upload `docs/submission/cover-small.png` (380×216).

@@ -7,78 +7,114 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
+  /* Tokens are the app's own (app/globals.css): a cool lavender-white canvas,
+     night ink, an indigo accent. Orange is the logo's keystone and nothing
+     else — that is what --brand-keystone means in the product. */
   :root {
-    --cream:#fdfbf9; --dew:#f7efe9; --charcoal:#171717; --cocoa:#2b1a07; --muted:#5f5a55; --line:#d9d3cd;
-    --marker:#ff6f1e; --blocked:#b42318; --blocked-bg:#fdecea; --escalate:#ce500a;
-    --approve:#a15c07; --approve-bg:#fdf6e3; --ok:#2f7d32; --ok-bg:#eef7ee;
+    --canvas:#f6f5fa; --surface:#ffffff; --raised:#eeecf4;
+    --line:#e0dde9; --line-strong:#8f8aa3;
+    --ink:#1d1a2b; --muted:#57526b; --dusk:#5d5577;
+    --accent:#5643c4; --accent-soft:#8b7cf6; --accent-tint:#efecfd;
+    --keystone:#ff6f1e;
+    --blocked:#b42318; --blocked-tint:#fdecea;
+    --escalate:#a8410a; --escalate-tint:#fdf0e6;
+    --approval:#a15c07; --approval-tint:#fdf6e3;
+    --ok:#2f7d32; --ok-tint:#eef7ee;
+    --na:#625d72; --na-tint:#eeecf4;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#888;font-family:'Geist',system-ui,sans-serif;color:var(--charcoal);-webkit-font-smoothing:antialiased}
-  .slide{width:1920px;height:1080px;background:var(--cream);padding:64px 72px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  body{background:#8b8799;font-family:'Geist',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+  .slide{width:1920px;height:1080px;background:var(--canvas);padding:64px 72px;position:relative;overflow:hidden;display:flex;flex-direction:column}
   .mono{font-family:'Geist Mono',monospace}
-  .eyebrow{font-size:19px;letter-spacing:.14em;text-transform:uppercase;color:var(--marker);font-weight:600}
-  h2{font-size:58px;font-weight:700;letter-spacing:-.028em;color:var(--cocoa);line-height:1.02;margin-top:12px}
-  .lede{font-size:25px;color:var(--muted);margin-top:16px;max-width:1500px;line-height:1.4}
-  .rule{height:1.5px;background:var(--line);margin:34px 0}
+  .eyebrow{font-size:19px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  h2{font-size:56px;font-weight:700;letter-spacing:-.028em;color:var(--ink);line-height:1.03;margin-top:12px}
+  .rule{height:1.5px;background:var(--line);margin:30px 0}
   .brand{display:flex;align-items:center;gap:14px}
   .brand svg{width:46px;height:46px} .brand b{font-size:35px;font-weight:600;letter-spacing:-.02em}
   .foot{position:absolute;left:72px;right:72px;bottom:34px;display:flex;justify-content:space-between;
         font-size:16px;color:var(--muted);border-top:1.5px solid var(--line);padding-top:14px}
   .cols{display:grid;gap:22px;margin-bottom:22px}
-  .card{border:1.5px solid var(--line);border-radius:18px;padding:26px 28px;background:#fff;display:flex;flex-direction:column}
-  .card h3{font-size:27px;font-weight:700;letter-spacing:-.02em;color:var(--cocoa);line-height:1.12}
-  .card p,.card li{font-size:19.5px;line-height:1.46;color:var(--charcoal)}
-  .card .sub{color:var(--muted);font-size:18px;margin-top:4px}
-  ul{list-style:none} li{position:relative;padding-left:20px;margin-top:11px}
-  li:before{content:"";position:absolute;left:3px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--marker)}
-  .num{width:40px;height:40px;border-radius:50%;background:var(--marker);color:#fff;font-weight:700;font-size:21px;
+  .card{border:1.5px solid var(--line);border-radius:18px;padding:26px 28px;background:var(--surface);display:flex;flex-direction:column}
+  .card h3{font-size:26px;font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.12}
+  .card p,.card li{font-size:19px;line-height:1.46;color:var(--ink)}
+  .card .sub{color:var(--muted);font-size:17.5px;margin-top:4px}
+  ul{list-style:none} li{position:relative;padding-left:20px;margin-top:10px}
+  li:before{content:"";position:absolute;left:3px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--accent-soft)}
+  .num{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:21px;
        display:flex;align-items:center;justify-content:center;flex:none}
   .chip{display:inline-block;border-radius:999px;padding:5px 14px;font-size:17px;font-weight:600;border:1.5px solid}
-  .c-block{color:var(--blocked);background:var(--blocked-bg);border-color:#f3c0ba}
-  .c-esc{color:var(--escalate);background:#fdf0e6;border-color:#f6cfae}
-  .c-app{color:var(--approve);background:var(--approve-bg);border-color:#efdca6}
-  .c-ok{color:var(--ok);background:var(--ok-bg);border-color:#c3e0c4}
-  .tag{display:inline-block;font-family:'Geist Mono',monospace;font-size:16.5px;border:1.5px solid var(--line);
-       border-radius:8px;padding:5px 11px;background:var(--cream);margin:5px 6px 0 0}
-  .card p.big,.big{font-size:60px;font-weight:700;letter-spacing:-.03em;color:var(--cocoa);line-height:1}
+  .c-block{color:var(--blocked);background:var(--blocked-tint);border-color:#f3c0ba}
+  .c-esc{color:var(--escalate);background:var(--escalate-tint);border-color:#f6cfae}
+  .c-app{color:var(--approval);background:var(--approval-tint);border-color:#efdca6}
+  .c-ok{color:var(--ok);background:var(--ok-tint);border-color:#c3e0c4}
+  .c-na{color:var(--na);background:var(--na-tint);border-color:#d6d2e2}
+  .tag{display:inline-block;font-family:'Geist Mono',monospace;font-size:16px;border:1.5px solid var(--line);
+       border-radius:8px;padding:5px 11px;background:var(--canvas);margin:5px 6px 0 0}
+  .card p.big,.big{font-size:60px;font-weight:700;letter-spacing:-.03em;color:var(--ink);line-height:1}
   .big small{display:block;font-size:19px;font-weight:500;color:var(--muted);letter-spacing:0;margin-top:9px;line-height:1.35}
   .full{width:1920px;height:1080px;display:block;object-fit:contain}
-  .band{margin-top:auto;background:var(--marker);color:#fff;border-radius:18px;padding:24px 30px}
-  .band b{font-size:23px} .band p{font-size:19.5px;line-height:1.45;margin-top:6px;opacity:.96}
-  .kv{display:flex;gap:14px;margin-top:13px} .kv b{flex:none;width:168px;font-size:19px;color:var(--cocoa)}
-  .kv span{font-size:19px;line-height:1.42}
+  .band{margin-top:auto;background:var(--accent);color:#fff;border-radius:18px;padding:24px 30px}
+  .band b{font-size:23px} .band p{font-size:19px;line-height:1.45;margin-top:6px;opacity:.97}
+  .kv{display:flex;gap:14px;margin-top:12px} .kv b{flex:none;width:166px;font-size:18.5px;color:var(--ink)}
+  .kv span{font-size:18.5px;line-height:1.42}
+
+  /* Flowcharts and the architecture map */
+  .fc{width:100%;height:auto;display:block;fill:var(--ink)}
+  .fc text{font-family:'Geist',system-ui,sans-serif}
+  .fc .ttl{font-size:20px;font-weight:600}
+  .fc .lbl{font-size:17.5px}
+  .fc .sm{font-size:15px;fill:var(--muted)}
+  .fc .edgelbl{font-size:15px;font-weight:600;fill:var(--muted)}
+  .fc .box{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.5}
+  .fc .dia{fill:var(--accent-tint);stroke:var(--accent);stroke-width:1.75}
+  .fc .edge{stroke:var(--line-strong);stroke-width:2.25;fill:none;marker-end:url(#ar)}
+  .fc .edge-stop{stroke:var(--blocked);stroke-width:2.25;fill:none;marker-end:url(#ar-stop)}
+  .fc .zone{fill:var(--raised);stroke:none}
+  .fc .zone-line{stroke:var(--ink);stroke-width:3;stroke-dasharray:10 7}
 </style>
 </head>
 <body>
 
-<!-- 1 TITLE -->
+<!-- Arrowheads, defined once: duplicate ids in one document are a coin toss. -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8f8aa3"/>
+    </marker>
+    <marker id="ar-stop" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#b42318"/>
+    </marker>
+  </defs>
+</svg>
+
+<!-- 1 TITLE ------------------------------------------------------------- -->
 <section class="slide" id="s1" style="justify-content:center">
   <div class="brand" style="position:absolute;top:64px;left:72px">
-    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#171717"/><path d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#171717"/><path d="M13 24 L10 6 L22 6 L19 24Z" fill="#ff6f1e"/></svg>
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#1d1a2b"/><path d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#1d1a2b"/><path d="M13 24 L10 6 L22 6 L19 24Z" fill="#ff6f1e"/></svg>
     <b>Keystone</b>
   </div>
   <div style="position:absolute;top:70px;right:72px;text-align:right;font-size:18px;color:var(--muted);line-height:1.5">
-    Tencent Cloud · “AI CAN DO IT” Singapore 2026<br>Real Estate Track · Keppel · <b style="color:var(--cocoa)">AI HARVEST</b>
+    Tencent Cloud · “AI CAN DO IT” Singapore 2026<br>Real Estate Track · Keppel · <b style="color:var(--ink)">AI HARVEST</b>
   </div>
   <div style="max-width:1560px">
     <p class="eyebrow">Solution diagram &amp; architecture</p>
-    <h1 style="font-size:92px;font-weight:700;letter-spacing:-.035em;color:var(--cocoa);line-height:1.02;margin-top:18px">
+    <h1 style="font-size:92px;font-weight:700;letter-spacing:-.035em;color:var(--ink);line-height:1.02;margin-top:18px">
       Turn retiring experts’ judgement<br>into rules AI can’t override.
     </h1>
     <p style="font-size:29px;color:var(--muted);margin-top:26px;line-height:1.4;max-width:1380px">
-      Keystone compiles what a senior engineer knows into an <b style="color:var(--cocoa)">Intelligence Pill</b> —
+      Keystone compiles what a senior engineer knows into an <b style="color:var(--ink)">Intelligence Pill</b> —
       a versioned, tested, plain-text artefact the organisation owns, with deterministic gates
       no model can talk past.
     </p>
     <div style="display:flex;gap:46px;margin-top:46px;font-size:20px">
-      <div><b class="mono" style="color:var(--cocoa)">keystone-tencent.vercel.app</b><br><span style="color:var(--muted)">live demo · passcode <span class="mono">keystone</span></span></div>
-      <div><b class="mono" style="color:var(--cocoa)">github.com/frederickemerson/keystone</b><br><span style="color:var(--muted)">source, pills and tests</span></div>
+      <div><b class="mono" style="color:var(--accent)">keystone-tencent.vercel.app</b><br><span style="color:var(--muted)">live demo · passcode <span class="mono">keystone</span></span></div>
+      <div><b class="mono" style="color:var(--accent)">github.com/frederickemerson/keystone</b><br><span style="color:var(--muted)">source, pills and tests</span></div>
     </div>
   </div>
-  <div class="foot"><span>Keystone · Intelligence Pills for building operations</span><span>1 / 8</span></div>
+  <div class="foot"><span>Keystone · Intelligence Pills for building operations</span><span>1 / 12</span></div>
 </section>
 
-<!-- 2 PROBLEM -->
+<!-- 2 PROBLEM ----------------------------------------------------------- -->
 <section class="slide" id="s2">
   <p class="eyebrow">The real-world problem</p>
   <h2>The judgement that keeps a building safe is in a few heads, and those heads are leaving.</h2>
@@ -102,15 +138,15 @@
   <div class="band"><b>Who this is for</b>
     <p>REIT managers and property/facility-management organisations running mixed portfolios — offices, data centres, logistics.
        We model the real chain: REIT manager → property/facility manager → FM contractor, with 15 named personas.</p></div>
-  <div class="foot"><span>Pain points sourced from the Keppel brief, Investor Day 2026, Keppel REIT SR24, Gallup and JTC</span><span>2 / 8</span></div>
+  <div class="foot"><span>Pain points sourced from the Keppel brief, Investor Day 2026, Keppel REIT SR24, Gallup and JTC</span><span>2 / 12</span></div>
 </section>
 
-<!-- 3 DIAGRAM -->
+<!-- 3 DIAGRAM ----------------------------------------------------------- -->
 <section class="slide" id="s3" style="padding:0">
   <img class="full" src="../solution-diagram.png" alt="Keystone solution diagram">
 </section>
 
-<!-- 4 THE LOOP -->
+<!-- 4 THE LOOP ---------------------------------------------------------- -->
 <section class="slide" id="s4">
   <p class="eyebrow">Business architecture</p>
   <h2>One loop, five stages, a named human at every gate.</h2>
@@ -141,18 +177,204 @@
   <div class="band"><b>The loop closes</b>
     <p>Reuse feeds the registry, which shows coverage and gaps by asset type and domain — so the next gap is visible
        before the next expert retires. Every stage in this row is built and working in the demo; nothing here is a mockup.</p></div>
-  <div class="foot"><span>Guided demo walks all five stages, one person and one screen per step</span><span>4 / 8</span></div>
+  <div class="foot"><span>Guided demo walks all five stages, one person and one screen per step</span><span>4 / 12</span></div>
 </section>
 
-<!-- 5 THE PILL -->
+<!-- 5 FLOWCHART: THE GATE ----------------------------------------------- -->
 <section class="slide" id="s5">
+  <p class="eyebrow">Flow 1 · the decision path</p>
+  <h2>How a gate decides — and why a model cannot move it.</h2>
+  <div class="rule" style="margin:24px 0"></div>
+
+  <svg class="fc" viewBox="0 0 1776 470" role="img" aria-label="Gate decision flowchart">
+
+    <!-- start -->
+    <rect class="box" x="8" y="86" width="214" height="86" rx="14"/>
+    <text class="ttl" x="115" y="122" text-anchor="middle">Evidence</text>
+    <text class="sm" x="115" y="146" text-anchor="middle">confirmed and exactly true,</text>
+    <text class="sm" x="115" y="164" text-anchor="middle">or it does not count</text>
+    <path class="edge" d="M222 129 H 243"/>
+
+    <!-- d1 -->
+    <polygon class="dia" points="350,66 455,129 350,192 245,129"/>
+    <text class="lbl" x="350" y="124" text-anchor="middle">Trigger</text>
+    <text class="lbl" x="350" y="146" text-anchor="middle">matches?</text>
+    <text class="edgelbl" x="497" y="118" text-anchor="middle">yes</text>
+    <path class="edge" d="M455 129 H 573"/>
+    <text class="edgelbl" x="372" y="232" text-anchor="start">no</text>
+    <path class="edge" d="M350 192 V 296"/>
+    <rect class="box" x="255" y="298" width="190" height="72" rx="12" fill="#eeecf4"/>
+    <text class="ttl" x="350" y="330" text-anchor="middle" fill="#625d72">not applicable</text>
+    <text class="sm" x="350" y="353" text-anchor="middle">not a default yes</text>
+
+    <!-- d2 -->
+    <polygon class="dia" points="680,66 785,129 680,192 575,129"/>
+    <text class="lbl" x="680" y="113" text-anchor="middle">Required</text>
+    <text class="lbl" x="680" y="135" text-anchor="middle">evidence</text>
+    <text class="lbl" x="680" y="157" text-anchor="middle">missing?</text>
+    <text class="edgelbl" x="827" y="118" text-anchor="middle">no</text>
+    <path class="edge" d="M785 129 H 903"/>
+    <text class="edgelbl" x="702" y="232" text-anchor="start">yes</text>
+    <path class="edge" d="M680 192 V 296"/>
+    <rect class="box" x="585" y="298" width="190" height="72" rx="12" fill="#fdecea" stroke="#b42318"/>
+    <text class="ttl" x="680" y="330" text-anchor="middle" fill="#b42318">BLOCKED</text>
+    <text class="sm" x="680" y="353" text-anchor="middle">outranks all below</text>
+
+    <!-- d3 -->
+    <polygon class="dia" points="1010,66 1115,129 1010,192 905,129"/>
+    <text class="lbl" x="1010" y="124" text-anchor="middle">Must</text>
+    <text class="lbl" x="1010" y="146" text-anchor="middle">escalate?</text>
+    <text class="edgelbl" x="1157" y="118" text-anchor="middle">no</text>
+    <path class="edge" d="M1115 129 H 1233"/>
+    <text class="edgelbl" x="1032" y="232" text-anchor="start">yes</text>
+    <path class="edge" d="M1010 192 V 296"/>
+    <rect class="box" x="915" y="298" width="190" height="72" rx="12" fill="#fdf0e6" stroke="#a8410a"/>
+    <text class="ttl" x="1010" y="330" text-anchor="middle" fill="#a8410a">ESCALATE</text>
+    <text class="sm" x="1010" y="353" text-anchor="middle">to a named role</text>
+
+    <!-- d4 -->
+    <polygon class="dia" points="1340,66 1445,129 1340,192 1235,129"/>
+    <text class="lbl" x="1340" y="124" text-anchor="middle">Needs</text>
+    <text class="lbl" x="1340" y="146" text-anchor="middle">approval?</text>
+    <text class="edgelbl" x="1500" y="118" text-anchor="middle">no</text>
+    <path class="edge" d="M1445 129 H 1556"/>
+    <text class="edgelbl" x="1362" y="232" text-anchor="start">yes</text>
+    <path class="edge" d="M1340 192 V 296"/>
+    <rect class="box" x="1245" y="298" width="190" height="72" rx="12" fill="#fdf6e3" stroke="#a15c07"/>
+    <text class="ttl" x="1340" y="330" text-anchor="middle" fill="#a15c07">NEEDS APPROVAL</text>
+    <text class="sm" x="1340" y="353" text-anchor="middle">by an authorised person</text>
+
+    <!-- allowed -->
+    <rect class="box" x="1558" y="93" width="190" height="72" rx="12" fill="#eef7ee" stroke="#2f7d32"/>
+    <text class="ttl" x="1653" y="125" text-anchor="middle" fill="#2f7d32">ALLOWED</text>
+    <text class="sm" x="1653" y="148" text-anchor="middle">recommended only</text>
+
+    <!-- notes -->
+    <text class="sm" x="8" y="420" font-size="17">Asset overrides are applied <tspan font-weight="600" fill="#1d1a2b">before</tspan> the status is computed — the same rule escalates to the Critical Facilities Manager at a data centre.</text>
+    <text class="sm" x="8" y="448" font-size="17">An exception may <tspan font-weight="600" fill="#1d1a2b">add</tspan> required evidence or change who it escalates to. There is no path by which an exception relaxes a gate.</text>
+  </svg>
+
+  <div class="cols" style="grid-template-columns:repeat(3,1fr);margin-top:14px">
+    <div class="card" style="padding:20px 24px"><h3 style="font-size:21px">The evidence</h3>
+      <p class="sub" style="font-size:17px">Water reached DB-23A and the circuit is isolated — but no Licensed Electrical Worker has inspected it yet.</p></div>
+    <div class="card" style="padding:20px 24px"><h3 style="font-size:21px">The rule fires</h3>
+      <p class="sub" style="font-size:17px">TS-07 triggers. <span class="mono" style="font-size:16px">lew_signoff</span> is required, absent, and the rule forbids the action without it.</p></div>
+    <div class="card" style="padding:20px 24px"><h3 style="font-size:21px">The outcome</h3>
+      <p class="sub" style="font-size:17px"><b style="color:#b42318">Blocked.</b> Escalated to the duty LEW by name. The AI’s proposal to re-energise AHU-23-01 is held, not executed.</p></div>
+  </div>
+  <div class="band"><b>Whatever the outcome, nothing executes</b>
+    <p>Every branch of this chart ends with a person. The engine is pure TypeScript with no model input, no
+      <span class="mono" style="font-size:17px">eval()</span> and no string expressions — so changing the model, or the
+      prompt, cannot change which branch you land on.</p></div>
+  <div class="foot"><span>lib/engine · precedence is fixed code, and 1,302 tests hold it there</span><span>5 / 12</span></div>
+</section>
+
+<!-- 6 FLOWCHART: DRAFT TO RELEASE --------------------------------------- -->
+<section class="slide" id="s6">
+  <p class="eyebrow">Flow 2 · governed learning</p>
+  <h2>From one spoken sentence to a released version — and back.</h2>
+  <div class="rule" style="margin:24px 0"></div>
+
+  <svg class="fc" viewBox="0 0 1776 500" role="img" aria-label="Draft to release flowchart">
+
+    <!-- stage boxes -->
+    <g>
+      <rect class="box" x="4" y="54" width="238" height="104" rx="14"/>
+      <text class="ttl" x="123" y="90" text-anchor="middle">Said out loud</text>
+      <text class="sm" x="123" y="115" text-anchor="middle">teach exercise, or a note</text>
+      <text class="sm" x="123" y="135" text-anchor="middle">at the moment a gate blocks</text>
+
+      <rect class="box" x="262" y="54" width="238" height="104" rx="14"/>
+      <text class="ttl" x="381" y="90" text-anchor="middle">Read-back</text>
+      <text class="sm" x="381" y="115" text-anchor="middle">the speaker checks every</text>
+      <text class="sm" x="381" y="135" text-anchor="middle">number, tag and role</text>
+
+      <rect class="box" x="520" y="54" width="238" height="104" rx="14"/>
+      <text class="ttl" x="639" y="90" text-anchor="middle">Draft rule</text>
+      <text class="sm" x="639" y="115" text-anchor="middle">credited by name, with the</text>
+      <text class="sm" x="639" y="135" text-anchor="middle">quote and the timestamp</text>
+
+      <rect class="box" x="778" y="54" width="238" height="104" rx="14"/>
+      <text class="ttl" x="897" y="90" text-anchor="middle">Peer check</text>
+      <text class="sm" x="897" y="115" text-anchor="middle">someone who neither said it</text>
+      <text class="sm" x="897" y="135" text-anchor="middle">nor proposed it</text>
+
+      <rect class="box" x="1036" y="54" width="238" height="104" rx="14"/>
+      <text class="ttl" x="1155" y="90" text-anchor="middle">Shadow run</text>
+      <text class="sm" x="1155" y="115" text-anchor="middle">replays closed incidents on</text>
+      <text class="sm" x="1155" y="135" text-anchor="middle">both versions — 6 of 6 agree</text>
+
+      <rect class="box" x="1294" y="54" width="238" height="104" rx="14"/>
+      <text class="ttl" x="1413" y="90" text-anchor="middle">Approval</text>
+      <text class="sm" x="1413" y="115" text-anchor="middle">a third person, who neither</text>
+      <text class="sm" x="1413" y="135" text-anchor="middle">wrote nor shadowed it</text>
+
+      <rect class="box" x="1552" y="54" width="220" height="104" rx="14" fill="#eef7ee" stroke="#2f7d32"/>
+      <text class="ttl" x="1662" y="90" text-anchor="middle" fill="#2f7d32">Released</text>
+      <text class="sm" x="1662" y="115" text-anchor="middle">new semantic version;</text>
+      <text class="sm" x="1662" y="135" text-anchor="middle">the incident room runs it</text>
+    </g>
+
+    <!-- forward edges -->
+    <path class="edge" d="M242 106 H 260"/>
+    <path class="edge" d="M500 106 H 518"/>
+    <path class="edge" d="M758 106 H 776"/>
+    <path class="edge" d="M1016 106 H 1034"/>
+    <path class="edge" d="M1274 106 H 1292"/>
+    <path class="edge" d="M1532 106 H 1550"/>
+
+    <!-- refusals -->
+    <path class="edge-stop" d="M381 158 V 250"/>
+    <rect x="262" y="252" width="238" height="64" rx="12" fill="#fdecea" stroke="#b42318" stroke-width="1.5"/>
+    <text class="lbl" x="381" y="277" text-anchor="middle" fill="#b42318" font-weight="600">Not confirmed</text>
+    <text class="sm" x="381" y="300" text-anchor="middle">nothing becomes a draft</text>
+
+    <path class="edge-stop" d="M897 158 V 250"/>
+    <rect x="778" y="252" width="238" height="64" rx="12" fill="#fdecea" stroke="#b42318" stroke-width="1.5"/>
+    <text class="lbl" x="897" y="277" text-anchor="middle" fill="#b42318" font-weight="600">Disputed, with a reason</text>
+    <text class="sm" x="897" y="300" text-anchor="middle">or refused and audited</text>
+
+    <path class="edge-stop" d="M1155 158 V 250"/>
+    <rect x="1036" y="252" width="238" height="64" rx="12" fill="#fdecea" stroke="#b42318" stroke-width="1.5"/>
+    <text class="lbl" x="1155" y="277" text-anchor="middle" fill="#b42318" font-weight="600">Eval regression</text>
+    <text class="sm" x="1155" y="300" text-anchor="middle">cannot be released</text>
+
+    <path class="edge-stop" d="M1413 158 V 250"/>
+    <rect x="1294" y="252" width="238" height="64" rx="12" fill="#fdecea" stroke="#b42318" stroke-width="1.5"/>
+    <text class="lbl" x="1413" y="277" text-anchor="middle" fill="#b42318" font-weight="600">Same person twice</text>
+    <text class="sm" x="1413" y="300" text-anchor="middle">refused in code, and audited</text>
+
+    <!-- rollback return -->
+    <path class="edge" d="M1662 158 V 404 H 1184"/>
+    <path class="edge" d="M592 404 H 123 V 170"/>
+    <rect class="box" x="596" y="372" width="586" height="64" rx="12" fill="#efecfd" stroke="#5643c4"/>
+    <text class="lbl" x="889" y="397" text-anchor="middle" font-weight="600" fill="#5643c4">Rollback in one click</text>
+    <text class="sm" x="889" y="420" text-anchor="middle">the previous version returns; history is append-only, nothing is deleted</text>
+
+    <text class="sm" x="4" y="478" font-size="17">Author ≠ shadow promoter ≠ approver. The code refuses the second role to the same person and writes the refusal to the audit log.</text>
+  </svg>
+
+  <div class="cols" style="grid-template-columns:1fr;margin-top:14px">
+    <div class="card" style="padding:20px 24px"><h3 style="font-size:21px">What the demo actually walks</h3>
+      <p class="sub" style="font-size:17px">Rajesh’s twenty-second note at the blocked gate becomes DRAFT-01, credited to him. Hafiz confirms it — he neither
+        said it nor proposed it. Priya puts it into Shadow and replays six closed incidents; six of six agree. Goh approves, and the
+        incident room runs the new version, one click away from rollback. Four people, four screens, every refusal audited.</p></div>
+  </div>
+  <div class="band"><b>This is the part that is usually a slide</b>
+    <p>Separation of duties, eval gating, shadow mode, audit and rollback are built and enforced here — not described
+       as a future control. The guided demo walks a real correction through every box on this chart.</p></div>
+  <div class="foot"><span>lib/governance · versions, approvals and an append-only audit log</span><span>6 / 12</span></div>
+</section>
+
+<!-- 7 THE PILL ---------------------------------------------------------- -->
+<section class="slide" id="s7">
   <p class="eyebrow">The reusable unit</p>
   <h2>An Intelligence Pill is plain text the organisation owns.</h2>
   <div class="rule"></div>
   <div class="cols" style="grid-template-columns:1.15fr 1fr 1fr">
     <div class="card">
       <h3>What is in the package</h3>
-      <p class="sub" style="margin-bottom:10px"><span class="mono">pills/technical-services/chilled-water-leak/</span></p>
+      <p class="sub" style="margin-bottom:8px"><span class="mono">pills/technical-services/chilled-water-leak/</span></p>
       <div class="kv"><b class="mono">SKILL.md</b><span>Owner, steward, approver, version, access and boundaries — plus the prose an LLM host reads.</span></div>
       <div class="kv"><b class="mono">rules.yaml</b><span><b>13 rules</b>: structured triggers, required evidence, action class, forbidden actions, escalation target, deadline, asset overrides.</span></div>
       <div class="kv"><b class="mono">evidence.yaml</b><span>The shared vocabulary — one contract both the pill and the app are tested against.</span></div>
@@ -170,8 +392,8 @@
     <div class="card">
       <h3>The gate, in one line</h3>
       <p class="sub">Status precedence is fixed code:</p>
-      <p style="margin-top:14px;line-height:2.1">
-        <span class="tag">not_applicable</span> <span style="color:var(--muted)">→</span>
+      <p style="margin-top:12px;line-height:2.1">
+        <span class="chip c-na">not applicable</span> <span style="color:var(--muted)">→</span>
         <span class="chip c-block">blocked</span> <span style="color:var(--muted)">→</span>
         <span class="chip c-esc">escalate</span> <span style="color:var(--muted)">→</span>
         <span class="chip c-app">needs approval</span> <span style="color:var(--muted)">→</span>
@@ -186,40 +408,102 @@
   <div class="band"><b>Two pills, one incident</b>
     <p>A second pill — <span class="mono" style="font-size:18px">tenant-experience/incident-comms</span> — runs beside it during the same leak:
        it drafts the tenant notice under its own hard rules while Technical Services works the gate.</p></div>
-  <div class="foot"><span>Pills live in the repository at pills/&lt;domain&gt;/&lt;name&gt;/ — reviewable as a diff</span><span>5 / 8</span></div>
+  <div class="foot"><span>Pills live in the repository at pills/&lt;domain&gt;/&lt;name&gt;/ — reviewable as a diff</span><span>7 / 12</span></div>
 </section>
 
-<!-- 6 TECHNICAL -->
-<section class="slide" id="s6">
+<!-- 8 TECHNICAL ARCHITECTURE -------------------------------------------- -->
+<section class="slide" id="s8">
   <p class="eyebrow">Technical architecture</p>
-  <h2>A deterministic core, with the model kept outside it.</h2>
-  <div class="rule"></div>
-  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
-    <div class="card"><h3>Surfaces</h3><p class="sub">Next.js 15 App Router · React 19 · TypeScript · Tailwind v4 · Vercel</p>
-      <ul><li>Teach a skill · Expert call · Decision Canvas</li><li>Incident Room · Registry · Approvals · Learning</li>
-          <li>Frontline capture from a gate block, job close-out or a QR label on the plant</li></ul></div>
-    <div class="card"><h3><span class="mono">lib/engine</span></h3><p class="sub">Pure TypeScript. No LLM, no <span class="mono">eval()</span>, no string expressions.</p>
-      <ul><li>Structured conditions: <span class="mono">eq, neq, gt, gte, lt, lte, in, exists</span></li>
-          <li>Returns actions, an evidence count (never an invented percentage) and a trace</li>
-          <li>Counterfactuals: “what would change this decision?”</li></ul></div>
-    <div class="card"><h3><span class="mono">lib/governance</span></h3><p class="sub">Versions, approvals, audit.</p>
-      <ul><li>Semantic versions, JSON diff, append-only rollback</li>
-          <li>Three-person separation of duties, enforced — and each refusal audited</li>
-          <li>Role and sensitivity-based redaction, applied on the server before data reaches the browser</li></ul></div>
-    <div class="card"><h3><span class="mono">lib/llm</span> · Tencent Cloud</h3><p class="sub">Language work only. Never a decision.</p>
-      <ul><li><b>Hunyuan hy4-preview via TokenHub</b> — live on the public demo, dedicated Singapore endpoint (~3.9 s)</li>
-          <li><b>MiniMax Speech 2.8 HD via TokenHub</b> — the voice on screen and the film’s narration</li>
-          <li>Hunyuan through the CodeBuddy Agent SDK locally; OpenAI then recorded output as fallbacks</li>
-          <li>The badge always names the provider that actually answered</li></ul></div>
-  </div>
-  <div class="band"><b>Proven, not asserted</b>
-    <p>1,302 automated tests, including adversarial and property-based tests (fast-check) over the engine and the governance layer.
-       Design mapped to the IMDA Model AI Governance Framework (2020 and the 2026 Agentic AI edition), AI Verify, ISO/IEC 42001 and the NIST AI RMF.</p></div>
-  <div class="foot"><span>Proposed next on Tencent Cloud: ASR in Singapore, ADP distribution, TRTC voice interview, iBMS/CMMS evidence feeds, EdgeOne hosting, enterprise SSO</span><span>6 / 8</span></div>
+  <h2>Two paths, one line between them.</h2>
+  <div class="rule" style="margin:24px 0"></div>
+
+  <svg class="fc" viewBox="0 0 1776 600" role="img" aria-label="Technical architecture">
+    <!-- surfaces -->
+    <rect class="box" x="4" y="0" width="1768" height="92" rx="14" fill="#ffffff"/>
+    <text class="ttl" x="26" y="36">Surfaces · Next.js 15 App Router, React 19, Tailwind v4</text>
+    <text class="sm" x="26" y="68">Teach a skill · Expert call (recorded) · Decision Canvas · Incident Room · Pill Registry · Approvals · Outcome &amp; Learning · QR capture at the plant</text>
+
+    <!-- server -->
+    <rect class="box" x="4" y="106" width="1768" height="88" rx="14" fill="#ffffff"/>
+    <text class="ttl" x="26" y="140">Server · route handlers and middleware</text>
+    <text class="sm" x="26" y="170">Default-deny middleware with a public allowlist · same-origin checks on auth · CSP and security headers · per-session and per-IP rate limits · role read from a signed session, and data above that clearance masked before it leaves the server</text>
+
+    <!-- the line -->
+    <line class="zone-line" x1="988" y1="222" x2="988" y2="580"/>
+    <rect x="836" y="212" width="304" height="34" rx="17" fill="#1d1a2b"/>
+    <text x="988" y="235" text-anchor="middle" font-size="16.5" font-weight="600" fill="#ffffff">no model output crosses this line</text>
+
+    <!-- left: deterministic -->
+    <rect class="zone" x="4" y="256" width="964" height="324" rx="16"/>
+    <text class="ttl" x="26" y="288" fill="#5643c4">Decides · deterministic</text>
+
+    <rect class="box" x="26" y="304" width="298" height="254" rx="12"/>
+    <text class="ttl" x="46" y="336" font-size="19" class="mono">lib/engine</text>
+    <text class="sm" x="46" y="364">Pure TypeScript. No LLM,</text>
+    <text class="sm" x="46" y="386">no eval(), no string expressions.</text>
+    <text class="sm" x="46" y="414">Conditions: eq, neq, gt, gte,</text>
+    <text class="sm" x="46" y="436">lt, lte, in, exists.</text>
+    <text class="sm" x="46" y="464">Returns actions, an evidence</text>
+    <text class="sm" x="46" y="486">count and a trace — plus</text>
+    <text class="sm" x="46" y="508">counterfactuals and evals.</text>
+
+    <rect class="box" x="340" y="304" width="298" height="254" rx="12"/>
+    <text class="ttl" x="360" y="336" font-size="19" class="mono">lib/governance</text>
+    <text class="sm" x="360" y="364">Semantic versions, JSON diff,</text>
+    <text class="sm" x="360" y="386">append-only rollback.</text>
+    <text class="sm" x="360" y="414">Three-person separation of</text>
+    <text class="sm" x="360" y="436">duties, enforced; refusals</text>
+    <text class="sm" x="360" y="458">written to the audit log.</text>
+    <text class="sm" x="360" y="486">Eval-regression gate before</text>
+    <text class="sm" x="360" y="508">any release.</text>
+
+    <rect class="box" x="654" y="304" width="294" height="254" rx="12"/>
+    <text class="ttl" x="674" y="336" font-size="19" class="mono">pills/ + data/</text>
+    <text class="sm" x="674" y="364">The content, as plain files.</text>
+    <text class="sm" x="674" y="392">One shared contract per pill —</text>
+    <text class="sm" x="674" y="414">evidence.yaml — and a test</text>
+    <text class="sm" x="674" y="436">that fails on any key outside it.</text>
+    <text class="sm" x="674" y="464">Versions, approvals and the</text>
+    <text class="sm" x="674" y="486">audit log are browser-local in</text>
+    <text class="sm" x="674" y="508">the demo; server-side in production.</text>
+
+    <!-- right: language -->
+    <rect class="zone" x="1008" y="256" width="764" height="324" rx="16"/>
+    <text class="ttl" x="1030" y="288" fill="#5643c4">Writes language · the model</text>
+
+    <rect class="box" x="1030" y="304" width="358" height="254" rx="12"/>
+    <text class="ttl" x="1050" y="336" font-size="19" class="mono">lib/llm</text>
+    <text class="sm" x="1050" y="364">Hunyuan hy4-preview via Tencent</text>
+    <text class="sm" x="1050" y="386">TokenHub — dedicated Singapore</text>
+    <text class="sm" x="1050" y="408">endpoint, ~3.9 s, thinking off,</text>
+    <text class="sm" x="1050" y="430">strict structured output.</text>
+    <text class="sm" x="1050" y="458">Then the CodeBuddy Agent SDK</text>
+    <text class="sm" x="1050" y="480">(locally), then OpenAI, then</text>
+    <text class="sm" x="1050" y="502">recorded output — and the badge</text>
+    <text class="sm" x="1050" y="524">always names who answered.</text>
+
+    <rect class="box" x="1404" y="304" width="348" height="254" rx="12"/>
+    <text class="ttl" x="1424" y="336" font-size="19" class="mono">lib/speech · lib/capture</text>
+    <text class="sm" x="1424" y="364">MiniMax Speech 2.8 HD via</text>
+    <text class="sm" x="1424" y="386">TokenHub reads the expert and</text>
+    <text class="sm" x="1424" y="408">the interviewer aloud; lines are</text>
+    <text class="sm" x="1424" y="430">pre-rendered so a demo never</text>
+    <text class="sm" x="1424" y="452">waits on a quota.</text>
+    <text class="sm" x="1424" y="480">Capture: consent, hold-to-talk,</text>
+    <text class="sm" x="1424" y="502">read-back chips found by regex</text>
+    <text class="sm" x="1424" y="524">and the registers — never the LLM.</text>
+  </svg>
+
+  <div class="band"><b>Running today, and what comes next</b>
+    <p>Live on the deployed site: the app on Vercel, the deterministic engine, the pill as a native CodeBuddy skill, and the
+      MiniMax voice on screen. Integrated through Tencent TokenHub on a Singapore endpoint: Hunyuan hy4-preview for extraction,
+      MiniMax Speech 2.8 HD for synthesis. Proposed: Tencent Cloud ASR in Singapore, ADP skill distribution, TRTC for the live
+      voice interview, iBMS and CMMS as evidence feeds, EdgeOne Pages for hosting, enterprise SSO for roles.</p></div>
+  <div class="foot"><span>Deployed on Vercel today; Tencent EdgeOne Pages or Lighthouse is the proposed host</span><span>8 / 12</span></div>
 </section>
 
-<!-- 7 PROMPTS -->
-<section class="slide" id="s7">
+<!-- 9 PROMPTS ----------------------------------------------------------- -->
+<section class="slide" id="s9">
   <p class="eyebrow">How prompts drive the AI generation</p>
   <h2>The model does language. It never decides a safety action.</h2>
   <div class="rule"></div>
@@ -242,20 +526,88 @@
   </div>
   <div class="band"><b>The invariant</b>
     <p>The decision path takes no model input. Change the model, change the wording — you cannot change whether the gate holds.</p></div>
-  <div class="foot"><span>Rule drafting, contradiction resolution and notice drafting are all demonstrable in the live app</span><span>7 / 8</span></div>
+  <div class="foot"><span>Rule drafting, contradiction resolution and notice drafting are all demonstrable in the live app</span><span>9 / 12</span></div>
 </section>
 
-<!-- 8 VALUE -->
-<section class="slide" id="s8">
+<!-- 10 FEATURES --------------------------------------------------------- -->
+<section class="slide" id="s10">
+  <p class="eyebrow">Built and working</p>
+  <h2>Features we would show you, not describe to you.</h2>
+  <div class="rule"></div>
+  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><h3>Teach any pill</h3>
+      <p class="sub">A situation, one open question, then only what is still missing — and a board showing which fields of the rule are still unknown.</p>
+      <ul><li>Questions for a pill nobody wrote any for are <b>derived from that pill’s own rules</b>, wrong answers included.</li></ul></div>
+    <div class="card"><h3>Hear where it came from</h3>
+      <p class="sub">Every rule links to the second of the recorded call where it was said, and plays it.</p>
+      <ul><li>Provenance is a quote, a timestamp and the name of whoever confirmed it.</li></ul></div>
+    <div class="card"><h3>Why? and what-if</h3>
+      <p class="sub">Each decision opens a drawer: rule, pill version, evidence used, evidence missing, owner, escalation target.</p>
+      <ul><li><b>Counterfactual:</b> “what would change this decision?” is answered from the unmet conditions, not guessed.</li></ul></div>
+    <div class="card"><h3>Capture at the plant</h3>
+      <p class="sub">A QR label on the equipment opens a capture task. Consent first; audio is not kept; credit is opt-in.</p>
+      <ul><li>Read-back chips for numbers, times, tags and roles — found by regex and the registers, never by the LLM.</li></ul></div>
+  </div>
+  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><h3>Replay before release</h3>
+      <p class="sub">A new version is replayed against closed incidents and reported as “x of y assertions” — a count, never an invented percentage.</p></div>
+    <div class="card"><h3>One pill, many assets</h3>
+      <p class="sub">Asset overrides reroute the same rule: at a colocation data centre TS-07 escalates to the Critical Facilities Manager and the notice becomes a client-SLA notice.</p></div>
+    <div class="card"><h3>Roles that actually bite</h3>
+      <p class="sub">Fifteen personas. The page reads your role from a signed session and the server masks anything above your clearance before it reaches the browser.</p></div>
+    <div class="card"><h3>Runs inside CodeBuddy</h3>
+      <p class="sub">The pill installs unchanged as a native CodeBuddy skill and reaches the same TS-07 decision as our engine. Verified, with screenshots.</p></div>
+  </div>
+  <div class="band"><b>And what we deliberately did not build</b>
+    <p>The teach exercise previews a draft and stops there — choosing which existing rule a new statement amends is a
+      judgement, so a person places it. Hand-written questions exist for one pill; the rest are generated. Versions and the
+      audit log are browser-local in this demo. Speech recognition has not been tested on real Singapore-accented field speech,
+      and we do not claim it.</p></div>
+  <div class="foot"><span>Guided demo at /guide walks the whole loop · every screen is live on the deployed site</span><span>10 / 12</span></div>
+</section>
+
+<!-- 11 NOVEL ------------------------------------------------------------ -->
+<section class="slide" id="s11">
+  <p class="eyebrow">What is novel</p>
+  <h2>Five things here that a retrieval chatbot cannot do.</h2>
+  <div class="rule"></div>
+  <div class="cols" style="grid-template-columns:repeat(5,1fr)">
+    <div class="card"><div class="num">1</div><h3 style="margin-top:14px">A gate, not a prompt</h3>
+      <p class="sub">Safety lives in fixed code, not in instructions a model is asked to follow.</p>
+      <ul><li>Exceptions can only <b>add</b> requirements — there is no path that relaxes a gate.</li>
+          <li>Prompt injection cannot reach the decision: it takes no model input at all.</li></ul></div>
+    <div class="card"><div class="num">2</div><h3 style="margin-top:14px">Contradiction as arithmetic</h3>
+      <p class="sub">Each answer carries a claim token about one field of a rule. Two different claims about one field disagree — by string comparison.</p>
+      <ul><li>Nothing has to <i>notice</i> the conflict, so nothing can fail to.</li>
+          <li>Both statements are kept; the condition that separates them is named.</li></ul></div>
+    <div class="card"><div class="num">3</div><h3 style="margin-top:14px">Knowledge that outlives the model</h3>
+      <p class="sub">The pill is plain text with an owner, a version and tests — not weights, not an index.</p>
+      <ul><li>The same file reached the same decision in CodeBuddy as in our engine.</li>
+          <li>Switch vendor and the judgement comes with you.</li></ul></div>
+    <div class="card"><div class="num">4</div><h3 style="margin-top:14px">It refuses to invent</h3>
+      <p class="sub">Asked outside its pill, the published agent says <i>“this is not covered by an approved pill”</i> rather than answering.</p>
+      <ul><li>When no live model answers an extraction, it says so — it will not pass a recorded reading of another conversation off as a reading of yours.</li></ul></div>
+    <div class="card"><div class="num">5</div><h3 style="margin-top:14px">Governance that executes</h3>
+      <p class="sub">Separation of duties, eval gating, shadow mode, audit and rollback are code paths with tests, not a policy page.</p>
+      <ul><li>The author cannot shadow it; the shadow promoter cannot approve it; refusals are audited.</li></ul></div>
+  </div>
+  <div class="band"><b>The test we hold ourselves to</b>
+    <p>Every claim on these slides is either demonstrable in the live app or stated as proposed. Where something is
+      simulated — the onboarding interview, the incident data — the screen says so in words, on the screen.</p></div>
+  <div class="foot"><span>1,302 automated tests across 103 files, including property-based tests on the engine and governance</span><span>11 / 12</span></div>
+</section>
+
+<!-- 12 VALUE ------------------------------------------------------------ -->
+<section class="slide" id="s12">
   <p class="eyebrow">Business value</p>
   <h2>What it is worth, and how we would measure it.</h2>
   <div class="rule"></div>
-  <div class="cols" style="grid-template-columns:repeat(3,1fr);flex:none">
+  <div class="cols" style="grid-template-columns:repeat(3,1fr)">
     <div class="card"><p class="big">0.5–2×<small>annual salary to replace an employee (Gallup) — and with them, the judgement nobody wrote down.</small></p></div>
     <div class="card"><p class="big">&gt;US$100k<small>the cost of more than half of significant data-centre outages; about 1 in 5 cost more than US$1M (Uptime Institute).</small></p></div>
     <div class="card"><p class="big">S$125k<small>a month: one 10,000 sq ft Grade A floor at S$12.50 psf (CBRE Q2 2026). A two-week closure is ~S$58k in rent alone.</small></p></div>
   </div>
-  <div class="cols" style="grid-template-columns:1.25fr 1fr;margin-top:22px">
+  <div class="cols" style="grid-template-columns:1.25fr 1fr">
     <div class="card"><h3>What Keystone already measures, over the demo data</h3>
       <ul><li><b>Time to isolate</b>, read from the incident records.</li>
           <li><b>Replay agreement</b> — “x of y assertions”, from the deterministic engine, never a made-up percentage.</li>
@@ -267,7 +619,7 @@
   </div>
   <div class="band"><b>Anchored to Keppel’s own goal</b>
     <p>Technical Services aims to “cut downtime and costs” (Investor Day 2026). Keppel DC REIT reports ~12% better effective PUE on asset-enhanced colocation assets (AR2025) — the gains our data-centre overlay is built to protect.</p></div>
-  <div class="foot"><span>Figures are external and cited; everything measured over demo data is computed from the records, not asserted</span><span>8 / 8</span></div>
+  <div class="foot"><span>Figures are external and cited; everything measured over demo data is computed from the records, not asserted</span><span>12 / 12</span></div>
 </section>
 
 </body>
