@@ -176,7 +176,7 @@ Keystone was built with CodeBuddy Code (Plan mode on Hunyuan hy4-preview, sub-ag
 ## Demo video (optional, 5 to 8 minutes)
 
 ```
-[VIDEO LINK]: record from docs/submission/video-script.md (about 7:25)
+[VIDEO LINK]: record from docs/submission/video-script-v2.md (measures 6:13-6:58)
 ```
 
 ## Project link (optional, earns bonus points)

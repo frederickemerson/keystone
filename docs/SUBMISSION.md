@@ -895,7 +895,7 @@ Replace each placeholder before submitting. Copy-paste-ready answers for every f
 - [ ] **Project Description:** this document ✔
 - [ ] **CodeBuddy/WorkBuddy conversation history (≥3):** `docs/proof/*.png` ✔
 - [x] **Cover image (16:9, 380×216 recommended):** `docs/submission/cover-small.png` (380×216); 4× master `docs/submission/cover.png` (1520×864); source `docs/submission/cover.html`
-- [ ] **Demo video (optional, 5–8 min):** TODO — `[VIDEO LINK]`. Current script `docs/submission/video-script-v2.md` runs ~3:35 and is UNDER the stated range; extend before cutting (see open TODOs).
+- [ ] **Demo video (optional, 5–8 min):** TODO — `[VIDEO LINK]`. Script `docs/submission/video-script-v2.md` now measures **6:13–6:58** (955 VO words, counted) and covers all three things the handbook asks of the video: project overview, core agent features, and a build reflection with CodeBuddy tips.
 - [x] **Solution diagram (8 required points):** `docs/submission/solution-diagram.png` (1920×1080); source `docs/submission/solution-diagram.html`
 - [x] **Live URL / demo link (optional, bonus):** https://keystone-tencent.vercel.app (demo passcode `keystone`, shown on the sign-in page; demo: /incident/INC-2026-1011?step=10)
 - [x] **Source code (GitHub repository):** https://github.com/frederickemerson/keystone — **public**, no access grant needed.
@@ -903,15 +903,15 @@ Replace each placeholder before submitting. Copy-paste-ready answers for every f
 ### Open TODOs to resolve before submission
 
 - [ ] Verify the demo path end-to-end on the live Vercel URL (EdgeOne Pages remains the proposed Tencent Cloud host).
-- [ ] Walk the frontline capture path on the live URL from a fresh browser profile (Rajesh → read-back → draft → Tan proposes TS-14 → Priya refused → Hafiz confirms → Priya promotes).
+- [ ] Walk the frontline capture path on the live URL from a fresh browser profile (Rajesh → read-back → draft → Tan proposes TS-14 → Priya refused → Hafiz confirms → Priya promotes). **This is now a shooting prerequisite:** Act 3 of the video films this path, and it is the only act whose path has not been verified end-to-end in production.
 - [ ] Do not claim speech recognition works on real Singapore-accented speech: it is untested.
 - [x] Publish the GitHub repository and paste the URL. (Public; `docs/proof/` reachable.)
 - [ ] Record the video from `docs/submission/video-script-v2.md` and paste the link. The
-      script is ~3:35 against a stated 5–8 minutes — extend it with the frontline capture
-      path, the eval/drift replay and the CodeBuddy skill install (all real, all currently
-      unshown) rather than padding what is there. Three further real beats were added on
-      14 Oct and are also unshown: the agent follow-up thread, "What to look at first", and
-      "Is this a new skill?" (see the addendum at the end of the script).
+      script was rewritten on 14 Oct and now measures **6:13–6:58**, inside the stated 5–8
+      minutes. It gained four acts of real, already-built material — frontline capture and
+      per-rule attribution, the agent follow-up thread, "What to look at first", and "Is this
+      a new skill?" — and, critically, **Act 11, the build reflection with CodeBuddy tips**,
+      which the handbook requires of the video and the earlier script omitted entirely.
 - [x] Export the 16:9 cover image (`docs/submission/cover-small.png`).
 - [ ] Re-check the **[verify before slide]** figures in §6 against primary sources
       before quoting them on a slide.

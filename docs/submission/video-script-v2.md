@@ -1,14 +1,27 @@
 # Keystone — demo video (shooting script)
 
-**Target 3:35.** One narrated voice. Upbeat, fast cuts, motion graphics over live product.
+**Target 6:15–7:00.** One narrated voice. Upbeat, fast cuts, motion graphics over live product.
+
+**Measured, not estimated:** 955 words of VO, 35 held beats, 6 quote cards. At a conversational
+150 wpm that is **6:58**; read upbeat at 170 wpm, **6:13**. Either way it sits in the middle of
+the handbook's 5–8 minutes rather than scraping an end. Re-measure if you rewrite a block — the
+first draft of this script came out at 8:52 and nobody noticed until it was counted.
+
+**The handbook asks for three things in this video** (handbook §"Demo video", 5–8 minutes),
+and each has its own place here:
+
+| Required | Where |
+| --- | --- |
+| Project overview | Acts 0–2 |
+| Core Agent features and how it's used | Acts 3–10 |
+| A short reflection on your build approach, with CodeBuddy/WorkBuddy tips | **Act 11** |
 
 **The organising idea:** this is not a feature tour. Every act answers a problem the
 challenge owner stated out loud in the Keppel briefing, in roughly the order he raised them.
-Four times, his words appear as a lower-third quote card — then the product answers it. Used
-four times it lands; used every act it would grovel, so it is used four times.
+Six times his words appear as a lower-third quote card — then the product answers it.
 
 **Text on screen is punctuation, never paragraph.** If the narrator says it, the screen does
-not spell it out. Under 30 words total outside the quote cards.
+not spell it out. Under 40 words total outside the quote cards.
 
 ---
 
@@ -22,6 +35,10 @@ Do not read stage directions or quote cards aloud — the cards are read by the 
 
 **Quote card style:** small, lower third, his words in quotes, attributed
 *Keppel · AI HARVEST briefing*. On screen 2.5s. Never over a busy shot.
+
+**Six cards, and these six.** One per unsolved problem he named, plus the two that frame the
+whole thing. Every act could carry one; using them everywhere would read as flattery, so the
+acts that answer something he said was *already solved internally* carry none.
 
 ---
 
@@ -43,16 +60,17 @@ Do not read stage directions or quote cards aloud — the cards are read by the 
 
 ---
 
-## ACT 1 — "we lose institutional knowledge" (0:20–0:45)
+## ACT 1 — "we lose institutional knowledge" (0:20–0:50)
 
-> **QUOTE CARD:** *"Every time we have someone leaving the organisation — retirement, changing
-> jobs — we lose some of this institutional knowledge."*
+> **QUOTE CARD 1:** *"Every time we have someone leaving the organisation — retirement,
+> changing jobs — we lose some of this institutional knowledge."*
 
 | | |
 | --- | --- |
 | **Visual** | Building at dusk. A hard-hat figure walks out of frame. |
-| **Motion gfx** | A stack of SOPs builds — crisp, official. As he exits, the pages stay but the glowing threads *between* them drain away with him. |
+| **Motion gfx** | A stack of SOPs builds — crisp, official. As he exits, the pages stay but the glowing threads *between* them drain away with him. Then the Keystone wordmark lands, small. |
 | **Text on screen** | **18 years. Walking out the door.** |
+| **Disclosure** | Small, bottom of frame, 3s, unobtrusive: *"Scenario, people and incidents are fictional. The system, the rules and the tests are real."* **This is not optional — see production notes.** |
 
 > **VO:**
 > "Tan Wei Ming has run technical services for eighteen years. He retires next year.
@@ -60,11 +78,15 @@ Do not read stage directions or quote cards aloud — the cards are read by the 
 > The procedures stay. But a written procedure is codified understanding — it gives you the
 > steps. Not which step to break, and when.
 > [beat]
-> That part isn't in any document. It's in him."
+> That part isn't in any document. It's in him.
+> [beat]
+> This is Keystone. It turns one expert's judgement into an Intelligence Pill — a versioned,
+> tested, plain-text artifact with an owner and an approver — and then governs how that pill
+> gets used, argued with, and added to."
 
 ---
 
-## ACT 2 — capturing the judgement (0:45–1:40) ← *centrepiece*
+## ACT 2 — capturing the judgement (0:50–1:45) ← *centrepiece*
 
 | | |
 | --- | --- |
@@ -97,9 +119,39 @@ riser — that's the default."]**
 
 ---
 
-## ACT 3 — "the human in the loop cannot be missing" (1:40–2:05)
+## ACT 3 — not one expert. several. (1:45–2:40) ← *new*
 
-> **QUOTE CARD:** *"The human in the loop cannot be missing. So the energy manager — what's
+> **QUOTE CARD 2:** *"You just need to know what kind of skill or agent you give me, so that
+> I can start teaching it — what Paul knows, what I know, what another colleague knows."*
+
+| | |
+| --- | --- |
+| **Visual** | Hard cut to a phone, on site. Rajesh Kumar, technician, is blocked by a gate. The prompt: **"Tell us why — 20 seconds."** He holds to talk. |
+| **Motion gfx** | Waveform. Then read-back chips pop one at a time — a number, an asset tag, a role — and **he** taps each one to confirm. Then the draft rule assembles itself, the quote highlighted inside the note it came from. |
+| **Then** | Quick-cut the gate: Hafiz — neither the speaker nor the proposer — confirms. Shadow. Approve. Version flips **1.2.0 → 1.3.0**. |
+| **Payoff shot** | Back to the pill page. The line under the title **re-types itself**: "Whose knowledge this is: Tan Wei Ming (13 rules)" → "**Tan Wei Ming (13 rules), Rajesh Kumar (1 rule)**". |
+
+> **VO:**
+> "But a pill isn't one person. The man on the floor knows things the chief engineer doesn't.
+> [beat]
+> So when a gate blocks Rajesh, it asks him why. Twenty seconds, his own voice.
+> [beat]
+> Watch who checks the numbers, though — *he* does. It reads back what it heard, and he
+> confirms each one before any of it becomes a rule. Then a colleague who neither said it nor
+> proposed it confirms. Three different people, and the code refuses if they're not.
+> [beat]
+> And now the pill says whose knowledge it is. Thirteen rules from the chief engineer, one
+> from a technician — and it'll name the next person too."
+
+**Shooting prerequisite:** walk this path once on the live URL before filming — Rajesh →
+read-back → draft → propose → Hafiz confirms → promote. It is the one demo path not yet
+verified end-to-end in production.
+
+---
+
+## ACT 4 — "the human in the loop cannot be missing" (2:40–3:05)
+
+> **QUOTE CARD 3:** *"The human in the loop cannot be missing. So the energy manager — what's
 > the role of this energy manager?"*
 
 | | |
@@ -119,9 +171,9 @@ riser — that's the default."]**
 
 ---
 
-## ACT 4 — "govern that the knowledge is not tainted by hallucination" (2:05–2:30)
+## ACT 5 — "govern that the knowledge is not tainted by hallucination" (3:05–3:30)
 
-> **QUOTE CARD:** *"How do we then govern that the knowledge is not tainted by
+> **QUOTE CARD 4:** *"How do we then govern that the knowledge is not tainted by
 > hallucination?"*
 
 | | |
@@ -141,34 +193,103 @@ riser — that's the default."]**
 
 ---
 
-## ACT 5 — "all these are disjointed" (2:30–3:00)
+## ACT 6 — keep talking to it (3:30–4:05) ← *new*
 
-> **QUOTE CARD:** *"Management asks questions, the energy manager answers — all these are
+| | |
+| --- | --- |
+| **Visual** | Still on that grounded answer. Cursor goes to the follow-up chips and picks **"Does that change if the area is still wet?"** |
+| **Motion gfx** | Hold one beat on the word **that**, circled. Then the follow-up lands, indented under the first with a ↳. Counter in the corner: **follow-up 2 of 8**. |
+
+> **VO:**
+> "Now ask a follow-up with the word *that* in it.
+> [beat]
+> A question box has no idea what *that* means. This does — the thread is held open. On our
+> server, against your session, so nobody can pick up somebody else's.
+> [beat]
+> That's the bit he asked for and said they hadn't built: management arguing with the agent,
+> not querying it."
+
+**Shooting note.** The live agent is not deterministic. All three follow-up presets resolved
+their reference when last measured, but phrasing varies run to run — shoot two or three takes
+and keep the clearest. If it answers *"the pill does not specify an alternative approver"* —
+which is what *"what if that person is not on site?"* tends to get — **that is a usable take,
+not a failed one.** It resolved the pronoun and then refused to invent, which is the
+behaviour this whole submission argues for. Do not re-shoot waiting for something flashier.
+
+---
+
+## ACT 7 — "all these are disjointed" (4:05–4:35)
+
+> **QUOTE CARD 5:** *"Management asks questions, the energy manager answers — all these are
 > verbal in the meeting and it's not captured… all these are disjointed."*
 
 | | |
 | --- | --- |
-| **Visual** | Back on the answer. Cursor hits **"This answer is wrong."** Form opens — rule, site, who should answer. One click. |
-| **Motion gfx** | The question itself *lifts off* the chat box and flies across a cut into `/pulse`, landing as a task card: **Agent answer disputed**. Then quick-cut: expert records a reply → draft → diff → approve → version flips **1.1.0 → 1.2.0**. |
+| **Visual** | Cursor hits **"This answer is wrong."** Form opens — rule, site, who should answer. One click. |
+| **Motion gfx** | The question itself *lifts off* the chat box and flies across a cut into `/pulse`, landing as a task card: **Agent answer disputed**. Then quick-cut: expert records a reply → draft → diff → approve → version bumps. |
 | **Pacing** | Fastest sequence in the film. 3–4s per beat. It should feel like a relay. |
 
 > **VO:**
-> "Now the part that usually disappears.
+> "And when somebody reads an answer and knows it's wrong — one click, and the question
+> doesn't evaporate.
 > [beat]
-> Somebody reads that answer and knows it's wrong. One click — and the question doesn't
-> evaporate. It becomes a task, addressed to whoever actually owns that knowledge, with
-> the original question attached.
-> [beat]
-> They answer in their own voice. That becomes a draft. Reviewed, approved, versioned.
+> It becomes a task, addressed to whoever actually owns that knowledge, with the original
+> question attached. They answer in their own voice. That becomes a draft. Reviewed,
+> approved, versioned.
 > [beat]
 > Asked, answered badly, corrected, shipped — and all four are now one record. Not four
 > disconnected things."
 
 ---
 
-## ACT 6 — one-off or systemic, and the questions nobody asked (3:00–3:20)
+## ACT 8 — top five, and why (4:35–5:00) ← *new*
 
-> **QUOTE CARD:** *"Is it a typical problem every year? Or is this a one-time problem?"*
+| | |
+| --- | --- |
+| **Visual** | `/pulse`, **"What to look at first"**. Push in on row one. |
+| **Motion gfx** | The reason sentence types itself out and the three evidence items it names light up: *"TS-07 is holding this until **LEW sign-off**, **insulation resistance test passed** and **area confirmed dry** are confirmed by someone the pill allows."* |
+
+> **VO:**
+> "He described the report his own team already builds — top five issues, and *because of*
+> what.
+> [beat]
+> So: five, worst first, each one saying why it's there and who it's waiting on.
+> [beat]
+> And it's not a score — there's nothing to tune. Same record, same order, every time. You
+> can argue with it. You can't argue with a number somebody weighted."
+
+---
+
+## ACT 9 — "is this a new skill?" (5:00–5:45) ← *new, and the strongest*
+
+> **QUOTE CARD 6:** *"How do we capture if there's a new skill discovered? It's a problem
+> we've never faced before and we've actually solved that problem. So is this a new skill?"*
+
+| | |
+| --- | --- |
+| **Visual** | `/pulse`, **"Is this a new skill?"**. The sentence reads itself: *1 of the 4 incidents that could be replayed fired no rule at all across all 2 approved pills, and was solved anyway.* |
+| **Motion gfx** | `INC-2026-0923` opens. Chiller plant, **+18% over baseline, four days**, every point inside its limits — green ticks all the way down, and the total still red. Cut to the pill hub for one second: run the replay, **nothing fires**. |
+| **Then** | Back to the card. Press **"How did you solve it?"**. The task lands, addressed to the Chief Engineer. |
+
+> **VO:**
+> "This is the one he said they hadn't solved at all.
+> [beat]
+> An incident the record can't explain. Plant eighteen percent over baseline for four days —
+> every single reading inside spec. Somebody solved it: they read the façade and the humidity
+> before they suspected the plant.
+> [beat]
+> Replay it through every approved pill and not one rule fires. The system notices that
+> itself.
+> [beat]
+> And then it does the honest thing. It does *not* write a rule — you can't infer somebody's
+> reasoning from their result, and a rule built that way is a guess in a rule's clothes.
+> [beat]
+> It asks the person who knew. And their answer goes through the same approval as everything
+> else, because an answer nobody approved isn't a skill yet."
+
+---
+
+## ACT 10 — one-off or systemic, and the questions nobody asked (5:45–6:05)
 
 | | |
 | --- | --- |
@@ -187,7 +308,32 @@ riser — that's the default."]**
 
 ---
 
-## CLOSE (3:20–3:32)
+## ACT 11 — how it was built (6:05–6:45) ← *required by the handbook*
+
+| | |
+| --- | --- |
+| **Visual** | Screen recording, real: CodeBuddy in **Plan mode**, writing the markdown plan before touching a file. Then a fast scroll of the test suite running green. Then `.codebuddy/skills/` in the tree, and the pill installed as a native CodeBuddy skill answering the TS-07 question. |
+| **Motion gfx** | Counter ticks up to **1,140 tests · 93 files**. Keep it quick — this is a reflection, not a victory lap. |
+| **Pacing** | Calmer than the rest. Drop the music under. You're talking to another builder now. |
+
+> **VO:**
+> "Quickly, how it got built — four things worth stealing.
+> [beat]
+> CodeBuddy in Plan mode first. It writes the plan as markdown and you argue with *that*
+> before it touches a file.
+> [beat]
+> Freeze the scope, build one closed loop. Seven half-working screens lose to one that
+> closes.
+> [beat]
+> Safety rules as tests, not comments — evidence can't be faked open, the author can't
+> approve their own version. Eleven hundred of them. That's the part you can actually run.
+> [beat]
+> And the model only ever does language; every decision is a pure function. So swapping the
+> model can't change a safety outcome. Not a promise — the shape of the code."
+
+---
+
+## CLOSE (6:45–7:00)
 
 | | |
 | --- | --- |
@@ -205,100 +351,60 @@ riser — that's the default."]**
 
 ## Production notes
 
-- **VO ≈ 490 words → ~3:15 spoken, ~3:35 once the held beats and four quote cards are in.** If it
-  needs to come under 3:00, cut Act 6's second half (keep the recurrence chips, drop the
-  two-metre beat) — it is the only act that survives halving.
-- **Biggest fix from v1:** never hold a static screen past 3 seconds. Push-in, parallax, or a
-  graphic landing — always something moving.
-- **Act 0 and Act 4 must be frame-identical.** The callback only works if the viewer
+- **955 words of VO · 35 beats · 6 quote cards → 6:13 (upbeat, 170 wpm) to 6:58 (conversational,
+  150 wpm).** Counted, not guessed. Inside the handbook's 5–8 minutes with room at both ends.
+- **If it runs long**, cut in this order: Act 10's two-metre beat → Act 8 entirely → the last
+  tip in Act 11. Do **not** cut Act 9; it is the strongest thing in the film.
+- **If it runs short**, the eval/drift replay (`/learning`) is the one real feature still
+  unshown and would add ~40s.
+- **Never hold a static screen past 3 seconds.** Push-in, parallax, or a graphic landing —
+  always something moving.
+- **Act 0 and Act 5 must be frame-identical.** The callback only works if the viewer
   recognises the shot.
-- **Act 5 is the new one and the most important** — it is the only act that answers a problem
-  Keppel said out loud that they had *not* solved. Give it the energy, not the explanation.
-- **Quote cards:** four, no more. They are evidence that we listened, not flattery.
+- **Act 3 and Act 9 are the two that answer things Keppel said they had NOT solved.** Give
+  them the energy. Act 9 especially — slow down for the "it does not write a rule" line; it
+  is the single most load-bearing sentence in the submission.
 - **Everything here is real and already on screen in the product** — the 2.9s, the invented
-  v2.1, five passages, the CT-AD task landing on `/pulse`, 4/3/6 recurrence,
-  `distance_to_electrical_m`. Nothing in this script needs a mock-up.
+  v2.1, five passages, the follow-up thread counter, the attribution line, the reason
+  sentence, `INC-2026-0923`, 4/3/6 recurrence, `distance_to_electrical_m`. Nothing in this
+  script needs a mock-up.
+- **One thing to verify before filming:** the frontline capture path in Act 3, end-to-end on
+  the live URL. Everything else in this script has been run in production.
+- **The fictional-scenario disclosure in Act 1 is mandatory, not a nicety.** Tan Wei Ming,
+  Rajesh Kumar, the tower and every incident are invented, and the narration speaks about
+  them as if they were real because that is how a worked example reads. A review of the
+  earlier 7:30 script (`docs/review/claims-audit.md`) found lines that a judge could fairly
+  call false for exactly this reason — including narration claiming the expert's "own voice"
+  over what was actually speech synthesis. One small card removes the whole class of problem,
+  and costs three seconds. If Act 2 uses a recorded human voice for the expert, it is an
+  actor reading a fictional character's lines; never describe it on camera as a real
+  recording of a real engineer.
 - **Music:** "Beauty Flow" (CC BY 4.0) with its credit card, or swap for more drive — if
   swapped, re-check the licence and change the credit with it.
 
+### Music credit (licence condition — must appear)
+
+```
+"Beauty Flow"
+Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0
+http://creativecommons.org/licenses/by/4.0/
+```
+
 ---
 
-## Addendum — three beats added 14 Oct 2026
+## What changed from the 3:35 cut
 
-Three more real screens exist since this script was written. All three answer something Sean
-said out loud, all three are live in the product, and none of them is in the cut above. They
-are also the cheapest way to close the gap between this script's ~3:35 and the form's stated
-5 to 8 minutes, because they need no mock-up.
+The earlier version of this script ran ~3:35, which was **under** the handbook's stated 5–8
+minutes, and it was missing a section the handbook explicitly asks for.
 
-Shoot them in this order, after Act 5 and before Act 6.
-
-### Act 5a — Keep talking to it (~35 s)
-
-**The problem:** *"the agent should then be able to start discussing things together with the
-management ... as if the energy manager is in front of them."*
-
-On screen: the connectors page, ADP row. Ask the preset about who may approve re-energising.
-Answer lands with **5 passages**. Then click the follow-up chip — **"Does that change if the
-area is still wet?"** — and let the answer land. Hold on the word *that* in the question for
-a beat.
-
-VO: "Ask it a follow-up with the word *that* in it. A question box can't answer that. This
-can — the thread is held on the server, against your session, and the conversation id never
-touches the browser, so nobody can resume your thread. Eight questions, then it starts
-fresh."
-
-**Why it earns its place:** it is the only beat where the agent behaves like a colleague
-rather than a lookup. The pronoun is the proof.
-
-**Shooting note.** The live agent is not deterministic. All three follow-up presets resolved
-their reference correctly when last measured, but phrasing and retrieval vary run to run, so
-shoot two or three takes and keep the clearest. If it answers *"the pill does not specify an
-alternative approver"* — which is what *"what if that person is not on site?"* tends to get —
-**that is a usable take, not a failed one**: it resolved the pronoun and then refused to
-invent, which is the behaviour the whole submission argues for. Do not re-shoot until it says
-something more impressive.
-
-### Act 5b — Top five, and why (~25 s)
-
-**The problem:** *"these are the top five issues that management should be looking into
-because of ABCD."*
-
-On screen: `/pulse`, **"What to look at first"**. Push in on the first row and let the reason
-sentence read on screen: *"TS-07 is holding this until LEW sign-off, Insulation resistance
-within limits and Area dry are confirmed by someone the pill allows."*
-
-VO: "Five things, worst first, each one saying why it's there. Not a score — there's nothing
-to tune. A gate blocking work, then a decision someone owes, then an escalation still open,
-and inside each, whoever's waited longest."
-
-**Why it earns its place:** it is his own artifact, built his way, and the "because of ABCD"
-is visible rather than described.
-
-### Act 5c — Is this a new skill? (~45 s, the strongest of the three)
-
-**The problem:** *"how do we then capture if there's a new skill discovered ... it's a problem
-that we've never faced before and we've actually solved that problem. So is this a new skill?"*
-
-On screen: `/pulse`, **"Is this a new skill?"**. The sentence reads itself. Then `INC-2026-0923`
-— plant 18% over baseline for four days, every point inside its limits. Cut to the pill hub
-for one second: **no rule fired on it**. Back to the card, press **"How did you solve it?"**,
-and let the task land addressed to the Chief Engineer.
-
-VO: "Here's one the record can't explain. Solved — someone read the façade and the humidity
-before they suspected the plant. Not one rule in any approved pill fired on it. So Keystone
-doesn't write a rule from the outcome, because that would be a guess. It asks the person who
-knew. Forty-five seconds. Then it goes through the same approval as everything else."
-
-**Why it earns its place:** this is the one act where the *system* notices the gap instead of
-a human reporting it — and it is the third of the three problems Keppel said they had not
-solved. If one of these three makes the cut, make it this one.
-
-### Running total
-
-| | |
+| Change | Why |
 | --- | --- |
-| Script above | ~3:35 |
-| + 5a, 5b, 5c | **~5:20** |
-| + frontline capture path, eval/drift replay, CodeBuddy install (already listed as TODO) | 6:30–7:30 |
-
-That clears the 5-minute floor on the three new beats alone.
+| **Act 11 added** (build reflection, CodeBuddy tips) | The handbook requires "a short reflection on your build approach and any development tool tips with reference to CodeBuddy/WorkBuddy". The old script had none. |
+| **Act 3 added** (frontline capture → attribution) | Answers *"what Paul knows, what I know, what another colleague knows"*, and shows the frontline capture path, which was a whole built feature never on screen. |
+| **Act 6 added** (follow-up thread) | Answers the "discussing things together with the management" ask he said they had not built. |
+| **Act 8 added** (top five, and why) | His own internal report, built his way, with the "because of ABCD" visible. |
+| **Act 9 added** (is this a new skill?) | The third of the three problems he said were unsolved, and the only act where the *system* notices the gap rather than a person reporting it. |
+| **Overview line added to Act 1** | The handbook asks for a project overview; the old cut never actually said what Keystone is. |
+| **Quote cards: 5 → 6** | One per unsolved problem, plus the two framing ones. The old note said "four" while the script already used five — now the number and the script agree. |
+| **Runtime: ~3:35 → 6:13–6:58** | Measured by counting the VO, not estimated. The first draft of this rewrite ran 8:52 — over the ceiling — and was trimmed by ~130 words across the five longest blocks. |

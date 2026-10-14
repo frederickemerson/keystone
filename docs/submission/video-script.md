@@ -1,5 +1,17 @@
 # Keystone — demo video script
 
+> ## ⚠ SUPERSEDED — do not record from this file
+>
+> The script that ships with the submission is **`video-script-v2.md`** (measures 6:13–6:58
+> and covers the three things the handbook asks of the video, including the CodeBuddy build
+> reflection this one lacks).
+>
+> This file is kept for its shot lists only. **A claims review found false statements in it**
+> — stale test counts, narration describing speech synthesis as the expert's "own voice", and
+> a model-swap demo step for a control the app does not have. See `docs/review/claims-audit.md`.
+> Reuse a shot from here only after checking the claim attached to it.
+
+
 **Runtime: 7:30.** The handbook allows **5–8 minutes**, so this sits with 30 seconds of
 headroom at the top end.
 
