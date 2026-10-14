@@ -38,6 +38,23 @@ what a pill is, and on the form nothing does.)
 
 ## Project description
 
+One paragraph, covering the form's four prompts in order. Paste as is.
+
+```
+Expert judgement in building operations lives in a few heads and leaves when those people retire. A chatbot over the manuals can answer; it cannot be trusted to act. Keystone compiles that judgement into an Intelligence Pill: a versioned folder of plain text the organisation owns — rules, an evidence vocabulary, provenance, evals, a changelog. Capture is an exercise, not an interview: one wide question, then only what the answer left unsettled. Each answer carries a claim token, so a contradiction is arithmetic — "isolate the riser" and "isolate the sub-valve" disagree by string comparison and become one distinguishing condition instead of a discarded half. Every rule keeps the sentence it came from, its timestamp, and who confirmed it. Applying it is deterministic: pure TypeScript, no model input, no eval(), no string expressions. Precedence is fixed — not applicable, blocked, escalate, needs approval, allowed. Evidence counts only when confirmed and exactly true. An exception may add a requirement; nothing relaxes a gate. In the demo, TS-07 blocks an AI proposal to re-energise AHU-23-01 and escalates to the duty Licensed Electrical Worker by name. No proposal ever executes. Learning is governed, not promised: a frontline note becomes a draft only after the speaker checks a read-back, a peer who neither said nor proposed it confirms, the version is replayed against six closed incidents in shadow, and a third person approves. Rollback is one click; history is append-only. Author, shadow promoter and approver must be three different people — the code refuses the second role and audits the refusal. Reuse is asset overrides: the same pill escalates to the Critical Facilities Manager at a colocation data centre and turns the tenant notice into a client-SLA notice. Prompts do language only: elicit (31 probes from the Critical Decision Method and ACTA), extract (schema-constrained, always a draft the expert confirms), resolve, and compose notices under hard rules a named human approves and Keystone never sends. It runs on Next.js 15 on Vercel, with Hunyuan hy4-preview and MiniMax Speech 2.8 HD integrated through Tencent TokenHub on a Singapore endpoint. The same pill installs unchanged as a native CodeBuddy skill and reaches the same TS-07 decision as our engine — portability verified, not claimed. 1,302 automated tests hold the invariants, including property-based tests on the engine and governance. Users: the pill owner (a retiring Chief Engineer), its steward (an Asset Operations Manager), frontline technicians and an approver of record — 15 personas across the real REIT manager, facility manager and FM contractor chain. The value is checkable: replacing an employee costs 0.5 to 2 times salary (Gallup); over half of significant data-centre outages cost more than US$100k (Uptime Institute); a 10,000 sq ft Grade A floor is about S$125k a month (CBRE Q2 2026). Keystone already measures time to isolate, replay agreement as a count rather than an invented percentage, and eval and shadow agreement per pill; a pilot adds override rate and rollback frequency, against Keppel's stated goal of cutting downtime and costs.
+```
+
+(One paragraph. Every number in it is checkable: the test
+count is the suite's own, the engine behaviour is the precedence in
+`lib/engine`, and the external figures carry their sources.)
+
+---
+
+## Project description — long version
+
+Use these four blocks if the form gives a separate box per prompt, or for the
+written submission. Same content, room to breathe.
+
 ### 1. Project overview: target scenarios, users and value proposition
 
 ```
