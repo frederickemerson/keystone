@@ -1,11 +1,15 @@
 # Keystone — demo video (shooting script)
 
-**Target 6:15–7:00.** One narrated voice. Upbeat, fast cuts, motion graphics over live product.
+**Runs 6:44–7:32.** One narrated voice. Upbeat, fast cuts, motion graphics over live product.
 
-**Measured, not estimated:** 955 words of VO, 35 held beats, 6 quote cards. At a conversational
-150 wpm that is **6:58**; read upbeat at 170 wpm, **6:13**. Either way it sits in the middle of
-the handbook's 5–8 minutes rather than scraping an end. Re-measure if you rewrite a block — the
-first draft of this script came out at 8:52 and nobody noticed until it was counted.
+**Measured, not estimated:** 1,033 words of VO, 35 held beats, 6 quote cards. At a
+conversational 150 wpm that is **7:32**; read upbeat at 170 wpm, **6:44**. Either way it sits
+inside the handbook's 5–8 minutes with room at both ends. The per-act timecodes below are
+computed from the same count at 160 wpm, so they move when the words do.
+
+**Re-measure if you rewrite a block.** The first draft of this script came out at 8:52 and
+nobody noticed until it was counted; the Act 2 rewrite pushed it to 7:41 and was trimmed back.
+The method: count words inside `> **VO:**` blocks, 0.7s per `[beat]`, 2.5s per quote card.
 
 **The handbook asks for three things in this video** (handbook §"Demo video", 5–8 minutes),
 and each has its own place here:
@@ -42,7 +46,7 @@ acts that answer something he said was *already solved internally* carry none.
 
 ---
 
-## ACT 0 — COLD OPEN · the problem in one shot (0:00–0:20)
+## ACT 0 — COLD OPEN · the problem in one shot (0:00–0:17)
 
 | | |
 | --- | --- |
@@ -60,7 +64,7 @@ acts that answer something he said was *already solved internally* carry none.
 
 ---
 
-## ACT 1 — "we lose institutional knowledge" (0:20–0:50)
+## ACT 1 — "we lose institutional knowledge" (0:17–0:52)
 
 > **QUOTE CARD 1:** *"Every time we have someone leaving the organisation — retirement,
 > changing jobs — we lose some of this institutional knowledge."*
@@ -86,40 +90,65 @@ acts that answer something he said was *already solved internally* carry none.
 
 ---
 
-## ACT 2 — capturing the judgement (0:50–1:45) ← *centrepiece*
+## ACT 2 — capturing the judgement (0:52–1:59) ← *centrepiece*
+
+> **Shoot this on `/teach`, not `/capture`.** The simulated phone call is still in the
+> product — every provenance citation points into that transcript — but it is no longer
+> the surface that leads, and it is the weaker thing to film: a waveform and a timer.
 
 | | |
 | --- | --- |
-| **Visual** | Live `/capture`. **Your recorded voice as his voice**, captions tracking. Rule tiles fly in from the right, each stamping the timestamp it came from. |
-| **Motion gfx** | Each tile lands with a soft punch and a thin line drawn back to the caption that produced it. Let 3–4 stack. Speed-ramp the middle. |
+| **Visual** | Live `/teach`. The animated section of the building: Level 28, the coupling fails, water through the void onto 27, then the dashed line creeping along the conduit toward DB-27B. Five stages, each landing on a caption. |
+| **Motion gfx** | Let the creep run its full 2.6s. The cupboard throbs red. The measure snaps in last and says **how close is too close?** — hold on that question before cutting. |
 
 > **VO:**
-> "So we sit him down. Not a form — a structured interview about one real incident, because
-> judgement only shows up against a situation.
+> "So we sit him down. Not a form — a situation. Judgement only shows up against a case.
 > [beat]
-> As he talks, rules come out. Each pinned to the second he said it."
-
-**[HOLD ~6s — his recorded voice, clean. TAKE 3 (`t-00-06-30`): "…always isolate the whole
-riser — that's the default."]**
+> Then one question, deliberately the widest we have: walk me through what you did, and why."
 
 | | |
 | --- | --- |
-| **Visual** | Sixteen minutes later in the call. The second statement arrives; both slide side by side. |
-| **Motion gfx** | Amber **⚠ CONTRADICTION** chip snaps between them, a line joining both timestamps. |
+| **Visual** | He types — or holds to talk. On the right, the board titled **What the rule still needs**: eight fields of a rule, most of them grey. |
+| **Motion gfx** | As the account lands, one square ticks. The rest stay grey. Push in slightly on the grey. |
 
 > **VO:**
-> "Then, sixteen minutes later, he says the opposite.
+> "That panel isn't progress through a script. Those are the fields of an actual rule — the
+> ones the engine reads — and grey means genuinely unknown.
 > [beat]
-> And it catches him. Both quotes, both timestamps, side by side.
+> So it only asks what's missing. Two taps, not twenty minutes: who signs it off, what has
+> to be confirmed first, how long is too long."
+
+| | |
+| --- | --- |
+| **Visual** | A single-choice card: *"First call. What do you isolate?"* → **The whole riser.** Then, later, a card that opens with a grey scenario strip: *"An AHU branch leak on Level 27. The branch sub-valve is accessible, and closing it stops the flow."* → **The branch sub-valve.** |
+| **Motion gfx** | The moment the second answer lands, the amber panel snaps in. Both answers side by side. Keyston tilts and looks two ways at once. |
+
+> **VO:**
+> "Then he contradicts himself.
+> [beat]
+> And it catches him. Both answers, side by side.
 > [beat]
 > He isn't wrong twice. There's a condition he never said out loud — branch leak, sub-valve
 > reachable. Twenty years of instinct, and nobody ever wrote down the *if*.
 > [beat]
 > That's the thing that was walking out the door."
 
+> **Say this one slowly — it is the strongest technical claim in the video:**
+>
+> "And notice what *found* it. Not a model reading his answers back. Two taps about the same
+> field of the same rule, with different values — the code compares two strings. There is
+> nothing there to hallucinate."
+
+**Production note — the voice takes are no longer needed.** Every line in this act is spoken
+by the product itself, pre-rendered (`gpt-4o-mini-tts`, `sage` for Keystone, `onyx` for the
+expert) and served as a static file, so it is identical on every take and works with the
+venue wifi down. There is no longer any point in the sidebar where a human voice stands in for
+a fictional engineer — which also removes the whole class of objection the claims audit
+raised. `~/Desktop/keystone-voice/` can stay empty.
+
 ---
 
-## ACT 3 — not one expert. several. (1:45–2:40) ← *new*
+## ACT 3 — not one expert. several. (1:59–2:43) ← *new*
 
 > **QUOTE CARD 2:** *"You just need to know what kind of skill or agent you give me, so that
 > I can start teaching it — what Paul knows, what I know, what another colleague knows."*
@@ -149,7 +178,7 @@ verified end-to-end in production.
 
 ---
 
-## ACT 4 — "the human in the loop cannot be missing" (2:40–3:05)
+## ACT 4 — "the human in the loop cannot be missing" (2:43–3:08)
 
 > **QUOTE CARD 3:** *"The human in the loop cannot be missing. So the energy manager — what's
 > the role of this energy manager?"*
@@ -171,7 +200,7 @@ verified end-to-end in production.
 
 ---
 
-## ACT 5 — "govern that the knowledge is not tainted by hallucination" (3:05–3:30)
+## ACT 5 — "govern that the knowledge is not tainted by hallucination" (3:08–3:35)
 
 > **QUOTE CARD 4:** *"How do we then govern that the knowledge is not tainted by
 > hallucination?"*
@@ -193,7 +222,7 @@ verified end-to-end in production.
 
 ---
 
-## ACT 6 — keep talking to it (3:30–4:05) ← *new*
+## ACT 6 — keep talking to it (3:35–3:58) ← *new*
 
 | | |
 | --- | --- |
@@ -218,7 +247,7 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 
 ---
 
-## ACT 7 — "all these are disjointed" (4:05–4:35)
+## ACT 7 — "all these are disjointed" (3:58–4:25)
 
 > **QUOTE CARD 5:** *"Management asks questions, the energy manager answers — all these are
 > verbal in the meeting and it's not captured… all these are disjointed."*
@@ -242,7 +271,7 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 
 ---
 
-## ACT 8 — top five, and why (4:35–5:00) ← *new*
+## ACT 8 — top five, and why (4:25–4:49) ← *new*
 
 | | |
 | --- | --- |
@@ -260,7 +289,7 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 
 ---
 
-## ACT 9 — "is this a new skill?" (5:00–5:45) ← *new, and the strongest*
+## ACT 9 — "is this a new skill?" (4:49–5:39) ← *new, and the strongest*
 
 > **QUOTE CARD 6:** *"How do we capture if there's a new skill discovered? It's a problem
 > we've never faced before and we've actually solved that problem. So is this a new skill?"*
@@ -289,31 +318,31 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 
 ---
 
-## ACT 10 — one-off or systemic, and the questions nobody asked (5:45–6:05)
+## ACT 10 — one-off or systemic, and the questions nobody asked (5:39–6:10)
 
 | | |
 | --- | --- |
 | **Visual** | Registry rules. Recurrence chips stamp in. Then the blind-spot panel, highlighting one row. |
-| **Motion gfx** | **Recurring** ×4 · **Seen once** ×3 · **Not in the record** ×6. Then `distance_to_electrical_m` pulses, with "2 m" drawn as a measuring line between water and a switchboard. |
+| **Motion gfx** | **Recurring** ×4 · **Seen once** ×3 · **Not in the record** ×6. Then `distance_to_electrical_m` pulses in the blind-spot row. |
 
 > **VO:**
 > "The triage *is* the expertise — one-off, you just fix it; recurring, that's worth a skill.
 > So every rule says which it is. Four recurring. Six the record has never seen — and we say
 > so, instead of pretending.
 > [beat]
-> Then this. Operations record the distance from water to live electrics, in metres. No rule
-> reads it. He told us two metres is his threshold — nobody ever wired the number up.
+> And this row is the one that started it. Operations have always recorded how far the water
+> is from live electrics. No rule read it, until he told us where his line was.
 > [beat]
 > It found a question we forgot to ask."
 
 ---
 
-## ACT 11 — how it was built (6:05–6:45) ← *required by the handbook*
+## ACT 11 — how it was built (6:10–6:52) ← *required by the handbook*
 
 | | |
 | --- | --- |
 | **Visual** | Screen recording, real: CodeBuddy in **Plan mode**, writing the markdown plan before touching a file. Then a fast scroll of the test suite running green. Then `.codebuddy/skills/` in the tree, and the pill installed as a native CodeBuddy skill answering the TS-07 question. |
-| **Motion gfx** | Counter ticks up to **1,140 tests · 93 files**. Keep it quick — this is a reflection, not a victory lap. |
+| **Motion gfx** | Counter ticks up to **1,253 tests · 100 files**. Keep it quick — this is a reflection, not a victory lap. |
 | **Pacing** | Calmer than the rest. Drop the music under. You're talking to another builder now. |
 
 > **VO:**
@@ -333,7 +362,7 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 
 ---
 
-## CLOSE (6:45–7:00)
+## CLOSE (6:52–7:06)
 
 | | |
 | --- | --- |
@@ -351,8 +380,10 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 
 ## Production notes
 
-- **955 words of VO · 35 beats · 6 quote cards → 6:13 (upbeat, 170 wpm) to 6:58 (conversational,
-  150 wpm).** Counted, not guessed. Inside the handbook's 5–8 minutes with room at both ends.
+- **1,033 words of VO · 35 beats · 6 quote cards → 6:44 (upbeat, 170 wpm) to 7:32
+  (conversational, 150 wpm).** Counted, not guessed. Inside the handbook's 5–8 minutes. If a
+  take comes in slower than 150 wpm it will scrape the ceiling, so watch the clock on the
+  read rather than trusting this number afterwards.
 - **If it runs long**, cut in this order: Act 10's two-metre beat → Act 8 entirely → the last
   tip in Act 11. Do **not** cut Act 9; it is the strongest thing in the film.
 - **If it runs short**, the eval/drift replay (`/learning`) is the one real feature still
@@ -376,9 +407,10 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
   earlier 7:30 script (`docs/review/claims-audit.md`) found lines that a judge could fairly
   call false for exactly this reason — including narration claiming the expert's "own voice"
   over what was actually speech synthesis. One small card removes the whole class of problem,
-  and costs three seconds. If Act 2 uses a recorded human voice for the expert, it is an
-  actor reading a fictional character's lines; never describe it on camera as a real
-  recording of a real engineer.
+  and costs three seconds. Act 2 no longer has that exposure at all: the product speaks its
+  own lines, pre-rendered, and the screen names the model and voice doing it. If any human
+  recording is ever cut in for the expert, it is an actor reading a fictional character's
+  lines, and must never be described on camera as a real recording of a real engineer.
 - **Music:** "Beauty Flow" (CC BY 4.0) with its credit card, or swap for more drive — if
   swapped, re-check the licence and change the credit with it.
 
@@ -407,4 +439,7 @@ minutes, and it was missing a section the handbook explicitly asks for.
 | **Act 9 added** (is this a new skill?) | The third of the three problems he said were unsolved, and the only act where the *system* notices the gap rather than a person reporting it. |
 | **Overview line added to Act 1** | The handbook asks for a project overview; the old cut never actually said what Keystone is. |
 | **Quote cards: 5 → 6** | One per unsolved problem, plus the two framing ones. The old note said "four" while the script already used five — now the number and the script agree. |
-| **Runtime: ~3:35 → 6:13–6:58** | Measured by counting the VO, not estimated. The first draft of this rewrite ran 8:52 — over the ceiling — and was trimmed by ~130 words across the five longest blocks. |
+| **Act 2 moved from `/capture` to `/teach`** | The simulated call was a waveform and a timer, and the contradiction in it was reported by a model and checked by a guard. On `/teach` the situation is animated, the coverage board shows what is still unknown as fields of a real rule, and the contradiction is computed from two structured answers — which is both the better shot and the stronger claim. |
+| **Voice takes dropped** | The product now speaks its own lines, pre-rendered and served as static files. There is no point left where a human stands in for a fictional engineer, which removes that class of objection entirely and makes every take identical. |
+| **Act 10's two-metre beat cut** | Act 2 now shows that number being captured, so "nobody ever wired it up" had become a contradiction with something the viewer watched happen. The blind-spot row now reads as the setup Act 2 paid off. |
+| **Runtime: ~3:35 → 6:13–6:58 → re-measured after the Act 2 rewrite** | Measured by counting the VO, not estimated. The first draft of the earlier rewrite ran 8:52 — over the ceiling — and was trimmed by ~130 words. See the header for the current count. |

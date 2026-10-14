@@ -2,7 +2,7 @@
 
 > ## ⚠ SUPERSEDED — do not record from this file
 >
-> The script that ships with the submission is **`video-script-v2.md`** (measures 6:13–6:58
+> The script that ships with the submission is **`video-script-v2.md`** (measures 6:44–7:32
 > and covers the three things the handbook asks of the video, including the CodeBuddy build
 > reflection this one lacks).
 >

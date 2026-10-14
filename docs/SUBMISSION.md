@@ -626,11 +626,37 @@ re-energisation risk, tenant/SLA exposure, and a multi-month onboarding ramp.
 **Tan Wei Ming, Chief Engineer** (18 years M&E; employed by the property/facility
 manager) — the person who decides, at 08:09 on a live leak, whether to isolate the
 branch or the riser and whether anyone may re-energise. His knowledge is elicited by a
-**structured CDM + ACTA interview** (scripted and simulated in the demo), not a
-questionnaire: incident-anchored probes ("walk me through the last time…", "where did you make a real decision?"),
-novice-error probes, and a coverage audit that surfaces what he has *not* said. The
-contradiction probe is what extracts the tacit rule: the two statements about riser
-isolation are reconciled into the distinguishing condition that becomes TS-02.
+**structured CDM + ACTA interview**, not a questionnaire: incident-anchored probes
+("walk me through the last time…", "where did you make a real decision?"), novice-error
+probes, and a coverage audit that surfaces what he has *not* said.
+
+The eliciting surface is **`/teach`**, and three things about its shape are the design:
+
+1. **It opens with the situation, animated** — the Level 28 coupling, the water through
+   the ceiling void, the track along the conduit toward DB-27B. Judgement does not exist
+   in the abstract; it only appears against a case.
+2. **The first question is deliberately the widest one available** and everything after
+   it is chosen by what that account did *not* settle. "Still unknown" is computed
+   against the fields of an engine `Rule` (`lib/teach/parts`, every key proved at compile
+   time to be a real key of `Rule`), so the coverage board shows a genuine gap in a
+   genuine artefact rather than a position in a script. The exercise ends because nothing
+   is left to ask, not because the script ran out.
+3. **Answers are taps where a tap is the honest shape of the answer.** Each choice carries
+   a short `claim` token written in the pill's own vocabulary, so "Two metres" arrives as
+   the structured condition `evidence.distance_to_electrical_m lte 2` against a key
+   declared in `evidence.yaml` — no extraction step, and nothing for a model to
+   misread.
+
+That last point is what changes the contradiction claim. **The riser/sub-valve conflict is
+now computed, not reported.** Two answers about the same field of the same rule carrying
+different claims disagree, and `findContradiction` establishes it by comparing two
+strings; the condition that keeps both statements comes from the later question's own
+stated scenario rather than being generated. The resolution shape is unchanged and still
+the one the whole project insists on — generalise the earlier statement, make the later
+one specific, discard neither — and it is what becomes TS-02.
+
+The recorded 56-turn interview remains at `/capture` and is still the provenance every
+rule citation points into; it is replayed rather than led with.
 
 Knowledge also sits with the people on the floor. **Frontline capture** (§5.5) asks a
 technician *why* at the moment a gate blocks him, at job close-out, or from a QR code on
