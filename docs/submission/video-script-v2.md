@@ -140,11 +140,16 @@ acts that answer something he said was *already solved internally* carry none.
 > nothing there to hallucinate."
 
 **Production note — the voice takes are no longer needed.** Every line in this act is spoken
-by the product itself, pre-rendered (`gpt-4o-mini-tts`, `sage` for Keystone, `onyx` for the
-expert) and served as a static file, so it is identical on every take and works with the
-venue wifi down. There is no longer any point in the sidebar where a human voice stands in for
-a fictional engineer — which also removes the whole class of objection the claims audit
-raised. `~/Desktop/keystone-voice/` can stay empty.
+by the product itself, pre-rendered on **Tencent Cloud's MiniMax Speech 2.8 HD** via TokenHub
+(`English_Trustworth_Man` for the expert, `English_CalmWoman` for Keystone) and served as a
+static file, so it is identical on every take and works with the venue wifi down. There is no
+longer any point in the sidebar where a human voice stands in for a fictional engineer —
+which also removes the whole class of objection the claims audit raised.
+`~/Desktop/keystone-voice/` can stay empty.
+
+Worth a sentence in Act 11 if there is room: the synthesis endpoint is
+`/v1/wand/minimax-tts/sync_tts`, nothing like the OpenAI-compatible shape the same host
+serves chat on, which is exactly the kind of thing that costs an afternoon.
 
 ---
 

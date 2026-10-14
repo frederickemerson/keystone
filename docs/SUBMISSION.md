@@ -630,6 +630,13 @@ branch or the riser and whether anyone may re-energise. His knowledge is elicite
 ("walk me through the last time…", "where did you make a real decision?"), novice-error
 probes, and a coverage audit that surfaces what he has *not* said.
 
+Everything Keystone says out loud on that screen is spoken by **MiniMax Speech 2.8 HD on
+Tencent Cloud**, through TokenHub. The 72 fixed lines are rendered once and served as static
+files, so playback needs no key, spends no quota, and works with the venue network down; the
+screen names the model and voice that spoke each line rather than leaving it to be assumed.
+Region is recorded as `tokenhub-intl`, which is the gateway it actually reaches — not claimed
+as Singapore, which is the separate chat inference service.
+
 The eliciting surface is **`/teach`**, and three things about its shape are the design:
 
 1. **It opens with the situation, animated** — the Level 28 coupling, the water through
