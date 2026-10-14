@@ -72,7 +72,7 @@ export function ScenarioStage({ stage, stages, className }: ScenarioStageProps) 
       `}</style>
 
       <svg
-        viewBox="0 0 400 220"
+        viewBox="0 0 400 212"
         className="w-full rounded-xl border border-line bg-cream-paper"
         role="img"
         aria-labelledby="scn-title scn-desc"
@@ -88,12 +88,12 @@ export function ScenarioStage({ stage, stages, className }: ScenarioStageProps) 
         <g className="text-line-strong" stroke="currentColor" strokeWidth="1.5">
           <path d="M20 46 H380" />
           <path d="M20 112 H380" />
-          <path d="M20 178 H380" />
+          <path d="M20 196 H380" />
         </g>
         <g className="fill-ink-muted font-mono" fontSize="9">
           <text x="26" y="40">L28</text>
           <text x="26" y="106">L27 · bank tenant</text>
-          <text x="26" y="172">L26</text>
+          <text x="26" y="190">L26</text>
         </g>
 
         {/* The ceiling void of L28, hatched. */}
@@ -194,17 +194,20 @@ export function ScenarioStage({ stage, stages, className }: ScenarioStageProps) 
           {hazard && (
             <rect x="300" y="88" width="54" height="56" rx="2" className="scn-throb fill-blocked" opacity="0.35" />
           )}
-          <text x="327" y="112" textAnchor="middle" className="fill-ink font-mono" fontSize="8">
+          <text x="327" y="114" textAnchor="middle" className="fill-ink font-mono" fontSize="8">
             DB-27B
           </text>
-          <text x="327" y="124" textAnchor="middle" className="fill-ink-muted font-mono" fontSize="7">
-            riser cupboard
-          </text>
           {hazard && (
-            <text x="327" y="137" textAnchor="middle" className="fill-blocked font-mono" fontSize="7">
+            <text x="327" y="128" textAnchor="middle" className="fill-cream-paper font-mono" fontSize="7">
               live
             </text>
           )}
+          {/* Outside the box, not inside it: at 7px in a 400-unit viewBox this
+              label is about 59 units of monospace and the box is 54, so inside
+              it overflowed the border — visible in the first 1080p capture. */}
+          <text x="327" y="156" textAnchor="middle" className="fill-ink-muted font-mono" fontSize="7">
+            riser cupboard
+          </text>
         </g>
 
         {/* The measure that becomes the rule. It appears last, unlabelled by a number:
@@ -212,10 +215,10 @@ export function ScenarioStage({ stage, stages, className }: ScenarioStageProps) 
             the drawing should answer first. */}
         {hazard && (
           <g className="text-marker" stroke="currentColor" strokeWidth="1.2">
-            <path d="M236 150 H298" strokeDasharray="3 3" />
-            <path d="M236 146 V154" />
-            <path d="M298 146 V154" />
-            <text x="267" y="165" textAnchor="middle" className="fill-marker font-mono" fontSize="8" stroke="none">
+            <path d="M236 170 H298" strokeDasharray="3 3" />
+            <path d="M236 166 V174" />
+            <path d="M298 166 V174" />
+            <text x="267" y="185" textAnchor="middle" className="fill-marker font-mono" fontSize="8" stroke="none">
               how close is too close?
             </text>
           </g>
