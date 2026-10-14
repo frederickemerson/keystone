@@ -50,17 +50,17 @@ acts that answer something he said was *already solved internally* carry none.
 
 | | |
 | --- | --- |
-| **Visual** | Hard cut, already mid-question. Chat box: *"After a chilled water leak, who must approve re-energising?"* Answer streams in fast. Slow push-in. |
-| **Motion gfx** | Marker-circle **Duty Engineer** and **v2.1**. Both stamp **red**. Corner counter spins to `2.9s`. |
+| **Visual** | Hard cut, already mid-question. A plain chat box — deliberately NOT Keystone, no product chrome: *"After a chilled water leak, who must approve re-energising?"* Answer streams in fast. Slow push-in. |
+| **Motion gfx** | Marker-circle the rule id and the version number it quotes. Both stamp **amber — unverifiable**, not red-wrong. Corner counter spins to `2s`. |
 | **Music** | In on frame one. Driving. No build-up — we're already moving. |
 
 > **VO:**
 > "An AI agent. Asked who signs off before you re-energise after a flood.
 > [beat]
-> Two point nine seconds. Confident. Cites a rule, cites a version.
+> Two seconds. Confident. It cites a rule, and it cites a version number.
 > [beat]
-> Both wrong. That version number doesn't exist — it made it up. And nothing on this screen
-> tells you that."
+> And you have no way to tell whether it read that somewhere or made it up. Nothing on this
+> screen is checkable. That is the whole problem."
 
 ---
 
@@ -220,13 +220,14 @@ rather than cutting around.
 | **Music** | Full lift. This is the turn. |
 
 > **VO:**
-> "Same agent. Same question. Same two seconds.
+> "Now the same question, to the agent the approved pill is published to.
 > [beat]
-> Duty LEW. All three items. Rule TS-07, version one-two-zero.
+> Duty LEW. All three items. Rule TS-07, version one-two-zero — and it tells you it pulled
+> five passages out of the pill to answer.
 > [beat]
-> And it tells you it pulled five passages from the approved pill to answer — so when it
-> pulls nothing, you see that too. We caught it doing exactly that on the live site. A
-> confident guess and a real answer look identical. Unless you measure it."
+> Then ask it something the pill does not cover. 'This is not covered by an approved pill.'
+> It would rather tell you nothing than tell you something. A confident guess and a real
+> answer look identical — unless something measures the difference."
 
 ---
 
@@ -403,10 +404,16 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 - **Act 3 and Act 9 are the two that answer things Keppel said they had NOT solved.** Give
   them the energy. Act 9 especially — slow down for the "it does not write a rule" line; it
   is the single most load-bearing sentence in the submission.
-- **Everything here is real and already on screen in the product** — the 2.9s, the invented
-  v2.1, five passages, the follow-up thread counter, the attribution line, the reason
-  sentence, `INC-2026-0923`, 4/3/6 recurrence, `distance_to_electrical_m`. Nothing in this
-  script needs a mock-up.
+- **Everything here is real and already on screen in the product** — five passages, the
+  refusal line "This is not covered by an approved pill", the follow-up thread counter, the
+  attribution line, the reason sentence, `INC-2026-0923`, 4/3/6 recurrence,
+  `distance_to_electrical_m`. All of it is recorded footage of the deployed site.
+- **Act 0 is the one deliberate exception, and it is not a product shot.** An earlier draft
+  claimed the agent invented a version number, "v2.1". That was never observed — and asking
+  the published agent something outside the pill produces the OPPOSITE behaviour: it answers
+  "This is not covered by an approved pill." So Act 0 is a generic chat box with no Keystone
+  chrome, illustrating the situation any ungoverned assistant puts you in, and Act 5 answers
+  it with two real frames: the grounded answer, and the refusal.
 - **Every path in this script has now been run in production**, including the frontline
   capture path in Act 3, which was the last one outstanding: 11 checks, all passing. The
   only thing left to confirm on the day is that the recording you make matches the figures

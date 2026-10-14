@@ -1,0 +1,19 @@
+# Recorded footage and generated narration: ~90 MB of derived media, and every
+# byte of it is reproducible from the scripts in this directory —
+# record-footage.mjs against the deployed site, narrate.mjs against TokenHub.
+# The film's source is the compositions, the config and the script; the media
+# is build output.
+assets/footage/
+assets/audio/
+assets/stills/
+out/
+node_modules/
+.hyperframes/artifacts/
+script.json
+narration.json
+footage.json
+.hyperframes/
+.thumbnails/
+.transcode-cache/
+.waveform-cache/
+timings.json
