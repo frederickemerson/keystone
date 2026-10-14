@@ -35,7 +35,9 @@ describe('navigation', () => {
 describe('demo cast', () => {
   it('derives the cast and each part from the demo path', () => {
     expect(storyRoles()[0]).toBe(DEMO_PATH[0].role);
-    expect(storyLine('chief_engineer')).toBe('Hear the expert, confirm the rule and propose it as a new version');
+    expect(storyLine('chief_engineer')).toBe(
+      'Teach a skill, hear where it came from, confirm the rule and propose it as a new version',
+    );
     expect(storyLine('nobody')).toBe('');
   });
 

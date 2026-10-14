@@ -42,13 +42,24 @@ export interface DemoStep {
 
 export const DEMO_PATH: readonly DemoStep[] = [
   {
+    id: 'teach-skill',
+    stage: 'capture',
+    title: 'Teach a skill',
+    role: 'chief_engineer',
+    href: routes.teach(),
+    doThis:
+      'Step through the situation, answer the open question in your own words, then answer the few that follow. Say the riser first, and the sub-valve when the branch-leak case comes up.',
+    notice:
+      'The board on the right is the fields of a real rule, not a position in a script — and when your two isolation answers disagree, nothing had to read them to notice.',
+  },
+  {
     id: 'hear-expert',
     stage: 'capture',
-    title: 'Hear the expert',
+    title: 'Hear where it came from',
     role: 'chief_engineer',
     href: routes.capture(DEMO_EXPERT_TIMESTAMP),
-    doThis: 'Play the onboarding call from 00:14:32, where the retiring Chief Engineer explains the LEW rule.',
-    notice: 'Rule TS-07 appears beside the transcript, linked to his exact words.',
+    doThis: 'Play the recorded onboarding call from 00:14:32, where the retiring Chief Engineer explains the LEW rule.',
+    notice: 'Rule TS-07 appears beside the transcript, linked to his exact words — this transcript is what every provenance citation points into.',
   },
   {
     id: 'confirm-rule',
