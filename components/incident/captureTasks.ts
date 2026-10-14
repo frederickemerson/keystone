@@ -30,6 +30,7 @@ const KIND_CODE: Record<CaptureTaskKind, string> = {
   job_closeout: 'JC',
   asset_qr: 'QR',
   agent_answer_disputed: 'AD',
+  new_skill_candidate: 'NS',
 };
 
 /**
@@ -70,12 +71,16 @@ export const PROMPT_SECONDS: Record<CaptureTaskKind, number> = {
   asset_qr: 20,
   // A disputed answer needs the correction said properly, not a soundbite.
   agent_answer_disputed: 30,
+  // Explaining how you solved something nobody had a rule for is the longest
+  // ask in the system, and the most valuable answer in it.
+  new_skill_candidate: 45,
 };
 
 /** Headline shown on the task card. */
 export function taskHeadline(kind: CaptureTaskKind): string {
   if (kind === 'job_closeout') return `Close-out note — ${PROMPT_SECONDS[kind]} seconds`;
   if (kind === 'agent_answer_disputed') return `Put it right — ${PROMPT_SECONDS[kind]} seconds`;
+  if (kind === 'new_skill_candidate') return `How did you solve it? — ${PROMPT_SECONDS[kind]} seconds`;
   return `Tell us why — ${PROMPT_SECONDS[kind]} seconds`;
 }
 
@@ -160,6 +165,43 @@ export function buildAgentDisputeTask(input: {
     createdAt: input.at,
     createdFor: input.role,
     prompt: agentDisputePrompt(input.question, input.grounded, PROMPT_SECONDS.agent_answer_disputed),
+  };
+}
+
+/**
+ * The question a new-skill candidate asks.
+ *
+ * It asks for the REASONING, not the fix. The record already holds what was
+ * done — the outcome field says so. What is missing is how the person knew to
+ * look where they looked, and that is the part that becomes a rule.
+ */
+export function newSkillPrompt(incidentId: string, seconds: number): string {
+  return `${incidentId} was solved, but no rule in any approved pill fired on it. How did you know where to look? (${seconds} s)`;
+}
+
+/**
+ * The replay found a solved incident no approved rule accounts for.
+ *
+ * The only task Keystone raises about ITSELF rather than about a person's
+ * decision: nobody did anything wrong, the record simply holds judgement the
+ * pills do not. It carries no rule id on purpose — which rule, and which pill,
+ * is what the answer is for.
+ */
+export function buildNewSkillTask(input: {
+  incidentId: string;
+  assetId: string;
+  /** The role being asked how they solved it. */
+  role: string;
+  at: string;
+}): NewCaptureTask {
+  return {
+    id: newCaptureTaskId('new_skill_candidate', [input.incidentId], input.at),
+    kind: 'new_skill_candidate',
+    incidentId: input.incidentId,
+    assetId: input.assetId,
+    createdAt: input.at,
+    createdFor: input.role,
+    prompt: newSkillPrompt(input.incidentId, PROMPT_SECONDS.new_skill_candidate),
   };
 }
 

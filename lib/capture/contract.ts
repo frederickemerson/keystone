@@ -89,6 +89,7 @@ export const CAPTURE_TASK_KINDS = [
   "job_closeout",
   "asset_qr",
   "agent_answer_disputed",
+  "new_skill_candidate",
 ] as const;
 export type CaptureTaskKind = (typeof CAPTURE_TASK_KINDS)[number];
 
@@ -106,6 +107,13 @@ export type CaptureTaskStatus = (typeof CAPTURE_TASK_STATUSES)[number];
  *   raised by a reader of the agent's answer. It exists because that exchange
  *   is otherwise the most perishable knowledge in the building — a question
  *   asked, answered badly, corrected out loud, and lost.
+ * - new_skill_candidate: the replay found a SOLVED incident that no rule in
+ *   any approved pill fired on, so incidentId is required — the whole claim is
+ *   about that one incident, and a reader has to be able to go and read it.
+ *   This is the only task kind Keystone raises about itself rather than about
+ *   a person's decision: nobody did anything wrong, the record simply contains
+ *   judgement the pills do not. pillId is deliberately NOT required, because
+ *   which pill should learn this is exactly what is being asked.
  * - answered ⇔ answeredBy + noteId; dismissed ⇒ answeredBy (who dismissed), no note;
  *   open ⇒ neither.
  */
@@ -140,6 +148,10 @@ export const captureTaskSchema = z
     if (t.kind === "agent_answer_disputed") {
       need(t.pillId !== undefined, "pillId", "a disputed agent answer needs the pill whose agent answered");
     }
+    if (t.kind === "new_skill_candidate") {
+      need(t.incidentId !== undefined, "incidentId", "a new-skill candidate names the incident no rule covered");
+      need(t.ruleId === undefined, "ruleId", "a new-skill candidate has no rule — that is the point of it");
+    }
     if (t.kind === "asset_qr") need(t.incidentId === undefined, "incidentId", "asset_qr tasks are not tied to an incident");
     if (t.status === "open") {
       need(t.answeredBy === undefined && t.noteId === undefined, "status", "an open task has no answer");
@@ -171,6 +183,10 @@ export function captureTaskDedupeKey(t: Pick<CaptureTask, "kind" | "incidentId" 
       // answer is one question for the expert, not two. A dispute that names no
       // rule (the agent cited nothing) dedupes on the pill instead.
       return `${t.kind}|${t.ruleId ?? t.assetId}|${t.createdFor}`;
+    case "new_skill_candidate":
+      // One open question per uncovered incident per role. Re-running the
+      // replay must not raise it again while the first is still unanswered.
+      return `${t.kind}|${t.incidentId ?? ""}|${t.createdFor}`;
   }
 }
 

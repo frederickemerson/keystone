@@ -1,0 +1,80 @@
+{
+  "incident_id": "INC-2026-0923",
+  "asset_id": "asset-hf1",
+  "asset_name": "Harbourfront One",
+  "timeline_version": "1.0.0",
+  "events": [
+    {
+      "id": "EV-0923-01",
+      "at": "2026-09-23T09:40:00+08:00",
+      "source": "iBMS",
+      "type": "sensor_anomaly",
+      "text": "Monthly plant review: CHW plant kWh is running roughly 18% above the September baseline, four days running. No alarm has been raised — every point is inside its limits, the total is simply high.",
+      "evidence_updates": {},
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0923-02",
+      "at": "2026-09-23T11:15:00+08:00",
+      "source": "technical_services",
+      "type": "inspection",
+      "text": "Plant walked down. Chiller approach temperatures normal, CHW supply 6.5 °C and return 12.4 °C as designed, condenser water loop clean, no valve hunting on the AHU risers. Nothing is faulty.",
+      "evidence_updates": {},
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0923-03",
+      "at": "2026-09-24T08:55:00+08:00",
+      "source": "technical_services",
+      "type": "note",
+      "text": "Consumption profile checked against the weather: the spike tracks a run of 34 °C days at high humidity, not any plant event. Load is highest on the east side between 08:00 and 11:00 and on the west side after 14:00.",
+      "evidence_updates": {},
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0923-04",
+      "at": "2026-09-24T15:30:00+08:00",
+      "source": "technician",
+      "type": "observation",
+      "text": "Walked the east-façade floors in the morning peak. Occupiers near the glazing had set local setpoints to the minimum and several had brought in desk fans. The zone was overcooling the core while the perimeter still read warm.",
+      "evidence_updates": {},
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0923-05",
+      "at": "2026-09-25T10:20:00+08:00",
+      "source": "technical_services",
+      "type": "note",
+      "text": "Fresh-air dampers are on a fixed schedule. On these days the intake air has to be cooled much harder to bring the humidity down, so the ventilation schedule is paying for comfort twice. Closing it is not an option — indoor air quality is a lease commitment.",
+      "evidence_updates": {},
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0923-06",
+      "at": "2026-09-25T16:00:00+08:00",
+      "source": "technical_services",
+      "type": "action",
+      "text": "Trial agreed: bring east-zone pre-cool forward by 45 minutes, trim fresh-air intake between 12:00 and 15:00 while staying inside the ventilation standard, and leave the west zone unchanged as a control.",
+      "evidence_updates": {},
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0923-07",
+      "at": "2026-09-26T09:10:00+08:00",
+      "source": "iBMS",
+      "type": "observation",
+      "text": "First full day on the new sequence: plant kWh back within 4% of baseline, perimeter temperatures steadier through the morning, no increase in warm calls from the east floors.",
+      "evidence_updates": {},
+      "sensitivity": "internal"
+    },
+    {
+      "id": "EV-0923-08",
+      "at": "2026-09-26T17:05:00+08:00",
+      "source": "technical_services",
+      "type": "note",
+      "text": "Closed. Schedule held for the rest of the hot spell. Worth saying plainly: no rule told anyone to look at the façade orientation or the humidity before suspecting the plant. That came from having seen it before.",
+      "evidence_updates": {},
+      "sensitivity": "internal"
+    }
+  ]
+}

@@ -38,7 +38,9 @@ describe("data loaders (zod-validated)", () => {
     for (const inc of loadIncidents().filter((i) => i.timeline_ref)) {
       expect(loadTimeline(inc.id)?.incident_id).toBe(inc.id);
     }
-    expect(loadAllTimelines().length).toBe(3);
+    // Derived, not a hardcoded count: a timeline exists for exactly the
+    // incidents that claim one, so adding an incident cannot leave this stale.
+    expect(loadAllTimelines().length).toBe(loadIncidents().filter((i) => i.timeline_ref).length);
     expect(loadTimeline("INC-NOPE")).toBeUndefined();
   });
 

@@ -23,6 +23,7 @@ const KIND: Record<CaptureTaskKind, { label: string; tone: Tone }> = {
   job_closeout: { label: 'Job close-out', tone: 'neutral' },
   asset_qr: { label: 'QR scan', tone: 'neutral' },
   agent_answer_disputed: { label: 'Agent answer disputed', tone: 'escalate' },
+  new_skill_candidate: { label: 'Possible new skill', tone: 'neutral' },
 };
 
 export interface CaptureTaskCardProps {

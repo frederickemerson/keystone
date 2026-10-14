@@ -10,7 +10,12 @@
     "opened_at": "2026-10-11T08:02:18+08:00",
     "opened_by": "iBMS auto-alarm",
     "location": "L23 ceiling void / CHW riser R2 branch above L22 tenant ceiling",
-    "affected_systems": ["AHU-23-01", "CHW-R2", "ISV-L23-CHW", "DB-23A"],
+    "affected_systems": [
+      "AHU-23-01",
+      "CHW-R2",
+      "ISV-L23-CHW",
+      "DB-23A"
+    ],
     "affected_tenant": {
       "name": "Straits Meridian Bank",
       "floors": "20-26",
@@ -25,7 +30,11 @@
         "decision": "Re-energise AHU-23-01 / DB-23A",
         "action_class": "must_escalate",
         "status": "blocked",
-        "missing_evidence": ["lew_signoff", "insulation_resistance_ok", "area_dry"],
+        "missing_evidence": [
+          "lew_signoff",
+          "insulation_resistance_ok",
+          "area_dry"
+        ],
         "escalate_to": {
           "role": "duty_lew",
           "fallback": "head_technical_services",
@@ -71,7 +80,11 @@
     "evidence_coverage": {
       "required": 3,
       "confirmed": 0,
-      "pending": ["lew_signoff", "insulation_resistance_ok", "area_dry"]
+      "pending": [
+        "lew_signoff",
+        "insulation_resistance_ok",
+        "area_dry"
+      ]
     },
     "timeline_ref": "data/timelines/INC-2026-1011.json",
     "audit_trail": [
@@ -106,7 +119,12 @@
     "opened_at": "2026-10-11T09:15:00+08:00",
     "opened_by": "iBMS / DCIM auto-alarm",
     "location": "Data Hall 2, CRAH-DH2-01 condensate drain pan / CHW branch",
-    "affected_systems": ["CRAH-DH2-01", "CRAH-DH2-02", "CHW-DC-LOOP-A", "ISV-DC-DH2"],
+    "affected_systems": [
+      "CRAH-DH2-01",
+      "CRAH-DH2-02",
+      "CHW-DC-LOOP-A",
+      "ISV-DC-DH2"
+    ],
     "affected_client": {
       "name": "hyperscale client (confidential)",
       "halls": "DH-1, DH-2",
@@ -124,7 +142,12 @@
         "decision": "Re-energise CRAH-DH2-01",
         "action_class": "must_escalate",
         "status": "blocked",
-        "missing_evidence": ["lew_signoff", "insulation_resistance_ok", "area_dry", "cfm_cosign"],
+        "missing_evidence": [
+          "lew_signoff",
+          "insulation_resistance_ok",
+          "area_dry",
+          "cfm_cosign"
+        ],
         "escalate_to": {
           "role": "dc_critical_facilities_manager",
           "name": "Steven Wong",
@@ -170,10 +193,40 @@
     "evidence_coverage": {
       "required": 4,
       "confirmed": 0,
-      "pending": ["lew_signoff", "insulation_resistance_ok", "area_dry", "cfm_cosign"]
+      "pending": [
+        "lew_signoff",
+        "insulation_resistance_ok",
+        "area_dry",
+        "cfm_cosign"
+      ]
     },
     "timeline_ref": "data/timelines/INC-2026-1012.json",
     "reuse_demo_note": "Same Technical Services pill applied to the colocation DC profile: the tenant first notice (TE-01) disappears, the client SLA notice via the CFM (TE-06) appears, and TS-07 escalates to the Critical Facilities Manager. Model swap (hy4-preview -> deepseek-v4-pro) gives the identical decision because gates are deterministic."
+  },
+  {
+    "id": "INC-2026-0923",
+    "asset_id": "asset-hf1",
+    "asset_name": "Harbourfront One",
+    "type": "energy_anomaly",
+    "subtype": "cooling_demand_spike",
+    "status": "closed",
+    "severity": "low",
+    "opened_at": "2026-09-23T09:40:00+08:00",
+    "opened_by": "Sustainable Facility Manager",
+    "closed_at": "2026-09-26T17:05:00+08:00",
+    "location": "Chiller plant B1 / east-façade zones L08-L19, Harbourfront One",
+    "affected_systems": [
+      "chiller_plant",
+      "ahu",
+      "fresh_air_intake"
+    ],
+    "description": "Chilled-water plant consumption ran about 18% above the September baseline for four consecutive days during a hot, humid spell. Chiller approach temperatures, CHW supply and return temperatures and AHU valve positions were all within specification, and no alarm was raised. The plant was healthy; the demand was not. Opened under the chilled-water-leak pill because it is the closest approved pill this site has for a plant-room anomaly — none of its rules turned out to apply.",
+    "pill_applied": "technical-services/chilled-water-leak",
+    "pill_version": "1.2.0",
+    "outcome": "Resolved by re-sequencing morning pre-cool towards the east façade and trimming fresh-air intake during the peak humidity hours, then holding the new schedule for the rest of the hot spell. No fault was found and no work order was raised against any equipment. The judgement that solved it — read the façade and the humidity before suspecting the plant — is not written down anywhere.",
+    "flagged_for_learning": true,
+    "learning_note": "No rule in any approved pill fired on this incident's replay. It was solved by a person reading the building, and the record holds the outcome but not the reasoning. This is the 'is this a new skill?' case: a candidate for elicitation, not a rule anyone can write yet.",
+    "timeline_ref": "data/timelines/INC-2026-0923.json"
   },
   {
     "id": "INC-2026-0901",
