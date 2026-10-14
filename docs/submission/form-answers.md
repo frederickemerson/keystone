@@ -176,8 +176,28 @@ Keystone was built with CodeBuddy Code (Plan mode on Hunyuan hy4-preview, sub-ag
 ## Demo video (optional, 5 to 8 minutes)
 
 ```
-[VIDEO LINK]: record from docs/submission/video-script-v2.md (measures 6:44-7:32)
+[VIDEO LINK]: upload videos/keystone-demo/out/keystone-demo-upload.mp4, then paste the link here
 ```
+
+**Rendered 15 Oct 2026 — 7m 01s, 1920x1080, 30 fps.** Inside the handbook's 5-8
+minutes. Two files:
+
+| File | Size | Use |
+| --- | --- | --- |
+| `out/keystone-demo-upload.mp4` | 121 MB | the one to upload (H.264, faststart) |
+| `out/keystone-demo.mp4` | 236 MB | the master the upload copy came from |
+
+The film is **generated from `video-script-v2.md`**, not cut by hand: the
+project at `videos/keystone-demo` reads the script, measures the narration, and
+writes all thirteen act compositions and the main timeline. Changing a line of
+the script and re-running `node scripts/build-film.mjs` moves everything after
+it, so the film cannot drift from what the script says. `npx hyperframes check`
+passes with 0 errors.
+
+Narration is MiniMax Speech 2.8 HD through Tencent TokenHub. Every product shot
+is recorded from the deployed site; the only two scenes that are not product
+footage are the cold open (deliberately a generic assistant, no Keystone
+chrome) and the close.
 
 ## Project link (optional, earns bonus points)
 
