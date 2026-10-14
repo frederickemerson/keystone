@@ -12,7 +12,7 @@ import { resolveStatuses } from '@/lib/connectors/ai-status';
 import { readAiConfig } from '@/lib/connectors/ai-status.server';
 import { evidenceUses, type EvidenceUse } from '@/lib/connectors/evidence-uses';
 import { CONNECTORS, STATUS_LEGEND, groupConnectors } from '@/lib/connectors/registry';
-import { loadTimeline, type TimelineEvent } from '@/lib/data';
+import { loadAssets, loadTimeline, type TimelineEvent } from '@/lib/data';
 import { UNRESOLVED_ROLE } from '@/lib/governance/access';
 import { scopeTimelineEvent } from '@/lib/governance/scope';
 import { loadAllPills } from '@/lib/pills/load';
@@ -42,6 +42,17 @@ export default async function ConnectorsPage() {
   const adpAskable = aiConfig.adp?.state !== undefined && aiConfig.adp.state !== 'not_configured';
   const pills = loadAllPills();
   const uses = evidenceUses(pills);
+  // What a disputed answer needs. The rule list comes from the pill rather than
+  // being parsed out of the agent's prose: the reader says which rule they mean.
+  const primaryPill = pills[0];
+  const dispute = primaryPill
+    ? {
+        pillId: primaryPill.id,
+        rules: primaryPill.pill.rules.map((r) => ({ id: r.id, title: r.title })),
+        assets: loadAssets().map((a) => ({ id: a.id, name: a.name })),
+        roles: ['head_technical_services', 'chief_engineer', 'asset_operations_manager'],
+      }
+    : undefined;
   const labels: Record<string, string> = {};
   for (const { pill } of pills) for (const [key, entry] of Object.entries(pill.evidenceCatalog)) labels[key] ??= entry.label;
 
@@ -89,6 +100,7 @@ export default async function ConnectorsPage() {
                 keys={keyViews(c, labels, uses)}
                 sample={sampleEvent(c, role)}
                 canAsk={c.id === 'adp_chat' && adpAskable}
+                dispute={dispute}
               />
             ))}
           </ul>

@@ -83,7 +83,13 @@ const assetRefSchema = z.string().refine((id) => resolveAssetRef(id) !== null, {
 // 1. CaptureTask
 // ---------------------------------------------------------------------------
 
-export const CAPTURE_TASK_KINDS = ["gate_override", "gate_blocked", "job_closeout", "asset_qr"] as const;
+export const CAPTURE_TASK_KINDS = [
+  "gate_override",
+  "gate_blocked",
+  "job_closeout",
+  "asset_qr",
+  "agent_answer_disputed",
+] as const;
 export type CaptureTaskKind = (typeof CAPTURE_TASK_KINDS)[number];
 
 export const CAPTURE_TASK_STATUSES = ["open", "answered", "dismissed"] as const;
@@ -94,6 +100,12 @@ export type CaptureTaskStatus = (typeof CAPTURE_TASK_STATUSES)[number];
  *   incident, so incidentId, ruleId and pillId are required.
  * - job_closeout: an incident/work-order close-out; incidentId required.
  * - asset_qr: someone scanned /c/[assetId]; no incident.
+ * - agent_answer_disputed: a published agent answered a question and a human
+ *   marked the answer wrong or incomplete, so pillId is required (which pill's
+ *   agent). This is the one task kind NOT raised by Keystone itself: it is
+ *   raised by a reader of the agent's answer. It exists because that exchange
+ *   is otherwise the most perishable knowledge in the building — a question
+ *   asked, answered badly, corrected out loud, and lost.
  * - answered ⇔ answeredBy + noteId; dismissed ⇒ answeredBy (who dismissed), no note;
  *   open ⇒ neither.
  */
@@ -125,6 +137,9 @@ export const captureTaskSchema = z
       need(t.pillId !== undefined, "pillId", `${t.kind} tasks need the pill`);
     }
     if (t.kind === "job_closeout") need(t.incidentId !== undefined, "incidentId", "close-out tasks need the incident");
+    if (t.kind === "agent_answer_disputed") {
+      need(t.pillId !== undefined, "pillId", "a disputed agent answer needs the pill whose agent answered");
+    }
     if (t.kind === "asset_qr") need(t.incidentId === undefined, "incidentId", "asset_qr tasks are not tied to an incident");
     if (t.status === "open") {
       need(t.answeredBy === undefined && t.noteId === undefined, "status", "an open task has no answer");
@@ -151,6 +166,11 @@ export function captureTaskDedupeKey(t: Pick<CaptureTask, "kind" | "incidentId" 
       return `${t.kind}|${t.incidentId ?? ""}|${t.createdFor}`;
     case "asset_qr":
       return `${t.kind}|${t.assetId}|${t.createdFor}`;
+    case "agent_answer_disputed":
+      // One open dispute per rule per role: two people flagging the same wrong
+      // answer is one question for the expert, not two. A dispute that names no
+      // rule (the agent cited nothing) dedupes on the pill instead.
+      return `${t.kind}|${t.ruleId ?? t.assetId}|${t.createdFor}`;
   }
 }
 

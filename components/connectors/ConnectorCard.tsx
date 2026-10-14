@@ -8,7 +8,7 @@ import type { EvidenceUse } from '@/lib/connectors/evidence-uses';
 import type { TimelineEvent } from '@/lib/data/schemas';
 import { routes } from '@/lib/journey/routes';
 import { EvidenceTimeline } from '@/components/mosaic/EvidenceTimeline';
-import { AdpAgentProbe } from './AdpAgentProbe';
+import { AdpAgentProbe, type DisputeContext } from './AdpAgentProbe';
 import { BrowserSpeechStatus } from './BrowserSpeechStatus';
 import { StatusChip } from './StatusChip';
 
@@ -30,6 +30,8 @@ type Props = {
    * and a button that always fails is worse than no button.
    */
   canAsk?: boolean;
+  /** What a disputed answer needs to become a question for the expert. */
+  dispute?: DisputeContext;
 };
 
 function gateLine(c: Connector): string | null {
@@ -67,7 +69,7 @@ function KeyList({ keys }: { keys: ConnectorKeyView[] }) {
   );
 }
 
-export function ConnectorCard({ connector: c, status, keys, sample, canAsk = false }: Props) {
+export function ConnectorCard({ connector: c, status, keys, sample, canAsk = false, dispute }: Props) {
   const gate = gateLine(c);
   return (
     <li id={c.id} className="card-paper scroll-mt-24 space-y-3 p-5 target:ring-2 target:ring-accent">
@@ -89,7 +91,7 @@ export function ConnectorCard({ connector: c, status, keys, sample, canAsk = fal
         </div>
       ) : null}
       {gate ? <p className="text-[13px] text-ink">{gate}</p> : null}
-      {canAsk ? <AdpAgentProbe /> : null}
+      {canAsk && dispute ? <AdpAgentProbe dispute={dispute} /> : null}
       {sample ? (
         <details className="rounded-lg border border-line bg-surface p-3">
           <summary className="cursor-pointer text-[13px] font-medium text-ink">Sample event ({sample.id}, recorded)</summary>

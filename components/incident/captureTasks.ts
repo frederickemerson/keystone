@@ -29,6 +29,7 @@ const KIND_CODE: Record<CaptureTaskKind, string> = {
   gate_override: 'GO',
   job_closeout: 'JC',
   asset_qr: 'QR',
+  agent_answer_disputed: 'AD',
 };
 
 /**
@@ -67,13 +68,15 @@ export const PROMPT_SECONDS: Record<CaptureTaskKind, number> = {
   gate_override: 20,
   job_closeout: 10,
   asset_qr: 20,
+  // A disputed answer needs the correction said properly, not a soundbite.
+  agent_answer_disputed: 30,
 };
 
 /** Headline shown on the task card. */
 export function taskHeadline(kind: CaptureTaskKind): string {
-  return kind === 'job_closeout'
-    ? `Close-out note — ${PROMPT_SECONDS[kind]} seconds`
-    : `Tell us why — ${PROMPT_SECONDS[kind]} seconds`;
+  if (kind === 'job_closeout') return `Close-out note — ${PROMPT_SECONDS[kind]} seconds`;
+  if (kind === 'agent_answer_disputed') return `Put it right — ${PROMPT_SECONDS[kind]} seconds`;
+  return `Tell us why — ${PROMPT_SECONDS[kind]} seconds`;
 }
 
 function gatePrompt(kind: GateTaskKind, ruleId: string, step: number | undefined): string {
@@ -104,6 +107,59 @@ export function buildGateTask(input: {
     createdAt: input.at,
     createdFor: input.role,
     prompt: gatePrompt(input.kind, input.ruleId, input.step),
+  };
+}
+
+/** Longest question the schema accepts; the quoted question is trimmed to fit. */
+const PROMPT_LIMIT = 280;
+
+/**
+ * The question a disputed agent answer puts to the expert.
+ *
+ * The reader's own question is quoted back, because that is the part that
+ * carries what they were actually trying to find out — and it is the part that
+ * normally evaporates. It is trimmed rather than dropped so the prompt always
+ * fits the schema's limit.
+ */
+export function agentDisputePrompt(question: string, grounded: boolean, seconds: number): string {
+  const head = grounded
+    ? 'Our published agent answered this and a reader says it is wrong:'
+    : 'Our published agent answered this with nothing from the pill behind it:';
+  const tail = ` What is the right answer? (${seconds} s)`;
+  const room = PROMPT_LIMIT - head.length - tail.length - 3; // 3 = space + the two quote marks
+  const asked = question.trim();
+  const quoted = asked.length > room ? `${asked.slice(0, Math.max(0, room - 1)).trimEnd()}…` : asked;
+  return `${head} “${quoted}”${tail}`;
+}
+
+/**
+ * A reader marked a published agent's answer wrong or incomplete.
+ *
+ * The one task kind Keystone does not raise for itself. It exists because this
+ * exchange — question asked, answered badly, corrected out loud, forgotten — is
+ * the most perishable knowledge there is, and the usual fate of it is nothing.
+ */
+export function buildAgentDisputeTask(input: {
+  pillId: string;
+  assetId: string;
+  /** The rule the reader says this is about, when the answer was about one. */
+  ruleId?: string;
+  /** The role being asked to put it right. */
+  role: string;
+  question: string;
+  /** Whether the agent retrieved anything from the pill before answering. */
+  grounded: boolean;
+  at: string;
+}): NewCaptureTask {
+  return {
+    id: newCaptureTaskId('agent_answer_disputed', [input.pillId, input.ruleId ?? 'no-rule'], input.at),
+    kind: 'agent_answer_disputed',
+    assetId: input.assetId,
+    ruleId: input.ruleId,
+    pillId: input.pillId,
+    createdAt: input.at,
+    createdFor: input.role,
+    prompt: agentDisputePrompt(input.question, input.grounded, PROMPT_SECONDS.agent_answer_disputed),
   };
 }
 

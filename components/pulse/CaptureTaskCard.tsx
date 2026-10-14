@@ -22,6 +22,7 @@ const KIND: Record<CaptureTaskKind, { label: string; tone: Tone }> = {
   gate_override: { label: 'Gate overridden', tone: 'escalate' },
   job_closeout: { label: 'Job close-out', tone: 'neutral' },
   asset_qr: { label: 'QR scan', tone: 'neutral' },
+  agent_answer_disputed: { label: 'Agent answer disputed', tone: 'escalate' },
 };
 
 export interface CaptureTaskCardProps {
