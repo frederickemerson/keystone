@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Keystone — solution deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:#fdfbf9; --dew:#f7efe9; --charcoal:#171717; --cocoa:#2b1a07; --muted:#5f5a55; --line:#d9d3cd;
+    --marker:#ff6f1e; --blocked:#b42318; --blocked-bg:#fdecea; --escalate:#ce500a;
+    --approve:#a15c07; --approve-bg:#fdf6e3; --ok:#2f7d32; --ok-bg:#eef7ee;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#888;font-family:'Geist',system-ui,sans-serif;color:var(--charcoal);-webkit-font-smoothing:antialiased}
+  .slide{width:1920px;height:1080px;background:var(--cream);padding:64px 72px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .mono{font-family:'Geist Mono',monospace}
+  .eyebrow{font-size:19px;letter-spacing:.14em;text-transform:uppercase;color:var(--marker);font-weight:600}
+  h2{font-size:58px;font-weight:700;letter-spacing:-.028em;color:var(--cocoa);line-height:1.02;margin-top:12px}
+  .lede{font-size:25px;color:var(--muted);margin-top:16px;max-width:1500px;line-height:1.4}
+  .rule{height:1.5px;background:var(--line);margin:34px 0}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand svg{width:46px;height:46px} .brand b{font-size:35px;font-weight:600;letter-spacing:-.02em}
+  .foot{position:absolute;left:72px;right:72px;bottom:34px;display:flex;justify-content:space-between;
+        font-size:16px;color:var(--muted);border-top:1.5px solid var(--line);padding-top:14px}
+  .cols{display:grid;gap:22px}
+  .card{border:1.5px solid var(--line);border-radius:18px;padding:26px 28px;background:#fff;display:flex;flex-direction:column}
+  .card h3{font-size:27px;font-weight:700;letter-spacing:-.02em;color:var(--cocoa);line-height:1.12}
+  .card p,.card li{font-size:19.5px;line-height:1.46;color:var(--charcoal)}
+  .card .sub{color:var(--muted);font-size:18px;margin-top:4px}
+  ul{list-style:none} li{position:relative;padding-left:20px;margin-top:11px}
+  li:before{content:"";position:absolute;left:3px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--marker)}
+  .num{width:40px;height:40px;border-radius:50%;background:var(--marker);color:#fff;font-weight:700;font-size:21px;
+       display:flex;align-items:center;justify-content:center;flex:none}
+  .chip{display:inline-block;border-radius:999px;padding:5px 14px;font-size:17px;font-weight:600;border:1.5px solid}
+  .c-block{color:var(--blocked);background:var(--blocked-bg);border-color:#f3c0ba}
+  .c-esc{color:var(--escalate);background:#fdf0e6;border-color:#f6cfae}
+  .c-app{color:var(--approve);background:var(--approve-bg);border-color:#efdca6}
+  .c-ok{color:var(--ok);background:var(--ok-bg);border-color:#c3e0c4}
+  .tag{display:inline-block;font-family:'Geist Mono',monospace;font-size:16.5px;border:1.5px solid var(--line);
+       border-radius:8px;padding:5px 11px;background:var(--cream);margin:5px 6px 0 0}
+  .big{font-size:60px;font-weight:700;letter-spacing:-.03em;color:var(--cocoa);line-height:1}
+  .big small{display:block;font-size:19px;font-weight:500;color:var(--muted);letter-spacing:0;margin-top:9px;line-height:1.35}
+  .full{width:1920px;height:1080px;display:block;object-fit:contain}
+  .band{margin-top:auto;background:var(--marker);color:#fff;border-radius:18px;padding:24px 30px;margin-top:22px}
+  .band b{font-size:23px} .band p{font-size:19.5px;line-height:1.45;margin-top:6px;opacity:.96}
+  .kv{display:flex;gap:14px;margin-top:13px} .kv b{flex:none;width:168px;font-size:19px;color:var(--cocoa)}
+  .kv span{font-size:19px;line-height:1.42}
+</style>
+</head>
+<body>
+
+<!-- 1 TITLE -->
+<section class="slide" id="s1" style="justify-content:center">
+  <div class="brand" style="position:absolute;top:64px;left:72px">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#171717"/><path d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#171717"/><path d="M13 24 L10 6 L22 6 L19 24Z" fill="#ff6f1e"/></svg>
+    <b>Keystone</b>
+  </div>
+  <div style="position:absolute;top:70px;right:72px;text-align:right;font-size:18px;color:var(--muted);line-height:1.5">
+    Tencent Cloud · “AI CAN DO IT” Singapore 2026<br>Real Estate Track · Keppel · <b style="color:var(--cocoa)">AI HARVEST</b>
+  </div>
+  <div style="max-width:1560px">
+    <p class="eyebrow">Solution diagram &amp; architecture</p>
+    <h1 style="font-size:92px;font-weight:700;letter-spacing:-.035em;color:var(--cocoa);line-height:1.02;margin-top:18px">
+      Turn retiring experts’ judgement<br>into rules AI can’t override.
+    </h1>
+    <p style="font-size:29px;color:var(--muted);margin-top:26px;line-height:1.4;max-width:1380px">
+      Keystone compiles what a senior engineer knows into an <b style="color:var(--cocoa)">Intelligence Pill</b> —
+      a versioned, tested, plain-text artefact the organisation owns, with deterministic gates
+      no model can talk past.
+    </p>
+    <div style="display:flex;gap:46px;margin-top:46px;font-size:20px">
+      <div><b class="mono" style="color:var(--cocoa)">keystone-tencent.vercel.app</b><br><span style="color:var(--muted)">live demo · passcode <span class="mono">keystone</span></span></div>
+      <div><b class="mono" style="color:var(--cocoa)">github.com/frederickemerson/keystone</b><br><span style="color:var(--muted)">source, pills and tests</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Keystone · Intelligence Pills for building operations</span><span>1 / 8</span></div>
+</section>
+
+<!-- 2 PROBLEM -->
+<section class="slide" id="s2">
+  <p class="eyebrow">The real-world problem</p>
+  <h2>The judgement that keeps a building safe is in a few heads, and those heads are leaving.</h2>
+  <div class="rule"></div>
+  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><div class="num">1</div><h3 style="margin-top:14px">Concentrated</h3>
+      <p class="sub">Keppel’s own brief: critical knowledge sits with a few experts; new staff need a long time to build it.</p>
+      <ul><li>One Chief Engineer, 18 years of M&amp;E, holds the chilled-water leak playbook.</li>
+          <li>A wrong call means unsafe re-energisation.</li></ul></div>
+    <div class="card"><div class="num">2</div><h3 style="margin-top:14px">Never written down</h3>
+      <p class="sub">The useful part is tacit: when to break the rule, and why.</p>
+      <ul><li>“Always isolate the riser” <b>vs</b> “isolate the sub-valve” — both true, under different conditions.</li>
+          <li>SOPs record the step, not the judgement.</li></ul></div>
+    <div class="card"><div class="num">3</div><h3 style="margin-top:14px">Lost at retirement</h3>
+      <p class="sub">Replacing an employee costs 0.5–2× annual salary (Gallup); FM talent growth “is not keeping pace” (JTC, 2025).</p>
+      <ul><li>The knowledge leaves with the person.</li></ul></div>
+    <div class="card"><div class="num">4</div><h3 style="margin-top:14px">AI can’t be trusted to act</h3>
+      <p class="sub">A chatbot that answers from a manual will also answer when it shouldn’t.</p>
+      <ul><li>Asked outside its pill, our published agent replies: <i>“This is not covered by an approved pill.”</i></li></ul></div>
+  </div>
+  <div class="band"><b>Who this is for</b>
+    <p>REIT managers and property/facility-management organisations running mixed portfolios — offices, data centres, logistics.
+       We model the real chain: REIT manager → property/facility manager → FM contractor, with 15 named personas.</p></div>
+  <div class="foot"><span>Pain points sourced from the Keppel brief, Investor Day 2026, Keppel REIT SR24, Gallup and JTC</span><span>2 / 8</span></div>
+</section>
+
+<!-- 3 DIAGRAM -->
+<section class="slide" id="s3" style="padding:0">
+  <img class="full" src="../solution-diagram.png" alt="Keystone solution diagram">
+</section>
+
+<!-- 4 THE LOOP -->
+<section class="slide" id="s4">
+  <p class="eyebrow">Business architecture</p>
+  <h2>One loop, five stages, a named human at every gate.</h2>
+  <div class="rule"></div>
+  <div class="cols" style="grid-template-columns:repeat(5,1fr)">
+    <div class="card"><span class="chip c-ok">Capture</span><h3 style="margin-top:14px">Teach a skill</h3>
+      <p class="sub">The expert answers one wide question, then only what is still missing.</p>
+      <ul><li>Answers are taps, so a <b>contradiction is arithmetic</b>, not a model’s opinion.</li>
+          <li>A frontline note at the moment a gate blocks someone feeds the same loop.</li></ul>
+      <p class="sub" style="margin-top:auto;padding-top:14px">Tan Wei Ming · Rajesh Kumar</p></div>
+    <div class="card"><span class="chip c-app">Compile</span><h3 style="margin-top:14px">Confirm the rule</h3>
+      <p class="sub">The AI only drafts. Every rule shows the sentence it came from, with a timestamp.</p>
+      <ul><li>The expert confirms, edits or rejects each one on the Decision Canvas.</li></ul>
+      <p class="sub" style="margin-top:auto;padding-top:14px">Tan Wei Ming</p></div>
+    <div class="card"><span class="chip c-block">Apply</span><h3 style="margin-top:14px">The gate holds</h3>
+      <p class="sub">A deterministic engine applies the pill to the evidence of a live incident.</p>
+      <ul><li>TS-07 blocks re-energisation and escalates to the <b>duty Licensed Electrical Worker</b>, by name.</li></ul>
+      <p class="sub" style="margin-top:auto;padding-top:14px">Priya Nair</p></div>
+    <div class="card"><span class="chip c-esc">Learn</span><h3 style="margin-top:14px">Correct it safely</h3>
+      <p class="sub">Diff → eval replay on past incidents → shadow → approval → one-click rollback.</p>
+      <ul><li><b>Three different people</b>: author ≠ steward ≠ approver, enforced in code.</li></ul>
+      <p class="sub" style="margin-top:auto;padding-top:14px">Hafiz · Priya · Goh</p></div>
+    <div class="card"><span class="chip c-ok">Reuse</span><h3 style="margin-top:14px">Across the portfolio</h3>
+      <p class="sub">The same pill runs at a colocation data centre through asset overrides.</p>
+      <ul><li>Escalation reroutes to the Critical Facilities Manager; the notice becomes a client-SLA notice.</li></ul>
+      <p class="sub" style="margin-top:auto;padding-top:14px">Every asset of that type</p></div>
+  </div>
+  <div class="band"><b>The loop closes</b>
+    <p>Reuse feeds the registry, which shows coverage and gaps by asset type and domain — so the next gap is visible
+       before the next expert retires. Every stage in this row is built and working in the demo; nothing here is a mockup.</p></div>
+  <div class="foot"><span>Guided demo walks all five stages, one person and one screen per step</span><span>4 / 8</span></div>
+</section>
+
+<!-- 5 THE PILL -->
+<section class="slide" id="s5">
+  <p class="eyebrow">The reusable unit</p>
+  <h2>An Intelligence Pill is plain text the organisation owns.</h2>
+  <div class="rule"></div>
+  <div class="cols" style="grid-template-columns:1.15fr 1fr 1fr">
+    <div class="card">
+      <h3>What is in the package</h3>
+      <p class="sub" style="margin-bottom:10px"><span class="mono">pills/technical-services/chilled-water-leak/</span></p>
+      <div class="kv"><b class="mono">SKILL.md</b><span>Owner, steward, approver, version, access and boundaries — plus the prose an LLM host reads.</span></div>
+      <div class="kv"><b class="mono">rules.yaml</b><span><b>13 rules</b>: structured triggers, required evidence, action class, forbidden actions, escalation target, deadline, asset overrides.</span></div>
+      <div class="kv"><b class="mono">evidence.yaml</b><span>The shared vocabulary — one contract both the pill and the app are tested against.</span></div>
+      <div class="kv"><b class="mono">provenance.json</b><span>Every rule mapped to the expert’s quote, timestamp and confirmation.</span></div>
+      <div class="kv"><b class="mono">evals/</b><span>Six past incidents a new version must still agree with.</span></div>
+      <div class="kv"><b class="mono">CHANGELOG.md</b><span>Append-only history.</span></div>
+    </div>
+    <div class="card">
+      <h3>Why plain text matters</h3>
+      <ul><li><b>Portable.</b> Copied unchanged into <span class="mono">.codebuddy/skills/</span>, CodeBuddy reached the same TS-07 decision as our engine — blocked, escalate to the duty LEW, quoting the Chief Engineer. <b>Verified, not claimed.</b></li>
+          <li><b>Reviewable.</b> A rule change is a diff an engineer can read.</li>
+          <li><b>Model-independent.</b> The decision path takes no model input, so swapping the model cannot change a safety outcome.</li>
+          <li><b>Yours.</b> It is a folder in your repository, not rows in a vendor’s database.</li></ul>
+    </div>
+    <div class="card">
+      <h3>The gate, in one line</h3>
+      <p class="sub">Status precedence is fixed code:</p>
+      <p style="margin-top:14px;line-height:2.1">
+        <span class="tag">not_applicable</span> <span style="color:var(--muted)">→</span>
+        <span class="chip c-block">blocked</span> <span style="color:var(--muted)">→</span>
+        <span class="chip c-esc">escalate</span> <span style="color:var(--muted)">→</span>
+        <span class="chip c-app">needs approval</span> <span style="color:var(--muted)">→</span>
+        <span class="chip c-ok">allowed</span>
+      </p>
+      <ul style="margin-top:6px">
+        <li>Evidence counts only when it is confirmed and exactly true.</li>
+        <li>An exception may <b>add</b> a requirement. It can never relax a gate.</li>
+        <li>No AI proposal ever executes. Each is held for a named human.</li></ul>
+    </div>
+  </div>
+  <div class="band"><b>Two pills, one incident</b>
+    <p>A second pill — <span class="mono" style="font-size:18px">tenant-experience/incident-comms</span> — runs beside it during the same leak:
+       it drafts the tenant notice under its own hard rules while Technical Services works the gate.</p></div>
+  <div class="foot"><span>Pills live in the repository at pills/&lt;domain&gt;/&lt;name&gt;/ — reviewable as a diff</span><span>5 / 8</span></div>
+</section>
+
+<!-- 6 TECHNICAL -->
+<section class="slide" id="s6">
+  <p class="eyebrow">Technical architecture</p>
+  <h2>A deterministic core, with the model kept outside it.</h2>
+  <div class="rule"></div>
+  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><h3>Surfaces</h3><p class="sub">Next.js 15 App Router · React 19 · TypeScript · Tailwind v4 · Vercel</p>
+      <ul><li>Teach a skill · Expert call · Decision Canvas</li><li>Incident Room · Registry · Approvals · Learning</li>
+          <li>Frontline capture from a gate block, job close-out or a QR label on the plant</li></ul></div>
+    <div class="card"><h3><span class="mono">lib/engine</span></h3><p class="sub">Pure TypeScript. No LLM, no <span class="mono">eval()</span>, no string expressions.</p>
+      <ul><li>Structured conditions: <span class="mono">eq, neq, gt, gte, lt, lte, in, exists</span></li>
+          <li>Returns actions, an evidence count (never an invented percentage) and a trace</li>
+          <li>Counterfactuals: “what would change this decision?”</li></ul></div>
+    <div class="card"><h3><span class="mono">lib/governance</span></h3><p class="sub">Versions, approvals, audit.</p>
+      <ul><li>Semantic versions, JSON diff, append-only rollback</li>
+          <li>Three-person separation of duties, enforced — and each refusal audited</li>
+          <li>Role and sensitivity-based redaction, applied on the server before data reaches the browser</li></ul></div>
+    <div class="card"><h3><span class="mono">lib/llm</span> · Tencent Cloud</h3><p class="sub">Language work only. Never a decision.</p>
+      <ul><li><b>Hunyuan hy4-preview via TokenHub</b> — live on the public demo, dedicated Singapore endpoint (~3.9 s)</li>
+          <li><b>MiniMax Speech 2.8 HD via TokenHub</b> — the voice on screen and the film’s narration</li>
+          <li>Hunyuan through the CodeBuddy Agent SDK locally; OpenAI then recorded output as fallbacks</li>
+          <li>The badge always names the provider that actually answered</li></ul></div>
+  </div>
+  <div class="band"><b>Proven, not asserted</b>
+    <p>1,302 automated tests, including adversarial and property-based tests (fast-check) over the engine and the governance layer.
+       Design mapped to the IMDA Model AI Governance Framework (2020 and the 2026 Agentic AI edition), AI Verify, ISO/IEC 42001 and the NIST AI RMF.</p></div>
+  <div class="foot"><span>Proposed next on Tencent Cloud: ASR in Singapore, ADP distribution, TRTC voice interview, iBMS/CMMS evidence feeds, EdgeOne hosting, enterprise SSO</span><span>6 / 8</span></div>
+</section>
+
+<!-- 7 PROMPTS -->
+<section class="slide" id="s7">
+  <p class="eyebrow">How prompts drive the AI generation</p>
+  <h2>The model does language. It never decides a safety action.</h2>
+  <div class="rule"></div>
+  <div class="cols" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card"><div class="num">1</div><h3 style="margin-top:14px">Elicit</h3>
+      <p class="sub">One wide question first — “walk me through the last time…” — because an unprompted account gives up more than ten narrow questions do.</p>
+      <ul><li>Probes tagged against a 31-probe library from the Critical Decision Method and ACTA.</li></ul></div>
+    <div class="card"><div class="num">2</div><h3 style="margin-top:14px">Extract</h3>
+      <p class="sub">A schema-constrained “scribe” prompt maps speech into the <span class="mono">rules.yaml</span> schema.</p>
+      <ul><li>Strict structured output, thinking disabled.</li><li>Output is always a <b>DRAFT candidate</b> the expert must confirm.</li>
+          <li>If no live model answers, it says so — it will not show a recorded reading of a different conversation.</li></ul></div>
+    <div class="card"><div class="num">3</div><h3 style="margin-top:14px">Resolve</h3>
+      <p class="sub">Two answers about the same field with different claims disagree.</p>
+      <ul><li>In the exercise this is <b>string comparison, not inference</b> — the engine simply knows.</li>
+          <li>The conflict becomes one distinguishing condition; neither half is dropped.</li></ul></div>
+    <div class="card"><div class="num">4</div><h3 style="margin-top:14px">Compose</h3>
+      <p class="sub">Tenant notices are drafted under the Tenant Experience pill’s hard rules.</p>
+      <ul><li>No cause before the cause is confirmed (TE-03); no completion time before isolation (TE-02); PII masked (TE-05).</li>
+          <li>Unsupported prose fails closed. A named human approves. Keystone never sends it.</li></ul></div>
+  </div>
+  <div class="band"><b>The invariant</b>
+    <p>The decision path takes no model input. Change the model, change the wording — you cannot change whether the gate holds.</p></div>
+  <div class="foot"><span>Rule drafting, contradiction resolution and notice drafting are all demonstrable in the live app</span><span>7 / 8</span></div>
+</section>
+
+<!-- 8 VALUE -->
+<section class="slide" id="s8">
+  <p class="eyebrow">Business value</p>
+  <h2>What it is worth, and how we would measure it.</h2>
+  <div class="rule"></div>
+  <div class="cols" style="grid-template-columns:repeat(3,1fr);flex:none">
+    <div class="card"><p class="big">0.5–2×<small>annual salary to replace an employee (Gallup) — and with them, the judgement nobody wrote down.</small></p></div>
+    <div class="card"><p class="big">&gt;US$100k<small>the cost of more than half of significant data-centre outages; about 1 in 5 cost more than US$1M (Uptime Institute).</small></p></div>
+    <div class="card"><p class="big">S$125k<small>a month: one 10,000 sq ft Grade A floor at S$12.50 psf (CBRE Q2 2026). A two-week closure is ~S$58k in rent alone.</small></p></div>
+  </div>
+  <div class="cols" style="grid-template-columns:1.25fr 1fr;margin-top:22px">
+    <div class="card"><h3>What Keystone already measures, over the demo data</h3>
+      <ul><li><b>Time to isolate</b>, read from the incident records.</li>
+          <li><b>Replay agreement</b> — “x of y assertions”, from the deterministic engine, never a made-up percentage.</li>
+          <li><b>Eval pass and shadow agreement</b> per pill; decisions awaiting approval; pills approved; pending corrections.</li>
+          <li>An illustrative <b>downtime-avoided</b> estimate, with its assumption stated on screen (4 hours per blocked re-energisation).</li></ul></div>
+    <div class="card"><h3>The pilot would measure</h3>
+      <ul><li>Time to isolate · escalation latency · gate-block rate · <b>override rate</b> · eval agreement · rollback frequency.</li>
+          <li>Goal: a measurable cut in time to isolate and in unplanned re-energisation risk — and new engineers making guided decisions with named escalation <b>from day one</b>, instead of after months of shadowing.</li></ul></div>
+  </div>
+  <div class="band"><b>Anchored to Keppel’s own goal</b>
+    <p>Technical Services aims to “cut downtime and costs” (Investor Day 2026). Keppel DC REIT reports ~12% better effective PUE on asset-enhanced colocation assets (AR2025) — the gains our data-centre overlay is built to protect.</p></div>
+  <div class="foot"><span>Figures are external and cited; everything measured over demo data is computed from the records, not asserted</span><span>8 / 8</span></div>
+</section>
+
+</body>
+</html>

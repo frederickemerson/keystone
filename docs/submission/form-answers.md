@@ -27,10 +27,12 @@ Keystone
 ## Short blurb (hard limit: under 10 words)
 
 ```
-Turn expert judgement into governed, versioned Intelligence Pills.
+Turn retiring experts' judgement into rules AI can't override.
 ```
 
-(8 words.)
+(9 words. The README's tagline — "Turn expert judgement into governed, versioned
+Intelligence Pills." — stays as it is: on the README the next paragraph explains
+what a pill is, and on the form nothing does.)
 
 ---
 
@@ -42,7 +44,8 @@ Turn expert judgement into governed, versioned Intelligence Pills.
 Challenge: Keppel · Real Estate Track · AI HARVEST: Turning Expert Know-How into Reusable Intelligence. Pill domains: Technical Services (primary) and Tenant Experience.
 
 Target scenarios
-• Capture: a retiring Chief Engineer's incident-response know-how, drawn out in a structured onboarding interview (scripted and simulated in the demo) and turned into governed decision rules.
+• Capture: a retiring Chief Engineer's incident-response know-how, drawn out two ways and turned into governed decision rules. On /teach the expert works an interactive exercise — one wide open question, then only the questions his account left unanswered — and the board beside it shows the fields of a real rule filling up. On /capture the same rules are shown against the recorded onboarding interview (scripted and simulated in the demo), which is the transcript every provenance citation points into.
+• Capture for a pill nobody has written questions for: /teach?pill=<id> derives the exercise from that pill's own rules.yaml and evidence.yaml — the distractors are other rules' evidence keys and the rule's own exceptions — so pointing the screen at a new pill is not a content-authoring job.
 • Capture from the frontline: when a gate blocks a technician, at job close-out, or from a QR code on equipment, the worker leaves a short voice or typed note. It becomes a draft rule only after the speaker checks a read-back of its numbers, tags and roles, and it cannot enter shadow mode until an eligible colleague confirms it.
 • Apply: a live chilled-water leak above a bank tenant in a Grade A office tower. An AI proposal (recorded in the demo) is to restore power. A deterministic safety gate (TS-07) blocks it and escalates to a named Licensed Electrical Worker.
 • Learn: an operational outcome and an expert correction (isolation deadline 15 to 10 minutes) go through a version diff, an eval replay against past incidents, shadow mode, approval and rollback. Author, steward and approver must be three different people, and the code enforces it.
@@ -97,6 +100,7 @@ Next.js 15 (App Router, TypeScript), React 19 and Tailwind v4, deployed on Verce
 • lib/governance: semantic versions with a JSON diff and append-only rollback; approval with three-person separation of duties (author, Shadow promoter and approver must differ; only Shadow versions can be approved) and an eval-regression gate; role and sensitivity-based access with server-side redaction; an audit log.
 • lib/auth: demo sign-in with a signed HTTP-only session (one shared demo passcode, so not identity proofing). Middleware is default-deny with a public allowlist; auth routes check same-origin (CSRF); responses carry security headers (CSP, frame-ancestors none, nosniff, referrer policy) and the site is noindex. Paid routes are rate-limited (LLM 10/min and 40/day per session plus per-IP limits; Jev 60/min per session; failed sign-ins 10/min per IP), in memory per serverless instance; production would use a shared store or a WAF. Each page reads the role from the verified session, and data above that role's clearance is masked on the server before it reaches the browser. Versions, approvals and the append-only audit log live in the browser in this demo; production would persist them server-side.
 • lib/llm: Hunyuan hy4-preview via the CodeBuddy Agent SDK is the primary provider for opt-in live rule extraction and tenant-notice drafting; it runs where CodeBuddy credentials exist (locally). Hunyuan hy4-preview via TokenHub is live and answers first on the public Vercel demo. It runs on a dedicated inference endpoint in Tencent Cloud's Singapore region (international host tokenhub-intl.tencentcloudmaas.com), so inference on expert text happens in Singapore. Thinking is disabled and extraction uses strict structured output constrained by the rule schema. Measured through the app on 12 Oct: 5 of 5 extractions answered live at about 3.9 s each, down from a median of 11.4 s on the earlier Guangzhou endpoint. OpenAI gpt-5.4-mini is a fallback, then recorded output. Every screen opens on recorded output, and the badge always names the provider that actually answered.
+• lib/speech: the voice. MiniMax Speech 2.8 HD through Tencent TokenHub (POST /v1/wand/minimax-tts/sync_tts) reads the expert's lines and the interviewer's questions aloud — English_Trustworth_Man and English_CalmWoman, verified as distinct renderings. Lines are pre-rendered at build time so a demo never waits on a quota, the filename carries the model so switching provider cannot silently reuse old audio, and a 200 response carrying a non-zero base_resp.status_code is treated as a refusal, not as audio. The browser's own speech synthesis is the fallback. The same model narrates the demo film.
 • lib/capture: frontline capture. Capture tasks from gate blocks, overrides, job close-outs and QR scans (/c/AHU-23-01, with a printable QR label); voice notes behind a PDPA purpose notice and consent (named credit is opt-in; audio is not kept); hold-to-talk with the browser's speech recognition (en-SG, processed by the browser vendor's service), plus typing and labelled demo notes; read-back chips for numbers, times, asset tags and roles, found by regex and the registers, never by the LLM; draft rules with server-assigned DRAFT-NN ids and a verbatim-quote check; and a peer gate before shadow mode. A Tencent Cloud ASR (Singapore) adapter exists but is not configured, and recognition of real Singapore-accented speech is untested.
 
 How prompts drive the AI
@@ -110,7 +114,7 @@ The decision path is deterministic and takes no model input, so changing the mod
 Responsible AI
 Every rule has an action class. Evidence counts only when it is confirmed and exactly true. A blocked gate outranks escalate and requires-approval. Exceptions can add required evidence but never remove it. No AI proposal executes: each is held for a named human, and blocked outright when its gate's evidence is missing. The author of a version can't put it into Shadow or approve it, and whoever shadowed it can't approve it. Rollback never deletes history. Keystone never actuates building systems: it recommends, drafts and escalates.
 Frontline notes need consent before recording, a speaker-checked read-back, and a peer confirmation from someone who neither said nor proposed the rule.
-These invariants are executable: 850+ automated tests, including adversarial and property-based tests (fast-check) on the engine and the governance layer.
+These invariants are executable: 1,302 automated tests across 103 files, including adversarial and property-based tests (fast-check) on the engine and the governance layer.
 The design is mapped (design alignment, not certification) to the IMDA Model AI Governance Framework (2020 and the 2026 Agentic AI edition), AI Verify, ISO/IEC 42001 and the NIST AI RMF. The mapping is in docs/SUBMISSION.md §9.
 
 Path to production on Tencent Cloud
@@ -147,7 +151,31 @@ For each pill, measure time to isolate, escalation latency, gate-block rate, ove
 
 ## CodeBuddy / WorkBuddy conversation history (minimum 3)
 
-Upload these from `docs/proof/`:
+The field asks for chat history **and** a minimum of 3 screenshots, so both are
+packaged together in one archive, built 15 Oct 2026:
+
+```
+~/Desktop/keystone-codebuddy-history.zip   (5.2 MB, 71 files)
+```
+
+| Inside | Contents |
+| --- | --- |
+| `README.md` | What the archive is, how CodeBuddy was used, which 3 screenshots to open first |
+| `INDEX.md` | All 30 CodeBuddy sessions: time, length, prompts, tool calls, model, what each did |
+| `transcripts/` | 30 readable Markdown transcripts — every prompt and reply in full |
+| `screenshots/` | The 9 PNGs listed below |
+| `raw-logs/` | The source `.jsonl` session logs, so the transcripts can be checked against them |
+
+All 30 sessions ran on 11 Oct 2026, 12:56–22:14: 117 developer prompts, 470
+CodeBuddy replies, 1,922 tool calls. One model per session — hy4-preview (5),
+hy3 (7), deepseek-v4.1-flash (6), gpt-6-astra (2), CodeBuddy's Auto selector (10).
+
+Source: `~/.codebuddy/projects/Users-frederick-Documents-Projects-acdi/`.
+**One redaction:** a `.env.local` read in session 02 printed a live API key into
+that session's tool output; it is `REDACTED` in both the transcript and the raw
+log. Nothing else was changed.
+
+The screenshots, also in `docs/proof/`:
 
 | File | What it shows |
 |---|---|
