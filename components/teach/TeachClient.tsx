@@ -46,6 +46,7 @@ import { CoverageBoard } from './CoverageBoard';
 import { DraftPreview } from './DraftPreview';
 import { Dictation } from './Dictation';
 import { Mascot, moodFor } from './Mascot';
+import { PillSwitcher, type SwitchablePill } from './PillSwitcher';
 import { QuestionCard } from './QuestionCard';
 import { ContradictionPanel } from './ContradictionPanel';
 import { ScenarioStage } from './ScenarioStage';
@@ -57,6 +58,8 @@ export interface TeachClientProps {
   /** Authored by hand, or derived from the pill's own rules. Said out loud on screen. */
   origin: ExerciseOrigin;
   pillName: string;
+  /** Every pill this screen can teach, so the generality is visible and not just true. */
+  pills: readonly SwitchablePill[];
   /** The drawn situation, or null when nobody has drawn one for this pill. */
   stages: readonly ScenarioStageData[] | null;
   /** Whether a server recogniser is usable, read on the server (no secrets). */
@@ -65,7 +68,7 @@ export interface TeachClientProps {
 
 type Phase = 'scenario' | 'questions' | 'done';
 
-export function TeachClient({ exercise, origin, pillName, stages, serverAsrAvailable }: TeachClientProps) {
+export function TeachClient({ exercise, origin, pillName, pills, stages, serverAsrAvailable }: TeachClientProps) {
   const mounted = useMounted();
   const voice = useVoice();
 
@@ -419,6 +422,8 @@ export function TeachClient({ exercise, origin, pillName, stages, serverAsrAvail
               </ul>
             )}
           </section>
+
+          <PillSwitcher pills={pills} currentId={exercise.pillId} />
         </div>
       </div>
     </div>

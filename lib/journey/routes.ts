@@ -51,9 +51,11 @@ export const routes = {
   pulse: (): string => '/pulse',
   /**
    * Teaching a pill: a situation, one open question, then only what is missing.
-   * The lead elicitation surface.
+   * The lead elicitation surface. `pill` names which pill to teach; omitted,
+   * the screen opens on its default. Every pill that loads is teachable — the
+   * questions for one nobody has written come from its own rules.
    */
-  teach: (): string => '/teach',
+  teach: (pill?: string): string => withQuery('/teach', { pill }),
   /**
    * The recorded expert call, replayed; `at` = "HH:MM:SS" seeks to that moment.
    * Kept because every provenance citation in the app points into this

@@ -7,7 +7,7 @@
 // written questions for and the screen still works.
 
 import { TeachClient } from '@/components/teach/TeachClient';
-import { loadExercise } from '@/lib/teach/load';
+import { loadExercise, teachablePills } from '@/lib/teach/load';
 import { scenarioStages } from '@/lib/teach/scenario';
 import { loadPill } from '@/lib/pills/load';
 import { pillTitle } from '@/components/mosaic/pillTitle';
@@ -33,6 +33,14 @@ export default async function TeachPage({
   const loaded = loadExercise(pillId);
   const pill = loadPill(pillId);
 
+  // Every pill the screen can teach, named. Resolved here rather than in the
+  // catalogue because the human title comes from the pill bundle, and lib/
+  // has no business importing a component module to get it.
+  const pills = teachablePills().map((entry) => {
+    const bundle = loadPill(entry.id);
+    return { id: entry.id, name: bundle ? pillTitle(bundle) : entry.id, origin: entry.origin };
+  });
+
   if (!loaded) {
     return (
       <div className="space-y-3">
@@ -48,10 +56,18 @@ export default async function TeachPage({
   }
 
   return (
+    // Keyed by pill: moving between pills is a client-side route change, so
+    // without this React keeps the same TeachClient mounted and its state
+    // survives — a screen that opened on a drawn situation stayed in the
+    // scenario phase for a pill that has no drawing, and offered to move past
+    // a stage list that was now empty. A key makes a different pill a
+    // different component instance, which is what it is.
     <TeachClient
+      key={loaded.exercise.pillId}
       exercise={loaded.exercise}
       origin={loaded.origin}
       pillName={pill ? pillTitle(pill) : pillId}
+      pills={pills}
       stages={scenarioStages(loaded.exercise.scenarioId)}
       serverAsrAvailable={selectServerAsr() !== null}
     />

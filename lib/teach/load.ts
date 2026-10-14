@@ -79,9 +79,31 @@ export function loadExercise(pillId: string): LoadedExercise | null {
   return parsed.success ? { exercise: parsed.data, origin: 'generated' } : null;
 }
 
-/** Every pill this screen can teach — which is every pill that loads. */
-export function exercisePillIds(): string[] {
+/** A pill this screen can teach, and where its questions come from. */
+export interface TeachablePill {
+  id: string;
+  origin: ExerciseOrigin;
+}
+
+/**
+ * Every pill this screen can teach — which is every pill that loads — each
+ * with the origin of its questions.
+ *
+ * The screen needs the origin, not just the id: "questions written for this
+ * pill" and "questions derived from this pill's own rules" are different
+ * claims, and offering a pill without saying which one applies would let the
+ * generated path pass as authored content.
+ */
+export function teachablePills(): TeachablePill[] {
   return listPillRefs()
-    .map((ref) => ref.id)
-    .filter((id) => loadExercise(id) !== null);
+    .map((ref) => {
+      const loaded = loadExercise(ref.id);
+      return loaded ? { id: ref.id, origin: loaded.origin } : null;
+    })
+    .filter((entry): entry is TeachablePill => entry !== null);
+}
+
+/** Ids only, for callers that do not care where the questions came from. */
+export function exercisePillIds(): string[] {
+  return teachablePills().map((pill) => pill.id);
 }

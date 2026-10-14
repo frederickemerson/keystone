@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { loadPill } from '@/lib/pills/load';
 import { PROBE_IDS } from '@/lib/llm/interview';
 import { RULE_PARTS } from '../parts';
-import { exercisePillIds, loadExercise } from '../load';
+import { exercisePillIds, loadExercise, teachablePills } from '../load';
 import { findContradiction, nextQuestion, progress, resolutionQuestion, type Answer } from '../exercise';
 
 const PILL_ID = 'technical-services-chilled-water-leak';
@@ -32,6 +32,18 @@ describe('the shipped exercise', () => {
     const ids = exercisePillIds();
     expect(ids.length).toBeGreaterThan(1);
     for (const pillId of ids) expect(loadPill(pillId)).toBeDefined();
+  });
+
+  it('offers every teachable pill with the origin of its questions, so the screen cannot pass one off as the other', () => {
+    const pills = teachablePills();
+    expect(pills.length).toBeGreaterThan(1);
+    expect(pills.map((pill) => pill.id)).toEqual(exercisePillIds());
+    for (const pill of pills) {
+      expect(['authored', 'generated']).toContain(pill.origin);
+      expect(pill.origin).toBe(loadExercise(pill.id)!.origin);
+    }
+    // The switcher is only worth showing because the two differ in practice.
+    expect(new Set(pills.map((pill) => pill.origin)).size).toBe(2);
   });
 
   it('names only probes the interview library knows', () => {
