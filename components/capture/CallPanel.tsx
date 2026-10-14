@@ -35,19 +35,20 @@ const JUMP_MOMENTS = [
 ];
 
 /**
- * Shown wherever the call is heard: the audio is the browser's speech
- * synthesis reading the transcript, never the expert's own voice.
+ * Shown wherever the call is heard: the audio is synthesised speech reading
+ * the transcript, never the expert's own voice.
  */
 export const SYNTHETIC_VOICE_CAPTION = 'Synthetic voice reading his recorded words';
 
 /**
- * The same caption, naming the voice doing the reading. Which voice a browser
- * picks is the difference between this sounding like a person and sounding
- * like a machine, so it is worth being able to read it off the screen rather
- * than guessing from the audio.
+ * The same caption, naming what produced the audio. Which tier is speaking —
+ * a file rendered ahead of time, a live synthesis call, or the browser's own
+ * voice — is the difference between this sounding like a person and sounding
+ * like a machine, so it is printed rather than left to be guessed from the
+ * audio (lib/speech/useVoice).
  */
-function voiceCaption(voiceName: string | null): string {
-  return voiceName ? `${SYNTHETIC_VOICE_CAPTION} (${voiceName})` : SYNTHETIC_VOICE_CAPTION;
+function voiceCaption(label: string | null): string {
+  return label ? `${SYNTHETIC_VOICE_CAPTION} · ${label}` : SYNTHETIC_VOICE_CAPTION;
 }
 
 function Waveform({ active, expert }: { active: boolean; expert: boolean }) {
@@ -268,9 +269,9 @@ function ActiveView({
         {isExpert ? (
           <span
             className="rounded-full border border-line bg-dew-drop px-2 py-0.5 text-[11px] text-ink-muted"
-            aria-label={`Audio: ${voiceCaption(playback.expertVoiceName)}. This is not ${expert.name}'s own voice.`}
+            aria-label={`Audio: ${voiceCaption(playback.voiceLabel)}. This is not ${expert.name}'s own voice.`}
           >
-            {voiceCaption(playback.expertVoiceName)}
+            {voiceCaption(playback.voiceLabel)}
           </span>
         ) : null}
       </div>

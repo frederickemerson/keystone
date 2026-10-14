@@ -1,0 +1,117 @@
+{
+  "pillId": "technical-services-chilled-water-leak",
+  "scenarioId": "hf1-l28-coupling",
+  "opening": {
+    "id": "q-account",
+    "kind": "open",
+    "covers": "trigger",
+    "probeId": "P01",
+    "prompt": "You are duty engineer. Walk me through what you do, and why — from the first moment you hear about it. Do not tidy it up; the order you actually did things in is the part I want.",
+    "given": "02:14. A leak detector on Level 28 of Harbourfront One is in alarm. Water is coming through the ceiling void onto Level 27, a bank tenant floor, and it is tracking along a conduit toward the electrical riser cupboard. There is a distribution board in that cupboard, DB-27B."
+  },
+  "questions": [
+    {
+      "id": "q-isolate",
+      "kind": "single_choice",
+      "covers": "decision",
+      "probeId": "P05",
+      "prompt": "First call. What do you isolate?",
+      "choices": [
+        { "id": "riser", "label": "The whole riser", "claim": "isolate:riser", "note": "The valve you know will stop the flow." },
+        { "id": "floor", "label": "The floor valve", "claim": "isolate:floor" },
+        { "id": "sub", "label": "The nearest sub-valve", "claim": "isolate:sub_valve", "note": "Smallest cut that stops it — if you can reach it and it holds." },
+        { "id": "trace", "label": "Nothing yet — trace the source first", "claim": "isolate:trace_first" }
+      ]
+    },
+    {
+      "id": "q-evidence",
+      "kind": "multi_choice",
+      "covers": "required_evidence",
+      "probeId": "P15",
+      "prompt": "The water is stopped and the AHU circuit is isolated. Before anyone re-energises it, what has to be confirmed? Pick everything that must be true.",
+      "choices": [
+        { "id": "lew_signoff", "label": "Written sign-off from a Licensed Electrical Worker", "claim": "ev:lew_signoff" },
+        { "id": "insulation_resistance_ok", "label": "Insulation resistance tested and passed", "claim": "ev:insulation_resistance_ok" },
+        { "id": "area_dry", "label": "The area confirmed dry", "claim": "ev:area_dry" },
+        { "id": "looks_dry", "label": "The board looks dry from outside the cupboard", "claim": "ev:visual_inspection" },
+        { "id": "tenant_told", "label": "The tenant has been told power is coming back", "claim": "ev:tenant_notified" }
+      ]
+    },
+    {
+      "id": "q-who",
+      "kind": "single_choice",
+      "covers": "escalate_to",
+      "probeId": "P19",
+      "prompt": "Whose sign-off does the re-energisation need? Not who you would phone — whose name has to be on it.",
+      "choices": [
+        { "id": "duty_lew", "label": "The duty Licensed Electrical Worker", "claim": "signoff:duty_lew" },
+        { "id": "chief_engineer", "label": "The chief engineer", "claim": "signoff:chief_engineer" },
+        { "id": "duty_manager", "label": "The duty manager", "claim": "signoff:duty_manager" },
+        { "id": "ts_lead", "label": "The technical services lead", "claim": "signoff:technical_services_lead" }
+      ]
+    },
+    {
+      "id": "q-forbidden",
+      "kind": "multi_choice",
+      "covers": "forbidden_actions",
+      "probeId": "P22",
+      "prompt": "The tenant is calling every ten minutes and it is 03:40. Which of these must still not happen?",
+      "choices": [
+        { "id": "reset_breaker", "label": "Reset the tripped breaker to see if it holds", "claim": "forbid:reset_breaker_before_ir" },
+        { "id": "visual_only", "label": "Re-energise because the board looks dry", "claim": "forbid:reenergise_on_visual" },
+        { "id": "open_cupboard", "label": "Open the riser cupboard to check if it is wet inside", "claim": "forbid:open_wet_cupboard" },
+        { "id": "photograph", "label": "Photograph the standing water from outside the threshold", "claim": "forbid:photograph" },
+        { "id": "cordon", "label": "Cordon the area and put up signage", "claim": "forbid:cordon" }
+      ]
+    },
+    {
+      "id": "q-deadline",
+      "kind": "single_choice",
+      "covers": "deadline_minutes",
+      "probeId": "P20",
+      "prompt": "A bank tenant floor is wet and the source is not isolated. How long before this stops being yours and has to go up?",
+      "choices": [
+        { "id": "15", "label": "Fifteen minutes", "claim": "deadline:15" },
+        { "id": "30", "label": "Thirty minutes", "claim": "deadline:30" },
+        { "id": "60", "label": "An hour", "claim": "deadline:60" },
+        { "id": "none", "label": "No fixed clock — judgement", "claim": "deadline:none" }
+      ]
+    },
+    {
+      "id": "q-threshold",
+      "kind": "single_choice",
+      "covers": "trigger",
+      "probeId": "P16",
+      "refines": true,
+      "prompt": "You said the water being near electrical equipment is what made this different. So where is the line? How close is too close?",
+      "choices": [
+        { "id": "0.5", "label": "Half a metre", "claim": "near_electrical:0.5m" },
+        { "id": "1", "label": "One metre", "claim": "near_electrical:1m" },
+        { "id": "2", "label": "Two metres", "claim": "near_electrical:2m", "note": "Water tracks along conduits and cable trays. You think it is two metres away and it is already at the board." },
+        { "id": "5", "label": "Five metres", "claim": "near_electrical:5m" },
+        { "id": "contact", "label": "Only if it is actually touching", "claim": "near_electrical:contact" }
+      ]
+    },
+    {
+      "id": "q-isolate-branch",
+      "kind": "single_choice",
+      "covers": "decision",
+      "probeId": "P23",
+      "refines": true,
+      "given": "An AHU branch leak on Level 27. The branch sub-valve is accessible, and closing it stops the flow.",
+      "prompt": "Different night, smaller job. What do you isolate here?",
+      "choices": [
+        { "id": "riser", "label": "The whole riser", "claim": "isolate:riser" },
+        { "id": "sub", "label": "The branch sub-valve, and leave the riser open", "claim": "isolate:sub_valve" }
+      ]
+    },
+    {
+      "id": "q-exception",
+      "kind": "open",
+      "covers": "exceptions",
+      "probeId": "P28",
+      "onContradictionOnly": true,
+      "prompt": "Both of those are things you have said, and neither of them is wrong. So what is the condition that tells them apart? Say it as the thing that has to be true for the second answer to be the right one."
+    }
+  ]
+}

@@ -4,9 +4,10 @@
 //
 // Responsibilities:
 //  - drive turns in order (idle -> active -> ended)
-//  - speak each turn with window.speechSynthesis, each speaker in their own
-//    ranked voice (lib/speech/voices); fall back to timed captions when speech
-//    is unavailable or muted
+//  - speak each turn through lib/speech/useVoice, which plays the audio
+//    pre-rendered for this transcript (lib/speech/manifest) and falls back to
+//    the browser's own voice only if that is unavailable; fall back to timed
+//    captions when muted
 //  - derive captured rule ids as a pure function of the current turn index
 //    (every turn up to and including it), so jumps/skips match linear playback
 //  - expose contradiction visibility/resolved flags derived from the active turn
@@ -16,8 +17,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TranscriptTurn } from '@/lib/data';
-import { pickCallVoices } from '@/lib/speech/voices';
-import { useVoices } from '@/lib/speech/useVoices';
+import { useVoice } from '@/lib/speech/useVoice';
 
 export type CallStatus = 'idle' | 'active' | 'ended';
 export type Speed = 1 | 2 | 4;
@@ -35,8 +35,8 @@ export interface CallPlayback {
   contradictionResolved: boolean;
   currentTurn: TranscriptTurn | undefined;
   phase: string;
-  /** The voice actually speaking the expert's words, so the caption can name it. */
-  expertVoiceName: string | null;
+  /** Where the voice speaking right now came from, so the caption can name it. */
+  voiceLabel: string | null;
   accept: () => void;
   togglePause: () => void;
   skipNext: () => void;
@@ -47,10 +47,6 @@ export interface CallPlayback {
 
 const WORDS_PER_SEC = 2.8;
 const MIN_TURN_MS = 1400;
-/** The setting is Singapore; no platform ships an en-SG voice, so this only orders English ones. */
-const EXPERT_LANG = 'en-SG';
-/** Keystone is the system, and a different voice is what separates the two speakers. */
-const INTERVIEWER_LANG = 'en-GB';
 
 function firstGeo(turns: TranscriptTurn[], t: string): number {
   const idx = turns.findIndex((turn) => (turn.t ?? '') >= t);
@@ -79,10 +75,7 @@ export function useCallPlayback(args: {
 }): CallPlayback {
   const { turns, expertName, phaseByTurn, contradictionStartT, contradictionResolvedT } = args;
 
-  const voices = useVoices();
-  // Picked from the whole list rather than "the first one whose language
-  // matches": see lib/speech/voices for what that used to produce.
-  const cast = useMemo(() => pickCallVoices(voices, EXPERT_LANG, INTERVIEWER_LANG), [voices]);
+  const voice = useVoice();
 
   const [status, setStatus] = useState<CallStatus>('idle');
   const [turnIndex, setTurnIndex] = useState(0);
@@ -133,42 +126,23 @@ export function useCallPlayback(args: {
       });
     };
 
-    const synth =
-      typeof window !== 'undefined' ? window.speechSynthesis : undefined;
-
-    if (synth && !muted) {
-      try {
-        const u = new SpeechSynthesisUtterance(turn.text);
-        u.rate = speed;
-        // `pitch` is deliberately left at its default. Dropping the expert's to
-        // 0.55 is what made him sound like a machine; the two speakers are told
-        // apart by having different voices.
-        const voice = turn.speaker === expertName ? cast.expert : cast.interviewer ?? cast.expert;
-        if (voice) {
-          u.voice = voice;
-          u.lang = voice.lang;
-        }
-        // Advance when the voice ends, but never before the caption has had its
-        // reading time: a voice that fails or ends instantly (no voices, a
-        // blocked or headless synth) must not skip the call.
-        const startedAt = Date.now();
-        const minReadMs = Math.min(durationMs, Math.max(MIN_TURN_MS, durationMs * 0.6));
-        const advanceAfterReading = () => {
+    if (!muted) {
+      // Advance when the voice finishes, but never before the caption has had
+      // its reading time: a line that fails or ends instantly must not skip
+      // the call. The safety net stays for a voice whose end never fires.
+      const startedAt = Date.now();
+      const minReadMs = Math.min(durationMs, Math.max(MIN_TURN_MS, durationMs * 0.6));
+      voice.speak(turn.text, turn.speaker === expertName ? 'expert' : 'interviewer', {
+        onEnded: () => {
+          if (cancelled) return;
           const wait = minReadMs - (Date.now() - startedAt);
           if (wait <= 0) advance();
           else timerRef.current = setTimeout(advance, wait);
-        };
-        u.onend = advanceAfterReading;
-        u.onerror = advanceAfterReading;
-        synth.cancel();
-        synth.speak(u);
-        // Safety net in case onend never fires.
-        safetyRef.current = setTimeout(advance, durationMs + 1500);
-      } catch {
-        timerRef.current = setTimeout(advance, durationMs);
-      }
+        },
+      });
+      safetyRef.current = setTimeout(advance, durationMs + 2_500);
     } else {
-      // Timed-caption fallback (muted or no speechSynthesis).
+      // Timed-caption fallback.
       timerRef.current = setTimeout(advance, durationMs);
     }
 
@@ -182,28 +156,17 @@ export function useCallPlayback(args: {
         clearTimeout(safetyRef.current);
         safetyRef.current = undefined;
       }
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        try {
-          window.speechSynthesis.cancel();
-        } catch {
-          /* no-op */
-        }
-      }
+      voice.stop();
     };
-  }, [status, turnIndex, paused, muted, speed, turns, turnCount, expertName, cast]);
+    // `voice` is a stable pair of callbacks; including the whole object would
+    // restart the line on every progress tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, turnIndex, paused, muted, speed, turns, turnCount, expertName]);
 
   const accept = useCallback(() => {
     setStatus('active');
     setTurnIndex(0);
     setPaused(false);
-    // Prime the speech engine inside the user gesture (some browsers gate TTS).
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      try {
-        window.speechSynthesis.cancel();
-      } catch {
-        /* no-op */
-      }
-    }
   }, []);
 
   const togglePause = useCallback(() => setPaused((p) => !p), []);
@@ -244,7 +207,7 @@ export function useCallPlayback(args: {
     contradictionResolved,
     currentTurn,
     phase,
-    expertVoiceName: cast.expert?.name ?? null,
+    voiceLabel: voice.source?.label ?? null,
     accept,
     togglePause,
     skipNext,

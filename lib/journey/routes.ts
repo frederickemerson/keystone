@@ -49,7 +49,16 @@ export function withAnchor(href: string, anchorId: string): string {
 
 export const routes = {
   pulse: (): string => '/pulse',
-  /** Expert onboarding call; `at` = "HH:MM:SS" seeks the call to that moment. */
+  /**
+   * Teaching a pill: a situation, one open question, then only what is missing.
+   * The lead elicitation surface.
+   */
+  teach: (): string => '/teach',
+  /**
+   * The recorded expert call, replayed; `at` = "HH:MM:SS" seeks to that moment.
+   * Kept because every provenance citation in the app points into this
+   * transcript, so a "hear it in context" link has to land somewhere real.
+   */
   capture: (at?: string): string => withQuery('/capture', { at }),
   /** Decision canvas for a pill; `rule` scrolls to and highlights that rule's tile. */
   canvas: (pillId: string, rule?: string): string => withQuery(`/canvas/${enc(pillId)}`, { rule }),
@@ -76,6 +85,7 @@ export const routes = {
 /** Every app route pattern the helpers can produce (Next.js app/ directory form). */
 export const ROUTE_PATTERNS = [
   '/pulse',
+  '/teach',
   '/capture',
   '/canvas/[pillId]',
   '/registry',

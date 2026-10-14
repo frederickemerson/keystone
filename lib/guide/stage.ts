@@ -9,6 +9,7 @@ type RoutePattern = (typeof ROUTE_PATTERNS)[number];
 /** `null` = outside the loop (overview and sign-in screens). */
 export const STAGE_BY_ROUTE: Readonly<Record<RoutePattern, StageId | null>> = {
   '/pulse': null,
+  '/teach': 'capture',
   '/capture': 'capture',
   '/c': 'capture',
   '/c/[assetId]': 'capture',

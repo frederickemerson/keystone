@@ -47,7 +47,18 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   {
     label: 'Capture',
     items: [
-      { href: routes.capture(), label: 'Expert call', purpose: 'An onboarding interview turned into rules', covers: ['/capture'] },
+      {
+        href: routes.teach(),
+        label: 'Teach a skill',
+        purpose: 'A situation, one open question, then only what is still missing',
+        covers: ['/teach'],
+      },
+      {
+        href: routes.capture(),
+        label: 'Expert call (recorded)',
+        purpose: 'The transcript every provenance citation points into, replayed',
+        covers: ['/capture'],
+      },
       { href: routes.equipment(), label: 'Equipment', purpose: 'Teach a rule from a piece of equipment', covers: ['/c', '/c/[assetId]', '/c/[assetId]/qr'] },
     ],
   },
