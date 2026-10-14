@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, LayoutGrid, Play, Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, LayoutGrid, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { PageHeader } from '@/components/mosaic';
 import { useMounted } from '@/components/mosaic/useMounted';
 import { routes } from '@/lib/journey/routes';
@@ -37,6 +37,7 @@ import {
   type Exercise,
 } from '@/lib/teach/exercise';
 import { draftRuleFrom, draftProvenance } from '@/lib/teach/draft';
+import { clearSession, lastClock, readSession, writeSession } from '@/lib/teach/session';
 import { useVoice } from '@/lib/speech/useVoice';
 import type { Rule } from '@/lib/engine/types';
 import { speechRecognitionCtor, mediaRecorderSupported } from '@/components/capture/useSpeechCapture';
@@ -78,6 +79,40 @@ export function TeachClient({ exercise, origin, pillName, stages, serverAsrAvail
   const [justCaptured, setJustCaptured] = useState(false);
   const [confirmedFromAccount, setConfirmedFromAccount] = useState<Rule[]>([]);
   const clock = useRef(0);
+  // Restored once, after mount: the server render must not depend on what is
+  // in this browser's storage, or the two disagree and React re-renders over
+  // the top of it.
+  const [resumed, setResumed] = useState(false);
+  const [wasResumed, setWasResumed] = useState(false);
+
+  useEffect(() => {
+    if (resumed) return;
+    setResumed(true);
+    const stored = readSession(exercise);
+    if (!stored || stored.answers.length === 0) return;
+    setAnswers(stored.answers);
+    setStageAt(stored.stageAt);
+    setPhase(stored.phase === 'scenario' && !stages?.length ? 'questions' : stored.phase);
+    clock.current = lastClock(stored.answers);
+    setWasResumed(true);
+  }, [exercise, resumed, stages]);
+
+  useEffect(() => {
+    if (!resumed) return;
+    if (answers.length === 0) return;
+    writeSession(exercise, { answers, stageAt, phase });
+  }, [resumed, exercise, answers, stageAt, phase]);
+
+  const startAgain = () => {
+    clearSession(exercise);
+    voice.stop();
+    clock.current = 0;
+    setAnswers([]);
+    setStageAt(0);
+    setWasResumed(false);
+    setConfirmedFromAccount([]);
+    setPhase(stages?.length ? 'scenario' : 'questions');
+  };
 
   const stageList = stages ?? [];
   const stage = stageList[stageAt]?.id ?? '';
@@ -209,6 +244,11 @@ export function TeachClient({ exercise, origin, pillName, stages, serverAsrAvail
               {muted ? <VolumeX className="size-3.5" aria-hidden="true" /> : <Volume2 className="size-3.5" aria-hidden="true" />}
               {muted ? 'Voice off' : 'Voice on'}
             </button>
+            {answers.length > 0 ? (
+              <button type="button" onClick={startAgain} className="btn-pill text-xs">
+                <RotateCcw className="size-3.5" aria-hidden="true" /> Start again
+              </button>
+            ) : null}
             <Link href={routes.canvas(exercise.pillId)} className="btn-pill text-xs">
               <LayoutGrid className="size-3.5" aria-hidden="true" /> Decision canvas
             </Link>
@@ -238,6 +278,12 @@ export function TeachClient({ exercise, origin, pillName, stages, serverAsrAvail
               ) : null}
               {voice.error ? (
                 <p className="mt-1 text-[11px] text-ink-muted">{voice.error}</p>
+              ) : null}
+              {wasResumed ? (
+                <p className="mt-1 text-[12px] text-ink-muted" role="status">
+                  Picked up where you left off — {answers.length} answer{answers.length === 1 ? '' : 's'} already
+                  given. “Start again” clears them.
+                </p>
               ) : null}
             </div>
           </div>
