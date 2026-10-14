@@ -87,6 +87,7 @@ const DEADLINE = {
 const EXERCISE: Exercise = {
   pillId: 'technical-services-chilled-water-leak',
   scenarioId: 'hf1-l28-coupling',
+  incidentType: 'water_ingress',
   opening: OPENING,
   questions: [ISOLATE_DEFAULT, LEW, WHO, DEADLINE, ISOLATE_BRANCH],
 };

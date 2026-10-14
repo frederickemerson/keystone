@@ -8,12 +8,13 @@
 import { describe, expect, it } from 'vitest';
 import { loadPill } from '@/lib/pills/load';
 import { ruleSchema } from '@/lib/engine';
-import { CLAIM_MAPPING, DISTANCE_EVIDENCE_KEY, draftRuleFrom, draftProvenance } from '../draft';
+import { draftRuleFrom, draftProvenance } from '../draft';
+import type { ClaimMeaning } from '../meaning';
 import { loadExercise } from '../load';
 import type { Answer } from '../exercise';
 
 const PILL_ID = 'technical-services-chilled-water-leak';
-const exercise = loadExercise(PILL_ID)!;
+const exercise = loadExercise(PILL_ID)!.exercise;
 const pill = loadPill(PILL_ID)!;
 
 function answer(questionId: string, choiceIds: string[], at: number): Answer {
@@ -33,25 +34,33 @@ const FULL: Answer[] = [
   { questionId: 'q-exception', choiceIds: [], text: 'The branch sub-valve is accessible and closing it stops the flow.', at: 9 },
 ];
 
+/** Every meaning declared by a choice in the shipped exercise. */
+function declaredMeanings(): ClaimMeaning[] {
+  return [exercise.opening, ...exercise.questions]
+    .flatMap((q) => q.choices ?? [])
+    .flatMap((c) => (c.means ? [c.means] : []));
+}
+
 describe('the claim vocabulary', () => {
   it('names only evidence keys the pill declares', () => {
     const declared = new Set(Object.keys(pill.pill.evidenceCatalog));
-    const named = Object.values(CLAIM_MAPPING).flatMap((m) => (m.evidenceKey ? [m.evidenceKey] : []));
+    const named = declaredMeanings().flatMap((m) => (m.evidenceKey ? [m.evidenceKey] : []));
     expect(named.length).toBeGreaterThan(0);
     for (const key of named) expect(declared).toContain(key);
   });
 
-  it('writes the distance threshold against a key the pill declares', () => {
-    expect(Object.keys(pill.pill.evidenceCatalog)).toContain(DISTANCE_EVIDENCE_KEY);
+  it('writes every threshold against a key the pill declares', () => {
+    const declared = new Set(Object.keys(pill.pill.evidenceCatalog));
+    const paths = declaredMeanings().flatMap((m) => (m.threshold ? [m.threshold.path] : []));
+    expect(paths.length).toBeGreaterThan(0);
+    for (const path of paths) expect(declared).toContain(path.replace(/^evidence\./, ''));
   });
 
-  it('gives every choice in the shipped exercise a declared meaning', () => {
-    const claims = [exercise.opening, ...exercise.questions]
-      .flatMap((q) => q.choices ?? [])
-      .flatMap((c) => (c.claim ? [c.claim] : []));
-    expect(claims.length).toBeGreaterThan(0);
-    const undeclared = claims.filter((claim) => !CLAIM_MAPPING[claim]);
-    expect(undeclared).toEqual([]);
+  it('gives every choice that asserts something a meaning to assert it with', () => {
+    const choices = [exercise.opening, ...exercise.questions].flatMap((q) => q.choices ?? []);
+    expect(choices.length).toBeGreaterThan(0);
+    const claimingButMeaningless = choices.filter((c) => c.claim && !c.means);
+    expect(claimingButMeaningless.map((c) => c.claim)).toEqual([]);
   });
 });
 
@@ -86,8 +95,12 @@ describe('draftRuleFrom', () => {
   it('writes the threshold as a structured condition, not a sentence', () => {
     const draft = draftRuleFrom(exercise, FULL);
     expect(draft.patch.trigger?.all).toEqual([
-      { path: `evidence.${DISTANCE_EVIDENCE_KEY}`, op: 'lte', value: 2 },
+      { path: 'evidence.distance_to_electrical_m', op: 'lte', value: 2 },
     ]);
+  });
+
+  it('writes the trigger for the incident type the exercise is about', () => {
+    expect(draftRuleFrom(exercise, FULL).patch.trigger?.incident_type).toBe(exercise.incidentType);
   });
 
   it('lets a later refinement win for a single-valued field', () => {
@@ -107,7 +120,7 @@ describe('draftRuleFrom', () => {
     expect(draft.filled).toContain('exceptions');
   });
 
-  it('reports a claim it has no meaning for, rather than guessing at one', () => {
+  it('reports a claim with no meaning on it, rather than guessing at one', () => {
     const invented = {
       ...exercise,
       questions: [
@@ -115,7 +128,7 @@ describe('draftRuleFrom', () => {
           id: 'q-made-up',
           kind: 'single_choice' as const,
           covers: 'decision' as const,
-          prompt: 'Something nobody declared a meaning for?',
+          prompt: 'Something that declares no meaning?',
           choices: [
             { id: 'a', label: 'A', claim: 'nobody:declared_this' },
             { id: 'b', label: 'B', claim: 'isolate:riser' },

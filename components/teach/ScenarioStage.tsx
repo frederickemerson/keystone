@@ -19,19 +19,19 @@
 // anything.
 
 import { cn } from '@/lib/ui/cn';
-import { SCENARIO_STAGES, stageIndex, type ScenarioStageId } from '@/lib/teach/scenario';
+import type { ScenarioStageData } from '@/lib/teach/scenario';
 
-
-export { SCENARIO_STAGES, stageIndex } from '@/lib/teach/scenario';
-export type { ScenarioStageId } from '@/lib/teach/scenario';
 
 export interface ScenarioStageProps {
-  stage: ScenarioStageId;
+  /** Which stage to draw. */
+  stage: string;
+  /** The stages of this scenario, in order. Passed in: a pill without a drawing has none. */
+  stages: readonly ScenarioStageData[];
   className?: string;
 }
 
-export function ScenarioStage({ stage, className }: ScenarioStageProps) {
-  const at = stageIndex(stage);
+export function ScenarioStage({ stage, stages, className }: ScenarioStageProps) {
+  const at = Math.max(0, stages.findIndex((entry) => entry.id === stage));
   const leaking = at >= 1;
   const spreading = at >= 2;
   const tracking = at >= 3;
@@ -223,7 +223,7 @@ export function ScenarioStage({ stage, className }: ScenarioStageProps) {
       </svg>
 
       <figcaption className="mt-2 min-h-10 text-[14px] leading-snug text-ink">
-        {SCENARIO_STAGES[at]?.caption}
+        {stages[at]?.caption}
       </figcaption>
     </figure>
   );

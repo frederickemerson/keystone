@@ -26,6 +26,7 @@
 
 import { z } from '@/lib/zod';
 import { ESSENTIAL_PARTS, isRulePart, RULE_PARTS, type RulePart } from './parts';
+import { claimMeaningSchema, type ClaimMeaning } from './meaning';
 
 /**
  * How a question is answered.
@@ -48,6 +49,12 @@ export const choiceSchema = z.object({
   claim: z.string().trim().min(1).max(80).optional(),
   /** Shown after answering, never before: why this is or is not the usual call. */
   note: z.string().trim().max(400).optional(),
+  /**
+   * What picking this settles, in the pill's own vocabulary. Travels with the
+   * choice rather than sitting in a table keyed by `claim`, so a question
+   * generated from a pill carries its own meaning — see lib/teach/meaning.
+   */
+  means: claimMeaningSchema.optional(),
 });
 
 export type Choice = z.infer<typeof choiceSchema>;
@@ -109,6 +116,14 @@ export const exerciseSchema = z.object({
   pillId: z.string().trim().min(1),
   /** The situation the whole exercise is about. Judgement only shows up against a case. */
   scenarioId: z.string().trim().min(1),
+  /**
+   * The incident type a drafted trigger is written for. Taken from the rule
+   * being taught, never assumed: a pill about tenant comms and a pill about
+   * leaks do not share one.
+   */
+  incidentType: z.string().trim().min(1),
+  /** The rule of the pill this exercise elicits, when it is about one in particular. */
+  ruleId: z.string().trim().min(1).optional(),
   /** Asked first, and deliberately wide. */
   opening: questionSchema,
   questions: z.array(questionSchema).min(1),
@@ -140,6 +155,8 @@ export interface Claim {
   label: string;
   /** Scenario detail the question added — usually the condition that separates the cases. */
   given?: string;
+  /** What this answer settles, when the choice declares it. */
+  means?: ClaimMeaning;
   at: number;
 }
 
@@ -170,6 +187,7 @@ export function claimsFrom(exercise: Exercise, answers: readonly Answer[]): Clai
         claim: choice.claim,
         label: choice.label,
         given: question.given,
+        means: choice.means,
         at: answer.at,
       });
     }

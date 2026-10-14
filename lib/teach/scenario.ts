@@ -22,6 +22,18 @@ export interface ScenarioStageData {
 
 export const SCENARIO_STAGES: readonly ScenarioStageData[] = scenario.stages;
 
+/**
+ * The stages for a scenario id, or null when there is no drawing for it.
+ *
+ * A generated exercise has no animated situation — nobody has drawn one for
+ * that pill — and that has to be an honest absence rather than the
+ * chilled-water section shown over the top of a tenant-comms rule. The screen
+ * starts at the questions instead.
+ */
+export function scenarioStages(id: string): readonly ScenarioStageData[] | null {
+  return id === scenario.id ? scenario.stages : null;
+}
+
 export type ScenarioStageId = string;
 
 export function stageIndex(id: ScenarioStageId): number {

@@ -83,7 +83,7 @@ describe('the pre-rendered speech manifest', () => {
 // /teach hit 429 after six of them, because the live budget is ten calls a
 // minute (lib/ratelimit/policies). Fixed text has to be here, not bought.
 describe('the exercise speaks from the manifest, not the metered route', () => {
-  const exercise = loadExercise('technical-services-chilled-water-leak')!;
+  const exercise = loadExercise('technical-services-chilled-water-leak')!.exercise;
 
   it('has audio for every scenario caption', () => {
     const missing = SCENARIO_STAGES.filter((stage) => !prerendered('interviewer', stage.caption));

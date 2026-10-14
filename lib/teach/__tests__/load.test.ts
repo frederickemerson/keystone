@@ -14,16 +14,28 @@ describe('the shipped exercise', () => {
     expect(loadExercise(PILL_ID)).not.toBeNull();
   });
 
-  it('is null for a pill with no authored exercise, rather than a guess', () => {
-    expect(loadExercise('tenant-experience-incident-comms')).toBeNull();
+  it('derives an exercise for a pill nobody wrote questions for', () => {
+    const loaded = loadExercise('tenant-experience-incident-comms');
+    expect(loaded?.origin).toBe('generated');
+    expect(loaded!.exercise.questions.length).toBeGreaterThan(2);
   });
 
-  it('teaches a pill that exists', () => {
-    for (const pillId of exercisePillIds()) expect(loadPill(pillId)).not.toBeNull();
+  it('says the shipped one was authored, so the screen can tell them apart', () => {
+    expect(loadExercise(PILL_ID)?.origin).toBe('authored');
+  });
+
+  it('is null for a pill that does not exist, rather than a guess', () => {
+    expect(loadExercise('no-such-pill')).toBeNull();
+  });
+
+  it('can teach every pill in the repository', () => {
+    const ids = exercisePillIds();
+    expect(ids.length).toBeGreaterThan(1);
+    for (const pillId of ids) expect(loadPill(pillId)).toBeDefined();
   });
 
   it('names only probes the interview library knows', () => {
-    const exercise = loadExercise(PILL_ID)!;
+    const exercise = loadExercise(PILL_ID)!.exercise;
     for (const question of [exercise.opening, ...exercise.questions]) {
       if (!question.probeId) continue;
       expect(PROBE_IDS).toContain(question.probeId);
@@ -31,21 +43,21 @@ describe('the shipped exercise', () => {
   });
 
   it('gives every question a distinct id', () => {
-    const exercise = loadExercise(PILL_ID)!;
+    const exercise = loadExercise(PILL_ID)!.exercise;
     const ids = [exercise.opening, ...exercise.questions].map((q) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('opens with prose, because a tap is not an account', () => {
-    expect(loadExercise(PILL_ID)!.opening.kind).toBe('open');
+    expect(loadExercise(PILL_ID)!.exercise.opening.kind).toBe('open');
   });
 
   it('sets the scene on the opening question — judgement needs a situation', () => {
-    expect(loadExercise(PILL_ID)!.opening.given?.length ?? 0).toBeGreaterThan(80);
+    expect(loadExercise(PILL_ID)!.exercise.opening.given?.length ?? 0).toBeGreaterThan(80);
   });
 
   it('reaches the parts without which no rule can be drafted', () => {
-    const exercise = loadExercise(PILL_ID)!;
+    const exercise = loadExercise(PILL_ID)!.exercise;
     const covered = new Set([exercise.opening, ...exercise.questions].map((q) => q.covers));
     for (const part of ['trigger', 'decision', 'required_evidence', 'escalate_to'] as const) {
       expect(covered).toContain(part);
@@ -53,14 +65,14 @@ describe('the shipped exercise', () => {
   });
 
   it('asks about every part it can, and nothing it cannot', () => {
-    const exercise = loadExercise(PILL_ID)!;
+    const exercise = loadExercise(PILL_ID)!.exercise;
     for (const question of [exercise.opening, ...exercise.questions]) {
       expect(RULE_PARTS).toContain(question.covers);
     }
   });
 
   it('gives each refinement something to pin inside a part it already touches', () => {
-    const exercise = loadExercise(PILL_ID)!;
+    const exercise = loadExercise(PILL_ID)!.exercise;
     const closing = new Set(exercise.questions.filter((q) => !q.refines).map((q) => q.covers));
     closing.add(exercise.opening.covers);
     for (const refinement of exercise.questions.filter((q) => q.refines)) {
@@ -70,7 +82,7 @@ describe('the shipped exercise', () => {
 });
 
 describe('walking the shipped exercise end to end', () => {
-  const exercise = loadExercise(PILL_ID)!;
+  const exercise = loadExercise(PILL_ID)!.exercise;
 
   /** Answers the way the recorded expert actually answered. */
   function answerAll(): Answer[] {

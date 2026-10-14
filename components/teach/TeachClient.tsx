@@ -47,22 +47,30 @@ import { Dictation } from './Dictation';
 import { Mascot, moodFor } from './Mascot';
 import { QuestionCard } from './QuestionCard';
 import { ContradictionPanel } from './ContradictionPanel';
-import { SCENARIO_STAGES, ScenarioStage, type ScenarioStageId } from './ScenarioStage';
+import { ScenarioStage } from './ScenarioStage';
+import type { ExerciseOrigin } from '@/lib/teach/load';
+import type { ScenarioStageData } from '@/lib/teach/scenario';
 
 export interface TeachClientProps {
   exercise: Exercise;
+  /** Authored by hand, or derived from the pill's own rules. Said out loud on screen. */
+  origin: ExerciseOrigin;
   pillName: string;
+  /** The drawn situation, or null when nobody has drawn one for this pill. */
+  stages: readonly ScenarioStageData[] | null;
   /** Whether a server recogniser is usable, read on the server (no secrets). */
   serverAsrAvailable: boolean;
 }
 
 type Phase = 'scenario' | 'questions' | 'done';
 
-export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachClientProps) {
+export function TeachClient({ exercise, origin, pillName, stages, serverAsrAvailable }: TeachClientProps) {
   const mounted = useMounted();
   const voice = useVoice();
 
-  const [phase, setPhase] = useState<Phase>('scenario');
+  // No drawing for this pill means no scenario phase: an honest absence
+  // rather than another pill's section shown over the top of these questions.
+  const [phase, setPhase] = useState<Phase>(stages?.length ? 'scenario' : 'questions');
   const [stageAt, setStageAt] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [muted, setMuted] = useState(false);
@@ -71,7 +79,8 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
   const [confirmedFromAccount, setConfirmedFromAccount] = useState<Rule[]>([]);
   const clock = useRef(0);
 
-  const stage: ScenarioStageId = SCENARIO_STAGES[stageAt]?.id ?? 'calm';
+  const stageList = stages ?? [];
+  const stage = stageList[stageAt]?.id ?? '';
   const covered = useMemo(() => coveredParts(exercise, answers), [exercise, answers]);
   const claims = useMemo(() => claimsFrom(exercise, answers), [exercise, answers]);
   const contradiction = useMemo(() => findContradiction(exercise, answers), [exercise, answers]);
@@ -116,7 +125,7 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
   // Narrate each scenario stage as it arrives.
   useEffect(() => {
     if (phase !== 'scenario' || !mounted) return;
-    const caption = SCENARIO_STAGES[stageAt]?.caption;
+    const caption = stageList[stageAt]?.caption;
     if (caption) say(caption);
     // `say` changes with mute; re-narrating on mute toggle would restart the line.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -174,10 +183,18 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
             <span>Teach a skill</span>
             <span aria-hidden="true">·</span>
             <span className="font-mono text-[12px]">{pillName}</span>
+            <span aria-hidden="true">·</span>
+            <span className="font-mono text-[12px]">
+              {origin === 'generated' ? 'questions derived from the pill' : 'questions written for this pill'}
+            </span>
           </>
         }
         title="One situation, then only what is missing"
-        subtitle="The first question is deliberately wide. Everything after it is chosen by what that answer did not settle — and nothing here becomes a rule until someone who may edit the pill reviews it."
+        subtitle={
+          origin === 'generated'
+            ? 'Nobody wrote these questions. They are derived from this pill\u2019s own rules and evidence catalogue — including the wrong answers, which are lifted from what the pill says is allowed or required elsewhere.'
+            : 'The first question is deliberately wide. Everything after it is chosen by what that answer did not settle — and nothing here becomes a rule until someone who may edit the pill reviews it.'
+        }
         actions={
           <div className="flex items-center gap-2">
             <button
@@ -227,9 +244,9 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
 
           {phase === 'scenario' ? (
             <>
-              <ScenarioStage stage={stage} />
+              <ScenarioStage stage={stage} stages={stageList} />
               <div className="flex flex-wrap items-center gap-3">
-                {stageAt < SCENARIO_STAGES.length - 1 ? (
+                {stageAt < stageList.length - 1 ? (
                   <button
                     type="button"
                     onClick={() => setStageAt((a) => a + 1)}
@@ -251,7 +268,7 @@ export function TeachClient({ exercise, pillName, serverAsrAvailable }: TeachCli
                   </button>
                 )}
                 <span className="font-mono text-[11px] tabular-nums text-ink-muted">
-                  {stageAt + 1} / {SCENARIO_STAGES.length}
+                  {stageAt + 1} / {stageList.length}
                 </span>
               </div>
             </>

@@ -1,6 +1,8 @@
 {
   "pillId": "technical-services-chilled-water-leak",
   "scenarioId": "hf1-l28-coupling",
+  "incidentType": "water_ingress",
+  "ruleId": "TS-07",
   "opening": {
     "id": "q-account",
     "kind": "open",
@@ -17,10 +19,44 @@
       "probeId": "P05",
       "prompt": "First call. What do you isolate?",
       "choices": [
-        { "id": "riser", "label": "The whole riser", "claim": "isolate:riser", "note": "The valve you know will stop the flow." },
-        { "id": "floor", "label": "The floor valve", "claim": "isolate:floor" },
-        { "id": "sub", "label": "The nearest sub-valve", "claim": "isolate:sub_valve", "note": "Smallest cut that stops it — if you can reach it and it holds." },
-        { "id": "trace", "label": "Nothing yet — trace the source first", "claim": "isolate:trace_first" }
+        {
+          "id": "riser",
+          "label": "The whole riser",
+          "claim": "isolate:riser",
+          "note": "The valve you know will stop the flow.",
+          "means": {
+            "part": "decision",
+            "text": "Isolate the whole chilled-water riser."
+          }
+        },
+        {
+          "id": "floor",
+          "label": "The floor valve",
+          "claim": "isolate:floor",
+          "means": {
+            "part": "decision",
+            "text": "Isolate at the floor valve."
+          }
+        },
+        {
+          "id": "sub",
+          "label": "The nearest sub-valve",
+          "claim": "isolate:sub_valve",
+          "note": "Smallest cut that stops it — if you can reach it and it holds.",
+          "means": {
+            "part": "decision",
+            "text": "Isolate at the nearest branch sub-valve and leave the riser open."
+          }
+        },
+        {
+          "id": "trace",
+          "label": "Nothing yet — trace the source first",
+          "claim": "isolate:trace_first",
+          "means": {
+            "part": "decision",
+            "text": "Trace the source before isolating anything."
+          }
+        }
       ]
     },
     {
@@ -30,11 +66,50 @@
       "probeId": "P15",
       "prompt": "The water is stopped and the AHU circuit is isolated. Before anyone re-energises it, what has to be confirmed? Pick everything that must be true.",
       "choices": [
-        { "id": "lew_signoff", "label": "Written sign-off from a Licensed Electrical Worker", "claim": "ev:lew_signoff" },
-        { "id": "insulation_resistance_ok", "label": "Insulation resistance tested and passed", "claim": "ev:insulation_resistance_ok" },
-        { "id": "area_dry", "label": "The area confirmed dry", "claim": "ev:area_dry" },
-        { "id": "looks_dry", "label": "The board looks dry from outside the cupboard", "claim": "ev:visual_inspection" },
-        { "id": "tenant_told", "label": "The tenant has been told power is coming back", "claim": "ev:tenant_notified" }
+        {
+          "id": "lew_signoff",
+          "label": "Written sign-off from a Licensed Electrical Worker",
+          "claim": "ev:lew_signoff",
+          "means": {
+            "part": "required_evidence",
+            "evidenceKey": "lew_signoff"
+          }
+        },
+        {
+          "id": "insulation_resistance_ok",
+          "label": "Insulation resistance tested and passed",
+          "claim": "ev:insulation_resistance_ok",
+          "means": {
+            "part": "required_evidence",
+            "evidenceKey": "insulation_resistance_ok"
+          }
+        },
+        {
+          "id": "area_dry",
+          "label": "The area confirmed dry",
+          "claim": "ev:area_dry",
+          "means": {
+            "part": "required_evidence",
+            "evidenceKey": "area_dry"
+          }
+        },
+        {
+          "id": "looks_dry",
+          "label": "The board looks dry from outside the cupboard",
+          "claim": "ev:visual_inspection",
+          "means": {
+            "part": "required_evidence",
+            "evidenceKey": "visual_inspection"
+          }
+        },
+        {
+          "id": "tenant_told",
+          "label": "The tenant has been told power is coming back",
+          "claim": "ev:tenant_notified",
+          "means": {
+            "part": "required_evidence"
+          }
+        }
       ]
     },
     {
@@ -44,10 +119,42 @@
       "probeId": "P19",
       "prompt": "Whose sign-off does the re-energisation need? Not who you would phone — whose name has to be on it.",
       "choices": [
-        { "id": "duty_lew", "label": "The duty Licensed Electrical Worker", "claim": "signoff:duty_lew" },
-        { "id": "chief_engineer", "label": "The chief engineer", "claim": "signoff:chief_engineer" },
-        { "id": "duty_manager", "label": "The duty manager", "claim": "signoff:duty_manager" },
-        { "id": "ts_lead", "label": "The technical services lead", "claim": "signoff:technical_services_lead" }
+        {
+          "id": "duty_lew",
+          "label": "The duty Licensed Electrical Worker",
+          "claim": "signoff:duty_lew",
+          "means": {
+            "part": "escalate_to",
+            "role": "duty_lew"
+          }
+        },
+        {
+          "id": "chief_engineer",
+          "label": "The chief engineer",
+          "claim": "signoff:chief_engineer",
+          "means": {
+            "part": "escalate_to",
+            "role": "chief_engineer"
+          }
+        },
+        {
+          "id": "duty_manager",
+          "label": "The duty manager",
+          "claim": "signoff:duty_manager",
+          "means": {
+            "part": "escalate_to",
+            "role": "duty_manager"
+          }
+        },
+        {
+          "id": "ts_lead",
+          "label": "The technical services lead",
+          "claim": "signoff:technical_services_lead",
+          "means": {
+            "part": "escalate_to",
+            "role": "technical_services_lead"
+          }
+        }
       ]
     },
     {
@@ -57,11 +164,51 @@
       "probeId": "P22",
       "prompt": "The tenant is calling every ten minutes and it is 03:40. Which of these must still not happen?",
       "choices": [
-        { "id": "reset_breaker", "label": "Reset the tripped breaker to see if it holds", "claim": "forbid:reset_breaker_before_ir" },
-        { "id": "visual_only", "label": "Re-energise because the board looks dry", "claim": "forbid:reenergise_on_visual" },
-        { "id": "open_cupboard", "label": "Open the riser cupboard to check if it is wet inside", "claim": "forbid:open_wet_cupboard" },
-        { "id": "photograph", "label": "Photograph the standing water from outside the threshold", "claim": "forbid:photograph" },
-        { "id": "cordon", "label": "Cordon the area and put up signage", "claim": "forbid:cordon" }
+        {
+          "id": "reset_breaker",
+          "label": "Reset the tripped breaker to see if it holds",
+          "claim": "forbid:reset_breaker_before_ir",
+          "means": {
+            "part": "forbidden_actions",
+            "text": "Reset a tripped breaker before the LEW tests insulation resistance"
+          }
+        },
+        {
+          "id": "visual_only",
+          "label": "Re-energise because the board looks dry",
+          "claim": "forbid:reenergise_on_visual",
+          "means": {
+            "part": "forbidden_actions",
+            "text": "Re-energise on visual inspection alone"
+          }
+        },
+        {
+          "id": "open_cupboard",
+          "label": "Open the riser cupboard to check if it is wet inside",
+          "claim": "forbid:open_wet_cupboard",
+          "means": {
+            "part": "forbidden_actions",
+            "text": "Open the electrical riser cupboard to check whether it is wet inside"
+          }
+        },
+        {
+          "id": "photograph",
+          "label": "Photograph the standing water from outside the threshold",
+          "claim": "forbid:photograph",
+          "means": {
+            "part": "forbidden_actions",
+            "text": "Photograph standing water from outside the threshold"
+          }
+        },
+        {
+          "id": "cordon",
+          "label": "Cordon the area and put up signage",
+          "claim": "forbid:cordon",
+          "means": {
+            "part": "forbidden_actions",
+            "text": "Cordon the area and put up signage"
+          }
+        }
       ]
     },
     {
@@ -71,10 +218,42 @@
       "probeId": "P20",
       "prompt": "A bank tenant floor is wet and the source is not isolated. How long before this stops being yours and has to go up?",
       "choices": [
-        { "id": "15", "label": "Fifteen minutes", "claim": "deadline:15" },
-        { "id": "30", "label": "Thirty minutes", "claim": "deadline:30" },
-        { "id": "60", "label": "An hour", "claim": "deadline:60" },
-        { "id": "none", "label": "No fixed clock — judgement", "claim": "deadline:none" }
+        {
+          "id": "15",
+          "label": "Fifteen minutes",
+          "claim": "deadline:15",
+          "means": {
+            "part": "deadline_minutes",
+            "minutes": 15
+          }
+        },
+        {
+          "id": "30",
+          "label": "Thirty minutes",
+          "claim": "deadline:30",
+          "means": {
+            "part": "deadline_minutes",
+            "minutes": 30
+          }
+        },
+        {
+          "id": "60",
+          "label": "An hour",
+          "claim": "deadline:60",
+          "means": {
+            "part": "deadline_minutes",
+            "minutes": 60
+          }
+        },
+        {
+          "id": "none",
+          "label": "No fixed clock — judgement",
+          "claim": "deadline:none",
+          "means": {
+            "part": "deadline_minutes",
+            "minutes": null
+          }
+        }
       ]
     },
     {
@@ -85,11 +264,72 @@
       "refines": true,
       "prompt": "You said the water being near electrical equipment is what made this different. So where is the line? How close is too close?",
       "choices": [
-        { "id": "0.5", "label": "Half a metre", "claim": "near_electrical:0.5m" },
-        { "id": "1", "label": "One metre", "claim": "near_electrical:1m" },
-        { "id": "2", "label": "Two metres", "claim": "near_electrical:2m", "note": "Water tracks along conduits and cable trays. You think it is two metres away and it is already at the board." },
-        { "id": "5", "label": "Five metres", "claim": "near_electrical:5m" },
-        { "id": "contact", "label": "Only if it is actually touching", "claim": "near_electrical:contact" }
+        {
+          "id": "0.5",
+          "label": "Half a metre",
+          "claim": "near_electrical:0.5m",
+          "means": {
+            "part": "trigger",
+            "threshold": {
+              "path": "evidence.distance_to_electrical_m",
+              "op": "lte",
+              "value": 0.5
+            }
+          }
+        },
+        {
+          "id": "1",
+          "label": "One metre",
+          "claim": "near_electrical:1m",
+          "means": {
+            "part": "trigger",
+            "threshold": {
+              "path": "evidence.distance_to_electrical_m",
+              "op": "lte",
+              "value": 1
+            }
+          }
+        },
+        {
+          "id": "2",
+          "label": "Two metres",
+          "claim": "near_electrical:2m",
+          "note": "Water tracks along conduits and cable trays. You think it is two metres away and it is already at the board.",
+          "means": {
+            "part": "trigger",
+            "threshold": {
+              "path": "evidence.distance_to_electrical_m",
+              "op": "lte",
+              "value": 2
+            }
+          }
+        },
+        {
+          "id": "5",
+          "label": "Five metres",
+          "claim": "near_electrical:5m",
+          "means": {
+            "part": "trigger",
+            "threshold": {
+              "path": "evidence.distance_to_electrical_m",
+              "op": "lte",
+              "value": 5
+            }
+          }
+        },
+        {
+          "id": "contact",
+          "label": "Only if it is actually touching",
+          "claim": "near_electrical:contact",
+          "means": {
+            "part": "trigger",
+            "threshold": {
+              "path": "evidence.distance_to_electrical_m",
+              "op": "lte",
+              "value": 0
+            }
+          }
+        }
       ]
     },
     {
@@ -101,8 +341,24 @@
       "given": "An AHU branch leak on Level 27. The branch sub-valve is accessible, and closing it stops the flow.",
       "prompt": "Different night, smaller job. What do you isolate here?",
       "choices": [
-        { "id": "riser", "label": "The whole riser", "claim": "isolate:riser" },
-        { "id": "sub", "label": "The branch sub-valve, and leave the riser open", "claim": "isolate:sub_valve" }
+        {
+          "id": "riser",
+          "label": "The whole riser",
+          "claim": "isolate:riser",
+          "means": {
+            "part": "decision",
+            "text": "Isolate the whole chilled-water riser."
+          }
+        },
+        {
+          "id": "sub",
+          "label": "The branch sub-valve, and leave the riser open",
+          "claim": "isolate:sub_valve",
+          "means": {
+            "part": "decision",
+            "text": "Isolate at the nearest branch sub-valve and leave the riser open."
+          }
+        }
       ]
     },
     {
