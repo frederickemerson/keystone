@@ -1,9 +1,12 @@
 'use client';
 
-// "Hear the expert": speaks a provenance quote with window.speechSynthesis in a
-// lower-pitched voice and exposes word-boundary progress for live captions.
+// "Hear the expert": speaks a provenance quote with window.speechSynthesis and
+// exposes word-boundary progress for live captions. The voice is the best one
+// the platform offers (lib/speech/voices), not the first English one in the
+// list, and its pitch is left alone — see that module for why both mattered.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { rankVoices } from '@/lib/speech/voices';
 
 export interface ExpertVoiceState {
   supported: boolean;
@@ -12,12 +15,15 @@ export interface ExpertVoiceState {
   text: string | null;
   /** Character offset reached so far (for caption highlighting). */
   spokenTo: number;
+  /** The voice that spoke, so a caption can name it instead of just saying "synthetic". */
+  voiceName: string | null;
 }
 
+/** The setting is Singapore; no platform ships an en-SG voice, so this only orders English ones. */
+const EXPERT_LANG = 'en-SG';
+
 function pickVoice(synth: SpeechSynthesis): SpeechSynthesisVoice | undefined {
-  const voices = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith('en'));
-  // Prefer a regional English voice close to the Singapore setting, else any English voice.
-  return voices.find((v) => /en-(sg|gb|au|in)/i.test(v.lang)) ?? voices.find((v) => v.default) ?? voices[0];
+  return rankVoices(synth.getVoices(), EXPERT_LANG)[0];
 }
 
 /**
@@ -46,6 +52,7 @@ export function useExpertVoice() {
     speaking: false,
     text: null,
     spokenTo: 0,
+    voiceName: null,
   });
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -77,6 +84,7 @@ export function useExpertVoice() {
         speaking: false,
         text,
         spokenTo: text.length,
+        voiceName: null,
       });
     };
     if (!speechAvailable()) {
@@ -87,7 +95,7 @@ export function useExpertVoice() {
       const synth = window.speechSynthesis;
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.pitch = 0.6;
+      // `pitch` left at its default: 0.6 was most of why this sounded synthetic.
       u.rate = 0.95;
       const voice = pickVoice(synth);
       if (voice) {
@@ -107,7 +115,7 @@ export function useExpertVoice() {
       };
       u.onerror = u.onend;
       utteranceRef.current = u;
-      setState({ supported: true, speaking: true, text, spokenTo: 0 });
+      setState({ supported: true, speaking: true, text, spokenTo: 0, voiceName: voice?.name ?? null });
       synth.speak(u);
     } catch {
       captionOnly();

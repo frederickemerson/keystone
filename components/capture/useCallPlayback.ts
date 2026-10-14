@@ -4,9 +4,9 @@
 //
 // Responsibilities:
 //  - drive turns in order (idle -> active -> ended)
-//  - speak each turn with window.speechSynthesis (Keystone vs expert voice via
-//    pitch + voice selection); fall back to timed captions when speech is
-//    unavailable or muted
+//  - speak each turn with window.speechSynthesis, each speaker in their own
+//    ranked voice (lib/speech/voices); fall back to timed captions when speech
+//    is unavailable or muted
 //  - derive captured rule ids as a pure function of the current turn index
 //    (every turn up to and including it), so jumps/skips match linear playback
 //  - expose contradiction visibility/resolved flags derived from the active turn
@@ -16,6 +16,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { TranscriptTurn } from '@/lib/data';
+import { pickCallVoices } from '@/lib/speech/voices';
+import { useVoices } from '@/lib/speech/useVoices';
 
 export type CallStatus = 'idle' | 'active' | 'ended';
 export type Speed = 1 | 2 | 4;
@@ -33,6 +35,8 @@ export interface CallPlayback {
   contradictionResolved: boolean;
   currentTurn: TranscriptTurn | undefined;
   phase: string;
+  /** The voice actually speaking the expert's words, so the caption can name it. */
+  expertVoiceName: string | null;
   accept: () => void;
   togglePause: () => void;
   skipNext: () => void;
@@ -43,6 +47,10 @@ export interface CallPlayback {
 
 const WORDS_PER_SEC = 2.8;
 const MIN_TURN_MS = 1400;
+/** The setting is Singapore; no platform ships an en-SG voice, so this only orders English ones. */
+const EXPERT_LANG = 'en-SG';
+/** Keystone is the system, and a different voice is what separates the two speakers. */
+const INTERVIEWER_LANG = 'en-GB';
 
 function firstGeo(turns: TranscriptTurn[], t: string): number {
   const idx = turns.findIndex((turn) => (turn.t ?? '') >= t);
@@ -70,6 +78,11 @@ export function useCallPlayback(args: {
   contradictionResolvedT: string;
 }): CallPlayback {
   const { turns, expertName, phaseByTurn, contradictionStartT, contradictionResolvedT } = args;
+
+  const voices = useVoices();
+  // Picked from the whole list rather than "the first one whose language
+  // matches": see lib/speech/voices for what that used to produce.
+  const cast = useMemo(() => pickCallVoices(voices, EXPERT_LANG, INTERVIEWER_LANG), [voices]);
 
   const [status, setStatus] = useState<CallStatus>('idle');
   const [turnIndex, setTurnIndex] = useState(0);
@@ -127,15 +140,14 @@ export function useCallPlayback(args: {
       try {
         const u = new SpeechSynthesisUtterance(turn.text);
         u.rate = speed;
-        u.pitch = turn.speaker === expertName ? 0.55 : 1.0;
-        const voices = synth.getVoices?.() ?? [];
-        const pick = (langs: string[]) =>
-          voices.find((v) => langs.some((l) => v.lang?.toLowerCase().startsWith(l)));
-        const voice =
-          turn.speaker === expertName
-            ? pick(['en-us', 'en-au']) ?? voices[0]
-            : pick(['en-gb', 'en-sg', 'en-uk']) ?? voices[0];
-        if (voice) u.voice = voice;
+        // `pitch` is deliberately left at its default. Dropping the expert's to
+        // 0.55 is what made him sound like a machine; the two speakers are told
+        // apart by having different voices.
+        const voice = turn.speaker === expertName ? cast.expert : cast.interviewer ?? cast.expert;
+        if (voice) {
+          u.voice = voice;
+          u.lang = voice.lang;
+        }
         // Advance when the voice ends, but never before the caption has had its
         // reading time: a voice that fails or ends instantly (no voices, a
         // blocked or headless synth) must not skip the call.
@@ -178,7 +190,7 @@ export function useCallPlayback(args: {
         }
       }
     };
-  }, [status, turnIndex, paused, muted, speed, turns, turnCount, expertName]);
+  }, [status, turnIndex, paused, muted, speed, turns, turnCount, expertName, cast]);
 
   const accept = useCallback(() => {
     setStatus('active');
@@ -232,6 +244,7 @@ export function useCallPlayback(args: {
     contradictionResolved,
     currentTurn,
     phase,
+    expertVoiceName: cast.expert?.name ?? null,
     accept,
     togglePause,
     skipNext,

@@ -40,6 +40,16 @@ const JUMP_MOMENTS = [
  */
 export const SYNTHETIC_VOICE_CAPTION = 'Synthetic voice reading his recorded words';
 
+/**
+ * The same caption, naming the voice doing the reading. Which voice a browser
+ * picks is the difference between this sounding like a person and sounding
+ * like a machine, so it is worth being able to read it off the screen rather
+ * than guessing from the audio.
+ */
+function voiceCaption(voiceName: string | null): string {
+  return voiceName ? `${SYNTHETIC_VOICE_CAPTION} (${voiceName})` : SYNTHETIC_VOICE_CAPTION;
+}
+
 function Waveform({ active, expert }: { active: boolean; expert: boolean }) {
   const heights = [45, 75, 100, 60, 85];
   return (
@@ -258,9 +268,9 @@ function ActiveView({
         {isExpert ? (
           <span
             className="rounded-full border border-line bg-dew-drop px-2 py-0.5 text-[11px] text-ink-muted"
-            aria-label={`Audio: ${SYNTHETIC_VOICE_CAPTION}. This is not ${expert.name}'s own voice.`}
+            aria-label={`Audio: ${voiceCaption(playback.expertVoiceName)}. This is not ${expert.name}'s own voice.`}
           >
-            {SYNTHETIC_VOICE_CAPTION}
+            {voiceCaption(playback.expertVoiceName)}
           </span>
         ) : null}
       </div>
