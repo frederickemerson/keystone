@@ -4,7 +4,7 @@
 // reason, not silently skipped: a demo where the voice quietly degrades and
 // nothing says why is the failure this chain exists to prevent.
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 import {
@@ -18,6 +18,8 @@ import {
   synthesize,
   tokenhubTtsStatus,
   TOKENHUB_SPEECH_MODEL,
+  TOKENHUB_TTS_PATH,
+  TOKENHUB_TTS_REGION,
   TTS_ROLES,
 } from '../tts';
 import {
@@ -33,23 +35,23 @@ const BOTH = { TOKENHUB_API_KEY: 'th', OPENAI_API_KEY: 'oa' };
 
 describe('tokenhubTtsStatus', () => {
   it('is not configured without a key', () => {
-    const status = tokenhubTtsStatus({});
-    expect(status.state).toBe('not_configured');
+    expect(tokenhubTtsStatus({}).state).toBe('not_configured');
   });
 
-  it('with a key, reports why it still cannot be used and names the model it would use', () => {
-    const status = tokenhubTtsStatus({ TOKENHUB_API_KEY: 'th' });
-    expect(status.state).toBe('not_available');
-    if (status.state === 'not_available') {
-      expect(status.reason).toContain(TOKENHUB_SPEECH_MODEL);
-      expect(status.reason).toContain('billing');
-    }
+  it('is ready with a key, naming the speech model it serves', () => {
+    expect(tokenhubTtsStatus({ TOKENHUB_API_KEY: 'th' })).toEqual({
+      provider: 'tokenhub_minimax',
+      state: 'ready',
+      model: TOKENHUB_SPEECH_MODEL,
+      region: TOKENHUB_TTS_REGION,
+    });
   });
 
-  it('never reports ready, because no adapter has been verified against it', () => {
-    for (const env of [{}, { TOKENHUB_API_KEY: 'th' }]) {
-      expect(tokenhubTtsStatus(env).state).not.toBe('ready');
-    }
+  it('does not claim Singapore for this path', () => {
+    // The dedicated CHAT service is Singapore-routed; synthesis goes through
+    // the international gateway, and conflating the two would be a false
+    // residency claim.
+    expect(TOKENHUB_TTS_REGION).not.toMatch(/singapore|ap-/i);
   });
 });
 
@@ -65,8 +67,12 @@ describe('openAiTtsStatus', () => {
 });
 
 describe('selectServerTts', () => {
-  it('picks OpenAI while TokenHub is unreachable, rather than failing outright', () => {
-    expect(selectServerTts(BOTH)?.provider).toBe('openai_tts');
+  it('prefers TokenHub when both are configured', () => {
+    expect(selectServerTts(BOTH)?.provider).toBe('tokenhub_minimax');
+  });
+
+  it('falls back to OpenAI when TokenHub has no key', () => {
+    expect(selectServerTts({ OPENAI_API_KEY: 'oa' })?.provider).toBe('openai_tts');
   });
 
   it('is null when nothing is configured, so the caller falls back to the browser', () => {
@@ -118,14 +124,83 @@ describe('speechRequestSchema', () => {
   });
 });
 
-describe('synthesize', () => {
-  it('refuses a provider it has no adapter for, instead of pretending', async () => {
-    await expect(
-      synthesize(
-        { text: 'Isolate the riser.', role: 'expert' },
-        { provider: 'tokenhub_minimax', state: 'ready', model: TOKENHUB_SPEECH_MODEL, region: 'ap-singapore' },
-      ),
-    ).rejects.toThrow(/No adapter/);
+describe('synthesize, against TokenHub', () => {
+  const READY = {
+    provider: 'tokenhub_minimax' as const,
+    state: 'ready' as const,
+    model: TOKENHUB_SPEECH_MODEL,
+    region: TOKENHUB_TTS_REGION,
+  };
+  const ENV = { TOKENHUB_API_KEY: 'th', TOKENHUB_BASE_URL: 'https://gateway.test/v1' };
+  const REQUEST = { text: 'Isolate the riser.', role: 'expert' as const };
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  function respond(body: unknown, status = 200) {
+    const calls: { url: string; init: RequestInit }[] = [];
+    vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {
+      calls.push({ url, init });
+      return new Response(JSON.stringify(body), { status });
+    });
+    return calls;
+  }
+
+  const audioHex = 'ff'.repeat(200);
+
+  it('posts to the synthesis path, which is not under /audio', async () => {
+    const calls = respond({ base_resp: { status_code: 0 }, data: { audio: audioHex } });
+    await synthesize(REQUEST, READY, ENV);
+    expect(calls[0].url).toBe(`https://gateway.test/v1/${TOKENHUB_TTS_PATH}`);
+    expect(calls[0].url).not.toContain('/audio/');
+    const sent = JSON.parse(String(calls[0].init.body));
+    expect(sent.model).toBe(TOKENHUB_SPEECH_MODEL);
+    expect(sent.text).toBe(REQUEST.text);
+    expect(sent.output_format).toBe('hex');
+  });
+
+  it('gives each role its own voice', async () => {
+    const calls = respond({ base_resp: { status_code: 0 }, data: { audio: audioHex } });
+    const expert = await synthesize({ ...REQUEST, role: 'expert' }, READY, ENV);
+    await synthesize({ ...REQUEST, role: 'interviewer' }, READY, ENV);
+    const voices = calls.map((call) => JSON.parse(String(call.init.body)).voice_setting.voice_id);
+    expect(voices[0]).not.toBe(voices[1]);
+    expect(expert.source.voice).toBe(voices[0]);
+  });
+
+  it('decodes the inline audio and stamps where it came from', async () => {
+    respond({ base_resp: { status_code: 0 }, data: { audio: audioHex } });
+    const spoken = await synthesize(REQUEST, READY, ENV);
+    expect(spoken.contentType).toBe('audio/mpeg');
+    expect(spoken.audio.byteLength).toBe(200);
+    expect(spoken.source.provider).toBe('tokenhub_minimax');
+    expect(spoken.source.region).toBe(TOKENHUB_TTS_REGION);
+  });
+
+  it('treats a 200 carrying a refusal as a failure', async () => {
+    // The gateway answers 200 with a non-zero status_code; the HTTP status
+    // alone would let this through as success and ship silence.
+    respond({ base_resp: { status_code: 1004, status_msg: 'insufficient balance' }, data: {} });
+    await expect(synthesize(REQUEST, READY, ENV)).rejects.toThrow(/insufficient balance/);
+  });
+
+  it('refuses a body with no audio in it', async () => {
+    respond({ base_resp: { status_code: 0 }, data: {} });
+    await expect(synthesize(REQUEST, READY, ENV)).rejects.toThrow(/no audio/i);
+  });
+
+  it('refuses audio that is not hex, rather than decoding noise', async () => {
+    respond({ base_resp: { status_code: 0 }, data: { audio: 'https://example.test/a.mp3' } });
+    await expect(synthesize(REQUEST, READY, ENV)).rejects.toThrow(/no audio/i);
+  });
+
+  it('refuses a suspiciously short payload', async () => {
+    respond({ base_resp: { status_code: 0 }, data: { audio: 'ffff' } });
+    await expect(synthesize(REQUEST, READY, ENV)).rejects.toThrow(/no audio/i);
+  });
+
+  it('propagates an HTTP failure', async () => {
+    respond({}, 502);
+    await expect(synthesize(REQUEST, READY, ENV)).rejects.toThrow(/502/);
   });
 });
 

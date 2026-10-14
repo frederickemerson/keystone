@@ -7,9 +7,11 @@
 // Writes public/speech/*.mp3 and data/speech/manifest.json. Both are committed:
 // see lib/speech/manifest for why playback must not depend on a key or a quota.
 //
-// Needs OPENAI_API_KEY in .env.local. The voices and delivery instructions are
-// read from lib/speech/tts so this script cannot drift from what the live route
-// would produce for the same text.
+// Uses the same provider chain the live route does: TokenHub
+// (minimax-speech-2.8-hd) first, OpenAI (gpt-4o-mini-tts) as the fallback. The
+// model ids and voices are read out of lib/speech/tts, so this script cannot
+// drift from what the route would produce for the same text — and the manifest
+// records which provider actually spoke each line.
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -62,19 +64,28 @@ function env() {
   return { ...parsed, ...process.env };
 }
 
-/** The same voice and delivery the live route uses, read from the one source. */
-function voiceTable() {
+/** The same models and voices the live route uses, read from the one source. */
+function providerConfig() {
   const source = readFileSync(join(ROOT, 'lib', 'speech', 'tts.ts'), 'utf8');
-  const model = source.match(/OPENAI_TTS_MODEL = '([^']+)'/)?.[1];
-  const block = source.match(/const OPENAI_VOICES[\s\S]*?\n};/)?.[0];
-  if (!model || !block) throw new Error('Could not read the voice table out of lib/speech/tts.ts.');
-  const table = {};
-  for (const m of block.matchAll(/(\w+): \{\s*voice: '([^']+)',\s*instructions:\s*([\s\S]*?),\n  \},/g)) {
-    const instructions = [...m[3].matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((s) => s[1]).join('');
-    table[m[1]] = { voice: m[2], instructions };
+  const openaiModel = source.match(/OPENAI_TTS_MODEL = '([^']+)'/)?.[1];
+  const tokenhubModel = source.match(/TOKENHUB_SPEECH_MODEL = '([^']+)'/)?.[1];
+  const tokenhubPath = source.match(/TOKENHUB_TTS_PATH = '([^']+)'/)?.[1];
+  const tokenhubRegion = source.match(/TOKENHUB_TTS_REGION = '([^']+)'/)?.[1];
+
+  const openaiBlock = source.match(/const OPENAI_VOICES[\s\S]*?\n\};/)?.[0];
+  const openai = {};
+  for (const m of (openaiBlock ?? '').matchAll(/(\w+): \{\s*voice: '([^']+)',\s*instructions:\s*([\s\S]*?),\n  \},/g)) {
+    openai[m[1]] = { voice: m[2], instructions: [...m[3].matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((x) => x[1]).join('') };
   }
-  if (!table.expert || !table.interviewer) throw new Error('Voice table is missing a role.');
-  return { model, table };
+
+  const thBlock = source.match(/const TOKENHUB_VOICES[\s\S]*?\n\};/)?.[0];
+  const tokenhub = {};
+  for (const m of (thBlock ?? '').matchAll(/(\w+): '([^']+)'/g)) tokenhub[m[1]] = m[2];
+
+  if (!openaiModel || !tokenhubModel || !tokenhubPath || !openai.expert || !tokenhub.expert) {
+    throw new Error('Could not read the provider config out of lib/speech/tts.ts.');
+  }
+  return { openaiModel, tokenhubModel, tokenhubPath, tokenhubRegion, openai, tokenhub };
 }
 
 /**
@@ -119,59 +130,97 @@ function texts() {
   return out;
 }
 
-function fileFor(role, text) {
-  const hash = createHash('sha256').update(`${role}\u0000${text}`).digest('hex').slice(0, 16);
+/**
+ * The filename carries the MODEL as well as the words. Without it, switching
+ * provider reuses every file already on disk and the manifest claims a voice
+ * nobody rendered — the whole corpus would keep the old provider's audio while
+ * saying it came from the new one.
+ */
+function fileFor(role, text, modelId) {
+  const hash = createHash('sha256').update(`${role}\u0000${modelId}\u0000${text}`).digest('hex').slice(0, 16);
   return `${role}-${hash}.mp3`;
 }
 
-const { model, table } = voiceTable();
+const config = providerConfig();
 const items = texts();
 const chars = items.reduce((n, i) => n + i.text.length, 0);
+const keys = env();
+const useTokenhub = Boolean(keys.TOKENHUB_API_KEY) && !process.argv.includes('--openai');
+const model = useTokenhub ? config.tokenhubModel : config.openaiModel;
+const voices = useTokenhub ? config.tokenhub : { expert: config.openai.expert.voice, interviewer: config.openai.interviewer.voice };
 console.log(`${items.length} distinct lines · ${chars.toLocaleString()} characters · model ${model}`);
-console.log(`  expert -> ${table.expert.voice} · interviewer -> ${table.interviewer.voice}`);
+console.log(`  expert -> ${voices.expert} · interviewer -> ${voices.interviewer}`);
 
 if (dryRun) {
-  for (const i of items) console.log(`  [${i.role}] ${fileFor(i.role, i.text)}  ${i.text.slice(0, 60)}…`);
+  for (const i of items) console.log(`  [${i.role}] ${fileFor(i.role, i.text, model)}  ${i.text.slice(0, 60)}…`);
   process.exit(0);
 }
 
-const key = env().OPENAI_API_KEY;
+const key = useTokenhub ? keys.TOKENHUB_API_KEY : keys.OPENAI_API_KEY;
 if (!key) {
-  console.error('OPENAI_API_KEY is not set — nothing rendered.');
+  console.error(`${useTokenhub ? 'TOKENHUB_API_KEY' : 'OPENAI_API_KEY'} is not set — nothing rendered.`);
   process.exit(1);
 }
+const base = (keys.TOKENHUB_BASE_URL || 'https://tokenhub-intl.tencentcloudmaas.com/v1').replace(/\/$/, '');
+
+/** One line of audio, from whichever provider is in use. Throws on anything unusable. */
+async function speak(text, role) {
+  if (!useTokenhub) {
+    const r = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, input: text, voice: voices[role], instructions: config.openai[role].instructions, response_format: 'mp3' }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 120)}`);
+    return Buffer.from(await r.arrayBuffer());
+  }
+  const r = await fetch(`${base}/${config.tokenhubPath}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model, text,
+      voice_setting: { voice_id: voices[role], speed: 1, vol: 1, pitch: 0 },
+      audio_setting: { sample_rate: 32000, bitrate: 128000, format: 'mp3', channel: 1 },
+      subtitle_enable: false, output_format: 'hex',
+    }),
+    signal: AbortSignal.timeout(90_000),
+  });
+  if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 120)}`);
+  const j = await r.json();
+  // A 200 carrying a non-zero status_code is a refusal, not a success.
+  if (j?.base_resp?.status_code !== 0) throw new Error(`refused: ${j?.base_resp?.status_msg ?? 'unknown'}`);
+  const hex = j?.data?.audio;
+  if (!hex || !/^[0-9a-f]+$/i.test(hex) || hex.length < 200) throw new Error('no audio in the answer');
+  return Buffer.from(hex, 'hex');
+}
 mkdirSync(AUDIO_DIR, { recursive: true });
+
+/** Recorded on every entry, so the UI can say where the audio was made. */
+const region = useTokenhub ? (config.tokenhubRegion ?? 'tokenhub-intl') : 'us';
 
 const entries = [];
 let rendered = 0;
 let reused = 0;
 
 for (const [index, item] of items.entries()) {
-  const name = fileFor(item.role, item.text);
+  const name = fileFor(item.role, item.text, model);
   const path = join(AUDIO_DIR, name);
-  const { voice, instructions } = table[item.role];
 
   if (!force && existsSync(path)) {
     reused++;
-    entries.push({ ...item, file: `/speech/${name}`, model, voice, region: 'us', bytes: statSync(path).size });
+    entries.push({ ...item, file: `/speech/${name}`, model, voice: voices[item.role], region, bytes: statSync(path).size });
     continue;
   }
 
   let lastError;
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const response = await fetch('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, input: item.text, voice, instructions, response_format: 'mp3' }),
-        signal: AbortSignal.timeout(60_000),
-      });
-      if (!response.ok) throw new Error(`${response.status} ${(await response.text()).slice(0, 120)}`);
-      const buffer = Buffer.from(await response.arrayBuffer());
+      const buffer = await speak(item.text, item.role);
       if (buffer.byteLength < 500) throw new Error(`suspiciously small: ${buffer.byteLength} bytes`);
       writeFileSync(path, buffer);
       if (!reencode(path) && index === 0) console.warn('\n  ffmpeg not found — keeping the larger originals.');
-      entries.push({ ...item, file: `/speech/${name}`, model, voice, region: 'us', bytes: statSync(path).size });
+      entries.push({ ...item, file: `/speech/${name}`, model, voice: voices[item.role], region, bytes: statSync(path).size });
       rendered++;
       process.stdout.write(`\r  rendered ${rendered} / reused ${reused} (${index + 1}/${items.length})   `);
       lastError = undefined;

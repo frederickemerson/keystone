@@ -3,651 +3,651 @@
   "entries": [
     {
       "role": "expert",
-      "text": "Right. So the timeline was: T-plus-zero, the iBMS leak detector in the L28 ceiling void triggered — that's a cable-type sensor, zoned. Maybe one minute later, the BMS showed the AHU supply/return delta-T anomaly — the return temp was dropping because the supply water was leaking out before reaching the AHU coils. Then about two minutes in, the bank tenant on L27 called the facilities desk saying water was dripping from their ceiling. So within three minutes we had three independent signals confirming the same event. The first real decision point was at about five minutes, when the technician arrived on site and I had to tell him what to do next. That's where the isolation decision comes in.",
-      "file": "/speech/expert-0bde156dfe8b64aa.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 242445
-    },
-    {
-      "role": "expert",
-      "text": "This is the most important thing I'll tell you: never re-energise before the LEW signs off. If there is water anywhere near the switchgear, the distribution board, the riser cupboard — any electrical equipment — you do not re-energise that circuit until a Licensed Electrical Worker has physically inspected it, tested the insulation resistance, and signed off in writing. I don't care if the tenant is screaming, I don't care if the bank's trading floor is down — you do not put power back on a circuit that has been near water until the LEW certifies it. That is non-negotiable. Because if you re-energise and there is moisture inside the trunking or the breaker, you can get a short, an arc flash, a fire — and someone can die. So the LEW sign-off is the gate. No sign-off, no power. Full stop.",
-      "file": "/speech/expert-0d42c6a68a67a3a1.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 286509
-    },
-    {
-      "role": "expert",
-      "text": "I could have shut the whole chilled-water riser for that stack — that would have stopped the leak immediately but killed cooling to L20 through L32, which is the entire bank tenancy. That was the nuclear option. I dismissed it because the sub-valve was accessible and the branch isolation was sufficient. Another option was to let the AHU keep running and just deploy containment — bad idea, because the coupling failure would only get worse and the water would eventually reach the electrical cupboard. The third option, which a novice might suggest, is to go into the electrical cupboard to check if water has gotten in — absolutely not. Nobody enters until the LEW says so.",
-      "file": "/speech/expert-102d32f390f34a32.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 244461
-    },
-    {
-      "role": "expert",
-      "text": "The isolation decision — closing the sub-valve — any competent M&E technician can do that, with the shutoff map. But the decision about whether to enter the electrical cupboard, whether to re-energise, whether the area is safe — that requires a Licensed Electrical Worker. My duty technicians know: they do not make that call. They call me, I call the LEW. The LEW is the authority. On my team, I have two senior technicians who can isolate and contain, but the electrical safety call is always the LEW's. That's not delegation, that's a legal requirement.",
-      "file": "/speech/expert-144376ec675dd2d5.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 201261
+      "text": "Okay, the one that sticks in my mind — last year, around August, we had a chilled-water supply pipe coupling fail on Level 28 of Harbourfront One. The water was dripping down through the ceiling void onto Level 27, which is also a bank tenant floor. The thing that made this non-routine was that the water was tracking along a conduit toward the electrical riser cupboard on L27. There was a distribution board in that cupboard, DB-27B. So you had chilled water — Category 1, clean — but it was getting dangerously close to live electrical equipment. That's the one where my experience made the difference, because a less experienced technician might have just gone in to mop up without checking where the water was heading.",
+      "file": "/speech/expert-103ca001862ff742.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 267876
     },
     {
       "role": "expert",
       "text": "Ah, okay, let me clarify — that's a good catch. For a chilled-water leak from the AHU supply branch coupling, where the sub-valve is accessible and stops the flow, you isolate the sub-valve only. You do not need to isolate the riser. For condensate — from the AHU drain pan — you also don't isolate the riser, because condensate is not on the chilled-water loop at all; you isolate at the AHU unit level or fix the drain. The riser isolation is for when the leak is on the riser pipe itself, or when the branch sub-valve is seized or inaccessible, or when the source can't be confirmed within ten minutes. So the distinguishing condition is: where is the leak, and can the sub-valve stop it? If yes — sub-valve only. If no, or if the source is the riser pipe — riser isolation. My earlier statement about always isolating the riser was about the general principle of having a clear isolation hierarchy. But in practice, for a branch leak where the sub-valve works, you isolate the branch.",
-      "file": "/speech/expert-227d958640ecb199.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 356061
-    },
-    {
-      "role": "expert",
-      "text": "That's right. Just add: the two-metre threshold is my professional judgement, not a code requirement — the code says 'near electrical equipment' but doesn't define the distance. Two metres is what I use based on how water tracks along conduits. And for data centres, the critical facilities manager co-signs alongside the LEW — different asset type, slightly different escalation path. Otherwise, that captures it. Good.",
-      "file": "/speech/expert-2566553a16470bce.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 170445
-    },
-    {
-      "role": "expert",
-      "text": "Fire-protection systems — sprinkler, wet riser, hose reel, fire pump — never touch a valve without the FSM's authorisation. That's an impairment. You raise a red-tag permit, notify the insurer, post a fire watch every thirty minutes, and restore protection as the first priority after life safety. Isolate the smallest zone you can. The only exception is immediate life safety — water on live equipment — where you isolate first and inform the FSM within five minutes and raise the permit after.",
-      "file": "/speech/expert-276326ebe58b716a.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 189597
-    },
-    {
-      "role": "expert",
-      "text": "The one that bites people: a tenant calls, says there's water near their server, they want you to kill the whole floor's power. You do not do that on a tenant request alone. Power down only when the LEW confirms a real electrical risk, or you can see water on the switchgear, or a breaker has already tripped. A false power-down on a bank's trading floor is a seven-figure incident — that's a very uncomfortable conversation with the Asset Manager.",
-      "file": "/speech/expert-33f99f78e779f83e.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 154173
-    },
-    {
-      "role": "expert",
-      "text": "Yes, ready. Just to set expectations — I've been doing M&E and technical services for about eighteen years now, mostly Grade A offices but also data centres and logistics. So I've seen my fair share of leaks, lah. Fire away.",
-      "file": "/speech/expert-36204f21456954bd.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 101037
-    },
-    {
-      "role": "expert",
-      "text": "The leak detector alarm was the first confirmation — that's instrumentable, it's in the iBMS. Then the delta-T on the AHU — supply 6.5, return 7.1, when normal delta-T should be about 6 degrees. A 0.6 degree delta-T means the chilled water is bypassing the coil, either leaking out or the control valve is stuck open. Combined with the tenant call, three signals pointing to the same thing — that's when you know it's real. One signal alone I might investigate, but three confirmed signals means you move.",
-      "file": "/speech/expert-4d678ce94c021f41.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 199533
-    },
-    {
-      "role": "expert",
-      "text": "If the water is directly above the switchroom, or dripping into the switchroom — that's the worst case. The protocol changes: nobody enters the switchroom at all, not even to look. You isolate upstream of the switchroom from outside, and the LEW does the inspection from outside first, with the door closed. Only after the LEW confirms the area is de-energised and safe does anyone go in. The difference is proximity and contact path. Water near the switchroom — you watch it and prepare. Water in the switchroom — you treat it as an active electrical hazard with full lockout-tagout.",
-      "file": "/speech/expert-5ae13648e281361b.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 223437
-    },
-    {
-      "role": "expert",
-      "text": "You must tell condensate apart from an active chilled-water leak. Condensate is a drip from the tray or drain line, ambient temperature. An active leak from the chilled-water branch is a stream, cold, eight to fourteen degrees, from the branch pipe or riser. Condensate you clear the tray and schedule a repair; an active leak you isolate the FCU chilled-water valves immediately. When in doubt, treat it as active and isolate.",
-      "file": "/speech/expert-5ca31b63aa145934.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 162237
-    },
-    {
-      "role": "expert",
-      "text": "From the first alarm to the water reaching the electrical cupboard, maybe twenty to thirty minutes if the coupling failure worsened. 'Worse' would be water entering the switchgear, making contact with the busbars or breakers. At that point you're looking at a potential short circuit, arc flash, fire — and the building might trip the main incomer, which takes out the whole tower, not just one floor. That's the escalation: from a leak to a building-wide power outage. So the fifteen-minute isolation window I mentioned is not arbitrary — it's the time you have to stop the water before it becomes an electrical event. Once water touches live electrical equipment, you're in a completely different incident class.",
-      "file": "/speech/expert-70a45e05daeb64be.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 246909
-    },
-    {
-      "role": "expert",
-      "text": "Priority one, always: life safety. If the water is near electrical, nobody goes in until the LEW says safe. Priority two: stop the water at the source. Priority three: protect equipment — cordon, deploy drip trays, move what you can. Priority four: keep the tenant operational. But here's the thing — for the bank tenant, priority four is almost as important as priority three. If their trading floor goes down, that's millions of dollars in lost productivity and it triggers the lease abatement clause. So you're always thinking about tenant isolation time. In a tenant-occupied area, the isolation must happen within fifteen minutes. That's my rule. If you can't isolate within fifteen minutes, you escalate to the Duty Manager and consider riser isolation, even though it impacts more floors. Fifteen minutes is the window where the tenant can still tolerate a drip without it becoming a business interruption event.",
-      "file": "/speech/expert-78ef760f57b69369.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 350445
-    },
-    {
-      "role": "expert",
-      "text": "Before any cleanup, preserve the evidence. Photos and video with timestamps, the failed component retained and tagged — the valve, the gasket, the pipe section. Notify the insurer within the policy window. Separate landlord damage from tenant damage. Do not commit to repairs beyond emergency mitigation before the loss adjuster has been on site — disposing of the failed part too early is the classic mistake.",
-      "file": "/speech/expert-7b927e79d0fda23f.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 161661
-    },
-    {
-      "role": "expert",
-      "text": "Data centre is different. You don't send a tenant message to a DC client — the critical facilities manager handles the SLA notification. You isolate the CRAH condensate or chilled-water branch, deploy containment, but you do not touch IT power — that's the BCP owner's or the CFM's call. Any IT power-down is proposed only and executed by them. The client SLA notification goes through the CFM, not the tenant-experience comms flow. And in the data hall, nothing that got wet goes back on with only the LEW's signature — the CFM co-signs with the LEW. The LEW says it's safe; the CFM says the hall can take it back.",
-      "file": "/speech/expert-7e624affd28da394.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 243885
-    },
-    {
-      "role": "expert",
-      "text": "After the incident, clear any standing water within twenty-four hours. Plant deck, planter box, basement — NEA holds owners and occupiers liable for mosquito breeding and they do inspect. If you can't pump it out, treat it with larvicide via a pest-control contractor and inspect daily until it's dry, and log it in the vector-control record. That's the law.",
-      "file": "/speech/expert-999c2a9b1a819372.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 129837
-    },
-    {
-      "role": "expert",
-      "text": "Correct. Riser pipe leak or inaccessible sub-valve — isolate the riser. Branch leak with working sub-valve — isolate the branch only. And condensate — isolate at AHU unit level, not the riser at all. That's the clean distinction.",
-      "file": "/speech/expert-9aa300c93d6a303e.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 94413
-    },
-    {
-      "role": "expert",
-      "text": "Water in the lift pit or shaft — take the lift out of service straight away via the FCC. Park it at an upper floor, cordon the landing doors, and call the lift contractor. Don't run it to 'test'. If it's a reportable safety incident, BCA must be called within six hours under the Reportable Matters Regulations. Return to service only after the contractor inspects and clears it — not us.",
-      "file": "/speech/expert-9cc4ee4094937c8e.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 135021
-    },
-    {
-      "role": "expert",
-      "text": "Two things. First, the water source wasn't obvious — it was a coupling inside the ceiling void, not a visible pipe burst. The leak detector caught it, but you had to trace it. Second, and more importantly, the water was heading toward the electrical cupboard. That changes the whole game — it's not a janitorial issue anymore, it becomes an electrical safety issue. And when water meets switchgear, that's where people get hurt or killed.",
-      "file": "/speech/expert-a974e64d2af89aa6.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 149709
-    },
-    {
-      "role": "expert",
-      "text": "The real decision was: do we isolate just the branch, or do we isolate the whole riser? The SOP hierarchy is the nearest local valve, then the floor valve, then the riser. What I drill into my team is: always isolate the whole riser — that's the default. The riser valve is the one you know will stop the flow, and a leak you haven't stopped is a leak that is still finding its way to something electrical. You can always reopen it once you've traced the source.",
-      "file": "/speech/expert-af3b6a47f82eff3e.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 173037
-    },
-    {
-      "role": "expert",
-      "text": "I checked the iBMS for the leak detector zone map — that tells me exactly which cable segment triggered. Then I looked at the AHU telemetry — supply and return temps, valve position, fan status. Then I cross-referenced with the shutoff valve diagram, which is in the CMMS asset register, linked to the COBie component IDs. The shutoff map is critical — without it, you're wandering around the riser shaft looking for a valve. If the BMS had been down, I would have gone to the riser physically and followed the pipe, but that takes much longer.",
-      "file": "/speech/expert-b1162063a7b8bc0d.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 190461
-    },
-    {
-      "role": "expert",
-      "text": "On a PUB heavy-rain or flood alert, within thirty minutes test the basement sump pumps and float switches, clear the roof outlets and rainwater downpipes, and stage flood barriers at the carpark ramps and known low points. Brief security on patrol points. Do not deploy barriers that block egress routes — that's a life-safety violation.",
-      "file": "/speech/expert-b6cac459d41209a7.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 131421
+      "file": "/speech/expert-1a6c58a4ba8d6c87.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 343044
     },
     {
       "role": "expert",
       "text": "The rule is the EMA Electrical Installations Regulations and SS 638 — those are the written rules. The LEW regime is a legal requirement, not a preference. The unwritten part is the judgement about when water is 'near enough' to electrical to trigger the gate. My rule is: if water is within two metres of any energised electrical equipment — switchgear, distribution board, breaker panel, riser cupboard — or if water is dripping onto or flowing toward that equipment, you treat it as an electrical hazard. That's my threshold. Two metres. Because water can track along conduits, cable trays, and even along the surface of insulation in a ceiling void. You think it's two metres away, but it's already travelling along the conduit and it's at the board. So two metres is the trigger, and the LEW is the gate.",
-      "file": "/speech/expert-b78f752ec4fa21f6.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 280173
+      "file": "/speech/expert-1c7e866b5bd3efc1.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 314388
+    },
+    {
+      "role": "expert",
+      "text": "The isolation decision — closing the sub-valve — any competent M&E technician can do that, with the shutoff map. But the decision about whether to enter the electrical cupboard, whether to re-energise, whether the area is safe — that requires a Licensed Electrical Worker. My duty technicians know: they do not make that call. They call me, I call the LEW. The LEW is the authority. On my team, I have two senior technicians who can isolate and contain, but the electrical safety call is always the LEW's. That's not delegation, that's a legal requirement.",
+      "file": "/speech/expert-2b6be15aa8dcf439.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 207684
+    },
+    {
+      "role": "expert",
+      "text": "I could have shut the whole chilled-water riser for that stack — that would have stopped the leak immediately but killed cooling to L20 through L32, which is the entire bank tenancy. That was the nuclear option. I dismissed it because the sub-valve was accessible and the branch isolation was sufficient. Another option was to let the AHU keep running and just deploy containment — bad idea, because the coupling failure would only get worse and the water would eventually reach the electrical cupboard. The third option, which a novice might suggest, is to go into the electrical cupboard to check if water has gotten in — absolutely not. Nobody enters until the LEW says so.",
+      "file": "/speech/expert-3472b862ca543f57.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 231876
+    },
+    {
+      "role": "expert",
+      "text": "On a PUB heavy-rain or flood alert, within thirty minutes test the basement sump pumps and float switches, clear the roof outlets and rainwater downpipes, and stage flood barriers at the carpark ramps and known low points. Brief security on patrol points. Do not deploy barriers that block egress routes — that's a life-safety violation.",
+      "file": "/speech/expert-44e842a60fdbeda6.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 127332
+    },
+    {
+      "role": "expert",
+      "text": "The real decision was: do we isolate just the branch, or do we isolate the whole riser? The SOP hierarchy is the nearest local valve, then the floor valve, then the riser. What I drill into my team is: always isolate the whole riser — that's the default. The riser valve is the one you know will stop the flow, and a leak you haven't stopped is a leak that is still finding its way to something electrical. You can always reopen it once you've traced the source.",
+      "file": "/speech/expert-477dadbf0f5f829b.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 170244
+    },
+    {
+      "role": "expert",
+      "text": "The one that bites people: a tenant calls, says there's water near their server, they want you to kill the whole floor's power. You do not do that on a tenant request alone. Power down only when the LEW confirms a real electrical risk, or you can see water on the switchgear, or a breaker has already tripped. A false power-down on a bank's trading floor is a seven-figure incident — that's a very uncomfortable conversation with the Asset Manager.",
+      "file": "/speech/expert-4a74b2733bca94b0.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 158868
+    },
+    {
+      "role": "expert",
+      "text": "Water in the lift pit or shaft — take the lift out of service straight away via the FCC. Park it at an upper floor, cordon the landing doors, and call the lift contractor. Don't run it to 'test'. If it's a reportable safety incident, BCA must be called within six hours under the Reportable Matters Regulations. Return to service only after the contractor inspects and clears it — not us.",
+      "file": "/speech/expert-4d9ed4702de37384.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 147780
+    },
+    {
+      "role": "expert",
+      "text": "Yes, ready. Just to set expectations — I've been doing M&E and technical services for about eighteen years now, mostly Grade A offices but also data centres and logistics. So I've seen my fair share of leaks, lah. Fire away.",
+      "file": "/speech/expert-62f06aa665c6c4f7.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 89748
+    },
+    {
+      "role": "expert",
+      "text": "This is the most important thing I'll tell you: never re-energise before the LEW signs off. If there is water anywhere near the switchgear, the distribution board, the riser cupboard — any electrical equipment — you do not re-energise that circuit until a Licensed Electrical Worker has physically inspected it, tested the insulation resistance, and signed off in writing. I don't care if the tenant is screaming, I don't care if the bank's trading floor is down — you do not put power back on a circuit that has been near water until the LEW certifies it. That is non-negotiable. Because if you re-energise and there is moisture inside the trunking or the breaker, you can get a short, an arc flash, a fire — and someone can die. So the LEW sign-off is the gate. No sign-off, no power. Full stop.",
+      "file": "/speech/expert-66b373527b9ba59d.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 283428
+    },
+    {
+      "role": "expert",
+      "text": "I checked the iBMS for the leak detector zone map — that tells me exactly which cable segment triggered. Then I looked at the AHU telemetry — supply and return temps, valve position, fan status. Then I cross-referenced with the shutoff valve diagram, which is in the CMMS asset register, linked to the COBie component IDs. The shutoff map is critical — without it, you're wandering around the riser shaft looking for a valve. If the BMS had been down, I would have gone to the riser physically and followed the pipe, but that takes much longer.",
+      "file": "/speech/expert-6bf637eb6dac400f.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 196452
+    },
+    {
+      "role": "expert",
+      "text": "Data centre is different. You don't send a tenant message to a DC client — the critical facilities manager handles the SLA notification. You isolate the CRAH condensate or chilled-water branch, deploy containment, but you do not touch IT power — that's the BCP owner's or the CFM's call. Any IT power-down is proposed only and executed by them. The client SLA notification goes through the CFM, not the tenant-experience comms flow. And in the data hall, nothing that got wet goes back on with only the LEW's signature — the CFM co-signs with the LEW. The LEW says it's safe; the CFM says the hall can take it back.",
+      "file": "/speech/expert-70df6870ed697434.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 245700
     },
     {
       "role": "expert",
       "text": "The classic mistake — and I've seen it — is the technician goes into the electrical riser cupboard to 'check if it's wet inside'. They think they're being proactive. But if the water has reached the DB, and you open that cupboard and the breakers are wet, you could be standing in front of an energised wet panel. That's how people get electrocuted. The second mistake is re-energising the AHU circuit after isolating the water, without the LEW checking the DB first. They think 'I stopped the water, the DB looks dry from outside, let me turn the AHU back on so the tenant stops complaining.' No. The LEW must test insulation resistance before any re-energisation. Full stop. That's the gate. And the third one goes the other way — they panic and shut the whole riser. For an AHU branch leak where the sub-valve is accessible, you isolate the sub-valve and leave the riser open. Shut the riser and you've killed cooling to the whole bank stack for nothing.",
-      "file": "/speech/expert-bf547442a33be106.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 352749
+      "file": "/speech/expert-7da13434f91b35cd.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 349524
     },
     {
       "role": "expert",
-      "text": "Okay, the one that sticks in my mind — last year, around August, we had a chilled-water supply pipe coupling fail on Level 28 of Harbourfront One. The water was dripping down through the ceiling void onto Level 27, which is also a bank tenant floor. The thing that made this non-routine was that the water was tracking along a conduit toward the electrical riser cupboard on L27. There was a distribution board in that cupboard, DB-27B. So you had chilled water — Category 1, clean — but it was getting dangerously close to live electrical equipment. That's the one where my experience made the difference, because a less experienced technician might have just gone in to mop up without checking where the water was heading.",
-      "file": "/speech/expert-d90c481ca8d010e5.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 260445
+      "text": "Fire-protection systems — sprinkler, wet riser, hose reel, fire pump — never touch a valve without the FSM's authorisation. That's an impairment. You raise a red-tag permit, notify the insurer, post a fire watch every thirty minutes, and restore protection as the first priority after life safety. Isolate the smallest zone you can. The only exception is immediate life safety — water on live equipment — where you isolate first and inform the FSM within five minutes and raise the permit after.",
+      "file": "/speech/expert-7e315be0dc279546.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 188820
+    },
+    {
+      "role": "expert",
+      "text": "You must tell condensate apart from an active chilled-water leak. Condensate is a drip from the tray or drain line, ambient temperature. An active leak from the chilled-water branch is a stream, cold, eight to fourteen degrees, from the branch pipe or riser. Condensate you clear the tray and schedule a repair; an active leak you isolate the FCU chilled-water valves immediately. When in doubt, treat it as active and isolate.",
+      "file": "/speech/expert-7ebcbd7bd99f8d6a.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 161028
+    },
+    {
+      "role": "expert",
+      "text": "That's right. Just add: the two-metre threshold is my professional judgement, not a code requirement — the code says 'near electrical equipment' but doesn't define the distance. Two metres is what I use based on how water tracks along conduits. And for data centres, the critical facilities manager co-signs alongside the LEW — different asset type, slightly different escalation path. Otherwise, that captures it. Good.",
+      "file": "/speech/expert-80efd56c1f4f551e.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 165348
+    },
+    {
+      "role": "expert",
+      "text": "From the first alarm to the water reaching the electrical cupboard, maybe twenty to thirty minutes if the coupling failure worsened. 'Worse' would be water entering the switchgear, making contact with the busbars or breakers. At that point you're looking at a potential short circuit, arc flash, fire — and the building might trip the main incomer, which takes out the whole tower, not just one floor. That's the escalation: from a leak to a building-wide power outage. So the fifteen-minute isolation window I mentioned is not arbitrary — it's the time you have to stop the water before it becomes an electrical event. Once water touches live electrical equipment, you're in a completely different incident class.",
+      "file": "/speech/expert-816971b86f24f2e9.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 237636
+    },
+    {
+      "role": "expert",
+      "text": "After the incident, clear any standing water within twenty-four hours. Plant deck, planter box, basement — NEA holds owners and occupiers liable for mosquito breeding and they do inspect. If you can't pump it out, treat it with larvicide via a pest-control contractor and inspect daily until it's dry, and log it in the vector-control record. That's the law.",
+      "file": "/speech/expert-82a52fe24829dda9.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 136836
+    },
+    {
+      "role": "expert",
+      "text": "Before any cleanup, preserve the evidence. Photos and video with timestamps, the failed component retained and tagged — the valve, the gasket, the pipe section. Notify the insurer within the policy window. Separate landlord damage from tenant damage. Do not commit to repairs beyond emergency mitigation before the loss adjuster has been on site — disposing of the failed part too early is the classic mistake.",
+      "file": "/speech/expert-9762584e1d0778b7.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 155556
     },
     {
       "role": "expert",
       "text": "The first rule — water anywhere near switchgear, the LV room, the riser cupboard, any electrical room: nobody goes in. You cordon the threshold, you call the LEW, and you isolate the water from outside the room. You never enter before the LEW confirms it's de-energised and safe. That's non-negotiable — I've seen a technician get a shock trying a quick look. Same gate wherever the water is actually on the electrics — on the switchgear itself, dripping onto a tenant's IT or electrical kit, or touching live IT in a data hall: that's an electrical hazard first, whatever else is going on.",
-      "file": "/speech/expert-ea2fe079288a4ab3.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 216237
+      "file": "/speech/expert-9b8a9b8ca3b7949b.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 225108
+    },
+    {
+      "role": "expert",
+      "text": "Two things. First, the water source wasn't obvious — it was a coupling inside the ceiling void, not a visible pipe burst. The leak detector caught it, but you had to trace it. Second, and more importantly, the water was heading toward the electrical cupboard. That changes the whole game — it's not a janitorial issue anymore, it becomes an electrical safety issue. And when water meets switchgear, that's where people get hurt or killed.",
+      "file": "/speech/expert-9e57ac4d4a37bf93.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 154260
+    },
+    {
+      "role": "expert",
+      "text": "Correct. Riser pipe leak or inaccessible sub-valve — isolate the riser. Branch leak with working sub-valve — isolate the branch only. And condensate — isolate at AHU unit level, not the riser at all. That's the clean distinction.",
+      "file": "/speech/expert-a98cb88ae752bee2.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 100980
+    },
+    {
+      "role": "expert",
+      "text": "The leak detector alarm was the first confirmation — that's instrumentable, it's in the iBMS. Then the delta-T on the AHU — supply 6.5, return 7.1, when normal delta-T should be about 6 degrees. A 0.6 degree delta-T means the chilled water is bypassing the coil, either leaking out or the control valve is stuck open. Combined with the tenant call, three signals pointing to the same thing — that's when you know it's real. One signal alone I might investigate, but three confirmed signals means you move.",
+      "file": "/speech/expert-aac46cfebfd88106.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 197028
+    },
+    {
+      "role": "expert",
+      "text": "If the water is directly above the switchroom, or dripping into the switchroom — that's the worst case. The protocol changes: nobody enters the switchroom at all, not even to look. You isolate upstream of the switchroom from outside, and the LEW does the inspection from outside first, with the door closed. Only after the LEW confirms the area is de-energised and safe does anyone go in. The difference is proximity and contact path. Water near the switchroom — you watch it and prepare. Water in the switchroom — you treat it as an active electrical hazard with full lockout-tagout.",
+      "file": "/speech/expert-ac44877534a134b3.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 208548
     },
     {
       "role": "expert",
       "text": "Start extraction and drying within twenty-four hours, and verify the area is dry within forty-eight. Mobilise dehumidifiers and air movers, moisture-map the affected area, discard porous materials like ceiling tiles and fibreglass insulation. Re-check moisture at twenty-four and forty-eight hours. And the drying equipment runs off circuits the LEW has cleared, never off the affected board.",
-      "file": "/speech/expert-f16bf78c73ecef66.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "onyx",
-      "region": "us",
-      "bytes": 2685
+      "file": "/speech/expert-ae4121d869969982.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 142452
     },
     {
-      "role": "interviewer",
-      "text": "First call. What do you isolate?",
-      "file": "/speech/interviewer-014e4dbd12f2db5a.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 22845
+      "role": "expert",
+      "text": "Right. So the timeline was: T-plus-zero, the iBMS leak detector in the L28 ceiling void triggered — that's a cable-type sensor, zoned. Maybe one minute later, the BMS showed the AHU supply/return delta-T anomaly — the return temp was dropping because the supply water was leaking out before reaching the AHU coils. Then about two minutes in, the bank tenant on L27 called the facilities desk saying water was dripping from their ceiling. So within three minutes we had three independent signals confirming the same event. The first real decision point was at about five minutes, when the technician arrived on site and I had to tell him what to do next. That's where the isolation decision comes in.",
+      "file": "/speech/expert-b95b47b2fb52b7db.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 274644
     },
     {
-      "role": "interviewer",
-      "text": "Good morning, Wei Ming. I'm Keystone, the AI interviewer for the Expert Onboarding Call. Today I'll walk you through your experience with water-leak and chilled-water incidents using a structured interview method. The goal is to capture your judgement so it can be turned into governed decision rules. Ready to start?",
-      "file": "/speech/interviewer-0393d66f4d1c1bcd.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 130413
-    },
-    {
-      "role": "interviewer",
-      "text": "Is there something people miss after an incident is closed — something that comes back to bite you?",
-      "file": "/speech/interviewer-0531e4a89c42215f.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 52509
-    },
-    {
-      "role": "interviewer",
-      "text": "02:14. Level 28. Nothing unusual yet.",
-      "file": "/speech/interviewer-06fb096e79f65c74.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 35373
-    },
-    {
-      "role": "interviewer",
-      "text": "What would a technician in their first month most likely have done wrong here? What is the classic mistake?",
-      "file": "/speech/interviewer-09039c50c5253f8e.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 53085
-    },
-    {
-      "role": "interviewer",
-      "text": "Earlier you said 'always isolate the whole riser — that's the default'. Just now you said for an AHU branch leak you isolate the sub-valve and leave the riser open. Which comes first, or does it depend on something?",
-      "file": "/speech/interviewer-0a8bfc656d47f6bd.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 95133
-    },
-    {
-      "role": "interviewer",
-      "text": "How do you know the response worked — and what has to be preserved before cleanup for the insurer?",
-      "file": "/speech/interviewer-0a969f154346a77c.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 45885
-    },
-    {
-      "role": "interviewer",
-      "text": "Any tricks that aren't in the manual — for example when PUB issues a heavy-rain alert?",
-      "file": "/speech/interviewer-1858c45ba3f12378.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 38685
-    },
-    {
-      "role": "interviewer",
-      "text": "Both of those are things you have said, and neither of them is wrong. So what is the condition that tells them apart? Say it as the thing that has to be true for the second answer to be the right one.",
-      "file": "/speech/interviewer-18d0f18f68a3deff.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 96861
-    },
-    {
-      "role": "interviewer",
-      "text": "So the distinguishing condition is: is the leak on the riser pipe itself, or on a branch where the sub-valve is accessible and stops the flow?",
-      "file": "/speech/interviewer-1b6342e06fa1b5df.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 67485
-    },
-    {
-      "role": "interviewer",
-      "text": "You said 'when in doubt'. How, specifically, do you tell a condensate drip from an active chilled-water leak — something you could photograph or measure?",
-      "file": "/speech/interviewer-21e98c916b8d4136.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 75261
-    },
-    {
-      "role": "interviewer",
-      "text": "You said the water being near electrical equipment is what made this different. So where is the line? How close is too close?",
-      "file": "/speech/interviewer-3beed44f5133e713.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 59421
-    },
-    {
-      "role": "interviewer",
-      "text": "Where in that sequence did you make a real decision, as opposed to just following routine?",
-      "file": "/speech/interviewer-413e3d52c741262c.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 46173
-    },
-    {
-      "role": "interviewer",
-      "text": "Why does that matter — that nobody goes in until the LEW says so? And why does that matter?",
-      "file": "/speech/interviewer-417e2d25d6ca4db2.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 44013
-    },
-    {
-      "role": "interviewer",
-      "text": "Looking ahead from isolation — what happens over the next day or two if the drying isn't done right?",
-      "file": "/speech/interviewer-4300f5e4e34b9f4e.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 52509
-    },
-    {
-      "role": "interviewer",
-      "text": "What made this one non-routine?",
-      "file": "/speech/interviewer-469fc800562df5c0.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 22845
-    },
-    {
-      "role": "interviewer",
-      "text": "Whose sign-off does the re-energisation need? Not who you would phone — whose name has to be on it.",
-      "file": "/speech/interviewer-4b40a3be361c5d66.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 54237
-    },
-    {
-      "role": "interviewer",
-      "text": "I have written this up as: WHEN a chilled-water leak is detected near electrical equipment within 2 m, DO isolate the water source and block re-energisation; NEVER re-energise before LEW sign-off and insulation resistance test; EXCEPT when the LEW confirms the affected section is a spare or dead board; ESCALATE to duty LEW immediately; SUCCESS = no person enters until LEW declares safe and no re-energisation without certification. Is that right? What is wrong or missing?",
-      "file": "/speech/interviewer-4dc1d0f094afef43.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 218973
+      "role": "expert",
+      "text": "Priority one, always: life safety. If the water is near electrical, nobody goes in until the LEW says safe. Priority two: stop the water at the source. Priority three: protect equipment — cordon, deploy drip trays, move what you can. Priority four: keep the tenant operational. But here's the thing — for the bank tenant, priority four is almost as important as priority three. If their trading floor goes down, that's millions of dollars in lost productivity and it triggers the lease abatement clause. So you're always thinking about tenant isolation time. In a tenant-occupied area, the isolation must happen within fifteen minutes. That's my rule. If you can't isolate within fifteen minutes, you escalate to the Duty Manager and consider riser isolation, even though it impacts more floors. Fifteen minutes is the window where the tenant can still tolerate a drip without it becoming a business interruption event.",
+      "file": "/speech/expert-f95a24d33814fe89.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_Trustworth_Man",
+      "region": "tokenhub-intl",
+      "bytes": 344628
     },
     {
       "role": "interviewer",
       "text": "What were you trying to achieve right then — in order of priority? Life safety, stopping the water, protecting equipment, keeping the tenant open?",
-      "file": "/speech/interviewer-5353774886e33e04.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 65037
-    },
-    {
-      "role": "interviewer",
-      "text": "How did you choose that option and reject the others? Was there a rule you were following, written or unwritten? Is there anything you would never do in that situation, no matter how much pressure you were under? Why?",
-      "file": "/speech/interviewer-6382d9cf8ac43b65.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 99885
-    },
-    {
-      "role": "interviewer",
-      "text": "What information did you use to make that call, and how did you get it? Who or what did you check?",
-      "file": "/speech/interviewer-6ad0186270aa10e5.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 50061
-    },
-    {
-      "role": "interviewer",
-      "text": "The tenant is calling every ten minutes and it is 03:40. Which of these must still not happen?",
-      "file": "/speech/interviewer-735e1b9bd86254b8.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 40125
-    },
-    {
-      "role": "interviewer",
-      "text": "Suppose a tenant calls and demands you kill the whole floor's power. What changes?",
-      "file": "/speech/interviewer-74e2c72a20e8755f.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 39261
-    },
-    {
-      "role": "interviewer",
-      "text": "What training or experience did someone need to make that call safely? Who on your team could have made it, and who could not?",
-      "file": "/speech/interviewer-75cd611878d4cddc.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 52509
-    },
-    {
-      "role": "interviewer",
-      "text": "What other things could you have done at that moment? Even ones you dismissed quickly.",
-      "file": "/speech/interviewer-7d93aebc440c5819.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 40413
-    },
-    {
-      "role": "interviewer",
-      "text": "Let's sweep the boundaries rule by rule. Which decisions should nobody make on the spot? Start with water near switchgear or an electrical room.",
-      "file": "/speech/interviewer-82d0b8e6a9d523e2.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 68637
-    },
-    {
-      "role": "interviewer",
-      "text": "Think of a water leak or flooding incident in the last few years where your experience really made the difference, or where things nearly went wrong. Walk me through it from the first moment you heard about it.",
-      "file": "/speech/interviewer-83e231f0ed855f26.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 84909
-    },
-    {
-      "role": "interviewer",
-      "text": "Toward the electrical riser cupboard. There is a distribution board in there: DB-27B.",
-      "file": "/speech/interviewer-95743cb4b0cdce84.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 45597
-    },
-    {
-      "role": "interviewer",
-      "text": "It is not pooling. It is tracking along a conduit.",
-      "file": "/speech/interviewer-9b9c52930a59bb20.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 30909
-    },
-    {
-      "role": "interviewer",
-      "text": "Let's put that in order. What was the very first signal, who got it, and roughly how many minutes passed before each of the next things happened?",
-      "file": "/speech/interviewer-a3b5348b8eaf13cc.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 63885
-    },
-    {
-      "role": "interviewer",
-      "text": "How much time did you really have before the situation got worse? What would 'worse' have looked like?",
-      "file": "/speech/interviewer-aa4c9bb989788839.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 47325
-    },
-    {
-      "role": "interviewer",
-      "text": "A bank tenant floor is wet and the source is not isolated. How long before this stops being yours and has to go up?",
-      "file": "/speech/interviewer-aed75cf18bcf191f.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 57261
-    },
-    {
-      "role": "interviewer",
-      "text": "What's a leak that doesn't behave like a normal leak — say, water turning up in a lift pit?",
-      "file": "/speech/interviewer-ba19d43172d99495.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 46461
-    },
-    {
-      "role": "interviewer",
-      "text": "The water is stopped and the AHU circuit is isolated. Before anyone re-energises it, what has to be confirmed? Pick everything that must be true.",
-      "file": "/speech/interviewer-bd7c23c89149c931.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 75549
-    },
-    {
-      "role": "interviewer",
-      "text": "Suppose one thing had been different — say the water was coming from the ceiling above the switchroom instead of the pantry. What changes?",
-      "file": "/speech/interviewer-c2fd38ba347048b8.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 55821
-    },
-    {
-      "role": "interviewer",
-      "text": "An AHU branch leak on Level 27. The branch sub-valve is accessible, and closing it stops the flow.",
-      "file": "/speech/interviewer-c3c8d805f70c29f4.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 59709
-    },
-    {
-      "role": "interviewer",
-      "text": "At that point, what were you actually seeing, hearing or smelling? What told you this was more than a drip?",
-      "file": "/speech/interviewer-c4cfbf8bac52558a.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 50637
+      "file": "/speech/interviewer-0fc805cf140ad6c1.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 55188
     },
     {
       "role": "interviewer",
       "text": "Compare three leaks: the L28 office leak, the B1 switchroom leak, and a CRAH leak in the data centre. How is one different from the other two?",
-      "file": "/speech/interviewer-cc71a754366e6670.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 74397
+      "file": "/speech/interviewer-1fe1840add8f8ec8.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 74340
     },
     {
       "role": "interviewer",
-      "text": "Water comes through onto Level 27 — a bank tenant floor.",
-      "file": "/speech/interviewer-cffc67da13916d17.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 34797
+      "text": "What information did you use to make that call, and how did you get it? Who or what did you check?",
+      "file": "/speech/interviewer-20c67d75b20ff6b0.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 37044
+    },
+    {
+      "role": "interviewer",
+      "text": "Where in that sequence did you make a real decision, as opposed to just following routine?",
+      "file": "/speech/interviewer-20ef0d3dadcd89f2.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 37188
+    },
+    {
+      "role": "interviewer",
+      "text": "What made this one non-routine?",
+      "file": "/speech/interviewer-333d15b1fc8bd859.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 16308
+    },
+    {
+      "role": "interviewer",
+      "text": "First call. What do you isolate?",
+      "file": "/speech/interviewer-3e04684727b0adcf.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 20916
+    },
+    {
+      "role": "interviewer",
+      "text": "An AHU branch leak on Level 27. The branch sub-valve is accessible, and closing it stops the flow.",
+      "file": "/speech/interviewer-4528444ed0c0b514.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 47700
+    },
+    {
+      "role": "interviewer",
+      "text": "Let's put that in order. What was the very first signal, who got it, and roughly how many minutes passed before each of the next things happened?",
+      "file": "/speech/interviewer-4ea541a7f182c357.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 55908
     },
     {
       "role": "interviewer",
       "text": "A chilled-water coupling fails in the ceiling void. The leak detector goes into alarm.",
-      "file": "/speech/interviewer-d25dc2cb4cf3968e.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 50061
+      "file": "/speech/interviewer-4f138c95dbf83ae6.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 40068
     },
     {
       "role": "interviewer",
-      "text": "Big picture — when the source is a fire-protection system, who has to know, and who decides?",
-      "file": "/speech/interviewer-d3d4625c69d141c1.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 43437
+      "text": "How do you know the response worked — and what has to be preserved before cleanup for the insurer?",
+      "file": "/speech/interviewer-4ff9af8d9700cbe6.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 35460
     },
     {
       "role": "interviewer",
-      "text": "02:14. A leak detector on Level 28 of Harbourfront One is in alarm. Water is coming through the ceiling void onto Level 27, a bank tenant floor, and it is tracking along a conduit toward the electrical riser cupboard. There is a distribution board in that cupboard, DB-27B.",
-      "file": "/speech/interviewer-d72016b847b15b8e.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 135885
-    },
-    {
-      "role": "interviewer",
-      "text": "Different night, smaller job. What do you isolate here?",
-      "file": "/speech/interviewer-da28f2369fb3d647.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 34221
+      "text": "What would a technician in their first month most likely have done wrong here? What is the classic mistake?",
+      "file": "/speech/interviewer-50730abcaf9414d5.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 42660
     },
     {
       "role": "interviewer",
       "text": "You are duty engineer. Walk me through what you do, and why — from the first moment you hear about it. Do not tidy it up; the order you actually did things in is the part I want.",
-      "file": "/speech/interviewer-e4587ad6c25a486b.mp3",
-      "model": "gpt-4o-mini-tts",
-      "voice": "sage",
-      "region": "us",
-      "bytes": 79149
+      "file": "/speech/interviewer-54ad573d46a3c009.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 75348
+    },
+    {
+      "role": "interviewer",
+      "text": "Looking ahead from isolation — what happens over the next day or two if the drying isn't done right?",
+      "file": "/speech/interviewer-580bb9f26f12e1ec.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 33444
+    },
+    {
+      "role": "interviewer",
+      "text": "You said the water being near electrical equipment is what made this different. So where is the line? How close is too close?",
+      "file": "/speech/interviewer-633a8729c132049d.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 47988
+    },
+    {
+      "role": "interviewer",
+      "text": "Let's sweep the boundaries rule by rule. Which decisions should nobody make on the spot? Start with water near switchgear or an electrical room.",
+      "file": "/speech/interviewer-66a5a4fa36011606.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 52884
+    },
+    {
+      "role": "interviewer",
+      "text": "Good morning, Wei Ming. I'm Keystone, the AI interviewer for the Expert Onboarding Call. Today I'll walk you through your experience with water-leak and chilled-water incidents using a structured interview method. The goal is to capture your judgement so it can be turned into governed decision rules. Ready to start?",
+      "file": "/speech/interviewer-7920baea21421052.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 110052
+    },
+    {
+      "role": "interviewer",
+      "text": "The tenant is calling every ten minutes and it is 03:40. Which of these must still not happen?",
+      "file": "/speech/interviewer-7bf6232d385410a7.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 39492
+    },
+    {
+      "role": "interviewer",
+      "text": "So the distinguishing condition is: is the leak on the riser pipe itself, or on a branch where the sub-valve is accessible and stops the flow?",
+      "file": "/speech/interviewer-7c19140f5cfa43b2.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 52596
+    },
+    {
+      "role": "interviewer",
+      "text": "Big picture — when the source is a fire-protection system, who has to know, and who decides?",
+      "file": "/speech/interviewer-7f80d093aa19eb48.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 38772
+    },
+    {
+      "role": "interviewer",
+      "text": "Think of a water leak or flooding incident in the last few years where your experience really made the difference, or where things nearly went wrong. Walk me through it from the first moment you heard about it.",
+      "file": "/speech/interviewer-7f8dbcbc5fb54f3c.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 73332
+    },
+    {
+      "role": "interviewer",
+      "text": "How did you choose that option and reject the others? Was there a rule you were following, written or unwritten? Is there anything you would never do in that situation, no matter how much pressure you were under? Why?",
+      "file": "/speech/interviewer-815099fee2a5ddb6.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 78516
+    },
+    {
+      "role": "interviewer",
+      "text": "What other things could you have done at that moment? Even ones you dismissed quickly.",
+      "file": "/speech/interviewer-817effa4aa52723f.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 31860
+    },
+    {
+      "role": "interviewer",
+      "text": "It is not pooling. It is tracking along a conduit.",
+      "file": "/speech/interviewer-85ce68b0ae8109dd.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 25668
+    },
+    {
+      "role": "interviewer",
+      "text": "Is there something people miss after an incident is closed — something that comes back to bite you?",
+      "file": "/speech/interviewer-8600716ea5440cdd.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 32868
+    },
+    {
+      "role": "interviewer",
+      "text": "02:14. Level 28. Nothing unusual yet.",
+      "file": "/speech/interviewer-8d24e4aa476a1833.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 29124
+    },
+    {
+      "role": "interviewer",
+      "text": "Whose sign-off does the re-energisation need? Not who you would phone — whose name has to be on it.",
+      "file": "/speech/interviewer-95dbd1f8b1ab4ef2.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 39492
+    },
+    {
+      "role": "interviewer",
+      "text": "What training or experience did someone need to make that call safely? Who on your team could have made it, and who could not?",
+      "file": "/speech/interviewer-a12ac961382acf1b.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 49572
+    },
+    {
+      "role": "interviewer",
+      "text": "Different night, smaller job. What do you isolate here?",
+      "file": "/speech/interviewer-a9a8d7797fe6a914.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 28260
+    },
+    {
+      "role": "interviewer",
+      "text": "02:14. A leak detector on Level 28 of Harbourfront One is in alarm. Water is coming through the ceiling void onto Level 27, a bank tenant floor, and it is tracking along a conduit toward the electrical riser cupboard. There is a distribution board in that cupboard, DB-27B.",
+      "file": "/speech/interviewer-aba77ead8909ad2b.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 122724
+    },
+    {
+      "role": "interviewer",
+      "text": "I have written this up as: WHEN a chilled-water leak is detected near electrical equipment within 2 m, DO isolate the water source and block re-energisation; NEVER re-energise before LEW sign-off and insulation resistance test; EXCEPT when the LEW confirms the affected section is a spare or dead board; ESCALATE to duty LEW immediately; SUCCESS = no person enters until LEW declares safe and no re-energisation without certification. Is that right? What is wrong or missing?",
+      "file": "/speech/interviewer-b372dd8cf008c8b2.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 207252
+    },
+    {
+      "role": "interviewer",
+      "text": "Toward the electrical riser cupboard. There is a distribution board in there: DB-27B.",
+      "file": "/speech/interviewer-b4258e060146b063.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 51876
+    },
+    {
+      "role": "interviewer",
+      "text": "Suppose a tenant calls and demands you kill the whole floor's power. What changes?",
+      "file": "/speech/interviewer-b4ff4b11f592c166.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 30564
+    },
+    {
+      "role": "interviewer",
+      "text": "The water is stopped and the AHU circuit is isolated. Before anyone re-energises it, what has to be confirmed? Pick everything that must be true.",
+      "file": "/speech/interviewer-cab8eb80c560be80.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 58788
+    },
+    {
+      "role": "interviewer",
+      "text": "Earlier you said 'always isolate the whole riser — that's the default'. Just now you said for an AHU branch leak you isolate the sub-valve and leave the riser open. Which comes first, or does it depend on something?",
+      "file": "/speech/interviewer-cd87fd64ddbf404c.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 90468
+    },
+    {
+      "role": "interviewer",
+      "text": "A bank tenant floor is wet and the source is not isolated. How long before this stops being yours and has to go up?",
+      "file": "/speech/interviewer-cf2f6f2d1c36bfe7.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 47700
+    },
+    {
+      "role": "interviewer",
+      "text": "Why does that matter — that nobody goes in until the LEW says so? And why does that matter?",
+      "file": "/speech/interviewer-d03c23398565c9c8.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 36468
+    },
+    {
+      "role": "interviewer",
+      "text": "You said 'when in doubt'. How, specifically, do you tell a condensate drip from an active chilled-water leak — something you could photograph or measure?",
+      "file": "/speech/interviewer-d2c5bb649cbc1734.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 64116
+    },
+    {
+      "role": "interviewer",
+      "text": "At that point, what were you actually seeing, hearing or smelling? What told you this was more than a drip?",
+      "file": "/speech/interviewer-da4da197f4f68830.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 43956
+    },
+    {
+      "role": "interviewer",
+      "text": "Any tricks that aren't in the manual — for example when PUB issues a heavy-rain alert?",
+      "file": "/speech/interviewer-dcc832b790684fa9.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 32436
+    },
+    {
+      "role": "interviewer",
+      "text": "Suppose one thing had been different — say the water was coming from the ceiling above the switchroom instead of the pantry. What changes?",
+      "file": "/speech/interviewer-ec7d5912a3c54d35.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 47700
+    },
+    {
+      "role": "interviewer",
+      "text": "Both of those are things you have said, and neither of them is wrong. So what is the condition that tells them apart? Say it as the thing that has to be true for the second answer to be the right one.",
+      "file": "/speech/interviewer-ed286de4a0a84148.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 70740
+    },
+    {
+      "role": "interviewer",
+      "text": "Water comes through onto Level 27 — a bank tenant floor.",
+      "file": "/speech/interviewer-eeb35d6b75a6461e.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 29988
+    },
+    {
+      "role": "interviewer",
+      "text": "How much time did you really have before the situation got worse? What would 'worse' have looked like?",
+      "file": "/speech/interviewer-f0f8940de170c411.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 46548
+    },
+    {
+      "role": "interviewer",
+      "text": "What's a leak that doesn't behave like a normal leak — say, water turning up in a lift pit?",
+      "file": "/speech/interviewer-fbb3c19b78711d9a.mp3",
+      "model": "minimax-speech-2.8-hd",
+      "voice": "English_CalmWoman",
+      "region": "tokenhub-intl",
+      "bytes": 36036
     }
   ]
 }
