@@ -637,24 +637,34 @@ screen names the model and voice that spoke each line rather than leaving it to 
 Region is recorded as `tokenhub-intl`, which is the gateway it actually reaches — not claimed
 as Singapore, which is the separate chat inference service.
 
-The eliciting surface is **`/teach`**, and three things about its shape are the design:
+The eliciting surface is **`/teach`**, and five things about its shape are the design:
 
-0. **It opens on a choice, not on a case.** `/teach` lists every pill whose rules carry
+1. **It opens on a choice, not on a case.** `/teach` lists every pill whose rules carry
    enough to ask about, each shown the way its session opens: the drawn situation where
    somebody has drawn one, the expert the knowledge came from, every role its rules route
    a decision to, the rule the session writes, and how many questions it asks. A session
    lives at `/teach?pill=<id>`. The chilled-water leak is one of them, which is the point
    — a screen that opened straight into it read as a chilled-water app.
-1. **A session opens with the situation, animated** — the Level 28 coupling, the water
+2. **One of the choices is a situation nobody has captured.** The first card takes a
+   situation in the operator's own words and draws it in the same grammar the hand-drawn
+   figure uses. The model does not draw: it fills in `lib/scene/schema` — floors top to
+   bottom, what failed and where, what carries it onward, what is now at risk, and the
+   measure nobody has settled — and `lib/scene/layout` turns only accepted values into
+   geometry, so a rejected field means no picture rather than a surprising one. There is
+   deliberately no recorded fallback: the recorded figures are of the chilled-water leak,
+   and showing one under the heading "the situation you just described" is the invented
+   authority this submission argues against. It produces a drawing and nothing else — no
+   pill, no rule, and no gate reads it.
+3. **A session opens with the situation, animated** — the Level 28 coupling, the water
    through the ceiling void, the track along the conduit toward DB-27B. Judgement does
    not exist in the abstract; it only appears against a case.
-2. **The first question is deliberately the widest one available** and everything after
+4. **The first question is deliberately the widest one available** and everything after
    it is chosen by what that account did *not* settle. "Still unknown" is computed
    against the fields of an engine `Rule` (`lib/teach/parts`, every key proved at compile
    time to be a real key of `Rule`), so the coverage board shows a genuine gap in a
    genuine artefact rather than a position in a script. The exercise ends because nothing
    is left to ask, not because the script ran out.
-3. **Answers are taps where a tap is the honest shape of the answer.** Each choice carries
+5. **Answers are taps where a tap is the honest shape of the answer.** Each choice carries
    a short `claim` token written in the pill's own vocabulary, so "Two metres" arrives as
    the structured condition `evidence.distance_to_electrical_m lte 2` against a key
    declared in `evidence.yaml` — no extraction step, and nothing for a model to

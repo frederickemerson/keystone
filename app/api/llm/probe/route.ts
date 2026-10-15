@@ -25,10 +25,14 @@ const NO_STORE = { 'Cache-Control': 'no-store' };
  *    refused them; decoding against `probeWireSchema` instead, four of four
  *    passed. Until the task is registered a refused answer falls back below,
  *    with the reason, rather than claiming anything.
- *  - No terminal fixture. Chain exhaustion raises inside generateJson rather
- *    than returning, so this route owns the recorded probe — which it has to
+ *  - No terminal fixture. Called with `fallback: false`, chain exhaustion
+ *    returns null, so this route owns the recorded probe — which it has to
  *    anyway: the guard is bound to the submitted window, and no static fixture
- *    can be grounded in a window it has never seen.
+ *    can be grounded in a window it has never seen. (Until generateJson grew
+ *    that option this route depended on the call RAISING on a missing fixture,
+ *    and caught it. Depending on a crash is not a contract: when the crash
+ *    became a return value the fallback silently stopped happening, and the
+ *    route answered null.)
  *
  * The `string` annotation is what keeps the call below a single narrowing
  * assertion; registering the task removes the annotation and the assertion.
@@ -65,10 +69,17 @@ export async function POST(request: Request) {
   // that an attempt was "rejected", and a fallback that cannot say why is a
   // weaker status than one that can. Fixed guard text, never model output.
   const refusals: string[] = [];
+  const fellBack = () =>
+    recorded(
+      refusals.length
+        ? `Live output failed the grounding guard (${refusals[0]}); showing the recorded probe.`
+        : 'No live provider answered; showing the recorded probe.',
+    );
   const result = await generateJson(
-    PROBE_TASK as LlmTask, buildProbePrompt(context), probeDraftSchema(context, (reason) => refusals.push(reason)),
-  ).catch(() => recorded(refusals.length
-    ? `Live output failed the grounding guard (${refusals[0]}); showing the recorded probe.`
-    : 'No live provider answered; showing the recorded probe.'));
-  return Response.json(result, { headers: NO_STORE });
+    PROBE_TASK as LlmTask,
+    buildProbePrompt(context),
+    probeDraftSchema(context, (reason) => refusals.push(reason)),
+    { fallback: false },
+  ).catch(() => null);
+  return Response.json(result ?? fellBack(), { headers: NO_STORE });
 }

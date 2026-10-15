@@ -20,6 +20,7 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { DescribeSituation } from './DescribeSituation';
 import { routes } from '@/lib/journey/routes';
 import type { TeachChoiceData } from '@/lib/teach/choices';
 import { ScenarioStage } from './ScenarioStage';
@@ -117,21 +118,39 @@ function ChoiceCard({ choice }: { choice: TeachChoice }) {
 }
 
 export function TeachChooser({ choices }: TeachChooserProps) {
-  if (choices.length === 0) {
-    return (
-      <p className="rounded-xl border border-line bg-surface p-4 text-[13px] leading-relaxed text-ink-muted">
-        No pill in this repository carries enough in its rules to ask about yet.
-      </p>
-    );
-  }
+  // A card is built around a situation, so a pill with no drawing gets a line
+  // rather than a card with a hole in it. Draw one for it and it moves up.
+  const drawn = choices.filter((choice) => choice.stages?.length);
+  const undrawn = choices.filter((choice) => !choice.stages?.length);
 
   return (
-    <ul className="grid list-none gap-4 p-0 lg:grid-cols-2">
-      {choices.map((choice) => (
-        <li key={choice.id} className="contents">
-          <ChoiceCard choice={choice} />
-        </li>
-      ))}
-    </ul>
+    <div className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Left: the situation nobody has captured yet. Right: the ones somebody has. */}
+        <DescribeSituation />
+        {drawn.map((choice) => (
+          <ChoiceCard key={choice.id} choice={choice} />
+        ))}
+      </div>
+
+      {undrawn.length ? (
+        <p className="text-[13px] leading-relaxed text-ink-muted">
+          Also teachable, with no drawn situation yet:{' '}
+          {undrawn.map((choice, index) => (
+            <span key={choice.id}>
+              {index > 0 ? ', ' : ''}
+              <Link href={routes.teach(choice.id)} className="text-ink underline underline-offset-2">
+                {choice.name}
+              </Link>
+              <span className="text-ink-muted">
+                {' '}
+                ({choice.origin === 'generated' ? 'questions derived from its own rules' : 'questions written for it'})
+              </span>
+            </span>
+          ))}
+          .
+        </p>
+      ) : null}
+    </div>
   );
 }

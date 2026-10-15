@@ -8,6 +8,7 @@ import { generateText, NoObjectGeneratedError, Output } from 'ai';
 import type { z } from '@/lib/zod';
 import extraction from '@/data/fixtures/llm/extraction.json';
 import { extractionWireSchema } from './candidates';
+import { sceneWireSchema } from '@/lib/scene/schema';
 import tenantMessage from '@/data/fixtures/llm/tenant-message-INC-2026-1011.json';
 import {
   LLM_SERVER_BUDGET_MS, PROVIDER_NAMES, type AttemptOutcome, type Generation, type LiveProvider, type ProviderAttempt,
@@ -15,9 +16,17 @@ import {
 import { DEFAULT_MODEL, getModel, getModelId, getOpenAIModel, getOpenAIModelId, tokenhubTarget } from './client';
 
 export type { AttemptOutcome, Generation, LiveProvider, LlmProvider, ProviderAttempt } from './attribution';
-export type LlmTask = 'extract' | 'tenant-message-INC-2026-1011';
+export type LlmTask = 'extract' | 'tenant-message-INC-2026-1011' | 'scene';
 
-const fixtures = {
+/**
+ * Recorded output, for tasks that have any. `scene` deliberately has none: a
+ * recorded drawing is a drawing of somebody else's situation, and showing it
+ * for something a person just typed is the invented-authority failure this
+ * project exists to argue against (see lib/teach/extraction for the same rule
+ * applied to the extractor). Such a task is called with `fallback: false` and
+ * answers with nothing when no provider answers.
+ */
+const fixtures: Partial<Record<LlmTask, { data: unknown; model: string }>> = {
   extract: { data: extraction, model: extraction.model },
   'tenant-message-INC-2026-1011': { data: tenantMessage.drafts[0], model: tenantMessage.model },
 };
@@ -28,7 +37,7 @@ const fixtures = {
  * then rejected (e.g. a bare condition inside `exceptions`). These schemas only
  * constrain generation; the caller's `zodSchema` guard still validates the result.
  */
-const STRUCTURED_OUTPUT: Partial<Record<LlmTask, z.ZodType>> = { extract: extractionWireSchema };
+const STRUCTURED_OUTPUT: Partial<Record<LlmTask, z.ZodType>> = { extract: extractionWireSchema, scene: sceneWireSchema };
 
 /** Sent in the TokenHub request body: disables hy4-preview's reasoning phase (see callProvider). */
 export const TOKENHUB_REQUEST_OPTIONS = { thinking: { type: 'disabled' } } as const;
@@ -254,12 +263,31 @@ export interface GenerateOptions {
  * otherwise returns the recorded fixture, which passes the same schema.
  * The result names only the provider and model that produced `data`.
  */
+/**
+ * Draft JSON for a task, validated against `zodSchema`.
+ *
+ * With `fallback: false` a chain that produces nothing returns null instead of
+ * the recorded fixture — for tasks where recorded output would be a reading of
+ * something other than what was asked about.
+ */
 export async function generateJson<T>(
   task: LlmTask,
   prompt: string,
   zodSchema: z.ZodType<T>,
-  { budgetMs = BUDGET_MS, timeoutsMs = {} }: GenerateOptions = {},
-): Promise<Generation<T>> {
+  options?: GenerateOptions & { fallback?: true },
+): Promise<Generation<T>>;
+export async function generateJson<T>(
+  task: LlmTask,
+  prompt: string,
+  zodSchema: z.ZodType<T>,
+  options: GenerateOptions & { fallback: false },
+): Promise<Generation<T> | null>;
+export async function generateJson<T>(
+  task: LlmTask,
+  prompt: string,
+  zodSchema: z.ZodType<T>,
+  { budgetMs = BUDGET_MS, timeoutsMs = {}, fallback = true }: GenerateOptions & { fallback?: boolean } = {},
+): Promise<Generation<T> | null> {
   const started = Date.now();
   const deadline = started + budgetMs;
   const attempts: ProviderAttempt[] = [];
@@ -299,6 +327,8 @@ export async function generateJson<T>(
   }
 
   const fixture = fixtures[task];
+  // Nothing recorded, or nothing that would be honest to show: say so.
+  if (!fixture || !fallback) return null;
   return {
     // Fixtures pass exactly the same schema/safety checks as live output.
     data: zodSchema.parse(fixture.data), source: 'recorded', provider: 'fixtures', model: fixture.model,

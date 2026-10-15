@@ -36,6 +36,15 @@ export const probeRequestSchema = z.object({
   }).strict()).min(1).max(24),
 }).strict();
 
+/**
+ * A situation somebody typed, to be drawn. One field, because that is the whole
+ * input: everything the drawing contains has to come out of these words or out
+ * of the schema that constrains them (lib/scene/schema).
+ */
+export const sceneRequestSchema = z.object({
+  description: z.string().trim().min(12).max(1_200),
+}).strict();
+
 export const tenantRequestSchema = z.object({
   incidentId: z.string().regex(/^INC-\d{4}-\d{4}$/),
 }).strict();
