@@ -6,8 +6,10 @@
 // question lifting off), spring-pop-entrance (the task card, the relay
 // chips), nudge-curve (the lift), waterfall-entry. Fastest act in the film.
 // Source: adp-session.webm from 49 s — "This answer is wrong" at ~52 s.
-import { focus } from '../lib/chrome.mjs';
-const WRONG = focus(0.45, 0.67, 1.22);
+import { focus, view } from '../lib/chrome.mjs';
+// Centre high enough (fy <= 818 - 409/S) that the painted footage fills the frame; spotlight where the button lands.
+const WRONG = focus(0.45, 0.51, 1.22);
+const WRONG_AT = view(0.45, 0.67, 1.22, WRONG.slideX, WRONG.slideY);
 
 export default {
   label: 'Disputing an answer',
@@ -58,7 +60,7 @@ export default {
         frameIn("#act-07-frame", 0.15);
         // the click: "This answer is wrong." — spotlight it
         cam("#act-07-cam", ${(g0 + 0.4).toFixed(2)}, { zoom: ${WRONG.zoom}, slideX: ${WRONG.slideX}, slideY: ${WRONG.slideY}, dur: 0.9 });
-        hlIn("#act-07-hl", ${(g0 + 1.2).toFixed(2)}, { x: "50%", y: "50%", rx: "26%", ry: "18%" });
+        hlIn("#act-07-hl", ${(g0 + 1.2).toFixed(2)}, { x: "${WRONG_AT.x}", y: "${WRONG_AT.y}", rx: "26%", ry: "16%" });
         hlOut("#act-07-hl", ${(g0 + 4.0).toFixed(2)});
         // the question lifts off the chat and flies to the task — motion-blur-streak on the fast leg
         tl.fromTo("#act-07-q", { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.4)" }, ${(g0 + 3.4).toFixed(2)});

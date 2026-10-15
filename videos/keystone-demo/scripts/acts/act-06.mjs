@@ -5,9 +5,12 @@
 // Registry/rules: yt-camera-move (punch on the follow-up chips), css-marker-
 // patterns (a ring around "that"), spring-pop-entrance (the counter chip).
 // Source: adp-session.webm from 34 s — the follow-up is picked at ~36 s.
-import { focus } from '../lib/chrome.mjs';
-const CHIPS = focus(0.46, 0.72, 1.26);
-const THREAD = focus(0.46, 0.80, 1.2);
+import { focus, view } from '../lib/chrome.mjs';
+// The chips and the thread sit low in the source; the camera centres higher (fy <= 818 - 409/S) so the
+// painted footage always fills the frame, and the highlight is placed where the chips actually land.
+const CHIPS = focus(0.46, 0.52, 1.26);
+const THREAD = focus(0.46, 0.50, 1.2);
+const CHIPS_AT = view(0.46, 0.73, 1.26, CHIPS.slideX, CHIPS.slideY);
 
 export default {
   label: 'One thread, not one question',
@@ -40,7 +43,7 @@ export default {
         frameIn("#act-06-frame", 0.15);
         // the chips, punched: "now ask a follow-up with the word that in it"
         cam("#act-06-cam", ${(g0 + 0.3).toFixed(2)}, { zoom: ${CHIPS.zoom}, slideX: ${CHIPS.slideX}, slideY: ${CHIPS.slideY}, dur: 1.0 });
-        hlIn("#act-06-hl", ${(g0 + 1.0).toFixed(2)}, { x: "50%", y: "50%", rx: "36%", ry: "18%" });
+        hlIn("#act-06-hl", ${(g0 + 1.0).toFixed(2)}, { x: "${CHIPS_AT.x}", y: "${CHIPS_AT.y}", rx: "36%", ry: "16%" });
         // hold one beat on the word — ringed
         tl.fromTo("#act-06-that", { opacity: 0, y: 16, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.5)" }, ${(g0 + 2.2).toFixed(2)});
         ring("#act-06-ring", ${(g0 + 2.6).toFixed(2)}, "#d79a3a");
@@ -49,7 +52,7 @@ export default {
         // the follow-up lands, indented under the first — follow it down
         tl.to("#act-06-cam", { scale: ${1 + THREAD.zoom}, x: ${THREAD.slideX}, y: ${THREAD.slideY}, duration: 1.4, ease: "power2.inOut" }, ${(g1 + 2.6).toFixed(2)});
         chip("#act-06-counter", ${(g1 + 5.0).toFixed(2)});
-        tl.to("#act-06-cam", { scale: ${1 + THREAD.zoom + 0.04}, y: ${THREAD.slideY - 40}, duration: ${(c.D - g1 - 4.2).toFixed(2)}, ease: "none" }, ${(g1 + 4.1).toFixed(2)});
+        tl.to("#act-06-cam", { scale: ${1 + THREAD.zoom + 0.04}, y: ${THREAD.slideY + 10}, duration: ${(c.D - g1 - 4.2).toFixed(2)}, ease: "none" }, ${(g1 + 4.1).toFixed(2)});
         waterfall("#act-06-low", ${(g2 + 2.6).toFixed(2)});
     `;
   },

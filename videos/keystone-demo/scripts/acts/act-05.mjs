@@ -6,7 +6,7 @@
 // Blueprint: prompt-type-submit-generate, mirrored from act-00 (the callback).
 // Rules: transitions/css-3d (card flip, two half-turns), css-marker-patterns
 // (circle), headline-slam signature (stamp), dissolve (to the refusal take),
-// yt-feather-highlight (the refusal line).
+// a push-in on the refusal line (no feather highlight: it washed the page out).
 import { view } from '../lib/chrome.mjs';
 const QUESTION = 'After a chilled water leak, who must approve re-energising?';
 const F5 = { W: 1440, H: 720 };
@@ -31,6 +31,7 @@ export default {
         #root .frame { left: 240px; right: 240px; top: 210px; bottom: 150px; opacity: 0; }
         #root .frame2 { opacity: 0; }
         #root .stamp.green { color: #3fb97a; left: 50%; margin-left: -200px; bottom: 90px; }
+        #root .lower { bottom: 54px; font-size: 40px; }
         #root .cam .ring { position: absolute; right: auto; bottom: auto; z-index: 2; }
   `,
   stage: (c) => {
@@ -80,7 +81,7 @@ export default {
         tl.to("#act-05-cam", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, ${(g2 - 0.1).toFixed(2)});
         tl.fromTo("#act-05-cam2", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1.12, duration: 0.6, ease: "power2.inOut" }, ${(g2 - 0.1).toFixed(2)});
         tl.to("#act-05-cam2", { scale: 1.22, y: -50, duration: ${(c.D - g2 - 0.6).toFixed(2)}, ease: "none" }, ${(g2 + 0.5).toFixed(2)});
-        hlIn("#act-05-hl", ${(g2 + 2.0).toFixed(2)}, { x: "50%", y: "58%", rx: "36%", ry: "22%" });
+        // no spotlight on the white page — the push-in is the pointer; the line lands under the frame
         waterfall("#act-05-low", ${(g2 + 2.6).toFixed(2)});
     `;
   },
