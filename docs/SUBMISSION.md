@@ -23,6 +23,29 @@ _(8 words, under the 10-word hard limit.)_
 
 ---
 
+## 2a. What this is, and what it is not
+
+Two limits, stated here rather than left for a judge to find.
+
+**The people and the data are fictional.** Every asset, tenant, client, person and
+incident in this repository is invented, the retiring chief engineer included. The
+56-turn onboarding interview is a written script, not a recording of a real employee,
+so every provenance citation is real machinery pointed at invented words. What is
+**live** is the capture path: the account you type on `/teach` is sent to the
+extractor and read as written, and the situation you describe is drawn from your
+words — neither is replayed from the script. A pilot's first task is to run that same
+path against a real expert.
+
+**The demo does not persist its governance state.** A pill is plain text the
+organisation owns, and the governed artifact is exportable as a skill package at any
+point. But approvals, proposed versions and the audit log live in the browser session
+(`lib/governance/store.ts`, zustand + localStorage), not in a server-side store, so a
+redeploy clears them. Nothing is written back to `pills/` at runtime. Where an
+approved version belongs in production is the organisation's own repository — the
+artifact is a commit, not a database row — and §10 sets out that path.
+
+---
+
 ## 3. Project Overview
 
 ### Which part of the problem this solves
