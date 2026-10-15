@@ -7,7 +7,8 @@
 // written questions for and the screen still works.
 
 import { TeachClient } from '@/components/teach/TeachClient';
-import { loadExercise, teachablePills } from '@/lib/teach/load';
+import { loadExercise } from '@/lib/teach/load';
+import { teachChoices } from '@/lib/teach/choices';
 import { scenarioStages } from '@/lib/teach/scenario';
 import { loadPill } from '@/lib/pills/load';
 import { pillTitle } from '@/components/mosaic/pillTitle';
@@ -33,12 +34,12 @@ export default async function TeachPage({
   const loaded = loadExercise(pillId);
   const pill = loadPill(pillId);
 
-  // Every pill the screen can teach, named. Resolved here rather than in the
+  // Every pill the screen can teach, described. Named here rather than in the
   // catalogue because the human title comes from the pill bundle, and lib/
   // has no business importing a component module to get it.
-  const pills = teachablePills().map((entry) => {
-    const bundle = loadPill(entry.id);
-    return { id: entry.id, name: bundle ? pillTitle(bundle) : entry.id, origin: entry.origin };
+  const choices = teachChoices().map((choice) => {
+    const bundle = loadPill(choice.id);
+    return { ...choice, name: bundle ? pillTitle(bundle) : choice.id };
   });
 
   if (!loaded) {
@@ -67,7 +68,7 @@ export default async function TeachPage({
       exercise={loaded.exercise}
       origin={loaded.origin}
       pillName={pill ? pillTitle(pill) : pillId}
-      pills={pills}
+      choices={choices}
       stages={scenarioStages(loaded.exercise.scenarioId)}
       serverAsrAvailable={selectServerAsr() !== null}
     />

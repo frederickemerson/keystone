@@ -27,10 +27,19 @@ export interface ScenarioStageProps {
   stage: string;
   /** The stages of this scenario, in order. Passed in: a pill without a drawing has none. */
   stages: readonly ScenarioStageData[];
+  /**
+   * Prefix for the title and description ids the SVG points `aria-labelledby`
+   * at. It exists because the chooser draws this figure a second time as a
+   * preview, and two elements with one id is a broken label, not a cosmetic
+   * problem: a screen reader resolves the reference to whichever came first.
+   */
+  idPrefix?: string;
   className?: string;
 }
 
-export function ScenarioStage({ stage, stages, className }: ScenarioStageProps) {
+export function ScenarioStage({ stage, stages, idPrefix = 'scn', className }: ScenarioStageProps) {
+  const titleId = `${idPrefix}-title`;
+  const descId = `${idPrefix}-desc`;
   const at = Math.max(0, stages.findIndex((entry) => entry.id === stage));
   const leaking = at >= 1;
   const spreading = at >= 2;
@@ -75,10 +84,10 @@ export function ScenarioStage({ stage, stages, className }: ScenarioStageProps) 
         viewBox="0 0 400 212"
         className="w-full rounded-xl border border-line bg-cream-paper"
         role="img"
-        aria-labelledby="scn-title scn-desc"
+        aria-labelledby={`${titleId} ${descId}`}
       >
-        <title id="scn-title">Section through two floors of Harbourfront One</title>
-        <desc id="scn-desc">
+        <title id={titleId}>Section through two floors of Harbourfront One</title>
+        <desc id={descId}>
           A chilled-water pipe coupling in the Level 28 ceiling void has failed. Water passes through the
           void onto Level 27 and tracks along a conduit toward an electrical riser cupboard containing
           distribution board DB-27B.

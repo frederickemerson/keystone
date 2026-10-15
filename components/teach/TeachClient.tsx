@@ -46,7 +46,7 @@ import { CoverageBoard } from './CoverageBoard';
 import { DraftPreview } from './DraftPreview';
 import { Dictation } from './Dictation';
 import { Mascot, moodFor } from './Mascot';
-import { PillSwitcher, type SwitchablePill } from './PillSwitcher';
+import { TeachChooser, type TeachChoice } from './TeachChooser';
 import { QuestionCard } from './QuestionCard';
 import { ContradictionPanel } from './ContradictionPanel';
 import { ScenarioStage } from './ScenarioStage';
@@ -58,8 +58,8 @@ export interface TeachClientProps {
   /** Authored by hand, or derived from the pill's own rules. Said out loud on screen. */
   origin: ExerciseOrigin;
   pillName: string;
-  /** Every pill this screen can teach, so the generality is visible and not just true. */
-  pills: readonly SwitchablePill[];
+  /** Every pill this screen can teach, described well enough to choose between. */
+  choices: readonly TeachChoice[];
   /** The drawn situation, or null when nobody has drawn one for this pill. */
   stages: readonly ScenarioStageData[] | null;
   /** Whether a server recogniser is usable, read on the server (no secrets). */
@@ -68,7 +68,7 @@ export interface TeachClientProps {
 
 type Phase = 'scenario' | 'questions' | 'done';
 
-export function TeachClient({ exercise, origin, pillName, pills, stages, serverAsrAvailable }: TeachClientProps) {
+export function TeachClient({ exercise, origin, pillName, choices, stages, serverAsrAvailable }: TeachClientProps) {
   const mounted = useMounted();
   const voice = useVoice();
 
@@ -422,10 +422,12 @@ export function TeachClient({ exercise, origin, pillName, pills, stages, serverA
               </ul>
             )}
           </section>
-
-          <PillSwitcher pills={pills} currentId={exercise.pillId} />
         </div>
       </div>
+
+      {/* Full width, and last: choosing what to teach next is not a sidebar
+          note, and the previews need the room to show a situation. */}
+      <TeachChooser choices={choices} currentId={exercise.pillId} />
     </div>
   );
 }
