@@ -17,3 +17,8 @@ docs/submission/deck/node_modules
 # macOS Finder droppings
 .DS_Store
 **/.DS_Store
+
+# Left untracked on purpose: a landing design screenshot and a QA review note.
+# Ignored so a broad `git add docs` stops sweeping them in (it has three times).
+docs/design/landing-v2-desktop.png
+docs/review/qa-guided-demo-2.md
