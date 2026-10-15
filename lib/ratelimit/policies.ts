@@ -45,6 +45,21 @@ export const LIMITS = {
     ipPerMinute: 120,
     globalPerMinute: 600,
   },
+  /**
+   * The durable governance record. A write is one cheap insert, not a paid
+   * call, so the budget is generous — a Canvas review is a dozen events in a
+   * few seconds and must never be refused. It is bounded anyway: the record is
+   * shared, the demo passcode ships with the submission, and an append-only log
+   * anyone can flood is a log nobody can read.
+   */
+  ledger: {
+    sessionPerMinute: 120,
+    sessionPerDay: 2_000,
+    ipPerMinute: 240,
+    ipPerDay: 6_000,
+    globalPerMinute: 600,
+    globalPerDay: 20_000,
+  },
   signIn: {
     // Counts failed passcode attempts only, so a venue NAT of honest judges is never locked out.
     ipFailuresPerMinute: 10,
@@ -88,6 +103,15 @@ const jev = windows("jev", {
   globalMinute: [LIMITS.jev.globalPerMinute, MINUTE],
 });
 
+const ledger = windows("ledger", {
+  sessionMinute: [LIMITS.ledger.sessionPerMinute, MINUTE],
+  sessionDay: [LIMITS.ledger.sessionPerDay, DAY],
+  ipMinute: [LIMITS.ledger.ipPerMinute, MINUTE],
+  ipDay: [LIMITS.ledger.ipPerDay, DAY],
+  globalMinute: [LIMITS.ledger.globalPerMinute, MINUTE],
+  globalDay: [LIMITS.ledger.globalPerDay, DAY],
+});
+
 const signIn = windows("sign-in", {
   ipMinute: [LIMITS.signIn.ipFailuresPerMinute, MINUTE],
   ipHour: [LIMITS.signIn.ipFailuresPerHour, HOUR],
@@ -127,6 +151,26 @@ export function takeAdpCall({ sessionId, ip }: Caller, now?: number): LimitResul
       [adp.ipDay, `ip:${ip}`],
       [adp.globalMinute, "global"],
       [adp.globalDay, "global"],
+    ],
+    now,
+  );
+}
+
+/**
+ * Spend one durable-record write for this caller.
+ *
+ * Counted per request, not per event: a batch is one insert loop, and charging
+ * per event would refuse exactly the burst a real review produces.
+ */
+export function takeLedgerWrite({ sessionId, ip }: Caller, now?: number): LimitResult {
+  return consume(
+    [
+      [ledger.sessionMinute, `session:${sessionId}`],
+      [ledger.sessionDay, `session:${sessionId}`],
+      [ledger.ipMinute, `ip:${ip}`],
+      [ledger.ipDay, `ip:${ip}`],
+      [ledger.globalMinute, "global"],
+      [ledger.globalDay, "global"],
     ],
     now,
   );

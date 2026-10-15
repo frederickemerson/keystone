@@ -11,6 +11,7 @@
 
 import { readRequest } from '@/lib/llm/requests';
 import { callerOf, signInRequired } from '@/lib/ratelimit/caller';
+import { retryHeaders, takeLedgerWrite } from '@/lib/ratelimit/policies';
 import { ledgerConfigured, ledgerRequestSchema, ledgerSummary, readLedger, recordEvents } from '@/lib/governance/ledger';
 
 export const runtime = 'nodejs';
@@ -23,6 +24,16 @@ export async function POST(request: Request) {
   if (!caller) return signInRequired();
   const input = await readRequest(request, ledgerRequestSchema);
   if (input instanceof Response) return input;
+
+  // The record is shared and the demo passcode ships with the submission, so
+  // "has a session" says nothing about who is appending. Generous, but bounded.
+  const quota = takeLedgerWrite(caller);
+  if (!quota.ok) {
+    return Response.json(
+      { persisted: false, reason: 'Too many writes to the record from this session; the log stays in this browser for now.' },
+      { status: 429, headers: { ...NO_STORE, ...retryHeaders(quota) } },
+    );
+  }
 
   if (!ledgerConfigured()) {
     // Honest absence, not a silent success: the caller is told the record is
