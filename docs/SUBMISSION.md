@@ -960,7 +960,7 @@ Replace each placeholder before submitting. Copy-paste-ready answers for every f
 - [ ] **Project Description:** this document ✔
 - [ ] **CodeBuddy/WorkBuddy conversation history (≥3):** `docs/proof/*.png` ✔
 - [x] **Cover image (16:9, 380×216 recommended):** `docs/submission/cover-small.png` (380×216); 4× master `docs/submission/cover.png` (1520×864); source `docs/submission/cover.html`
-- [ ] **Demo video (optional, 5–8 min):** TODO — `[VIDEO LINK]`. Script `docs/submission/video-script-v2.md` now measures **6:13–6:58** (955 VO words, counted) and covers all three things the handbook asks of the video: project overview, core agent features, and a build reflection with CodeBuddy tips.
+- [ ] **Demo video (optional, 5–8 min):** rendered — `videos/keystone-demo/out/keystone-demo-upload.mp4` (71 MB, 1920×1080, 30 fps, **7:57.7**), master `keystone-demo.mp4` (240 MB). Still needs uploading and the link pasting into `[VIDEO LINK]`. It covers all three things the handbook asks of the video: project overview, core agent features, and a build reflection with CodeBuddy tips — and opens with why this case study and this problem were chosen, third, before the answer.
 - [x] **Solution diagram (8 required points):** `docs/submission/solution-diagram.png` (1920×1080); source `docs/submission/solution-diagram.html`
 - [x] **Live URL / demo link (optional, bonus):** https://keystone-tencent.vercel.app (demo passcode `keystone`, shown on the sign-in page; demo: /incident/INC-2026-1011?step=10)
 - [x] **Source code (GitHub repository):** https://github.com/frederickemerson/keystone — **public**, no access grant needed.
@@ -972,7 +972,7 @@ Replace each placeholder before submitting. Copy-paste-ready answers for every f
 - [ ] Do not claim speech recognition works on real Singapore-accented speech: it is untested.
 - [x] Publish the GitHub repository and paste the URL. (Public; `docs/proof/` reachable.)
 - [ ] Record the video from `docs/submission/video-script-v2.md` and paste the link. The
-      script was rewritten on 14 Oct and now measures **6:13–6:58**, inside the stated 5–8
+      script was rewritten on 14 Oct and the film rendered on 15 Oct at **7:57.7**, inside the stated 5–8
       minutes. It gained four acts of real, already-built material — frontline capture and
       per-rule attribution, the agent follow-up thread, "What to look at first", and "Is this
       a new skill?" — and, critically, **Act 11, the build reflection with CodeBuddy tips**,

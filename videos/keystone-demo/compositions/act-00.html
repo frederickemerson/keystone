@@ -4,122 +4,275 @@
   <body>
     <template>
       <style>
-        #root { position: absolute; inset: 0; overflow: hidden; background: #0e0c16;
-                font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: #f6f5fa; }
+        #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
+                font-family: "Montserrat", sans-serif; color: #f6f5fa; }
+        #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
         #root .bg { position: absolute; inset: 0;
-          background:
-            radial-gradient(120% 80% at 50% -10%, rgba(139,124,246,0.22), transparent 62%),
-            radial-gradient(90% 70% at 50% 110%, rgba(139,124,246,0.10), transparent 60%),
-            #15121f; }
-        #root .grain { position: absolute; inset: 0; opacity: 0.045; mix-blend-mode: overlay;
-          background-image: radial-gradient(rgba(255,255,255,0.8) 0.5px, transparent 0.6px);
-          background-size: 3px 3px; }
-        #root .shotwrap.stacked { opacity: 0; }
-        #root .shotwrap { position: absolute; left: 96px; right: 96px; top: 108px; bottom: 150px;
-          border-radius: 16px; overflow: hidden; border: 1px solid rgba(246,245,250,0.16);
-          box-shadow: 0 40px 110px rgba(0,0,0,0.62), 0 0 0 1px rgba(139,124,246,0.14); background: #15121f; }
-        #root .shot, #root .shotwrap img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .label { position: absolute; left: 96px; top: 54px; display: flex; align-items: baseline; gap: 14px;
-          font-family: ui-monospace, monospace; font-size: 20px; letter-spacing: 0.14em;
-          text-transform: uppercase; color: #9a93b5; }
-        #root .label b { color: #8b7cf6; font-weight: 600; }
-        #root .card { position: absolute; left: 96px; right: 420px; bottom: 54px; margin: 0;
-          padding: 26px 32px; border-radius: 14px; background: rgba(14,12,22,0.86);
-          border: 1px solid rgba(139,124,246,0.34); backdrop-filter: blur(6px); }
-        #root .card blockquote { margin: 0; font-family: ui-serif, Georgia, serif; font-size: 36px; line-height: 1.26; color: #f6f5fa; }
-        #root .card figcaption { margin-top: 12px; font-family: ui-monospace, monospace;
-          font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a93b5; }
-        #root .keyston { position: absolute; right: 92px; bottom: 18px; width: 150px; height: 125px; }
-        #root .mascot { width: 100%; height: 100%; display: block;
-          filter: drop-shadow(0 14px 30px rgba(0,0,0,0.5)); }
-        #root .coldopen { position: absolute; left: 50%; top: 50%; width: 1420px; margin-left: -710px; margin-top: -290px;
-          background: #ffffff; color: #15121f; border-radius: 18px; padding: 54px 60px 66px;
-          box-shadow: 0 50px 130px rgba(0,0,0,0.6); }
-        #root .co-chrome { font-family: ui-monospace, monospace; font-size: 17px; letter-spacing: 0.16em;
-          text-transform: uppercase; color: #9a93b5; }
-        #root .co-q { margin: 26px 0 34px; font-size: 46px; font-weight: 600; line-height: 1.22; }
-        #root .co-a p { font-size: 37px; line-height: 1.42; margin-bottom: 10px; color: #2a2740; }
-        #root .co-mark { display: inline-block; border-radius: 6px; padding: 0 6px; }
-        #root .co-meta { position: absolute; right: 48px; top: 42px; font-family: ui-monospace, monospace;
-          font-size: 22px; color: #9a93b5; }
-        #root .co-stamp { position: absolute; left: 60px; bottom: -74px; font-family: ui-monospace, monospace;
-          font-size: 27px; letter-spacing: 0.08em; color: #d79a3a;
-          background: rgba(14,12,22,0.92); border: 1px solid #d79a3a; border-radius: 8px; padding: 10px 18px; }
-        #root .drain { position: absolute; inset: 0; }
-        #root .drain svg { position: absolute; left: 0; right: 0; bottom: 150px; width: 100%; height: 820px; }
-        #root .threads path { fill: none; stroke: #8b7cf6; stroke-width: 4; opacity: 0.9;
-          filter: drop-shadow(0 0 10px rgba(139,124,246,0.55)); }
-        #root .drain-caption { position: absolute; left: 0; right: 0; top: 150px; margin: 0; text-align: center;
-          font-family: ui-serif, Georgia, serif; font-size: 52px; line-height: 1.3; }
-        #root .drain-caption span { display: block; color: #f6f5fa; }
-        #root .drain-caption em { display: block; margin-top: 10px; font-style: normal; color: #8b7cf6; }
-        #root .drain-figure { position: absolute; left: 120px; bottom: 182px; width: 74px; height: 196px;
-          border-radius: 37px 37px 6px 6px;
-          background: linear-gradient(180deg, #d79a3a 0 52px, #332f4d 52px); }
-        #root .closing { position: absolute; inset: 0; display: flex; flex-direction: column;
-          align-items: center; justify-content: center; gap: 56px; }
-        #root .pill-art { width: 760px; border-radius: 20px; background: #f6f5fa; color: #1d1a2b;
-          padding: 36px 42px; text-align: left; box-shadow: 0 44px 130px rgba(139,124,246,0.42); }
-        #root .pill-name { font-family: ui-monospace, monospace; font-size: 34px; font-weight: 600; }
-        #root .pill-ver { margin-top: 6px; font-family: ui-monospace, monospace; font-size: 22px; color: #6b6484; }
-        #root .pill-rules { margin: 24px 0 0; padding: 0; list-style: none; }
-        #root .pill-rules li { font-size: 25px; line-height: 1.55; color: #2a2740;
-          padding-left: 20px; border-left: 3px solid #8b7cf6; margin-bottom: 12px; }
-        #root .pill-foot { margin-top: 24px; font-family: ui-monospace, monospace; font-size: 20px; color: #6b6484; }
-        #root .dests { display: flex; gap: 64px; font-family: ui-monospace, monospace;
-          font-size: 34px; letter-spacing: 0.12em; text-transform: uppercase; color: #8b7cf6; }
-        #root .still { opacity: 1; }
+          background: radial-gradient(120% 80% at 50% -10%, rgba(139,124,246,0.20), rgba(139,124,246,0) 62%), #15121f; }
+        #root .glow { position: absolute; width: 1100px; height: 1100px; border-radius: 50%; opacity: 0.22;
+          background: radial-gradient(circle, rgba(139,124,246,0.55) 0%, rgba(139,124,246,0) 62%); will-change: transform; }
+        #root .glow-a { left: -380px; top: -420px; }
+        #root .glow-b { right: -420px; bottom: -520px; background: radial-gradient(circle, rgba(215,154,58,0.35) 0%, rgba(215,154,58,0) 62%); }
+        #root .gridlines { position: absolute; inset: 0; opacity: 0.07;
+          background-image: linear-gradient(rgba(246,245,250,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(246,245,250,0.6) 1px, transparent 1px);
+          background-size: 120px 120px; background-position: 60px 60px; }
+        #root .ghost { position: absolute; right: -40px; top: -140px; width: 1000px; height: 1000px; overflow: visible; will-change: transform; }
+        #root .ghost text { font-family: "Montserrat", sans-serif; font-weight: 900; font-size: 980px; letter-spacing: -0.06em; fill: rgba(139,124,246,0.07); }
+        #root .grain { position: absolute; inset: 0; opacity: 0.045; mix-blend-mode: overlay; pointer-events: none;
+          background-image: radial-gradient(rgba(255,255,255,0.8) 0.5px, transparent 0.6px); background-size: 3px 3px; }
+        #root .label { position: absolute; left: 96px; top: 50px; display: flex; align-items: baseline; gap: 16px;
+          font-family: "IBM Plex Mono", monospace; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a93b5; }
+        #root .label b { color: #8b7cf6; font-weight: 700; }
+        #root .label i { display: block; width: 44px; height: 2px; background: #8b7cf6; transform-origin: left center; align-self: center; }
+        #root .tag { position: absolute; right: 96px; top: 50px; font-family: "IBM Plex Mono", monospace; font-size: 20px;
+          letter-spacing: 0.16em; text-transform: uppercase; color: #9a93b5; padding: 8px 16px;
+          border: 1px solid rgba(154,147,181,0.35); border-radius: 999px; }
+        #root .card { position: absolute; left: 96px; right: 440px; bottom: 60px; margin: 0; padding: 28px 34px 26px 40px;
+          border-radius: 14px; background: rgba(14,12,22,0.86); border: 1px solid rgba(139,124,246,0.30); backdrop-filter: blur(8px); }
+        #root .card .bar { position: absolute; left: 0; top: 22px; bottom: 22px; width: 4px; border-radius: 2px; background: #d79a3a; transform-origin: top center; }
+        #root .card blockquote { margin: 0; font-family: "EB Garamond", serif; font-size: 38px; line-height: 1.24; color: #f6f5fa; }
+        #root .card figcaption { margin-top: 12px; font-family: "IBM Plex Mono", monospace; font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a93b5; }
+        #root .keyston { position: absolute; right: 92px; bottom: 18px; width: 150px; height: 125px; will-change: transform; }
+        #root .mascot { width: 100%; height: 100%; display: block; filter: drop-shadow(0 14px 30px rgba(0,0,0,0.5)); }
+        #root .frame { position: absolute; left: 120px; right: 120px; top: 112px; bottom: 118px; border-radius: 14px; overflow: hidden;
+          background: #0e0c16; box-shadow: 0 50px 120px rgba(0,0,0,0.62), 0 0 0 1px rgba(139,124,246,0.22); will-change: transform; }
+        #root .frame .edge { position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 3;
+          background: linear-gradient(90deg, rgba(139,124,246,0) 0%, rgba(139,124,246,0.95) 50%, rgba(139,124,246,0) 100%); transform-origin: center; }
+        #root .cam { position: absolute; inset: 0; will-change: transform; }
+        #root .frame .cam { contain: paint; }
+        #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+          position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+        #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
+          font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
+          box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
+        #root .chip.amber { border-color: #d79a3a; color: #d79a3a; }
+        #root .chip.red { border-color: #e8503f; color: #e8503f; }
+        #root .chip.green { border-color: #3fb97a; color: #3fb97a; }
+        #root .lower { position: absolute; left: 120px; bottom: 150px; font-weight: 700; font-size: 44px; letter-spacing: -0.02em; line-height: 1.1; color: #f6f5fa; }
+        #root .lower .w { display: inline-block; opacity: 0; margin-right: 0.28em; will-change: transform; }
+        #root .lower em { font-style: normal; color: #8b7cf6; }
+        #root .stamp { position: absolute; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 30px; letter-spacing: 0.1em;
+          text-transform: uppercase; padding: 12px 22px; border-radius: 8px; border: 2px solid currentColor; background: rgba(14,12,22,0.92);
+          opacity: 0; will-change: transform; }
+        #root .mark { position: relative; display: inline-block; padding: 0 6px; }
+        #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
+          pointer-events: none; overflow: visible; }
+        #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
+          font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
+
+        #root .co { position: absolute; left: 50%; top: 50%; width: 1440px; margin-left: -720px; margin-top: -330px;
+          background: #ffffff; color: #15121f; border-radius: 18px; padding: 54px 64px 70px; box-shadow: 0 60px 140px rgba(0,0,0,0.65); will-change: transform; }
+        #root .co-chrome { font-family: "IBM Plex Mono", monospace; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; color: #9a93b5; display: flex; justify-content: space-between; }
+        #root .co-q { margin: 30px 0 34px; font-size: 48px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; min-height: 116px; }
+        #root .co-q .caret { display: inline-block; width: 4px; height: 44px; background: #15121f; vertical-align: -6px; margin-left: 6px; }
+        #root .co-status { font-family: "IBM Plex Mono", monospace; font-size: 22px; color: #9a93b5; opacity: 0; height: 30px; position: relative; overflow: hidden; }
+        #root .co-status .sheen { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0) 100%); }
+        #root .co-a { font-size: 38px; line-height: 1.42; color: #2a2740; margin-top: 10px; min-height: 170px; }
+        #root .co-a .w { opacity: 0; }
+        #root .co-timer { font-family: "IBM Plex Mono", monospace; font-size: 22px; color: #9a93b5; font-variant-numeric: tabular-nums; }
+        #root .co .stamp { left: 64px; bottom: -40px; color: #d79a3a; }
+        #root .co-hint { position: absolute; right: 64px; bottom: 26px; font-family: "IBM Plex Mono", monospace; font-size: 17px; letter-spacing: 0.12em; text-transform: uppercase; color: #c9c3d9; opacity: 0; }
+  
       </style>
 
-      <div data-hf-id="hf-u49o" id="root" data-composition-id="act-00" data-width="1920" data-height="1080" data-duration="21.01">
-        <div data-hf-id="hf-m7dd" class="bg"></div>
+      <div id="root" data-composition-id="act-00" data-width="1920" data-height="1080" data-duration="21.22">
+        <div class="stage" id="act-00-stage">
+          <div class="bg"></div>
+          <div class="glow glow-a" id="act-00-glow-a" data-layout-allow-overflow="true"></div>
+          <div class="glow glow-b" id="act-00-glow-b" data-layout-allow-overflow="true"></div>
+          <div class="gridlines"></div>
+          <svg class="ghost" id="act-00-ghost" viewBox="0 0 1000 1000" aria-hidden="true" data-layout-ignore="true" data-layout-allow-overflow="true" data-layout-allow-occlusion="true"><text x="1000" y="860" text-anchor="end"></text></svg>
 
-        <div data-hf-id="hf-0z0w" class="coldopen" id="act-00-cold">
-          <div data-hf-id="hf-mveb" class="co-chrome">assistant</div>
-          <p data-hf-id="hf-p29t" class="co-q">After a chilled water leak, who must approve re-energising?</p>
-          <div data-hf-id="hf-n0c4" class="co-a">
-            <p data-hf-id="hf-ud72" id="act-00-a1">The Duty Engineer must approve re-energisation.</p>
-            <p data-hf-id="hf-hdz1" id="act-00-a2">This is governed by rule <span data-hf-id="hf-3vc0" class="co-mark" id="act-00-m1">TS-07</span>, pill version <span data-hf-id="hf-l1k3" class="co-mark" id="act-00-m2">2.1</span>.</p>
+          <div class="co" id="act-00-co">
+            <div class="co-chrome"><span>assistant</span><span class="co-timer" id="act-00-timer">0.0 s</span></div>
+            <p class="co-q"><span id="act-00-q"></span><span class="caret" id="act-00-caret"></span></p>
+            <div class="co-status" id="act-00-status">Thinking<span class="sheen" id="act-00-sheen"></span></div>
+            <div class="co-a" id="act-00-a">
+              <span class="w">The</span> <span class="w">Duty</span> <span class="w">Engineer</span> <span class="w">must</span> <span class="w">approve</span> <span class="w">re-energisation.</span>
+              <span class="w">This</span> <span class="w">is</span> <span class="w">governed</span> <span class="w">by</span> <span class="w">rule</span>
+              <span class="w mark" id="act-00-m1">TS-07<svg class="ring" id="act-00-r1" viewBox="0 0 200 100" preserveAspectRatio="none"></svg></span><span class="w">,</span>
+              <span class="w">pill</span> <span class="w">version</span>
+              <span class="w mark" id="act-00-m2">2.1<svg class="ring" id="act-00-r2" viewBox="0 0 200 100" preserveAspectRatio="none"></svg></span><span class="w">.</span>
+            </div>
+            <div class="stamp" id="act-00-stamp">unverifiable</div>
+            <div class="co-hint" id="act-00-hint">no source · no owner · no version to check</div>
           </div>
-          <div data-hf-id="hf-yc9c" class="co-meta"><span data-hf-id="hf-mzcg" id="act-00-timer">0.0s</span></div>
-          <div data-hf-id="hf-8bgw" class="co-stamp" id="act-00-stamp">nothing here is checkable</div>
-        </div>
-        <div data-hf-id="hf-h60x" class="grain"></div>
-        <div data-hf-id="hf-qaiw" class="label" id="act-00-label"><b data-hf-id="hf-x09f">Act 0</b><span data-hf-id="hf-79dp">COLD OPEN · the problem in one shot</span></div>
-        
-        <div data-hf-id="hf-d93w" class="keyston" id="act-00-keyston">
-      <svg data-hf-id="hf-swjo" id="act-00-mascot" class="mascot" viewBox="0 0 60 50" aria-hidden="true">
-        <g data-hf-id="hf-stx6" fill="rgba(139,124,246,0.16)" stroke="rgba(246,245,250,0.3)" stroke-width="1.1" stroke-linejoin="round">
-          <path data-hf-id="hf-0ku2" d="M18.6 13.4 L8 21.5 L10.5 38 H21 Z" />
-          <path data-hf-id="hf-76q2" d="M41.4 13.4 L52 21.5 L49.5 38 H39 Z" />
+  
+          <div class="grain"></div>
+          <div class="label" id="act-00-label"><b>Act 00</b><i></i><span>The problem in one shot</span></div>
+          <div class="tag" id="act-00-tag" style="opacity:0"></div>
+          
+          <div class="keyston" id="act-00-keyston">
+      <svg id="act-00-mascot" class="mascot" viewBox="0 0 60 50" aria-hidden="true">
+        <g fill="rgba(139,124,246,0.16)" stroke="rgba(246,245,250,0.3)" stroke-width="1.1" stroke-linejoin="round">
+          <path d="M18.6 13.4 L8 21.5 L10.5 38 H21 Z" />
+          <path d="M41.4 13.4 L52 21.5 L49.5 38 H39 Z" />
         </g>
-        <g data-hf-id="hf-04is" class="mascot-body">
-          <path data-hf-id="hf-n5sw" d="M18 11 H42 L39.5 42 H20.5 Z" fill="#f6f5fa" stroke="#1d1a2b" stroke-width="1.5" stroke-linejoin="round" />
-          <path data-hf-id="hf-h7un" d="M20 15 h20" stroke="#1d1a2b" stroke-width="0.9" opacity="0.22" />
-          <ellipse data-hf-id="hf-nz37" cx="25" cy="23" rx="3.2" ry="2.56" fill="#fff" stroke="#1d1a2b" stroke-width="0.9" />
-          <ellipse data-hf-id="hf-cgea" cx="35" cy="23" rx="3.2" ry="2.56" fill="#fff" stroke="#1d1a2b" stroke-width="0.9" />
-          <circle data-hf-id="hf-5zey" cx="23.6" cy="23" r="1.5" fill="#1d1a2b" />
-          <circle data-hf-id="hf-xf4a" cx="36.4" cy="23" r="1.5" fill="#1d1a2b" />
-          <path data-hf-id="hf-zayh" d="M26 30 q4 -4 8 1" fill="none" stroke="#1d1a2b" stroke-width="1.6" stroke-linecap="round" />
+        <g class="mascot-body">
+          <path d="M18 11 H42 L39.5 42 H20.5 Z" fill="#f6f5fa" stroke="#1d1a2b" stroke-width="1.5" stroke-linejoin="round" />
+          <path d="M20 15 h20" stroke="#1d1a2b" stroke-width="0.9" opacity="0.22" />
+          <ellipse cx="25" cy="23" rx="3.2" ry="2.56" fill="#fff" stroke="#1d1a2b" stroke-width="0.9" />
+          <ellipse cx="35" cy="23" rx="3.2" ry="2.56" fill="#fff" stroke="#1d1a2b" stroke-width="0.9" />
+          <circle class="pupil" cx="23.6" cy="23" r="1.5" fill="#1d1a2b" />
+          <circle class="pupil" cx="36.4" cy="23" r="1.5" fill="#1d1a2b" />
+          <path d="M26 30 q4 -4 8 1" fill="none" stroke="#1d1a2b" stroke-width="1.6" stroke-linecap="round" />
         </g>
-        <rect data-hf-id="hf-nf5a" x="4" y="38" width="52" height="7" rx="1" fill="rgba(139,124,246,0.2)" stroke="rgba(246,245,250,0.28)" stroke-width="1.1" />
+        <rect x="4" y="38" width="52" height="7" rx="1" fill="rgba(139,124,246,0.2)" stroke="rgba(246,245,250,0.28)" stroke-width="1.1" />
       </svg></div>
+        </div>
       </div>
 
       <script>
+
         const tl = gsap.timeline({ paused: true });
+        const ID = "act-00";
+        const S = "#act-00-stage";
         const q = (s) => document.querySelector(s);
-        tl.fromTo("#act-00-cold", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0);
-        tl.fromTo("#act-00-a1", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.55);
-        tl.fromTo("#act-00-a2", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 1.0);
-        tl.to("#act-00-timer", { duration: 2.0, ease: "none", onUpdate() { const el = q("#act-00-timer"); if (el) el.textContent = (this.progress() * 2).toFixed(1) + "s"; } }, 0.1);
-        tl.fromTo(["#act-00-m1", "#act-00-m2"], { boxShadow: "0 0 0 0 rgba(215,154,58,0)" }, { boxShadow: "0 0 0 3px rgba(215,154,58,0.85)", duration: 0.45, stagger: 0.22, ease: "power2.out" }, 2.4);
-        tl.fromTo("#act-00-stamp", { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2)" }, 3.6);
-        tl.fromTo("#act-00-label", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.15);
-        tl.to("#act-00-label", { opacity: 0, duration: 0.5 }, 4.2);
-        tl.fromTo("#act-00-keyston", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.4)" }, 0.5);
-        tl.to("#act-00-keyston .mascot-body", { y: -5, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 6 }, 1.1);
-        tl.to("#act-00-keyston", { opacity: 0, duration: 0.45 }, 20.46);
+        const qa = (s) => Array.from(document.querySelectorAll(s));
+        // --- rules/spring-pop-entrance: scale 0 → 1 with back.out overshoot, fromTo so t=0 is right under seek ---
+        function pop(sel, at, stagger, dur) {
+          tl.fromTo(sel, { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: dur || 0.5, ease: "back.out(1.7)", stagger: stagger || 0 }, at);
+        }
+        // --- rules/waterfall-entry: words whip in from below, binary opacity, overlapping, power4.out ---
+        function waterfall(sel, at) {
+          const ws = qa(sel + " .w");
+          let t = at;
+          ws.forEach((w, i) => {
+            const last = i === ws.length - 1;
+            const dur = last ? 0.2 : 0.15;
+            tl.set(w, { opacity: 1, y: last ? 70 : 46 }, t);
+            tl.to(w, { y: 0, duration: dur, ease: "power4.out" }, t);
+            t += dur - 0.035;
+          });
+        }
+        function clearLower(sel, at) { tl.to(sel + " .w", { opacity: 0, y: -18, duration: 0.3, ease: "power2.in", stagger: 0.02 }, at); }
+        // --- rules/svg-path-draw: measured dash, offset to 0 ---
+        function drawPath(sel, at, dur, ease) {
+          qa(sel).forEach((p) => {
+            const len = p.getTotalLength();
+            gsap.set(p, { strokeDasharray: len, strokeDashoffset: len });
+            tl.to(p, { strokeDashoffset: 0, duration: dur || 0.6, ease: ease || "power2.out" }, at);
+          });
+        }
+        function undrawPath(sel, at, dur) {
+          qa(sel).forEach((p) => { const len = p.getTotalLength(); tl.to(p, { strokeDashoffset: len, duration: dur || 0.8, ease: "power1.in" }, at); });
+        }
+        // --- rules/css-marker-patterns (circle mode) as a hand-drawn SVG ellipse that draws on ---
+        // The svg sits INSIDE the marked span (inset negative), viewBox 200x100 stretched to the
+        // span's box — the anisotropic stretch gives the ink its hand-swiped weight, as the
+        // registry's marker-highlight does. No DOM measurement: the span sizes the ring.
+        function ring(sel, at, color) {
+          qa(sel).forEach((el) => {
+            const d = "M 184 36 C 196 62, 150 96, 92 95 C 24 94, -4 70, 8 42 C 20 12, 90 2, 140 8 C 176 12, 198 28, 190 52";
+            el.innerHTML = '<path d="' + d + '" stroke="' + color + '" />';
+          });
+          drawPath(sel + " path", at, 0.55, "power2.inOut");
+        }
+        // --- registry: headline-slam's signature — scale 1.6 → 1 on expo.out, then a three-frame landing shake ---
+        function stamp(sel, at) {
+          tl.fromTo(sel, { scale: 1.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.42, ease: "expo.out" }, at);
+          const F = 1 / 30;
+          tl.to(sel, { x: 8, y: -4, duration: F, ease: "power2.out" }, at + 0.3);
+          tl.to(sel, { x: -5, y: 3, duration: F, ease: "power2.out" }, at + 0.3 + F);
+          tl.to(sel, { x: 0, y: 0, duration: F, ease: "power2.out" }, at + 0.3 + 2 * F);
+        }
+        // --- registry: yt-camera-move — punch-in / slide on an inner wrapper, never on the timed clip ---
+        function cam(target, at, o) {
+          o = o || {};
+          gsap.set(target, { transformPerspective: 1200, transformOrigin: o.origin || "50% 50%" });
+          tl.to(target, { scale: 1 + (o.zoom === undefined ? 0.11 : o.zoom), x: o.slideX || 0, y: o.slideY || 0,
+            rotationX: o.tilt || 0, rotationY: o.pan || 0, duration: o.dur === undefined ? 1.2 : o.dur, ease: o.ease || "power2.inOut" }, at);
+        }
+        function camReset(target, at, dur) {
+          tl.to(target, { scale: 1, x: 0, y: 0, rotationX: 0, rotationY: 0, duration: dur === undefined ? 1.2 : dur, ease: "power2.inOut" }, at);
+        }
+        // --- registry: yt-feather-highlight — dim the frame except a feathered ellipse; the hole is CSS vars ---
+        function hlIn(target, at, o) {
+          o = o || {};
+          gsap.set(target, { "--yt-hl-x": o.x || "50%", "--yt-hl-y": o.y || "50%", "--yt-hl-rx": o.rx || "22%", "--yt-hl-ry": o.ry || "26%" });
+          tl.to(target, { opacity: 1, duration: 0.5, ease: "power2.out" }, at);
+        }
+        function hlTo(target, at, o, dur) {
+          const v = { duration: dur === undefined ? 0.8 : dur, ease: "power2.inOut" };
+          if (o.x !== undefined) v["--yt-hl-x"] = o.x; if (o.y !== undefined) v["--yt-hl-y"] = o.y;
+          if (o.rx !== undefined) v["--yt-hl-rx"] = o.rx; if (o.ry !== undefined) v["--yt-hl-ry"] = o.ry;
+          tl.to(target, v, at);
+        }
+        function hlOut(target, at) { tl.to(target, { opacity: 0, duration: 0.4, ease: "power2.in" }, at); }
+        // --- the footage frame arrives with a little depth: 3D tilt → flat, settles ---
+        function frameIn(sel, at) {
+          tl.fromTo(sel, { opacity: 0, y: 44, rotationY: -7, transformPerspective: 1400 },
+            { opacity: 1, y: 0, rotationY: 0, duration: 0.9, ease: "power3.out" }, at);
+          tl.fromTo(sel + " .edge", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.out" }, at + 0.35);
+        }
+        // --- rules/sine-wave-loop: finite yoyo breathe ---
+        function breathe(sel, at, dur, amount, total) {
+          const cycles = Math.max(1, Math.floor((total - at) / (dur * 2)));
+          tl.to(sel, { y: amount, duration: dur, ease: "sine.inOut", yoyo: true, repeat: cycles * 2 - 1 }, at);
+        }
+        // --- a chip arriving: lands from below, holds, leaves up ---
+        function chip(sel, at, hold) {
+          tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
+          if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
+        }
+        // --- Keyston reacts: a hop and a tilt on the act's own beat ---
+        function react(at, tilt) {
+          tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
+          tl.to("#" + ID + "-keyston .mascot-body", { y: 0, duration: 0.42, ease: "bounce.out" }, at + 0.18);
+          tl.to("#" + ID + "-mascot", { rotation: tilt || 0, duration: 0.3, ease: "power2.out" }, at);
+          tl.to("#" + ID + "-mascot", { rotation: 0, duration: 0.6, ease: "power2.inOut" }, at + 1.6);
+        }
+
+        // ---- act-00 ----
+        
+        tl.fromTo("#act-00-co", { opacity: 0, y: 30, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" }, 0.1);
+        // one slow push for the whole act (multi-phase-camera: push phase only)
+        tl.to("#act-00-co", { scale: 1.06, y: -10, duration: 20.42, ease: "none" }, 0.8);
+        // the question types itself — discrete-text-sequence: one tl.set per character
+        const Q = "After a chilled water leak, who must approve re-energising?";
+        for (let i = 1; i <= Q.length; i++) tl.set("#act-00-q", { textContent: Q.slice(0, i) }, 0.6 + (i / Q.length) * 1.7);
+        tl.to("#act-00-caret", { opacity: 0.1, duration: 0.3, repeat: 9, yoyo: true, ease: "none" }, 0.6);
+        tl.set("#act-00-caret", { opacity: 0 }, 3.6);
+        // status theater: "Thinking" with a sheen that sweeps left to right
+        tl.fromTo("#act-00-status", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 2.5);
+        tl.fromTo("#act-00-sheen", { xPercent: -100 }, { xPercent: 100, duration: 0.7, ease: "power1.inOut" }, 2.6);
+        tl.to("#act-00-status", { opacity: 0, duration: 0.2 }, 3.35);
+        // the answer streams in bursts — the measured token rhythm from the registry's streaming-text
+        const GAPS = [0.167, 0.1, 0, 0.367, 0, 0.167, 0.133, 0.1, 0.1, 0.133, 0.167, 0.133, 0, 0.233, 0.167, 0.1, 0, 0.133, 0.133, 0.1, 0.167, 0.133, 0.1, 0.133];
+        let st = 3.4;
+        qa("#act-00-a .w").forEach((w, i) => {
+          if (i > 0) st += GAPS[i % GAPS.length];
+          tl.set(w, { opacity: 1 }, st);
+          tl.fromTo(w, { color: "#9a93b5" }, { color: "#2a2740", duration: 0.27, ease: "none" }, st);
+        });
+        // the corner timer runs while it answers and lands on 2.0 s
+        const timer = { v: 0 };
+        tl.to(timer, { v: 2, duration: 2.0, ease: "none", onUpdate() { const el = q("#act-00-timer"); if (el) el.textContent = timer.v.toFixed(1) + " s"; } }, 2.5);
+        // it cites a rule, and it cites a version number — circled, amber, not red
+        ring("#act-00-r1", 8.30, "#d79a3a");
+        ring("#act-00-r2", 9.60, "#d79a3a");
+        tl.to(["#act-00-m1", "#act-00-m2"], { color: "#b87b1e", duration: 0.4, stagger: 1.3 }, 8.30);
+        // nothing on this screen is checkable
+        stamp("#act-00-stamp", 16.28);
+        tl.fromTo("#act-00-hint", { opacity: 0, x: 14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 17.58);
+    
+        // ---- chrome ----
+        tl.fromTo("#act-00-label", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.25);
+        tl.fromTo("#act-00-label i", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.45);
+        tl.to("#act-00-label", { opacity: 0, x: -10, duration: 0.4, ease: "power2.in" }, 4.60);
+        tl.fromTo("#act-00-tag", { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.4);
+        tl.fromTo("#act-00-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 10.61, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-00-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 10.61, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-00-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 21.22, ease: "none" }, 0);
+        tl.fromTo("#act-00-keyston", { opacity: 0, y: 26, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1.2);
+        breathe("#act-00-keyston .mascot-body", 1.9, 1.6, -5, 21.22);
+        react(16.580000000000002, -8);
+        tl.fromTo(S, { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.out" }, 0);
+        tl.to(S, { opacity: 0, duration: 0.22, ease: "power2.in" }, 20.72);
         window.__timelines["act-00"] = tl;
       </script>
     </template>

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
+                font-family: "Montserrat", sans-serif; color: #f6f5fa; }
+        #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
+        #root .bg { position: absolute; inset: 0;
+          background: radial-gradient(120% 80% at 50% -10%, rgba(139,124,246,0.20), rgba(139,124,246,0) 62%), #15121f; }
+        #root .glow { position: absolute; width: 1100px; height: 1100px; border-radius: 50%; opacity: 0.22;
+          background: radial-gradient(circle, rgba(139,124,246,0.55) 0%, rgba(139,124,246,0) 62%); will-change: transform; }
+        #root .glow-a { left: -380px; top: -420px; }
+        #root .glow-b { right: -420px; bottom: -520px; background: radial-gradient(circle, rgba(215,154,58,0.35) 0%, rgba(215,154,58,0) 62%); }
+        #root .gridlines { position: absolute; inset: 0; opacity: 0.07;
+          background-image: linear-gradient(rgba(246,245,250,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(246,245,250,0.6) 1px, transparent 1px);
+          background-size: 120px 120px; background-position: 60px 60px; }
+        #root .ghost { position: absolute; right: -40px; top: -140px; width: 1000px; height: 1000px; overflow: visible; will-change: transform; }
+        #root .ghost text { font-family: "Montserrat", sans-serif; font-weight: 900; font-size: 980px; letter-spacing: -0.06em; fill: rgba(139,124,246,0.07); }
+        #root .grain { position: absolute; inset: 0; opacity: 0.045; mix-blend-mode: overlay; pointer-events: none;
+          background-image: radial-gradient(rgba(255,255,255,0.8) 0.5px, transparent 0.6px); background-size: 3px 3px; }
+        #root .label { position: absolute; left: 96px; top: 50px; display: flex; align-items: baseline; gap: 16px;
+          font-family: "IBM Plex Mono", monospace; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a93b5; }
+        #root .label b { color: #8b7cf6; font-weight: 700; }
+        #root .label i { display: block; width: 44px; height: 2px; background: #8b7cf6; transform-origin: left center; align-self: center; }
+        #root .tag { position: absolute; right: 96px; top: 50px; font-family: "IBM Plex Mono", monospace; font-size: 20px;
+          letter-spacing: 0.16em; text-transform: uppercase; color: #9a93b5; padding: 8px 16px;
+          border: 1px solid rgba(154,147,181,0.35); border-radius: 999px; }
+        #root .card { position: absolute; left: 96px; right: 440px; bottom: 60px; margin: 0; padding: 28px 34px 26px 40px;
+          border-radius: 14px; background: rgba(14,12,22,0.86); border: 1px solid rgba(139,124,246,0.30); backdrop-filter: blur(8px); }
+        #root .card .bar { position: absolute; left: 0; top: 22px; bottom: 22px; width: 4px; border-radius: 2px; background: #d79a3a; transform-origin: top center; }
+        #root .card blockquote { margin: 0; font-family: "EB Garamond", serif; font-size: 38px; line-height: 1.24; color: #f6f5fa; }
+        #root .card figcaption { margin-top: 12px; font-family: "IBM Plex Mono", monospace; font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a93b5; }
+        #root .keyston { position: absolute; right: 92px; bottom: 18px; width: 150px; height: 125px; will-change: transform; }
+        #root .mascot { width: 100%; height: 100%; display: block; filter: drop-shadow(0 14px 30px rgba(0,0,0,0.5)); }
+        #root .frame { position: absolute; left: 120px; right: 120px; top: 112px; bottom: 118px; border-radius: 14px; overflow: hidden;
+          background: #0e0c16; box-shadow: 0 50px 120px rgba(0,0,0,0.62), 0 0 0 1px rgba(139,124,246,0.22); will-change: transform; }
+        #root .frame .edge { position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 3;
+          background: linear-gradient(90deg, rgba(139,124,246,0) 0%, rgba(139,124,246,0.95) 50%, rgba(139,124,246,0) 100%); transform-origin: center; }
+        #root .cam { position: absolute; inset: 0; will-change: transform; }
+        #root .frame .cam { contain: paint; }
+        #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+          position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+        #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
+          font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
+          box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
+        #root .chip.amber { border-color: #d79a3a; color: #d79a3a; }
+        #root .chip.red { border-color: #e8503f; color: #e8503f; }
+        #root .chip.green { border-color: #3fb97a; color: #3fb97a; }
+        #root .lower { position: absolute; left: 120px; bottom: 150px; font-weight: 700; font-size: 44px; letter-spacing: -0.02em; line-height: 1.1; color: #f6f5fa; }
+        #root .lower .w { display: inline-block; opacity: 0; margin-right: 0.28em; will-change: transform; }
+        #root .lower em { font-style: normal; color: #8b7cf6; }
+        #root .stamp { position: absolute; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 30px; letter-spacing: 0.1em;
+          text-transform: uppercase; padding: 12px 22px; border-radius: 8px; border: 2px solid currentColor; background: rgba(14,12,22,0.92);
+          opacity: 0; will-change: transform; }
+        #root .mark { position: relative; display: inline-block; padding: 0 6px; }
+        #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
+          pointer-events: none; overflow: visible; }
+        #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
+          font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
+
+        #root .ghostvid { position: absolute; left: 120px; right: 120px; top: 112px; bottom: 112px; border-radius: 14px; overflow: hidden; opacity: 0.16; }
+        #root .ghostvid .shot { object-position: right top; }
+        #root .kep { position: absolute; left: 120px; top: 140px; font-family: "IBM Plex Mono", monospace; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a93b5; opacity: 0; }
+        #root .pains { position: absolute; left: 120px; top: 200px; width: 1200px; }
+        #root .pain { position: relative; font-weight: 700; font-size: 44px; letter-spacing: -0.015em; line-height: 1.15; margin-bottom: 26px; padding-bottom: 8px; }
+        #root .pain .w { display: inline-block; opacity: 0; margin-right: 0.26em; will-change: transform; }
+        #root .pain svg { position: absolute; left: 0; bottom: -4px; width: 100%; height: 12px; }
+        #root .pain svg path { fill: none; stroke: #d79a3a; stroke-width: 5; stroke-linecap: round; }
+        #root .choice { position: absolute; left: 120px; top: 200px; width: 1500px; }
+        #root .choice h2 { margin: 0; font-weight: 900; font-size: 86px; letter-spacing: -0.035em; line-height: 1.0; }
+        #root .choice h2 .w { display: inline-block; opacity: 0; margin-right: 0.24em; will-change: transform; }
+        #root .choice h2 em { font-style: normal; color: #8b7cf6; }
+        #root .reasons { margin-top: 44px; display: flex; gap: 22px; }
+        #root .reason { flex: 1; padding: 22px 24px; border-radius: 14px; background: rgba(14,12,22,0.78); border: 1px solid rgba(139,124,246,0.4); opacity: 0; will-change: transform; }
+        #root .reason b { display: block; font-family: "IBM Plex Mono", monospace; font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: #d79a3a; }
+        #root .reason p { margin: 10px 0 0; font-size: 24px; line-height: 1.3; color: #f6f5fa; }
+        #root .final { position: absolute; left: 120px; bottom: 120px; font-weight: 800; font-size: 54px; letter-spacing: -0.025em; line-height: 1.1; }
+        #root .final .w { display: inline-block; opacity: 0; margin-right: 0.26em; will-change: transform; }
+        #root .final em { font-style: normal; color: #8b7cf6; }
+  
+      </style>
+
+      <div id="root" data-composition-id="act-12" data-width="1920" data-height="1080" data-duration="41.05">
+        <div class="stage" id="act-12-stage">
+          <div class="bg"></div>
+          <div class="glow glow-a" id="act-12-glow-a" data-layout-allow-overflow="true"></div>
+          <div class="glow glow-b" id="act-12-glow-b" data-layout-allow-overflow="true"></div>
+          <div class="gridlines"></div>
+          <svg class="ghost" id="act-12-ghost" viewBox="0 0 1000 1000" aria-hidden="true" data-layout-ignore="true" data-layout-allow-overflow="true" data-layout-allow-occlusion="true"><text x="1000" y="860" text-anchor="end"></text></svg>
+
+          <div class="ghostvid" id="act-12-ghostvid">
+            <video id="act-12-vid" class="shot" src="assets/footage/teach-chooser.webm" muted data-start="0" data-duration="41.05" data-media-start="31"></video>
+          </div>
+          <div class="kep" id="act-12-kep">Keppel &middot; AI HARVEST &middot; the four problems the brief names</div>
+          <div class="pains" id="act-12-pains">
+            <p class="pain" id="act-12-p0"><span class="w">Knowledge</span><span class="w">concentrated</span><span class="w">in</span><span class="w">a</span><span class="w">few</span><span class="w">experts.</span><svg viewBox="0 0 1000 12" preserveAspectRatio="none"><path id="act-12-u0" d="M 4 7 C 250 2, 500 10, 996 5" /></svg></p><p class="pain" id="act-12-p1"><span class="w">New</span><span class="w">staff</span><span class="w">take</span><span class="w">years</span><span class="w">to</span><span class="w">build</span><span class="w">it.</span><svg viewBox="0 0 1000 12" preserveAspectRatio="none"><path id="act-12-u1" d="M 4 7 C 250 2, 500 10, 996 5" /></svg></p><p class="pain" id="act-12-p2"><span class="w">Best</span><span class="w">practice</span><span class="w">applied</span><span class="w">inconsistently.</span><svg viewBox="0 0 1000 12" preserveAspectRatio="none"><path id="act-12-u2" d="M 4 7 C 250 2, 500 10, 996 5" /></svg></p><p class="pain" id="act-12-p3"><span class="w">Institutional</span><span class="w">knowledge</span><span class="w">lost</span><span class="w">when</span><span class="w">people</span><span class="w">retire.</span><svg viewBox="0 0 1000 12" preserveAspectRatio="none"><path id="act-12-u3" d="M 4 7 C 250 2, 500 10, 996 5" /></svg></p>
+          </div>
+          <div class="choice" id="act-12-choice">
+            <h2 id="act-12-h"><span class="w">Technical</span><span class="w">Services</span><span class="w">&middot;</span><span class="w"><em>the</em></span><span class="w"><em>chilled-water</em></span><span class="w"><em>leak</em></span></h2>
+            <div class="reasons">
+              <div class="reason" id="act-12-r1"><b>smallest case with all four</b><p>Water, electrics and a tenant floor in one call — one judgement, three disciplines.</p></div>
+              <div class="reason" id="act-12-r2"><b>steps vs judgement</b><p>The procedure gives the steps. The expert knows which step to break, and when.</p></div>
+              <div class="reason" id="act-12-r3"><b>a wrong call is unsafe</b><p>Get it wrong and someone re-energises a wet board. Governance has to be real here.</p></div>
+            </div>
+          </div>
+          <p class="final" id="act-12-final"><span class="w">If</span><span class="w">governance</span><span class="w">holds</span><span class="w"><em>there,</em></span><span class="w">it</span><span class="w">holds</span><span class="w"><em>anywhere.</em></span></p>
+  
+          <div class="grain"></div>
+          <div class="label" id="act-12-label"><b>Act 12</b><i></i><span>Why this case study</span></div>
+          <div class="tag" id="act-12-tag" style="opacity:0"></div>
+          
+          <div class="keyston" id="act-12-keyston">
+      <svg id="act-12-mascot" class="mascot" viewBox="0 0 60 50" aria-hidden="true">
+        <g fill="rgba(139,124,246,0.16)" stroke="rgba(246,245,250,0.3)" stroke-width="1.1" stroke-linejoin="round">
+          <path d="M18.6 13.4 L8 21.5 L10.5 38 H21 Z" />
+          <path d="M41.4 13.4 L52 21.5 L49.5 38 H39 Z" />
+        </g>
+        <g class="mascot-body">
+          <path d="M18 11 H42 L39.5 42 H20.5 Z" fill="#f6f5fa" stroke="#1d1a2b" stroke-width="1.5" stroke-linejoin="round" />
+          <path d="M20 15 h20" stroke="#1d1a2b" stroke-width="0.9" opacity="0.22" />
+          <ellipse cx="25" cy="23" rx="3.2" ry="1.76" fill="#fff" stroke="#1d1a2b" stroke-width="0.9" />
+          <ellipse cx="35" cy="23" rx="3.2" ry="1.76" fill="#fff" stroke="#1d1a2b" stroke-width="0.9" />
+          <circle class="pupil" cx="23.9" cy="22" r="1.5" fill="#1d1a2b" />
+          <circle class="pupil" cx="33.9" cy="22" r="1.5" fill="#1d1a2b" />
+          <path d="M27 29 h5" fill="none" stroke="#1d1a2b" stroke-width="1.6" stroke-linecap="round" />
+        </g>
+        <rect x="4" y="38" width="52" height="7" rx="1" fill="rgba(139,124,246,0.2)" stroke="rgba(246,245,250,0.28)" stroke-width="1.1" />
+      </svg></div>
+        </div>
+      </div>
+
+      <script>
+
+        const tl = gsap.timeline({ paused: true });
+        const ID = "act-12";
+        const S = "#act-12-stage";
+        const q = (s) => document.querySelector(s);
+        const qa = (s) => Array.from(document.querySelectorAll(s));
+        // --- rules/spring-pop-entrance: scale 0 → 1 with back.out overshoot, fromTo so t=0 is right under seek ---
+        function pop(sel, at, stagger, dur) {
+          tl.fromTo(sel, { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: dur || 0.5, ease: "back.out(1.7)", stagger: stagger || 0 }, at);
+        }
+        // --- rules/waterfall-entry: words whip in from below, binary opacity, overlapping, power4.out ---
+        function waterfall(sel, at) {
+          const ws = qa(sel + " .w");
+          let t = at;
+          ws.forEach((w, i) => {
+            const last = i === ws.length - 1;
+            const dur = last ? 0.2 : 0.15;
+            tl.set(w, { opacity: 1, y: last ? 70 : 46 }, t);
+            tl.to(w, { y: 0, duration: dur, ease: "power4.out" }, t);
+            t += dur - 0.035;
+          });
+        }
+        function clearLower(sel, at) { tl.to(sel + " .w", { opacity: 0, y: -18, duration: 0.3, ease: "power2.in", stagger: 0.02 }, at); }
+        // --- rules/svg-path-draw: measured dash, offset to 0 ---
+        function drawPath(sel, at, dur, ease) {
+          qa(sel).forEach((p) => {
+            const len = p.getTotalLength();
+            gsap.set(p, { strokeDasharray: len, strokeDashoffset: len });
+            tl.to(p, { strokeDashoffset: 0, duration: dur || 0.6, ease: ease || "power2.out" }, at);
+          });
+        }
+        function undrawPath(sel, at, dur) {
+          qa(sel).forEach((p) => { const len = p.getTotalLength(); tl.to(p, { strokeDashoffset: len, duration: dur || 0.8, ease: "power1.in" }, at); });
+        }
+        // --- rules/css-marker-patterns (circle mode) as a hand-drawn SVG ellipse that draws on ---
+        // The svg sits INSIDE the marked span (inset negative), viewBox 200x100 stretched to the
+        // span's box — the anisotropic stretch gives the ink its hand-swiped weight, as the
+        // registry's marker-highlight does. No DOM measurement: the span sizes the ring.
+        function ring(sel, at, color) {
+          qa(sel).forEach((el) => {
+            const d = "M 184 36 C 196 62, 150 96, 92 95 C 24 94, -4 70, 8 42 C 20 12, 90 2, 140 8 C 176 12, 198 28, 190 52";
+            el.innerHTML = '<path d="' + d + '" stroke="' + color + '" />';
+          });
+          drawPath(sel + " path", at, 0.55, "power2.inOut");
+        }
+        // --- registry: headline-slam's signature — scale 1.6 → 1 on expo.out, then a three-frame landing shake ---
+        function stamp(sel, at) {
+          tl.fromTo(sel, { scale: 1.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.42, ease: "expo.out" }, at);
+          const F = 1 / 30;
+          tl.to(sel, { x: 8, y: -4, duration: F, ease: "power2.out" }, at + 0.3);
+          tl.to(sel, { x: -5, y: 3, duration: F, ease: "power2.out" }, at + 0.3 + F);
+          tl.to(sel, { x: 0, y: 0, duration: F, ease: "power2.out" }, at + 0.3 + 2 * F);
+        }
+        // --- registry: yt-camera-move — punch-in / slide on an inner wrapper, never on the timed clip ---
+        function cam(target, at, o) {
+          o = o || {};
+          gsap.set(target, { transformPerspective: 1200, transformOrigin: o.origin || "50% 50%" });
+          tl.to(target, { scale: 1 + (o.zoom === undefined ? 0.11 : o.zoom), x: o.slideX || 0, y: o.slideY || 0,
+            rotationX: o.tilt || 0, rotationY: o.pan || 0, duration: o.dur === undefined ? 1.2 : o.dur, ease: o.ease || "power2.inOut" }, at);
+        }
+        function camReset(target, at, dur) {
+          tl.to(target, { scale: 1, x: 0, y: 0, rotationX: 0, rotationY: 0, duration: dur === undefined ? 1.2 : dur, ease: "power2.inOut" }, at);
+        }
+        // --- registry: yt-feather-highlight — dim the frame except a feathered ellipse; the hole is CSS vars ---
+        function hlIn(target, at, o) {
+          o = o || {};
+          gsap.set(target, { "--yt-hl-x": o.x || "50%", "--yt-hl-y": o.y || "50%", "--yt-hl-rx": o.rx || "22%", "--yt-hl-ry": o.ry || "26%" });
+          tl.to(target, { opacity: 1, duration: 0.5, ease: "power2.out" }, at);
+        }
+        function hlTo(target, at, o, dur) {
+          const v = { duration: dur === undefined ? 0.8 : dur, ease: "power2.inOut" };
+          if (o.x !== undefined) v["--yt-hl-x"] = o.x; if (o.y !== undefined) v["--yt-hl-y"] = o.y;
+          if (o.rx !== undefined) v["--yt-hl-rx"] = o.rx; if (o.ry !== undefined) v["--yt-hl-ry"] = o.ry;
+          tl.to(target, v, at);
+        }
+        function hlOut(target, at) { tl.to(target, { opacity: 0, duration: 0.4, ease: "power2.in" }, at); }
+        // --- the footage frame arrives with a little depth: 3D tilt → flat, settles ---
+        function frameIn(sel, at) {
+          tl.fromTo(sel, { opacity: 0, y: 44, rotationY: -7, transformPerspective: 1400 },
+            { opacity: 1, y: 0, rotationY: 0, duration: 0.9, ease: "power3.out" }, at);
+          tl.fromTo(sel + " .edge", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.out" }, at + 0.35);
+        }
+        // --- rules/sine-wave-loop: finite yoyo breathe ---
+        function breathe(sel, at, dur, amount, total) {
+          const cycles = Math.max(1, Math.floor((total - at) / (dur * 2)));
+          tl.to(sel, { y: amount, duration: dur, ease: "sine.inOut", yoyo: true, repeat: cycles * 2 - 1 }, at);
+        }
+        // --- a chip arriving: lands from below, holds, leaves up ---
+        function chip(sel, at, hold) {
+          tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
+          if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
+        }
+        // --- Keyston reacts: a hop and a tilt on the act's own beat ---
+        function react(at, tilt) {
+          tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
+          tl.to("#" + ID + "-keyston .mascot-body", { y: 0, duration: 0.42, ease: "bounce.out" }, at + 0.18);
+          tl.to("#" + ID + "-mascot", { rotation: tilt || 0, duration: 0.3, ease: "power2.out" }, at);
+          tl.to("#" + ID + "-mascot", { rotation: 0, duration: 0.6, ease: "power2.inOut" }, at + 1.6);
+        }
+
+        // ---- act-12 ----
+        
+        tl.to("#act-12-vid", { scale: 1.3, x: -60, y: -40, duration: 41.05, ease: "none" }, 0);
+        tl.fromTo("#act-12-kep", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 1.20);
+        // the four pains, one at a time, each underlined as it lands
+        waterfall("#act-12-p0", 4.60); drawPath("#act-12-u0", 5.10, 0.5, "power2.out");
+        waterfall("#act-12-p1", 7.27); drawPath("#act-12-u1", 7.77, 0.5, "power2.out");
+        waterfall("#act-12-p2", 9.94); drawPath("#act-12-u2", 10.44, 0.5, "power2.out");
+        waterfall("#act-12-p3", 12.60); drawPath("#act-12-u3", 13.10, 0.5, "power2.out");
+        // the choice
+        tl.to("#act-12-pains", { opacity: 0, y: -24, duration: 0.5, ease: "power2.in" }, 16.17);
+        tl.to("#act-12-kep", { opacity: 0, duration: 0.3 }, 16.17);
+        waterfall("#act-12-h", 16.77);
+        pop("#act-12-r1", 19.67); pop("#act-12-r2", 22.87); pop("#act-12-r3", 32.95);
+        // the line that holds
+        waterfall("#act-12-final", 36.15);
+    
+        // ---- chrome ----
+        tl.fromTo("#act-12-label", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.25);
+        tl.fromTo("#act-12-label i", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.45);
+        tl.to("#act-12-label", { opacity: 0, x: -10, duration: 0.4, ease: "power2.in" }, 4.60);
+        tl.fromTo("#act-12-tag", { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.4);
+        tl.fromTo("#act-12-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 20.52, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-12-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 20.52, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-12-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 41.05, ease: "none" }, 0);
+        tl.fromTo("#act-12-keyston", { opacity: 0, y: 26, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1);
+        breathe("#act-12-keyston .mascot-body", 1.7, 1.6, -5, 41.05);
+        react(16.97, -6);
+        tl.fromTo(S, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.22);
+        tl.to(S, { scale: 1.22, filter: "blur(18px)", opacity: 0, duration: 0.55, ease: "power3.in" }, 40.5);
+        window.__timelines["act-12"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

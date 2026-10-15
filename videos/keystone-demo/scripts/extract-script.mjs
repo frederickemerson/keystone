@@ -14,9 +14,11 @@ const clean = (t) => t.replace(/\*\*|\*|_/g, '').trim();
 for (const raw of lines) {
   const t = raw.trim();
 
-  const head = t.match(/^## (ACT (\d+)|CLOSE)\b(.*)$/);
+  // "ACT 1B" and "ACT 2A" are inserts between numbered acts; their ids keep
+  // the document order (act-1b, act-2a) rather than renumbering the film.
+  const head = t.match(/^## (ACT (\d+[A-Z]?)|CLOSE)\b(.*)$/);
   if (head) {
-    const id = head[1] === 'CLOSE' ? 'close' : `act-${String(head[2]).padStart(2, '0')}`;
+    const id = head[1] === 'CLOSE' ? 'close' : `act-${String(head[2]).toLowerCase().padStart(2, '0')}`;
     const title = clean(head[3].replace(/^[—-]\s*/, '').replace(/\(\d+:\d+[–-]\d+:\d+\).*$/, ''));
     act = { id, title, vo: [], card: null, visual: null, motion: null };
     acts.push(act);

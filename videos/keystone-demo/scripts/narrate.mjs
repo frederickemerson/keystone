@@ -12,6 +12,8 @@ import { join } from 'node:path';
 const ROOT = new URL('..', import.meta.url).pathname;
 const OUT = join(ROOT, 'assets/audio');
 const force = process.argv.includes('--force');
+/** Rebuild narration.json from the clips already on disk; never calls the voice API. */
+const measureOnly = process.argv.includes('--measure-only');
 
 /** Swap this one constant to change the narrator. */
 const NARRATOR_VOICE = process.env.NARRATOR_VOICE || 'English_expressive_narrator';
@@ -62,6 +64,9 @@ for (const act of script.acts) {
     const path = join(OUT, name);
     if (!force && existsSync(path) && statSync(path).size > 1000) {
       reused++;
+    } else if (measureOnly) {
+      console.error(`MISSING ${name} (not voiced yet; run without --measure-only to voice it)`);
+      continue;
     } else {
       let last;
       for (let attempt = 1; attempt <= 3; attempt++) {

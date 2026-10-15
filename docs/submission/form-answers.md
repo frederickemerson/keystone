@@ -251,7 +251,7 @@ set, and what is novel. Built from `deck.html`; see `deck/README.md`.
 [VIDEO LINK]: upload videos/keystone-demo/out/keystone-demo-upload.mp4, then paste the link here
 ```
 
-**Rendered 15 Oct 2026 — 7m 01s, 1920x1080, 30 fps.** Inside the handbook's 5-8
+**Rendered 15 Oct 2026 — 7m 57.7s, 1920x1080, 30 fps.** Upload `videos/keystone-demo/out/keystone-demo-upload.mp4` (71 MB); the 240 MB master sits beside it. Inside the handbook's 5-8
 minutes. Two files:
 
 | File | Size | Use |

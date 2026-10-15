@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
+                font-family: "Montserrat", sans-serif; color: #f6f5fa; }
+        #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
+        #root .bg { position: absolute; inset: 0;
+          background: radial-gradient(120% 80% at 50% -10%, rgba(139,124,246,0.20), rgba(139,124,246,0) 62%), #15121f; }
+        #root .glow { position: absolute; width: 1100px; height: 1100px; border-radius: 50%; opacity: 0.22;
+          background: radial-gradient(circle, rgba(139,124,246,0.55) 0%, rgba(139,124,246,0) 62%); will-change: transform; }
+        #root .glow-a { left: -380px; top: -420px; }
+        #root .glow-b { right: -420px; bottom: -520px; background: radial-gradient(circle, rgba(215,154,58,0.35) 0%, rgba(215,154,58,0) 62%); }
+        #root .gridlines { position: absolute; inset: 0; opacity: 0.07;
+          background-image: linear-gradient(rgba(246,245,250,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(246,245,250,0.6) 1px, transparent 1px);
+          background-size: 120px 120px; background-position: 60px 60px; }
+        #root .ghost { position: absolute; right: -40px; top: -140px; width: 1000px; height: 1000px; overflow: visible; will-change: transform; }
+        #root .ghost text { font-family: "Montserrat", sans-serif; font-weight: 900; font-size: 980px; letter-spacing: -0.06em; fill: rgba(139,124,246,0.07); }
+        #root .grain { position: absolute; inset: 0; opacity: 0.045; mix-blend-mode: overlay; pointer-events: none;
+          background-image: radial-gradient(rgba(255,255,255,0.8) 0.5px, transparent 0.6px); background-size: 3px 3px; }
+        #root .label { position: absolute; left: 96px; top: 50px; display: flex; align-items: baseline; gap: 16px;
+          font-family: "IBM Plex Mono", monospace; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a93b5; }
+        #root .label b { color: #8b7cf6; font-weight: 700; }
+        #root .label i { display: block; width: 44px; height: 2px; background: #8b7cf6; transform-origin: left center; align-self: center; }
+        #root .tag { position: absolute; right: 96px; top: 50px; font-family: "IBM Plex Mono", monospace; font-size: 20px;
+          letter-spacing: 0.16em; text-transform: uppercase; color: #9a93b5; padding: 8px 16px;
+          border: 1px solid rgba(154,147,181,0.35); border-radius: 999px; }
+        #root .card { position: absolute; left: 96px; right: 440px; bottom: 60px; margin: 0; padding: 28px 34px 26px 40px;
+          border-radius: 14px; background: rgba(14,12,22,0.86); border: 1px solid rgba(139,124,246,0.30); backdrop-filter: blur(8px); }
+        #root .card .bar { position: absolute; left: 0; top: 22px; bottom: 22px; width: 4px; border-radius: 2px; background: #d79a3a; transform-origin: top center; }
+        #root .card blockquote { margin: 0; font-family: "EB Garamond", serif; font-size: 38px; line-height: 1.24; color: #f6f5fa; }
+        #root .card figcaption { margin-top: 12px; font-family: "IBM Plex Mono", monospace; font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a93b5; }
+        #root .keyston { position: absolute; right: 92px; bottom: 18px; width: 150px; height: 125px; will-change: transform; }
+        #root .mascot { width: 100%; height: 100%; display: block; filter: drop-shadow(0 14px 30px rgba(0,0,0,0.5)); }
+        #root .frame { position: absolute; left: 120px; right: 120px; top: 112px; bottom: 118px; border-radius: 14px; overflow: hidden;
+          background: #0e0c16; box-shadow: 0 50px 120px rgba(0,0,0,0.62), 0 0 0 1px rgba(139,124,246,0.22); will-change: transform; }
+        #root .frame .edge { position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 3;
+          background: linear-gradient(90deg, rgba(139,124,246,0) 0%, rgba(139,124,246,0.95) 50%, rgba(139,124,246,0) 100%); transform-origin: center; }
+        #root .cam { position: absolute; inset: 0; will-change: transform; }
+        #root .frame .cam { contain: paint; }
+        #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+          position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+        #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
+          font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
+          box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
+        #root .chip.amber { border-color: #d79a3a; color: #d79a3a; }
+        #root .chip.red { border-color: #e8503f; color: #e8503f; }
+        #root .chip.green { border-color: #3fb97a; color: #3fb97a; }
+        #root .lower { position: absolute; left: 120px; bottom: 150px; font-weight: 700; font-size: 44px; letter-spacing: -0.02em; line-height: 1.1; color: #f6f5fa; }
+        #root .lower .w { display: inline-block; opacity: 0; margin-right: 0.28em; will-change: transform; }
+        #root .lower em { font-style: normal; color: #8b7cf6; }
+        #root .stamp { position: absolute; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 30px; letter-spacing: 0.1em;
+          text-transform: uppercase; padding: 12px 22px; border-radius: 8px; border: 2px solid currentColor; background: rgba(14,12,22,0.92);
+          opacity: 0; will-change: transform; }
+        #root .mark { position: relative; display: inline-block; padding: 0 6px; }
+        #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
+          pointer-events: none; overflow: visible; }
+        #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
+          font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
+
+        #root .world { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+        #root .world svg.wires { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+        #root .wire { fill: none; stroke: rgba(139,124,246,0.75); stroke-width: 3; stroke-linecap: round; }
+        #root .token { fill: #f6f5fa; filter: drop-shadow(0 0 12px rgba(139,124,246,0.9)); opacity: 0; }
+        #root .pill { position: absolute; left: 770px; top: 442px; width: 380px; padding: 22px 26px; border-radius: 16px; background: #f6f5fa; color: #1d1a2b;
+          box-shadow: 0 30px 90px rgba(139,124,246,0.35); opacity: 0; will-change: transform; }
+        #root .pill .pn { font-family: "IBM Plex Mono", monospace; font-size: 24px; font-weight: 700; }
+        #root .pill .pv { font-family: "IBM Plex Mono", monospace; font-size: 16px; color: #6b6484; margin-top: 4px; }
+        #root .pill .pf { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+        #root .pill .pf span { font-family: "IBM Plex Mono", monospace; font-size: 14px; padding: 4px 8px; border-radius: 6px; background: #eeecf4; color: #2a2740; }
+        #root .pill .po { margin-top: 12px; font-family: "IBM Plex Mono", monospace; font-size: 14px; color: #6b6484; }
+        #root .station { position: absolute; width: 0; height: 0; }
+        #root .node { position: absolute; left: -44px; top: -44px; width: 88px; height: 88px; border-radius: 50%; background: #15121f; border: 3px solid #8b7cf6;
+          display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; font-size: 30px; font-weight: 700; color: #f6f5fa; opacity: 0; will-change: transform; }
+        #root .sname { position: absolute; left: 62px; top: -24px; font-weight: 900; font-size: 34px; letter-spacing: -0.02em; color: #f6f5fa; opacity: 0; white-space: nowrap; }
+        #root .sname i { font-style: normal; font-family: "IBM Plex Mono", monospace; font-weight: 400; font-size: 16px; color: #9a93b5; margin-left: 10px; letter-spacing: 0.1em; }
+        #root .callout { position: absolute; left: 62px; top: 24px; width: 420px; padding: 12px 16px; border-radius: 10px; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.45);
+          font-family: "IBM Plex Mono", monospace; font-size: 15px; line-height: 1.5; color: #e4e0f0; opacity: 0; transform-origin: 0 0; will-change: transform; }
+        #root .callout .pt { display: inline-block; margin-right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #8b7cf6; color: #15121f; font-weight: 700; font-size: 13px; text-align: center; line-height: 22px; }
+        #root .station.left .sname { left: auto; right: 62px; }
+        #root .station.left .callout { left: auto; right: 62px; transform-origin: 100% 0; }
+        #root .station.below .callout { top: 54px; }
+        #root .problem { position: absolute; left: 120px; top: 136px; max-width: 1200px; font-weight: 700; font-size: 34px; line-height: 1.25; color: #f6f5fa; opacity: 0; }
+        #root .problem .pt { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #8b7cf6; color: #15121f; font-family: "IBM Plex Mono", monospace; font-size: 18px; margin-right: 12px; vertical-align: 4px; }
+        #root .problem em { font-style: normal; color: #9a93b5; font-weight: 400; font-size: 24px; display: block; margin-top: 6px; }
+        #root .rail { position: absolute; left: 120px; right: 120px; bottom: 54px; padding: 14px 22px; border-radius: 10px; background: rgba(139,124,246,0.14); border: 1px solid rgba(139,124,246,0.4);
+          font-family: "IBM Plex Mono", monospace; font-size: 17px; letter-spacing: 0.04em; color: #e4e0f0; opacity: 0; display: flex; gap: 26px; align-items: center; }
+        #root .rail .pt { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #8b7cf6; color: #15121f; font-weight: 700; }
+        #root .loopline { position: absolute; left: 0; right: 0; top: 96px; text-align: center; font-weight: 800; font-size: 30px; letter-spacing: 0.02em; color: #f6f5fa; }
+        #root .loopline .w { display: inline-block; opacity: 0; margin: 0 0.3em; will-change: transform; }
+        #root .loopline .w.arrow { color: #8b7cf6; }
+  
+      </style>
+
+      <div id="root" data-composition-id="act-1b" data-width="1920" data-height="1080" data-duration="32.85">
+        <div class="stage" id="act-1b-stage">
+          <div class="bg"></div>
+          <div class="glow glow-a" id="act-1b-glow-a" data-layout-allow-overflow="true"></div>
+          <div class="glow glow-b" id="act-1b-glow-b" data-layout-allow-overflow="true"></div>
+          <div class="gridlines"></div>
+          <svg class="ghost" id="act-1b-ghost" viewBox="0 0 1000 1000" aria-hidden="true" data-layout-ignore="true" data-layout-allow-overflow="true" data-layout-allow-occlusion="true"><text x="1000" y="860" text-anchor="end">∞</text></svg>
+
+          <div class="problem" id="act-1b-problem"><span class="pt">1</span>Judgement about a leak sits with a few senior engineers, is applied inconsistently, and leaves when they retire.<em>A chatbot cannot be trusted to act on it. Keystone turns the judgement into a governed Intelligence Pill.</em></div>
+          <div class="world" id="act-1b-world">
+            <svg class="wires" viewBox="0 0 1920 1080">
+              <path class="wire" id="act-1b-w0" d="M 351.3 662.0 Q 378.9 462.6 583.8 293.0" /><path class="wire" id="act-1b-w1" d="M 583.8 293.0 Q 960.0 245.0 1336.2 293.0" /><path class="wire" id="act-1b-w2" d="M 1336.2 293.0 Q 1541.1 462.6 1568.7 662.0" /><path class="wire" id="act-1b-w3" d="M 1568.7 662.0 Q 1319.1 814.9 960.0 890.0" /><path class="wire" id="act-1b-w4" d="M 960.0 890.0 Q 600.9 814.9 351.3 662.0" />
+              <path id="act-1b-loop" d="M 351.3 662.0 Q 378.9 462.6 583.8 293.0 Q 960.0 245.0 1336.2 293.0 Q 1541.1 462.6 1568.7 662.0 Q 1319.1 814.9 960.0 890.0 Q 600.9 814.9 351.3 662.0" fill="none" stroke="none" />
+              <circle class="token" id="act-1b-token" r="11" cx="351.3" cy="662.0" />
+            </svg>
+            <div class="pill" id="act-1b-pill">
+              <div class="pn">technical-services / chilled-water-leak</div>
+              <div class="pv">v1.2.0 &middot; approved &middot; 13 rules &middot; 6 evals</div>
+              <div class="pf"><span>SKILL.md</span><span>rules.yaml</span><span>evidence.yaml</span><span>provenance.json</span><span>evals/</span><span>CHANGELOG.md</span></div>
+              <div class="po">owner Tan Wei Ming &middot; steward Hafiz &middot; approver named per pill</div>
+            </div>
+            
+            <div class="station left " id="act-1b-s-capture" style="left:351.3px;top:662.0px">
+              <div class="node" id="act-1b-n-capture">I</div>
+              <div class="sname" id="act-1b-l-capture">Capture<i></i></div>
+              <div class="callout" id="act-1b-c-capture"><span class="pt">2</span>Onboarding call — "walk me through the last time"<br>Contradictions resolved into conditions<br>Expert confirms, edits or rejects each rule</div>
+            </div>
+            <div class="station left " id="act-1b-s-compile" style="left:583.8px;top:293.0px">
+              <div class="node" id="act-1b-n-compile">II</div>
+              <div class="sname" id="act-1b-l-compile">Compile<i></i></div>
+              <div class="callout" id="act-1b-c-compile"><span class="pt">3</span>SKILL.md · rules.yaml · evidence.yaml<br>provenance.json · evals/ · CHANGELOG.md<br>Owner, steward and approver named</div>
+            </div>
+            <div class="station  " id="act-1b-s-apply" style="left:1336.2px;top:293.0px">
+              <div class="node" id="act-1b-n-apply">III</div>
+              <div class="sname" id="act-1b-l-apply">Apply<i>III · supervised</i></div>
+              <div class="callout" id="act-1b-c-apply"><span class="pt">4</span>Deterministic engine reads the evidence<br>Recommend · Requires approval · Must escalate · Blocked<br>Named humans only; no model input</div>
+            </div>
+            <div class="station  " id="act-1b-s-learn" style="left:1568.7px;top:662.0px">
+              <div class="node" id="act-1b-n-learn">IV</div>
+              <div class="sname" id="act-1b-l-learn">Learn<i>IV · governed learning</i></div>
+              <div class="callout" id="act-1b-c-learn"><span class="pt">6</span>Feedback → Review → Diff → Validate<br>Shadow → Approve → Release<br>Author ≠ steward ≠ approver; history append-only</div>
+            </div>
+            <div class="station  below" id="act-1b-s-reuse" style="left:960.0px;top:890.0px">
+              <div class="node" id="act-1b-n-reuse">V</div>
+              <div class="sname" id="act-1b-l-reuse">Reuse<i></i></div>
+              <div class="callout" id="act-1b-c-reuse"><span class="pt">7</span>Ships as a CodeBuddy skill<br>Runs as a Tencent Cloud ADP agent<br>Lives in the platform · registry across assets</div>
+            </div>
+          </div>
+          <p class="loopline" id="act-1b-line"><span class="w">capture</span><span class="w arrow">&rarr;</span><span class="w">compile</span><span class="w arrow">&rarr;</span><span class="w">apply</span><span class="w arrow">&rarr;</span><span class="w">learn</span><span class="w arrow">&rarr;</span><span class="w">reuse</span><span class="w arrow">&rarr;</span><span class="w">capture</span></p>
+          <div class="rail" id="act-1b-rail"><span class="pt">8</span><span>Running today: Next.js on Vercel &middot; hy4-preview via Tencent TokenHub &middot; deterministic engine &middot; CodeBuddy skill (verified) &middot; ADP agent</span></div>
+    
+          <div class="grain"></div>
+          <div class="label" id="act-1b-label"><b>Act 1B</b><i></i><span>How it builds together</span></div>
+          <div class="tag" id="act-1b-tag">I–V · THE LOOP</div>
+          
+          <div class="keyston" id="act-1b-keyston">
+      <svg id="act-1b-mascot" class="mascot" viewBox="0 0 60 50" aria-hidden="true">
+        <g fill="rgba(139,124,246,0.16)" stroke="rgba(246,245,250,0.3)" stroke-width="1.1" stroke-linejoin="round">
+          <path d="M18.6 13.4 L8 21.5 L10.5 38 H21 Z" />
+          <path d="M41.4 13.4 L52 21.5 L49.5 38 H39 Z" />
+        </g>
+        <g class="mascot-body">
+          <path d="M18 11 H42 L39.5 42 H20.5 Z" fill="#f6f5fa" stroke="#1d1a2b" stroke-width="1.5" stroke-linejoin="round" />
+          <path d="M20 15 h20" stroke="#1d1a2b" stroke-width="0.9" opacity="0.22" />
+          <ellipse cx="25" cy="23" rx="3.2" ry="1.76" fill="#fff" stroke="#1d1a2b" stroke-width="0.9" />
+          <ellipse cx="35" cy="23" rx="3.2" ry="1.76" fill="#fff" stroke="#1d1a2b" stroke-width="0.9" />
+          <circle class="pupil" cx="23.9" cy="22" r="1.5" fill="#1d1a2b" />
+          <circle class="pupil" cx="33.9" cy="22" r="1.5" fill="#1d1a2b" />
+          <path d="M27 29 h5" fill="none" stroke="#1d1a2b" stroke-width="1.6" stroke-linecap="round" />
+        </g>
+        <rect x="4" y="38" width="52" height="7" rx="1" fill="rgba(139,124,246,0.2)" stroke="rgba(246,245,250,0.28)" stroke-width="1.1" />
+      </svg></div>
+        </div>
+      </div>
+
+      <script>
+
+        const tl = gsap.timeline({ paused: true });
+        const ID = "act-1b";
+        const S = "#act-1b-stage";
+        const q = (s) => document.querySelector(s);
+        const qa = (s) => Array.from(document.querySelectorAll(s));
+        // --- rules/spring-pop-entrance: scale 0 → 1 with back.out overshoot, fromTo so t=0 is right under seek ---
+        function pop(sel, at, stagger, dur) {
+          tl.fromTo(sel, { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: dur || 0.5, ease: "back.out(1.7)", stagger: stagger || 0 }, at);
+        }
+        // --- rules/waterfall-entry: words whip in from below, binary opacity, overlapping, power4.out ---
+        function waterfall(sel, at) {
+          const ws = qa(sel + " .w");
+          let t = at;
+          ws.forEach((w, i) => {
+            const last = i === ws.length - 1;
+            const dur = last ? 0.2 : 0.15;
+            tl.set(w, { opacity: 1, y: last ? 70 : 46 }, t);
+            tl.to(w, { y: 0, duration: dur, ease: "power4.out" }, t);
+            t += dur - 0.035;
+          });
+        }
+        function clearLower(sel, at) { tl.to(sel + " .w", { opacity: 0, y: -18, duration: 0.3, ease: "power2.in", stagger: 0.02 }, at); }
+        // --- rules/svg-path-draw: measured dash, offset to 0 ---
+        function drawPath(sel, at, dur, ease) {
+          qa(sel).forEach((p) => {
+            const len = p.getTotalLength();
+            gsap.set(p, { strokeDasharray: len, strokeDashoffset: len });
+            tl.to(p, { strokeDashoffset: 0, duration: dur || 0.6, ease: ease || "power2.out" }, at);
+          });
+        }
+        function undrawPath(sel, at, dur) {
+          qa(sel).forEach((p) => { const len = p.getTotalLength(); tl.to(p, { strokeDashoffset: len, duration: dur || 0.8, ease: "power1.in" }, at); });
+        }
+        // --- rules/css-marker-patterns (circle mode) as a hand-drawn SVG ellipse that draws on ---
+        // The svg sits INSIDE the marked span (inset negative), viewBox 200x100 stretched to the
+        // span's box — the anisotropic stretch gives the ink its hand-swiped weight, as the
+        // registry's marker-highlight does. No DOM measurement: the span sizes the ring.
+        function ring(sel, at, color) {
+          qa(sel).forEach((el) => {
+            const d = "M 184 36 C 196 62, 150 96, 92 95 C 24 94, -4 70, 8 42 C 20 12, 90 2, 140 8 C 176 12, 198 28, 190 52";
+            el.innerHTML = '<path d="' + d + '" stroke="' + color + '" />';
+          });
+          drawPath(sel + " path", at, 0.55, "power2.inOut");
+        }
+        // --- registry: headline-slam's signature — scale 1.6 → 1 on expo.out, then a three-frame landing shake ---
+        function stamp(sel, at) {
+          tl.fromTo(sel, { scale: 1.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.42, ease: "expo.out" }, at);
+          const F = 1 / 30;
+          tl.to(sel, { x: 8, y: -4, duration: F, ease: "power2.out" }, at + 0.3);
+          tl.to(sel, { x: -5, y: 3, duration: F, ease: "power2.out" }, at + 0.3 + F);
+          tl.to(sel, { x: 0, y: 0, duration: F, ease: "power2.out" }, at + 0.3 + 2 * F);
+        }
+        // --- registry: yt-camera-move — punch-in / slide on an inner wrapper, never on the timed clip ---
+        function cam(target, at, o) {
+          o = o || {};
+          gsap.set(target, { transformPerspective: 1200, transformOrigin: o.origin || "50% 50%" });
+          tl.to(target, { scale: 1 + (o.zoom === undefined ? 0.11 : o.zoom), x: o.slideX || 0, y: o.slideY || 0,
+            rotationX: o.tilt || 0, rotationY: o.pan || 0, duration: o.dur === undefined ? 1.2 : o.dur, ease: o.ease || "power2.inOut" }, at);
+        }
+        function camReset(target, at, dur) {
+          tl.to(target, { scale: 1, x: 0, y: 0, rotationX: 0, rotationY: 0, duration: dur === undefined ? 1.2 : dur, ease: "power2.inOut" }, at);
+        }
+        // --- registry: yt-feather-highlight — dim the frame except a feathered ellipse; the hole is CSS vars ---
+        function hlIn(target, at, o) {
+          o = o || {};
+          gsap.set(target, { "--yt-hl-x": o.x || "50%", "--yt-hl-y": o.y || "50%", "--yt-hl-rx": o.rx || "22%", "--yt-hl-ry": o.ry || "26%" });
+          tl.to(target, { opacity: 1, duration: 0.5, ease: "power2.out" }, at);
+        }
+        function hlTo(target, at, o, dur) {
+          const v = { duration: dur === undefined ? 0.8 : dur, ease: "power2.inOut" };
+          if (o.x !== undefined) v["--yt-hl-x"] = o.x; if (o.y !== undefined) v["--yt-hl-y"] = o.y;
+          if (o.rx !== undefined) v["--yt-hl-rx"] = o.rx; if (o.ry !== undefined) v["--yt-hl-ry"] = o.ry;
+          tl.to(target, v, at);
+        }
+        function hlOut(target, at) { tl.to(target, { opacity: 0, duration: 0.4, ease: "power2.in" }, at); }
+        // --- the footage frame arrives with a little depth: 3D tilt → flat, settles ---
+        function frameIn(sel, at) {
+          tl.fromTo(sel, { opacity: 0, y: 44, rotationY: -7, transformPerspective: 1400 },
+            { opacity: 1, y: 0, rotationY: 0, duration: 0.9, ease: "power3.out" }, at);
+          tl.fromTo(sel + " .edge", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.out" }, at + 0.35);
+        }
+        // --- rules/sine-wave-loop: finite yoyo breathe ---
+        function breathe(sel, at, dur, amount, total) {
+          const cycles = Math.max(1, Math.floor((total - at) / (dur * 2)));
+          tl.to(sel, { y: amount, duration: dur, ease: "sine.inOut", yoyo: true, repeat: cycles * 2 - 1 }, at);
+        }
+        // --- a chip arriving: lands from below, holds, leaves up ---
+        function chip(sel, at, hold) {
+          tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
+          if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
+        }
+        // --- Keyston reacts: a hop and a tilt on the act's own beat ---
+        function react(at, tilt) {
+          tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
+          tl.to("#" + ID + "-keyston .mascot-body", { y: 0, duration: 0.42, ease: "bounce.out" }, at + 0.18);
+          tl.to("#" + ID + "-mascot", { rotation: tilt || 0, duration: 0.3, ease: "power2.out" }, at);
+          tl.to("#" + ID + "-mascot", { rotation: 0, duration: 0.6, ease: "power2.inOut" }, at + 1.6);
+        }
+
+        // ---- act-1b ----
+        
+        // viewport-change: one source of truth for the camera, composed in one place
+        const world = q("#act-1b-world");
+        const vcam = { x: 0, y: -20, s: 0.92 };
+        const applyCam = () => { world.style.transform = "translate(" + vcam.x + "px, " + vcam.y + "px) scale(" + vcam.s + ")"; };
+        applyCam();
+        const TARGETS = [{ x: 943.4, y: -158.1 }, { x: 583.1, y: 413.8 }, { x: -583.1, y: 413.8 }, { x: -943.4, y: -158.1 }, { x: 0.0, y: -511.5 }];
+        // 1 — the business problem, first
+        tl.fromTo("#act-1b-problem", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 0.3);
+        tl.to("#act-1b-problem", { opacity: 0, y: -12, duration: 0.5, ease: "power2.in" }, 3.90);
+        // the pill artifact forms at the centre as it is named
+        tl.fromTo("#act-1b-pill", { opacity: 0, scale: 0.6, rotationY: -40, transformPerspective: 1200 }, { opacity: 1, scale: 1, rotationY: 0, duration: 0.9, ease: "back.out(1.4)" }, 3.30);
+        // the five stations arrive around it — spring-pop-entrance in ring order
+        pop("#act-1b-n-capture", 5.90); tl.fromTo("#act-1b-l-capture", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 6.15);
+        pop("#act-1b-n-compile", 6.12); tl.fromTo("#act-1b-l-compile", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 6.37);
+        pop("#act-1b-n-apply", 6.34); tl.fromTo("#act-1b-l-apply", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 6.59);
+        pop("#act-1b-n-learn", 6.56); tl.fromTo("#act-1b-l-learn", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 6.81);
+        pop("#act-1b-n-reuse", 6.78); tl.fromTo("#act-1b-l-reuse", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 7.03);
+        // the loop closes: connectors draw ahead of the camera
+        drawPath("#act-1b-w0", 8.30, 0.7, "power1.inOut");
+        drawPath("#act-1b-w1", 8.85, 0.7, "power1.inOut");
+        drawPath("#act-1b-w2", 9.40, 0.7, "power1.inOut");
+        drawPath("#act-1b-w3", 9.95, 0.7, "power1.inOut");
+        drawPath("#act-1b-w4", 10.50, 0.7, "power1.inOut");
+        // the token starts riding the ring and never stops — path travel sampled from the loop itself
+        const loop = q("#act-1b-loop"); const LEN = loop.getTotalLength();
+        const tok = { p: 0 };
+        tl.set("#act-1b-token", { opacity: 1 }, 11.10);
+        tl.to(tok, { p: 3, duration: 21.75, ease: "none", onUpdate() { const pt = loop.getPointAtLength((tok.p % 1) * LEN); const t = q("#act-1b-token"); if (t) { t.setAttribute("cx", pt.x); t.setAttribute("cy", pt.y); } } }, 11.10);
+        // the tour: multi-phase-camera — pan to each station, its callout springs from the node
+        
+        tl.to(vcam, { x: TARGETS[0].x, y: TARGETS[0].y, s: 1.55, duration: 0.8, ease: "power2.inOut", onUpdate: applyCam }, 14.22);
+        tl.fromTo("#act-1b-c-capture", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 14.77);
+        tl.to("#act-1b-n-capture", { scale: 1.18, duration: 0.25, ease: "power2.out" }, 14.72);
+        tl.to("#act-1b-n-capture", { scale: 1, duration: 0.5, ease: "power2.inOut" }, 14.97);
+        tl.to(vcam, { x: TARGETS[1].x, y: TARGETS[1].y, s: 1.55, duration: 0.8, ease: "power2.inOut", onUpdate: applyCam }, 17.31);
+        tl.fromTo("#act-1b-c-compile", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 17.86);
+        tl.to("#act-1b-n-compile", { scale: 1.18, duration: 0.25, ease: "power2.out" }, 17.81);
+        tl.to("#act-1b-n-compile", { scale: 1, duration: 0.5, ease: "power2.inOut" }, 18.06);
+        tl.to(vcam, { x: TARGETS[2].x, y: TARGETS[2].y, s: 1.55, duration: 0.8, ease: "power2.inOut", onUpdate: applyCam }, 20.39);
+        tl.fromTo("#act-1b-c-apply", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 20.94);
+        tl.to("#act-1b-n-apply", { scale: 1.18, duration: 0.25, ease: "power2.out" }, 20.89);
+        tl.to("#act-1b-n-apply", { scale: 1, duration: 0.5, ease: "power2.inOut" }, 21.14);
+        tl.to(vcam, { x: TARGETS[3].x, y: TARGETS[3].y, s: 1.55, duration: 0.8, ease: "power2.inOut", onUpdate: applyCam }, 23.48);
+        tl.fromTo("#act-1b-c-learn", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 24.03);
+        tl.to("#act-1b-n-learn", { scale: 1.18, duration: 0.25, ease: "power2.out" }, 23.98);
+        tl.to("#act-1b-n-learn", { scale: 1, duration: 0.5, ease: "power2.inOut" }, 24.23);
+        tl.to(vcam, { x: TARGETS[4].x, y: TARGETS[4].y, s: 1.55, duration: 0.8, ease: "power2.inOut", onUpdate: applyCam }, 26.57);
+        tl.fromTo("#act-1b-c-reuse", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 27.12);
+        tl.to("#act-1b-n-reuse", { scale: 1.18, duration: 0.25, ease: "power2.out" }, 27.07);
+        tl.to("#act-1b-n-reuse", { scale: 1, duration: 0.5, ease: "power2.inOut" }, 27.32);
+        // pull back: one closed loop, the token still going, the Tencent Cloud rail beneath
+        tl.to(vcam, { x: 0, y: -10, s: 0.9, duration: 1.1, ease: "power2.inOut", onUpdate: applyCam }, 30.45);
+        tl.to(".callout", { opacity: 0.0, duration: 0.5 }, 30.45);
+        waterfall("#act-1b-line", 31.05);
+        tl.fromTo("#act-1b-rail", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 31.75);
+    
+        // ---- chrome ----
+        tl.fromTo("#act-1b-label", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.25);
+        tl.fromTo("#act-1b-label i", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.45);
+        tl.to("#act-1b-label", { opacity: 0, x: -10, duration: 0.4, ease: "power2.in" }, 4.60);
+        tl.fromTo("#act-1b-tag", { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.4);
+        tl.fromTo("#act-1b-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 16.43, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-1b-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 16.43, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-1b-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 32.85, ease: "none" }, 0);
+        tl.fromTo("#act-1b-keyston", { opacity: 0, y: 26, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1.2);
+        breathe("#act-1b-keyston .mascot-body", 1.9, 1.6, -5, 32.85);
+        tl.fromTo(S, { scale: 0.76, opacity: 0, filter: "blur(18px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, 0);
+        tl.to(S, { x: -1920, duration: 0.5, ease: "power3.inOut" }, 32.35);
+        window.__timelines["act-1b"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

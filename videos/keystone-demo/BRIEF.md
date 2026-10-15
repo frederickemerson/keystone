@@ -51,4 +51,14 @@ little dry. Not a product launch.
   viewer recognises the shot.
 - Do not cut Act 9. It is the strongest thing in the film.
 - Music: "Beauty Flow" by Kevin MacLeod, CC BY 4.0. The credit card is a
-  licence condition and must appear.
+  licence condition and must appear. Fetched by `scripts/fetch-music.sh`
+  (not committed); carved under the narration group with
+  `hyperframes-audio/scripts/carve.mjs`, once per bed half.
+- Act 8 ("top five, and why") is cut for length — the script's own cut
+  order, applied after Acts 1B, 2A and 12 were added. `scripts/film.config.mjs`
+  → `CUT`; the act module stays in `scripts/acts/` to reinstate.
+- `/teach` was re-shot on the local production build after it changed
+  (`scripts/record-teach.mjs`): the chooser with the describe-a-situation card
+  (`teach-chooser.webm`, badge "Live · hy4-preview via TokenHub") and the
+  chilled-water session (`act-02.webm`). Phase marks in
+  `assets/footage/teach-marks.json`.

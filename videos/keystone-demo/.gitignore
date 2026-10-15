@@ -17,3 +17,8 @@ footage.json
 .transcode-cache/
 .waveform-cache/
 timings.json
+# The music bed: "Beauty Flow" (Kevin MacLeod, CC BY 4.0), fetched by
+# scripts/fetch-music.sh — 17 MB of licensed media, not source.
+assets/music/
+# Sound marks: provenance not recorded per clip, so not redistributed here.
+assets/sfx/

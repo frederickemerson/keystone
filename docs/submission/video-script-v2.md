@@ -82,11 +82,64 @@ acts that answer something he said was *already solved internally* carry none.
 > The procedures stay. But a written procedure is codified understanding — it gives you the
 > steps. Not which step to break, and when.
 > [beat]
-> That part isn't in any document. It's in him.
+> That part isn't in any document. It's in him."
+
+---
+
+## ACT 12 — why this case study, and why this problem (0:41–1:22) ← *new, third: why this problem, before the answer*
+
+| | |
+| --- | --- |
+| **Visual** | Flat type on the night field. Keppel's four stated pains land one at a time, each with a drawn underline. Then the choice: **Technical Services · the chilled-water leak**, and the three reasons as a triad. The real chilled-water drawing from `/teach` ghosts behind the type at low opacity — recorded, not redrawn. |
+| **Motion gfx** | Blueprint `kinetic-type-beats` (Problem variant → statement build). Calm. The last line holds. |
+
+> **VO:**
+> "Why this case study. Keppel named four problems: knowledge concentrated in a few experts;
+> new staff taking years to build it; best practice applied inconsistently; and institutional
+> knowledge lost when people retire.
 > [beat]
-> This is Keystone. It turns one expert's judgement into an Intelligence Pill — a versioned,
+> We chose Technical Services, and one incident — the chilled-water leak — because it is the
+> smallest situation that contains all four. Water, electrics and a tenant floor in one call.
+> The procedure gives you the steps; the expert knows which step to break, and when.
+> [beat]
+> Get that call wrong and someone re-energises a wet board. If governance holds there, it
+> holds anywhere."
+
+---
+
+## ACT 1B — how it builds together (0:38–1:05) ← *the loop, in one shot*
+
+| | |
+| --- | --- |
+| **Visual** | The solution diagram's own structure, animated — not the PNG. Five stations on one oversized canvas in a ring: **capture → compile → apply → learn → reuse**. A virtual camera pans station to station as the narration names each; a leading line draws ahead of the camera; each station spring-pops the facts the diagram carries for it (whose judgement, the plain-text package, the deterministic gates, the governed-learning chain, skill · agent · platform). A pill token travels the ring. Pull back: the loop is closed and the token keeps going. |
+| **Motion gfx** | Blueprint `spatial-pan-stations` (Problem variant) adapted into a closed loop. The Tencent Cloud rail (point 8 of the diagram) lands under the pulled-back loop. |
+
+> **VO:**
+> "This is Keystone. It turns one expert's judgement into an Intelligence Pill — a versioned,
 > tested, plain-text artifact with an owner and an approver — and then governs how that pill
-> gets used, argued with, and added to."
+> gets used, argued with, and added to.
+> [beat]
+> Five stages, one artifact. Capture the judgement. Compile it into a pill. Apply it through
+> gates and agents. Learn from what the record says. Reuse it — as a skill, an agent, or this
+> platform. Every stage writes to the same versioned record."
+
+---
+
+## ACT 2A — what would you like to teach today? (1:05–1:25) ← *new*
+
+| | |
+| --- | --- |
+| **Visual** | Live `/teach`. It now opens on a chooser — **"What would you like to teach today?"** — two cards: **Describe a situation** and the chilled-water leak (drawn situation, whose judgement, who it involves, the rule it writes). The cursor opens Describe a situation, types a situation nobody has drawn, presses **Draw this situation**; the wait is cut; the drawing lands with its badge naming the model that answered. |
+| **Motion gfx** | Punch in on the Describe card as typing starts; spotlight on the drawing and the badge when it lands. Lower third, four words: *a drawing, not a rule*. |
+
+> **VO:**
+> "It starts with a choice: teach the chilled-water leak, or describe a situation nobody has
+> drawn yet.
+> [beat]
+> Type what happened in your building. A model fills in a fixed scene schema, and a
+> deterministic renderer draws it. It asks Hunyuan through Tencent TokenHub first, with a
+> fallback behind it, and the badge names who actually answered. A drawing, and only a
+> drawing — no gate ever reads it."
 
 ---
 
@@ -371,7 +424,7 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 
 ---
 
-## CLOSE (6:52–7:06)
+## CLOSE (7:40–7:56)
 
 | | |
 | --- | --- |
