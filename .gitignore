@@ -13,3 +13,7 @@ research_notes/
 docs/submission/deck/slides/
 docs/submission/deck/*.pptx
 docs/submission/deck/node_modules
+
+# macOS Finder droppings
+.DS_Store
+**/.DS_Store
