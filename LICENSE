@@ -1,0 +1,37 @@
+Copyright (c) 2026 Frederick Emerson. All rights reserved.
+
+This repository is published so that the judges of the Tencent Cloud
+"AI CAN DO IT" Singapore 2026 hackathon, and anyone the author points at it,
+can read the source of the Keystone submission.
+
+Being able to read it is not permission to use it. No licence is granted to
+copy, modify, merge, publish, distribute, sublicense, sell, or create
+derivative works from any part of this repository, in whole or in part,
+except as follows:
+
+  1. The organiser of that hackathon (Tencent Cloud) and the organisation
+     that contributed the challenge statement (Keppel) may read, run and
+     evaluate this repository for the purposes of judging the entry.
+
+  2. Anything the hackathon handbook's own terms already grant the organiser
+     — a non-exclusive, royalty-free licence to use the project name,
+     description, demo screenshots and screencasts, and team information for
+     non-commercial promotion, with credit — is unaffected by this file.
+
+  3. Short excerpts may be quoted for review, commentary, teaching or news
+     reporting, with attribution.
+
+The intellectual property rights in this entry belong to the author, as the
+handbook states. Third-party dependencies are covered by their own licences,
+which are not changed by this file. The pills, evaluation cases, transcripts,
+assets, tenants and people in this repository are fictional demonstration
+content written for the entry.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+To ask about any other use, open an issue on the repository.

@@ -420,3 +420,10 @@ installed as CodeBuddy skills) is committed; no CodeBuddy plan files are committ
 
 **Mock data only.** Every asset, tenant, client, person, incident and figure in this
 repository is fictional. No real Keppel property names, logos or personnel are used.
+
+## Licence
+
+Copyright (c) 2026 Frederick Emerson. All rights reserved — see [LICENSE](LICENSE).
+The source is published so the hackathon judges can read it; reading it is not
+permission to reuse it. The IP in the entry belongs to the team, as the handbook
+states, and dependencies keep their own licences.
