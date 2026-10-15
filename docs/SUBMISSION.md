@@ -36,13 +36,21 @@ extractor and read as written, and the situation you describe is drawn from your
 words — neither is replayed from the script. A pilot's first task is to run that same
 path against a real expert.
 
-**The demo does not persist its governance state.** A pill is plain text the
-organisation owns, and the governed artifact is exportable as a skill package at any
-point. But approvals, proposed versions and the audit log live in the browser session
-(`lib/governance/store.ts`, zustand + localStorage), not in a server-side store, so a
-redeploy clears them. Nothing is written back to `pills/` at runtime. Where an
-approved version belongs in production is the organisation's own repository — the
-artifact is a commit, not a database row — and §10 sets out that path.
+**The governance record is durable. The pills are still files.** Every approval,
+refusal, confirmation, promotion and rollback is appended to Postgres as it happens
+(Neon, provisioned through the Vercel Marketplace; `lib/governance/ledger.ts`,
+`POST /api/governance/ledger`). The record survives a redeploy, is readable from
+another browser, and is idempotent per event, so a retry cannot double-count it. The
+write is deliberately outside every decision path: it blocks no gate, and a failure
+is reported rather than hidden — the screen says whether the record is durable or
+session-only.
+
+What is **not** persisted is the session's own working state — the zustand store the
+screens render from (`lib/governance/store.ts`) is still browser-local, and nothing
+writes back to `pills/` at runtime. A released version leaves as an exportable skill
+package and, in production, belongs as a commit in the organisation's own repository:
+the artifact is plain text they own, and the database holds the record of who did
+what to it, not the pill itself. §10 sets out that path.
 
 ---
 

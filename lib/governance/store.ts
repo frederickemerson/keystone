@@ -54,6 +54,7 @@ import {
   type PillEditPolicy,
 } from "./access";
 import { appendAudit, EMPTY_AUDIT_LOG, type AuditAction, type AuditInput, type AuditLog } from "./audit";
+import { mirrorAudit } from "./mirror";
 import { parseGovernanceSnapshot } from "./snapshot";
 import { replayTrial } from "./trial";
 import {
@@ -411,7 +412,17 @@ export function createGovernanceStore(
               deepFreeze(typeof partial === "function" ? partial(s) : partial)) as never,
             replace as never,
           );
-        const log = (input: AuditInput) => set((s) => ({ audit: appendAudit(s.audit, { at: now(), ...input }) }));
+        // Every governance action appends exactly one event here, which makes
+        // this the one place the durable record has to be fed from. The mirror
+        // is fire-and-forget by contract (lib/governance/mirror): it never
+        // blocks the set, never throws into it, and never changes what the
+        // session renders.
+        const log = (input: AuditInput) =>
+          set((s) => {
+            const audit = appendAudit(s.audit, { at: now(), ...input });
+            mirrorAudit(audit[audit.length - 1]);
+            return { audit };
+          });
         const history = (pillId: string): PillVersion[] => {
           const h = get().versions[pillId];
           if (!h) throw new Error(`Unknown pill ${pillId}`);

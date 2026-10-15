@@ -186,12 +186,44 @@ describe('the limits the submission promises to state', () => {
     }
   });
 
-  it('says the demo does not persist its governance state', () => {
+  it('describes the governance record as it actually is', () => {
+    // This assertion used to require the opposite — that the submission said
+    // the record was NOT persisted — and it failed the moment the ledger went
+    // in, which is the point of attaching prose to the system. If the ledger
+    // is ever removed, this fails again and the prose has to come back.
+    const ledger = existsSync(join(ROOT, 'lib/governance/ledger.ts'));
     for (const doc of [submissionDoc, formAnswers]) {
-      expect(doc, 'a judge asking "where does the approved pill go?" must find the answer here').toMatch(
-        /browser session|not persist|localStorage/i,
-      );
+      if (ledger) {
+        expect(doc, 'the durable record exists and the submission has to say so').toMatch(/Postgres|durable/i);
+        expect(doc, 'and has to be equally plain about what is still session-only').toMatch(
+          /session|browser/i,
+        );
+      } else {
+        expect(doc).toMatch(/browser session|not persist|localStorage/i);
+      }
     }
+  });
+
+  it('does not claim the engine reads from the record', () => {
+    // The ledger is outside every decision path. If something in lib/engine
+    // ever imports it, the claim above is false.
+    const engine = join(ROOT, 'lib/engine');
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== '__tests__') walk(path);
+        } else if (entry.name.endsWith('.ts')) {
+          // An import, not the word: lib/engine/schema.ts calls pill files
+          // governance artefacts in a comment, which is not a dependency.
+          const source = readFileSync(path, 'utf8');
+          if (/from ['"][^'"]*(?:governance|ledger)['"]/.test(source)) offenders.push(path);
+        }
+      }
+    };
+    walk(engine);
+    expect(offenders, 'the engine reaches into governance').toEqual([]);
   });
 
   it('still names which tool built which layer', () => {
@@ -199,10 +231,10 @@ describe('the limits the submission promises to state', () => {
     expect(submissionDoc, 'the second tool’s contribution was deleted once already').toMatch(/\*\*Claude Code\.\*\*/);
   });
 
-  it('keeps the governance store honest about where it lives', () => {
-    // If this ever becomes server-side, the disclosure above is wrong and
-    // should be rewritten rather than left as a stale apology.
-    const store = read('lib/governance/store.ts');
-    expect(store).toMatch(/localStorage|persist/);
+  it('keeps the session store and the durable record as two different things', () => {
+    expect(read('lib/governance/store.ts')).toMatch(/localStorage|persist/);
+    // The mirror must stay fire-and-forget: an awaited write in the store
+    // would put the record in the path of a decision.
+    expect(read('lib/governance/mirror.ts')).toMatch(/fire-and-forget/i);
   });
 });
