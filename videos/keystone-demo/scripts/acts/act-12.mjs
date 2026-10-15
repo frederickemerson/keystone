@@ -3,8 +3,11 @@
 // holds. The real /teach drawing ghosts behind the type — recorded, not redrawn.
 //
 // Blueprint: kinetic-type-beats (Problem variant → statement build). Rules:
-// waterfall-entry (every line), svg-path-draw (the underlines), spring-pop-
-// entrance (the three reasons), ambient-glow-bloom.
+// waterfall-entry (every line), svg-path-draw (the underlines), center-outward-
+// expansion run INWARD (the four pains converge into the one case that
+// contains them), multi-phase-camera (push into the incident drawing — the real
+// chilled-water section from /teach, act-02.webm, at readable opacity),
+// spring-pop-entrance (the three reasons), ambient-glow-bloom.
 // Unvoiced fallback: the same schedule, on type and music.
 const PAINS = [
   'Knowledge concentrated in a few experts.',
@@ -25,11 +28,11 @@ export default {
   reactAt: (c) => (c.at(1) ?? 15.2) + 0.5,
   reactTilt: -6,
   css: () => `
-        #root .ghostvid { position: absolute; left: 120px; right: 120px; top: 112px; bottom: 112px; border-radius: 14px; overflow: hidden; opacity: 0.16; }
-        #root .ghostvid .shot { object-position: right top; }
+        #root .ghostvid { position: absolute; left: 120px; right: 120px; top: 112px; bottom: 112px; border-radius: 14px; overflow: hidden; opacity: 0.26; will-change: opacity; }
+        #root .ghostvid .shot { object-position: center top; transform-origin: 40% 50%; will-change: transform; }
         #root .kep { position: absolute; left: 120px; top: 140px; font-family: "IBM Plex Mono", monospace; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a93b5; opacity: 0; }
         #root .pains { position: absolute; left: 120px; top: 200px; width: 1200px; }
-        #root .pain { position: relative; font-weight: 700; font-size: 44px; letter-spacing: -0.015em; line-height: 1.15; margin-bottom: 26px; padding-bottom: 8px; }
+        #root .pain { position: relative; font-weight: 700; font-size: 44px; letter-spacing: -0.015em; line-height: 1.15; margin-bottom: 26px; padding-bottom: 8px; transform-origin: 0% 50%; will-change: transform; }
         #root .pain .w { display: inline-block; opacity: 0; margin-right: 0.26em; will-change: transform; }
         #root .pain svg { position: absolute; left: 0; bottom: -4px; width: 100%; height: 12px; }
         #root .pain svg path { fill: none; stroke: #d79a3a; stroke-width: 5; stroke-linecap: round; }
@@ -38,16 +41,16 @@ export default {
         #root .choice h2 .w { display: inline-block; opacity: 0; margin-right: 0.24em; will-change: transform; }
         #root .choice h2 em { font-style: normal; color: #8b7cf6; }
         #root .reasons { margin-top: 44px; display: flex; gap: 22px; }
-        #root .reason { flex: 1; padding: 22px 24px; border-radius: 14px; background: rgba(14,12,22,0.78); border: 1px solid rgba(139,124,246,0.4); opacity: 0; will-change: transform; }
+        #root .reason { flex: 1; padding: 18px 22px; border-radius: 14px; background: rgba(14,12,22,0.82); border: 1px solid rgba(139,124,246,0.4); opacity: 0; will-change: transform; }
         #root .reason b { display: block; font-family: "IBM Plex Mono", monospace; font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: #d79a3a; }
-        #root .reason p { margin: 10px 0 0; font-size: 24px; line-height: 1.3; color: #f6f5fa; }
+        #root .reason p { margin: 8px 0 0; font-size: 22px; line-height: 1.3; color: #f6f5fa; }
         #root .final { position: absolute; left: 120px; bottom: 120px; font-weight: 800; font-size: 54px; letter-spacing: -0.025em; line-height: 1.1; }
         #root .final .w { display: inline-block; opacity: 0; margin-right: 0.26em; will-change: transform; }
         #root .final em { font-style: normal; color: #8b7cf6; }
   `,
   stage: (c) => `
           <div class="ghostvid" id="act-12-ghostvid">
-            <video id="act-12-vid" class="shot" src="assets/footage/teach-chooser.webm" muted data-start="0" data-duration="${c.D}" data-media-start="31"></video>
+            <video id="act-12-vid" class="shot" src="assets/footage/act-02.webm" muted data-start="0" data-duration="${c.D}" data-media-start="2.2" data-playback-rate="0.38"></video>
           </div>
           <div class="kep" id="act-12-kep">Keppel &middot; AI HARVEST &middot; the four problems the brief names</div>
           <div class="pains" id="act-12-pains">
@@ -69,15 +72,22 @@ export default {
     const g2 = c.at(2) ?? (g1 + 11.8);                // "Get that call wrong..."
     const painStep = c.vo[0] ? (c.vo[0].seconds - 4.2) / 4 : 2.6;
     return `
-        tl.to("#act-12-vid", { scale: 1.3, x: -60, y: -40, duration: ${c.D.toFixed(2)}, ease: "none" }, 0);
+        // the incident drawing behind the type: a slow push, then — on the choice — it comes forward and the camera lands on it
+        tl.fromTo("#act-12-vid", { scale: 1.0, x: 0, y: 0 }, { scale: 1.1, x: 40, y: -20, duration: ${(g1 - 0.3).toFixed(2)}, ease: "none" }, 0);
+        tl.to("#act-12-vid", { scale: 1.28, x: 150, y: -70, duration: 1.4, ease: "power2.inOut" }, ${(g1 - 0.3).toFixed(2)});
+        tl.to("#act-12-ghostvid", { opacity: 0.5, duration: 1.2, ease: "power2.inOut" }, ${(g1 - 0.3).toFixed(2)});
+        tl.to("#act-12-vid", { scale: 1.34, y: -90, duration: ${(c.D - g1 - 1.1).toFixed(2)}, ease: "none" }, ${(g1 + 1.1).toFixed(2)});
+        tl.to("#act-12-ghostvid", { opacity: 0.3, duration: 1.0, ease: "power2.inOut" }, ${(g2 + 3.0).toFixed(2)});
         tl.fromTo("#act-12-kep", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, ${(g0 + 0.2).toFixed(2)});
         // the four pains, one at a time, each underlined as it lands
         ${PAINS.map((p, i) => `waterfall("#act-12-p${i}", ${(g0 + 3.6 + i * painStep).toFixed(2)}); drawPath("#act-12-u${i}", ${(g0 + 4.1 + i * painStep).toFixed(2)}, 0.5, "power2.out");`).join('\n        ')}
-        // the choice
-        tl.to("#act-12-pains", { opacity: 0, y: -24, duration: 0.5, ease: "power2.in" }, ${(g1 - 0.3).toFixed(2)});
+        // "the smallest situation that contains all four" — the four lines converge into the one case (center-outward-expansion, inward)
+        ${PAINS.map((p, i) => `tl.to("#act-12-p${i}", { x: -16, y: ${-(i * 86) - 12}, scale: 0.3, opacity: 0, duration: 0.55, ease: "power3.in" }, ${(g1 - 0.55 + i * 0.07).toFixed(2)});`).join('\n        ')}
         tl.to("#act-12-kep", { opacity: 0, duration: 0.3 }, ${(g1 - 0.3).toFixed(2)});
         waterfall("#act-12-h", ${(g1 + 0.3).toFixed(2)});
         pop("#act-12-r1", ${(g1 + 3.2).toFixed(2)}); pop("#act-12-r2", ${(g1 + 6.4).toFixed(2)}); pop("#act-12-r3", ${(g2 + 0.2).toFixed(2)});
+        // the reasons step aside for the line that holds
+        tl.to("#act-12-choice .reasons", { opacity: 0.35, y: -10, duration: 0.6, ease: "power2.inOut" }, ${(g2 + 3.2).toFixed(2)});
         // the line that holds
         waterfall("#act-12-final", ${(g2 + 3.4).toFixed(2)});
     `;

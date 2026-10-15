@@ -4,6 +4,7 @@
   <body>
     <template>
       <style>
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: #f6f5fa; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
@@ -41,10 +42,10 @@
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -61,19 +62,23 @@
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
         #root .co { position: absolute; left: 50%; top: 50%; width: 1440px; margin-left: -720px; margin-top: -330px;
           background: #ffffff; color: #15121f; border-radius: 18px; padding: 54px 64px 70px; box-shadow: 0 60px 140px rgba(0,0,0,0.65); will-change: transform; }
-        #root .co-chrome { font-family: "IBM Plex Mono", monospace; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; color: #9a93b5; display: flex; justify-content: space-between; }
+        #root .co-chrome { font-family: "IBM Plex Mono", monospace; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; color: #6b6484; display: flex; justify-content: space-between; }
         #root .co-q { margin: 30px 0 34px; font-size: 48px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; min-height: 116px; }
         #root .co-q .caret { display: inline-block; width: 4px; height: 44px; background: #15121f; vertical-align: -6px; margin-left: 6px; }
         #root .co-status { font-family: "IBM Plex Mono", monospace; font-size: 22px; color: #9a93b5; opacity: 0; height: 30px; position: relative; overflow: hidden; }
         #root .co-status .sheen { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0) 100%); }
         #root .co-a { font-size: 38px; line-height: 1.42; color: #2a2740; margin-top: 10px; min-height: 170px; }
         #root .co-a .w { opacity: 0; }
-        #root .co-timer { font-family: "IBM Plex Mono", monospace; font-size: 22px; color: #9a93b5; font-variant-numeric: tabular-nums; }
+        #root .co-timer { font-family: "IBM Plex Mono", monospace; font-size: 22px; color: #6b6484; font-variant-numeric: tabular-nums; }
         #root .co .stamp { left: 64px; bottom: -40px; color: #d79a3a; }
         #root .co-hint { position: absolute; right: 64px; bottom: 26px; font-family: "IBM Plex Mono", monospace; font-size: 17px; letter-spacing: 0.12em; text-transform: uppercase; color: #c9c3d9; opacity: 0; }
   
@@ -103,7 +108,7 @@
           </div>
   
           <div class="grain"></div>
-          <div class="label" id="act-00-label"><b>Act 00</b><i></i><span>The problem in one shot</span></div>
+          <div class="label" id="act-00-label"><b>Act 02</b><i></i><span>The problem in one shot</span></div>
           <div class="tag" id="act-00-tag" style="opacity:0"></div>
           
           <div class="keyston" id="act-00-keyston">
@@ -219,6 +224,25 @@
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
         }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
+        }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {
           tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
@@ -256,6 +280,14 @@
         ring("#act-00-r1", 8.30, "#d79a3a");
         ring("#act-00-r2", 9.60, "#d79a3a");
         tl.to(["#act-00-m1", "#act-00-m2"], { color: "#b87b1e", duration: 0.4, stagger: 1.3 }, 8.30);
+        // "...or made it up" — the two citations stutter in place and snap back sharp (chromatic-glitch, emphasis burst)
+        const gh = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+        const G0 = 14.98, GD = 0.4, STEP = 1 / 15;
+        for (let k = 0; k * STEP < GD; k++) {
+          const amp = 1 - (k * STEP) / GD;
+          ["#act-00-m1", "#act-00-m2"].forEach((sel, L) => tl.set(sel, { x: (gh(k * 13 + L * 7) * 2 - 1) * 9 * amp, y: (gh(k * 29 + L * 11) * 2 - 1) * 3 * amp }, G0 + k * STEP));
+        }
+        tl.set(["#act-00-m1", "#act-00-m2"], { x: 0, y: 0 }, G0 + GD);
         // nothing on this screen is checkable
         stamp("#act-00-stamp", 16.28);
         tl.fromTo("#act-00-hint", { opacity: 0, x: 14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 17.58);
@@ -271,7 +303,7 @@
         tl.fromTo("#act-00-keyston", { opacity: 0, y: 26, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1.2);
         breathe("#act-00-keyston .mascot-body", 1.9, 1.6, -5, 21.22);
         react(16.580000000000002, -8);
-        tl.fromTo(S, { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.out" }, 0);
+        tl.fromTo(S, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.22);
         tl.to(S, { opacity: 0, duration: 0.22, ease: "power2.in" }, 20.72);
         window.__timelines["act-00"] = tl;
       </script>

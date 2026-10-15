@@ -1,6 +1,7 @@
-// ACT 11 — how it was built. Calmer: four CodeBuddy proof screenshots as
-// tilted cards sliding through on the right, four tips landing on the left
-// as the narration names them, and the measured test count rising.
+// ACT 11 — how it was built. Calmer: three CodeBuddy proof screenshots as
+// tilted cards sliding through on the right, three tips landing on the left
+// as the narration names them, and the measured test count rising. (The
+// fourth tip is cut for length — the script's own cut order.)
 //
 // Blueprint: titlecard-reveal chain + grid-card-assemble. Rules: split-tilt-
 // cards (one card, tilted, entering from its side), motion-blur-streak (the
@@ -9,8 +10,7 @@
 // the registry count-up's mechanic). Figures measured 15 Oct 2026: 1,329
 // tests across 106 files (npx vitest run).
 const STILLS = [
-  { f: '01a-codebuddy-plan-mode-hy4-subagents.png', cap: 'CodeBuddy · Plan mode · hy4-preview' },
-  { f: '01b-codebuddy-plan-clarifying-questions.png', cap: 'CodeBuddy · the plan, as markdown, argued with first' },
+  { f: '01b-codebuddy-plan-clarifying-questions.png', cap: 'CodeBuddy · Plan mode · the plan, as markdown, argued with first' },
   { f: '02b-codebuddy-scaffold-tasks-smoke-test.png', cap: 'CodeBuddy · one closed loop, smoke-tested' },
   { f: '04b-codebuddy-skill-ts07-answer.png', cap: 'CodeBuddy · the pill as a native skill, answering TS-07' },
 ];
@@ -46,21 +46,20 @@ export default {
             <div class="tip" id="act-11-t1"><span class="n">1</span><h3>Plan mode first</h3><p>The plan is markdown. Argue with that before it touches a file.</p></div>
             <div class="tip" id="act-11-t2"><span class="n">2</span><h3>Freeze scope, close one loop</h3><p>Seven half-working screens lose to one that closes.</p></div>
             <div class="tip" id="act-11-t3"><span class="n">3</span><h3>Safety as tests, not comments</h3><p>Evidence can't be faked open; the author can't approve their own version.</p></div>
-            <div class="tip" id="act-11-t4"><span class="n">4</span><h3>The model only does language</h3><p>Every decision is a pure function, so swapping the model can't change a safety outcome.</p></div>
           </div>
           <div class="count" id="act-11-count"><b id="act-11-num">0</b><span>tests &middot; ${FILES} files &middot; all green</span></div>
   `,
   motion: (c) => {
-    const g1 = c.at(1) ?? 5.6, g2 = c.at(2) ?? 12.6, g3 = c.at(3) ?? 19.1, g4 = c.at(4) ?? 29.6;
-    const beats = [1.0, g2, g3, g4 + 0.2];
+    const g1 = c.at(1) ?? 5.6, g2 = c.at(2) ?? 12.6, g3 = c.at(3) ?? 19.1;
+    const beats = [1.0, g2, g3];
     return `
         // the stills: one tilted card at a time, entering from the right, the previous leaving left (split-tilt-cards, one side)
         ${STILLS.map((s, i) => `
         tl.fromTo("#act-11-s${i}", { opacity: 0, x: 520, rotationY: -22, filter: "blur(10px)" }, { opacity: 1, x: 0, rotationY: -8, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, ${beats[i].toFixed(2)});
-        tl.to("#act-11-s${i} img", { y: -60, duration: ${(i < 3 ? beats[i + 1] - beats[i] : c.D - beats[i]).toFixed(2)}, ease: "none" }, ${(beats[i] + 0.5).toFixed(2)});
-        ${i < 3 ? `tl.to("#act-11-s${i}", { opacity: 0, x: -360, rotationY: 10, filter: "blur(8px)", duration: 0.45, ease: "power3.in" }, ${(beats[i + 1] - 0.1).toFixed(2)});` : ''}`).join('')}
-        // the four tips land with the narration
-        ${['t1', 't2', 't3', 't4'].map((k, i) => `tl.fromTo("#act-11-${k}", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, ${[g1, g2, g3, g4][i].toFixed(2)});`).join('\n        ')}
+        tl.to("#act-11-s${i} img", { y: -60, duration: ${(i < 2 ? beats[i + 1] - beats[i] : c.D - beats[i]).toFixed(2)}, ease: "none" }, ${(beats[i] + 0.5).toFixed(2)});
+        ${i < 2 ? `tl.to("#act-11-s${i}", { opacity: 0, x: -360, rotationY: 10, filter: "blur(8px)", duration: 0.45, ease: "power3.in" }, ${(beats[i + 1] - 0.1).toFixed(2)});` : ''}`).join('')}
+        // the three tips land with the narration
+        ${['t1', 't2', 't3'].map((k, i) => `tl.fromTo("#act-11-${k}", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, ${[g1, g2, g3][i].toFixed(2)});`).join('\n        ')}
         // "that's the part you can actually run" — the measured count, rows set on the timeline, then a landing pulse
         const rows = []; const F = 30, DUR = 1.6, last = Math.round(DUR * F); const ease = gsap.parseEase("sine.inOut");
         for (let f = 0; f <= last; f++) rows.push(Math.round(${TESTS} * ease(f / last)).toLocaleString("en-US"));
@@ -71,9 +70,9 @@ export default {
     `;
   },
   sfx: (c) => {
-    const g2 = c.at(2) ?? 12.6, g3 = c.at(3) ?? 19.1, g4 = c.at(4) ?? 29.6;
+    const g2 = c.at(2) ?? 12.6, g3 = c.at(3) ?? 19.1;
     return [
-      { name: 'whoosh-short', at: 1.0, vol: 0.22 }, { name: 'whoosh-short', at: g2, vol: 0.22 }, { name: 'whoosh-short', at: g3, vol: 0.22 }, { name: 'whoosh-short', at: g4 + 0.2, vol: 0.22 },
+      { name: 'whoosh-short', at: 1.0, vol: 0.22 }, { name: 'whoosh-short', at: g2, vol: 0.22 }, { name: 'whoosh-short', at: g3, vol: 0.22 },
       { name: 'chime', at: g3 + 6.9, vol: 0.25 },
     ];
   },

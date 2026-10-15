@@ -4,6 +4,7 @@
   <body>
     <template>
       <style>
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: #f6f5fa; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
@@ -41,10 +42,10 @@
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -61,6 +62,10 @@
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
@@ -81,7 +86,7 @@
   
       </style>
 
-      <div id="root" data-composition-id="act-11" data-width="1920" data-height="1080" data-duration="40.59">
+      <div id="root" data-composition-id="act-11" data-width="1920" data-height="1080" data-duration="29.38">
         <div class="stage" id="act-11-stage">
           <div class="bg"></div>
           <div class="glow glow-a" id="act-11-glow-a" data-layout-allow-overflow="true"></div>
@@ -90,18 +95,17 @@
           <svg class="ghost" id="act-11-ghost" viewBox="0 0 1000 1000" aria-hidden="true" data-layout-ignore="true" data-layout-allow-overflow="true" data-layout-allow-occlusion="true"><text x="1000" y="860" text-anchor="end"></text></svg>
 
           <div class="deck" id="act-11-deck">
-            <div class="cardimg" id="act-11-s0" data-layout-allow-overflow="true"><img src="assets/stills/01a-codebuddy-plan-mode-hy4-subagents.png" alt="" /><div class="cap">CodeBuddy · Plan mode · hy4-preview</div></div><div class="cardimg" id="act-11-s1" data-layout-allow-overflow="true"><img src="assets/stills/01b-codebuddy-plan-clarifying-questions.png" alt="" /><div class="cap">CodeBuddy · the plan, as markdown, argued with first</div></div><div class="cardimg" id="act-11-s2" data-layout-allow-overflow="true"><img src="assets/stills/02b-codebuddy-scaffold-tasks-smoke-test.png" alt="" /><div class="cap">CodeBuddy · one closed loop, smoke-tested</div></div><div class="cardimg" id="act-11-s3" data-layout-allow-overflow="true"><img src="assets/stills/04b-codebuddy-skill-ts07-answer.png" alt="" /><div class="cap">CodeBuddy · the pill as a native skill, answering TS-07</div></div>
+            <div class="cardimg" id="act-11-s0" data-layout-allow-overflow="true"><img src="assets/stills/01b-codebuddy-plan-clarifying-questions.png" alt="" /><div class="cap">CodeBuddy · Plan mode · the plan, as markdown, argued with first</div></div><div class="cardimg" id="act-11-s1" data-layout-allow-overflow="true"><img src="assets/stills/02b-codebuddy-scaffold-tasks-smoke-test.png" alt="" /><div class="cap">CodeBuddy · one closed loop, smoke-tested</div></div><div class="cardimg" id="act-11-s2" data-layout-allow-overflow="true"><img src="assets/stills/04b-codebuddy-skill-ts07-answer.png" alt="" /><div class="cap">CodeBuddy · the pill as a native skill, answering TS-07</div></div>
           </div>
           <div class="tips">
             <div class="tip" id="act-11-t1"><span class="n">1</span><h3>Plan mode first</h3><p>The plan is markdown. Argue with that before it touches a file.</p></div>
             <div class="tip" id="act-11-t2"><span class="n">2</span><h3>Freeze scope, close one loop</h3><p>Seven half-working screens lose to one that closes.</p></div>
             <div class="tip" id="act-11-t3"><span class="n">3</span><h3>Safety as tests, not comments</h3><p>Evidence can't be faked open; the author can't approve their own version.</p></div>
-            <div class="tip" id="act-11-t4"><span class="n">4</span><h3>The model only does language</h3><p>Every decision is a pure function, so swapping the model can't change a safety outcome.</p></div>
           </div>
           <div class="count" id="act-11-count"><b id="act-11-num">0</b><span>tests &middot; 106 files &middot; all green</span></div>
   
           <div class="grain"></div>
-          <div class="label" id="act-11-label"><b>Act 11</b><i></i><span>How it was built</span></div>
+          <div class="label" id="act-11-label"><b>Act 14</b><i></i><span>How it was built</span></div>
           <div class="tag" id="act-11-tag" style="opacity:0"></div>
           
           <div class="keyston" id="act-11-keyston">
@@ -217,6 +221,25 @@
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
         }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
+        }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {
           tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
@@ -230,43 +253,39 @@
         // the stills: one tilted card at a time, entering from the right, the previous leaving left (split-tilt-cards, one side)
         
         tl.fromTo("#act-11-s0", { opacity: 0, x: 520, rotationY: -22, filter: "blur(10px)" }, { opacity: 1, x: 0, rotationY: -8, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 1.00);
-        tl.to("#act-11-s0 img", { y: -60, duration: 11.62, ease: "none" }, 1.50);
-        tl.to("#act-11-s0", { opacity: 0, x: -360, rotationY: 10, filter: "blur(8px)", duration: 0.45, ease: "power3.in" }, 12.52);
-        tl.fromTo("#act-11-s1", { opacity: 0, x: 520, rotationY: -22, filter: "blur(10px)" }, { opacity: 1, x: 0, rotationY: -8, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 12.62);
-        tl.to("#act-11-s1 img", { y: -60, duration: 6.52, ease: "none" }, 13.12);
-        tl.to("#act-11-s1", { opacity: 0, x: -360, rotationY: 10, filter: "blur(8px)", duration: 0.45, ease: "power3.in" }, 19.04);
-        tl.fromTo("#act-11-s2", { opacity: 0, x: 520, rotationY: -22, filter: "blur(10px)" }, { opacity: 1, x: 0, rotationY: -8, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 19.14);
-        tl.to("#act-11-s2 img", { y: -60, duration: 10.73, ease: "none" }, 19.64);
-        tl.to("#act-11-s2", { opacity: 0, x: -360, rotationY: 10, filter: "blur(8px)", duration: 0.45, ease: "power3.in" }, 29.77);
-        tl.fromTo("#act-11-s3", { opacity: 0, x: 520, rotationY: -22, filter: "blur(10px)" }, { opacity: 1, x: 0, rotationY: -8, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 29.87);
-        tl.to("#act-11-s3 img", { y: -60, duration: 10.72, ease: "none" }, 30.37);
+        tl.to("#act-11-s0 img", { y: -60, duration: 10.53, ease: "none" }, 1.50);
+        tl.to("#act-11-s0", { opacity: 0, x: -360, rotationY: 10, filter: "blur(8px)", duration: 0.45, ease: "power3.in" }, 11.43);
+        tl.fromTo("#act-11-s1", { opacity: 0, x: 520, rotationY: -22, filter: "blur(10px)" }, { opacity: 1, x: 0, rotationY: -8, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 11.53);
+        tl.to("#act-11-s1 img", { y: -60, duration: 6.52, ease: "none" }, 12.03);
+        tl.to("#act-11-s1", { opacity: 0, x: -360, rotationY: 10, filter: "blur(8px)", duration: 0.45, ease: "power3.in" }, 17.95);
+        tl.fromTo("#act-11-s2", { opacity: 0, x: 520, rotationY: -22, filter: "blur(10px)" }, { opacity: 1, x: 0, rotationY: -8, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 18.05);
+        tl.to("#act-11-s2 img", { y: -60, duration: 11.33, ease: "none" }, 18.55);
         
-        // the four tips land with the narration
-        tl.fromTo("#act-11-t1", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 5.62);
-        tl.fromTo("#act-11-t2", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 12.62);
-        tl.fromTo("#act-11-t3", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 19.14);
-        tl.fromTo("#act-11-t4", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 29.67);
+        // the three tips land with the narration
+        tl.fromTo("#act-11-t1", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 4.53);
+        tl.fromTo("#act-11-t2", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 11.53);
+        tl.fromTo("#act-11-t3", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 18.05);
         // "that's the part you can actually run" — the measured count, rows set on the timeline, then a landing pulse
         const rows = []; const F = 30, DUR = 1.6, last = Math.round(DUR * F); const ease = gsap.parseEase("sine.inOut");
         for (let f = 0; f <= last; f++) rows.push(Math.round(1329 * ease(f / last)).toLocaleString("en-US"));
-        tl.fromTo("#act-11-count", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 24.34);
-        rows.forEach((r, f) => tl.set("#act-11-num", { textContent: r }, 24.44 + DUR * (f / last)));
-        tl.to("#act-11-count", { scale: 1.06, duration: 0.17, ease: "power3.out", transformOrigin: "0 100%" }, 26.04);
-        tl.to("#act-11-count", { scale: 1, duration: 0.17, ease: "power2.out" }, 26.21);
+        tl.fromTo("#act-11-count", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 23.25);
+        rows.forEach((r, f) => tl.set("#act-11-num", { textContent: r }, 23.35 + DUR * (f / last)));
+        tl.to("#act-11-count", { scale: 1.06, duration: 0.17, ease: "power3.out", transformOrigin: "0 100%" }, 24.95);
+        tl.to("#act-11-count", { scale: 1, duration: 0.17, ease: "power2.out" }, 25.12);
     
         // ---- chrome ----
         tl.fromTo("#act-11-label", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.25);
         tl.fromTo("#act-11-label i", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.45);
         tl.to("#act-11-label", { opacity: 0, x: -10, duration: 0.4, ease: "power2.in" }, 4.60);
         tl.fromTo("#act-11-tag", { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.4);
-        tl.fromTo("#act-11-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 20.30, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
-        tl.fromTo("#act-11-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 20.30, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
-        tl.fromTo("#act-11-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 40.59, ease: "none" }, 0);
+        tl.fromTo("#act-11-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 14.69, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-11-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 14.69, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-11-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 29.38, ease: "none" }, 0);
         tl.fromTo("#act-11-keyston", { opacity: 0, y: 26, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1);
-        breathe("#act-11-keyston .mascot-body", 1.7, 1.6, -5, 40.59);
-        react(26.54, 4);
+        breathe("#act-11-keyston .mascot-body", 1.7, 1.6, -5, 29.38);
+        react(25.450000000000003, 4);
         tl.fromTo(S, { opacity: 0, filter: "blur(14px)", scale: 0.97 }, { opacity: 1, filter: "blur(0px)", scale: 1, duration: 0.5, ease: "power2.inOut" }, 0.1);
-        tl.to(S, { filter: "blur(12px)", scale: 1.03, opacity: 0, duration: 0.6, ease: "power2.inOut" }, 39.99);
+        tl.to(S, { filter: "blur(12px)", scale: 1.03, opacity: 0, duration: 0.6, ease: "power2.inOut" }, 28.78);
         window.__timelines["act-11"] = tl;
       </script>
     </template>

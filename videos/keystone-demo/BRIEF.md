@@ -57,6 +57,16 @@ little dry. Not a product launch.
 - Act 8 ("top five, and why") is cut for length — the script's own cut
   order, applied after Acts 1B, 2A and 12 were added. `scripts/film.config.mjs`
   → `CUT`; the act module stays in `scripts/acts/` to reinstate.
+- The last tip in Act 11 is also cut (15 Oct), the next item in the same cut
+  order, to pay for the new Act 2A line ("So we leave that one as a drawing...")
+  and keep the film under eight minutes. Its clip (`act-11-04.mp3`) stays on
+  disk; the VO is in the script as a struck note.
+- The film opens on Tan (Act 1), then the AI asked what he knows (Act 0), then
+  Keppel's four problems (Act 12), then "This is Keystone" (Act 1B). The order
+  is the script's section order; on-screen act numbers follow the film.
+- The Keystone lockup (mark from `components/shell/BrandMark.tsx`, wordmark in
+  Geist 600 from `assets/fonts/geist-latin.woff2`, copied from the app's own
+  build) lands on "This is Keystone" and again at the close.
 - `/teach` was re-shot on the local production build after it changed
   (`scripts/record-teach.mjs`): the chooser with the describe-a-situation card
   (`teach-chooser.webm`, badge "Live · hy4-preview via TokenHub") and the

@@ -4,6 +4,7 @@
   <body>
     <template>
       <style>
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: #f6f5fa; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
@@ -41,10 +42,10 @@
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -61,10 +62,14 @@
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
-        #root .tower { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+        #root .tower { position: absolute; left: 0; right: 0; top: 0; bottom: 0; transform-origin: 64% 46%; will-change: transform; }
         #root .tower svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
         #root .floor { fill: rgba(246,245,250,0.05); stroke: rgba(246,245,250,0.12); }
         #root .lit { fill: rgba(215,154,58,0.55); }
@@ -77,6 +82,7 @@
         #root .caption { position: absolute; left: 120px; top: 150px; font-weight: 900; font-size: 88px; letter-spacing: -0.03em; line-height: 1.02; }
         #root .caption .w { display: inline-block; opacity: 0; margin-right: 0.26em; will-change: transform; }
         #root .caption .w.amber { color: #d79a3a; }
+        #root .caption .w.num { font-variant-numeric: tabular-nums; min-width: 1.15em; transform-origin: 0% 100%; }
         #root .sub { position: absolute; left: 124px; top: 362px; font-family: "IBM Plex Mono", monospace; font-size: 22px; letter-spacing: 0.1em; text-transform: uppercase; color: #9a93b5; opacity: 0; }
         #root .sub em { font-style: normal; color: #8b7cf6; }
   
@@ -90,7 +96,7 @@
           <div class="gridlines"></div>
           <svg class="ghost" id="act-01-ghost" viewBox="0 0 1000 1000" aria-hidden="true" data-layout-ignore="true" data-layout-allow-overflow="true" data-layout-allow-occlusion="true"><text x="1000" y="860" text-anchor="end"></text></svg>
 
-          <div class="tower">
+          <div class="tower" id="act-01-tower">
             <svg viewBox="0 0 1920 1080">
               <rect x="1370" y="140" width="380" height="800" rx="6" fill="rgba(246,245,250,0.04)" stroke="rgba(246,245,250,0.16)" />
               <rect class="floor" x="1380" y="150" width="360" height="70" rx="3" /><rect class="floor" x="1380" y="228" width="360" height="70" rx="3" /><rect class="floor" x="1380" y="306" width="360" height="70" rx="3" /><rect class="floor" x="1380" y="384" width="360" height="70" rx="3" /><rect class="floor" x="1380" y="462" width="360" height="70" rx="3" /><rect class="floor" x="1380" y="540" width="360" height="70" rx="3" /><rect class="floor" x="1380" y="618" width="360" height="70" rx="3" /><rect class="floor" x="1380" y="696" width="360" height="70" rx="3" /><rect class="floor" x="1380" y="774" width="360" height="70" rx="3" /><rect class="lit" id="act-01-lit-0" x="1400" y="164" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-1" x="1480" y="164" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-2" x="1640" y="242" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-3" x="1420" y="320" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-4" x="1560" y="320" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-5" x="1680" y="398" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-6" x="1440" y="476" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-7" x="1600" y="554" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-8" x="1680" y="632" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-9" x="1420" y="710" width="44" height="40" rx="2" /><rect class="lit" id="act-01-lit-10" x="1540" y="788" width="44" height="40" rx="2" />
@@ -146,8 +152,8 @@
               </g></g>
             </svg>
           </div>
-          <div class="figure" id="act-01-figure"><div class="hat"></div><div class="body"></div></div>
-          <p class="caption" id="act-01-cap"><span class="w amber">18</span><span class="w amber">years.</span><br><span class="w">Walking</span><span class="w">out</span><span class="w">the</span><span class="w">door.</span></p>
+          <div class="figure" id="act-01-figure"><div class="hat" id="act-01-hat"></div><div class="body" id="act-01-body"></div></div>
+          <p class="caption" id="act-01-cap"><span class="w amber num" id="act-01-n">18</span><span class="w amber">years.</span><br><span class="w">Walking</span><span class="w">out</span><span class="w">the</span><span class="w">door.</span></p>
           <p class="sub" id="act-01-sub">the steps stay &middot; <em>which step to break, and when</em> &middot; leaves</p>
           <div class="disclosure" id="act-01-disc">Scenario, people and incidents are fictional. The system, the rules and the tests are real.</div>
     
@@ -268,6 +274,25 @@
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
         }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
+        }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {
           tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
@@ -278,6 +303,8 @@
 
         // ---- act-01 ----
         
+        // one slow push on the whole set for the length of the act (multi-phase-camera: push phase only)
+        tl.fromTo("#act-01-tower", { scale: 1 }, { scale: 1.07, duration: 20.90, ease: "none" }, 0);
         // the tower's lit windows breathe out of phase — a building at dusk, alive
         for (let i = 0; i < 11; i++) tl.fromTo("#act-01-lit-" + i, { opacity: 0.35 + (i % 3) * 0.2 }, { opacity: 0.9 - (i % 4) * 0.15, duration: 1.2 + (i % 5) * 0.3, ease: "sine.inOut", yoyo: true, repeat: 5 }, 0.2 + i * 0.13);
         tl.fromTo("#act-01-figure", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.8, ease: "power2.out" }, 0.4);
@@ -285,11 +312,16 @@
         for (let i = 0; i < 6; i++) tl.fromTo("#act-01-doc-" + i, { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }, 7.52 + i * 0.07);
         // the judgement BETWEEN them draws itself
         for (let i = 0; i < 5; i++) drawPath("#act-01-th-" + i, 8.82 + i * 0.14, 0.8, "power1.inOut");
-        // 18 years. Walking out the door.
+        // 18 years. Walking out the door. — the figure counts up as it lands (counting-dynamic-scale)
         waterfall("#act-01-cap", 11.82);
+        countUp("#act-01-n", 11.82, 1.3, 18);
+        tl.fromTo("#act-01-n", { scale: 0.55 }, { scale: 1, duration: 1.3, ease: "power3.out" }, 11.82);
         tl.fromTo("#act-01-sub", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 13.42);
         // he walks out of frame; the threads leave with him, the pages stay
         tl.to("#act-01-figure", { x: 1700, duration: 4.2, ease: "power1.in" }, 14.89);
+        // ...and walks, rather than slides: a bob on the body and the hat, out of phase (sine-wave-loop, finite)
+        tl.fromTo("#act-01-body", { y: 0 }, { y: -7, duration: 0.21, ease: "sine.inOut", yoyo: true, repeat: 19 }, 14.89);
+        tl.fromTo("#act-01-hat", { y: 0, rotation: 0 }, { y: -9, rotation: 3, duration: 0.21, ease: "sine.inOut", yoyo: true, repeat: 19 }, 14.94);
         tl.to("#act-01-figure", { opacity: 0, duration: 0.6 }, 18.29);
         for (let i = 0; i < 5; i++) undrawPath("#act-01-th-" + i, 15.89 + i * 0.22, 1.0);
         tl.to(".thread", { opacity: 0.15, duration: 1.2, ease: "power1.in" }, 16.89);
@@ -311,7 +343,7 @@
         tl.fromTo("#act-01-keyston", { opacity: 0, y: 26, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1);
         breathe("#act-01-keyston .mascot-body", 1.7, 1.6, -5, 20.90);
         react(16.59, 6);
-        tl.fromTo(S, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.22);
+        tl.fromTo(S, { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power1.out" }, 0);
         tl.to(S, { opacity: 0, duration: 0.22, ease: "power2.in" }, 20.4);
         window.__timelines["act-01"] = tl;
       </script>

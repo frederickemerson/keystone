@@ -49,7 +49,8 @@ export default {
     const board = Math.max(g1 + 8.6, local(15.9) + 1.2);   // "Those are the fields of an actual rule"
     const contra = local(29.8);
     return `
-        frameIn("#act-02-frame", 0.15);
+        // entered by zoom-through from the chooser's chilled-water card: the frame is already here, only its edge draws
+        tl.fromTo("#act-02-frame .edge", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.out" }, 0.3);
         // the drawn situation first: a slow push while the stages play
         tl.to("#act-02-cam", { scale: 1.08, y: -30, duration: ${(board - 1.2).toFixed(2)}, ease: "none" }, 0.9);
         // "that panel isn't progress through a script" — punch to the coverage board, spotlight the grey

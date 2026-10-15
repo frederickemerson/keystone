@@ -4,6 +4,7 @@
   <body>
     <template>
       <style>
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: #f6f5fa; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
@@ -41,10 +42,10 @@
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -61,13 +62,17 @@
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
         #root .frame { left: 120px; right: 120px; top: 112px; bottom: 150px; }
         #root .rec { position: absolute; right: 150px; top: 180px; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
         #root .rec .chip { position: static; font-size: 26px; }
-        #root .rec .chip b { font-weight: 700; color: #f6f5fa; margin-left: 10px; }
+        #root .rec .chip b { font-weight: 700; color: #f6f5fa; margin-left: 10px; font-variant-numeric: tabular-nums; }
         #root .key { position: absolute; left: 150px; top: 180px; font-family: "IBM Plex Mono", monospace; font-size: 30px; font-weight: 700; color: #f6f5fa; padding: 10px 18px; opacity: 0; }
         #root .key .hl { position: absolute; inset: 0 -4px; border-radius: 6px; background: rgba(215,154,58,0.42); transform: scaleX(0); transform-origin: left center; }
         #root .key .t { position: relative; }
@@ -90,15 +95,15 @@
             <div class="yt-hl" id="act-10-hl"></div>
           </div>
           <div class="rec" id="act-10-rec">
-            <span class="chip amber" id="act-10-c1">recurring <b>&times;4</b></span>
-            <span class="chip" id="act-10-c2">seen once <b>&times;3</b></span>
-            <span class="chip red" id="act-10-c3">not in the record <b>&times;6</b></span>
+            <span class="chip amber" id="act-10-c1">recurring <b>&times;<span id="act-10-n1">0</span></b></span>
+            <span class="chip" id="act-10-c2">seen once <b>&times;<span id="act-10-n2">0</span></b></span>
+            <span class="chip red" id="act-10-c3">not in the record <b>&times;<span id="act-10-n3">0</span></b></span>
           </div>
           <div class="key" id="act-10-key"><span class="hl" id="act-10-keyhl"></span><span class="t">distance_to_electrical_m</span></div>
           <p class="lower" id="act-10-low"><span class="w">it</span><span class="w">found</span><span class="w">a</span><span class="w">question</span><span class="w">we</span><span class="w"><em>forgot</em></span><span class="w"><em>to</em></span><span class="w"><em>ask</em></span></p>
   
           <div class="grain"></div>
-          <div class="label" id="act-10-label"><b>Act 10</b><i></i><span>One-off, or systemic</span></div>
+          <div class="label" id="act-10-label"><b>Act 13</b><i></i><span>One-off, or systemic</span></div>
           <div class="tag" id="act-10-tag">II · COMPILE</div>
           
           <div class="keyston" id="act-10-keyston">
@@ -214,6 +219,25 @@
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
         }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
+        }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {
           tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
@@ -230,6 +254,9 @@
         chip("#act-10-c1", 8.90);
         chip("#act-10-c2", 9.70);
         chip("#act-10-c3", 11.10);
+        countUp("#act-10-n1", 9.10, 0.6, 4);
+        countUp("#act-10-n2", 9.90, 0.6, 3);
+        countUp("#act-10-n3", 11.30, 0.7, 6);
         tl.to("#act-10-rec", { opacity: 0, y: -12, duration: 0.4, ease: "power2.in" }, 15.43);
         // "and this row is the one that started it" — punch to the blind-spot panel
         cam("#act-10-cam", 16.03, { zoom: 0.30000000000000004, slideX: 0, slideY: -144, dur: 1.2 });

@@ -13,9 +13,12 @@
 //   registry: yt-camera-move             cam() / camReset()
 //   registry: yt-feather-highlight       hlIn() / hlTo() / hlOut()
 //   registry: headline-slam (signature)  stamp()
+//   rules/counting-dynamic-scale         countUp()
+//   blueprints/logo-assemble-lockup      brandLockup() / brandIn()
 import { PALETTE } from '../film.config.mjs';
 
 export const SHARED_CSS = `
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: ${PALETTE.cream}; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: ${PALETTE.night}; will-change: transform; }
@@ -53,10 +56,10 @@ export const SHARED_CSS = `
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: ${PALETTE.cream}; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -73,6 +76,10 @@ export const SHARED_CSS = `
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: ${PALETTE.muted}; opacity: 0; }
 `;
@@ -100,6 +107,22 @@ export function exitStageJS(kind, at) {
     case 'dip': return `tl.to(S, { opacity: 0, duration: 0.22, ease: "power2.in" }, ${at});`;
     default: return `tl.to(S, { opacity: 0, duration: 1.2, ease: "power1.inOut" }, ${at});`;
   }
+}
+
+/**
+ * Keystone's lockup — the brand mark (two voussoirs, white on the night ground,
+ * leaning on the orange keystone) beside the wordmark in Geist 600, -0.02em.
+ * Geometry is components/shell/BrandMark.tsx verbatim; brandIn() assembles it.
+ */
+export function brandLockup(id, { mark = 150, word = 136 } = {}) {
+  return `<div class="brand" id="${id}-brand" data-layout-allow-overflow="true">
+            <svg class="bmark" id="${id}-bmark" viewBox="0 0 32 32" style="width:${mark}px;height:${mark}px" aria-hidden="true">
+              <path id="${id}-bvl" d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#ffffff" />
+              <path id="${id}-bvr" d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#ffffff" />
+              <path id="${id}-bks" d="M13 24 L10 6 L22 6 L19 24Z" fill="#ff6f1e" />
+            </svg>
+            <div class="bword" id="${id}-bword" style="font-size:${word}px">${'Keystone'.split('').map((ch) => `<span class="l">${ch}</span>`).join('')}</div>
+          </div>`;
 }
 
 /** Wrap each word of a line in a span, for waterfall entries. */
@@ -197,6 +220,25 @@ export function sharedScript(id) {
         function chip(sel, at, hold) {
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
+        }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
         }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {

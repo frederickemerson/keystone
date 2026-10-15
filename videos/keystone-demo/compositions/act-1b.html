@@ -4,6 +4,7 @@
   <body>
     <template>
       <style>
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: #f6f5fa; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
@@ -41,10 +42,10 @@
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -61,10 +62,14 @@
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
-        #root .world { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+        #root .world { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; z-index: 2; }   /* the pill pops in FRONT of the fading name (scale-swap: incoming above outgoing) */
         #root .world svg.wires { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
         #root .wire { fill: none; stroke: rgba(139,124,246,0.75); stroke-width: 3; stroke-linecap: round; }
         #root .token { fill: #f6f5fa; filter: drop-shadow(0 0 12px rgba(139,124,246,0.9)); opacity: 0; }
@@ -86,9 +91,7 @@
         #root .station.left .sname { left: auto; right: 62px; }
         #root .station.left .callout { left: auto; right: 62px; transform-origin: 100% 0; }
         #root .station.below .callout { top: 54px; }
-        #root .problem { position: absolute; left: 120px; top: 136px; max-width: 1200px; font-weight: 700; font-size: 34px; line-height: 1.25; color: #f6f5fa; opacity: 0; }
-        #root .problem .pt { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #8b7cf6; color: #15121f; font-family: "IBM Plex Mono", monospace; font-size: 18px; margin-right: 12px; vertical-align: 4px; }
-        #root .problem em { font-style: normal; color: #9a93b5; font-weight: 400; font-size: 24px; display: block; margin-top: 6px; }
+        #root .brand { position: absolute; left: 0; right: 0; top: 50%; height: 170px; margin-top: -85px; z-index: 1; }
         #root .rail { position: absolute; left: 120px; right: 120px; bottom: 54px; padding: 14px 22px; border-radius: 10px; background: rgba(139,124,246,0.14); border: 1px solid rgba(139,124,246,0.4);
           font-family: "IBM Plex Mono", monospace; font-size: 17px; letter-spacing: 0.04em; color: #e4e0f0; opacity: 0; display: flex; gap: 26px; align-items: center; }
         #root .rail .pt { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #8b7cf6; color: #15121f; font-weight: 700; }
@@ -106,7 +109,6 @@
           <div class="gridlines"></div>
           <svg class="ghost" id="act-1b-ghost" viewBox="0 0 1000 1000" aria-hidden="true" data-layout-ignore="true" data-layout-allow-overflow="true" data-layout-allow-occlusion="true"><text x="1000" y="860" text-anchor="end">∞</text></svg>
 
-          <div class="problem" id="act-1b-problem"><span class="pt">1</span>Judgement about a leak sits with a few senior engineers, is applied inconsistently, and leaves when they retire.<em>A chatbot cannot be trusted to act on it. Keystone turns the judgement into a governed Intelligence Pill.</em></div>
           <div class="world" id="act-1b-world">
             <svg class="wires" viewBox="0 0 1920 1080">
               <path class="wire" id="act-1b-w0" d="M 351.3 662.0 Q 378.9 462.6 583.8 293.0" /><path class="wire" id="act-1b-w1" d="M 583.8 293.0 Q 960.0 245.0 1336.2 293.0" /><path class="wire" id="act-1b-w2" d="M 1336.2 293.0 Q 1541.1 462.6 1568.7 662.0" /><path class="wire" id="act-1b-w3" d="M 1568.7 662.0 Q 1319.1 814.9 960.0 890.0" /><path class="wire" id="act-1b-w4" d="M 960.0 890.0 Q 600.9 814.9 351.3 662.0" />
@@ -146,11 +148,19 @@
               <div class="callout" id="act-1b-c-reuse"><span class="pt">7</span>Ships as a CodeBuddy skill<br>Runs as a Tencent Cloud ADP agent<br>Lives in the platform · registry across assets</div>
             </div>
           </div>
+          <div class="brand" id="act-1b-brand" data-layout-allow-overflow="true">
+            <svg class="bmark" id="act-1b-bmark" viewBox="0 0 32 32" style="width:150px;height:150px" aria-hidden="true">
+              <path id="act-1b-bvl" d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#ffffff" />
+              <path id="act-1b-bvr" d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#ffffff" />
+              <path id="act-1b-bks" d="M13 24 L10 6 L22 6 L19 24Z" fill="#ff6f1e" />
+            </svg>
+            <div class="bword" id="act-1b-bword" style="font-size:136px"><span class="l">K</span><span class="l">e</span><span class="l">y</span><span class="l">s</span><span class="l">t</span><span class="l">o</span><span class="l">n</span><span class="l">e</span></div>
+          </div>
           <p class="loopline" id="act-1b-line"><span class="w">capture</span><span class="w arrow">&rarr;</span><span class="w">compile</span><span class="w arrow">&rarr;</span><span class="w">apply</span><span class="w arrow">&rarr;</span><span class="w">learn</span><span class="w arrow">&rarr;</span><span class="w">reuse</span><span class="w arrow">&rarr;</span><span class="w">capture</span></p>
           <div class="rail" id="act-1b-rail"><span class="pt">8</span><span>Running today: Next.js on Vercel &middot; hy4-preview via Tencent TokenHub &middot; deterministic engine &middot; CodeBuddy skill (verified) &middot; ADP agent</span></div>
     
           <div class="grain"></div>
-          <div class="label" id="act-1b-label"><b>Act 1B</b><i></i><span>How it builds together</span></div>
+          <div class="label" id="act-1b-label"><b>Act 04</b><i></i><span>How it builds together</span></div>
           <div class="tag" id="act-1b-tag">I–V · THE LOOP</div>
           
           <div class="keyston" id="act-1b-keyston">
@@ -266,6 +276,25 @@
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
         }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
+        }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {
           tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
@@ -282,11 +311,11 @@
         const applyCam = () => { world.style.transform = "translate(" + vcam.x + "px, " + vcam.y + "px) scale(" + vcam.s + ")"; };
         applyCam();
         const TARGETS = [{ x: 943.4, y: -158.1 }, { x: 583.1, y: 413.8 }, { x: -583.1, y: 413.8 }, { x: -943.4, y: -158.1 }, { x: 0.0, y: -511.5 }];
-        // 1 — the business problem, first
-        tl.fromTo("#act-1b-problem", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 0.3);
-        tl.to("#act-1b-problem", { opacity: 0, y: -12, duration: 0.5, ease: "power2.in" }, 3.90);
-        // the pill artifact forms at the centre as it is named
-        tl.fromTo("#act-1b-pill", { opacity: 0, scale: 0.6, rotationY: -40, transformPerspective: 1200 }, { opacity: 1, scale: 1, rotationY: 0, duration: 0.9, ease: "back.out(1.4)" }, 3.30);
+        // "This is Keystone." — the mark locks and the wordmark cascades (logo-assemble-lockup, parts-arrive build)
+        brandIn("act-1b", 0.75);
+        // "...into an Intelligence Pill" — scale-swap-transition: the name shrinks away, the pill it produces pops in its place
+        tl.to("#act-1b-brand", { scale: 0.72, opacity: 0, duration: 0.35, ease: "power2.in" }, 4.05);
+        tl.fromTo("#act-1b-pill", { opacity: 0, scale: 0.6, rotationY: -40, transformPerspective: 1200 }, { opacity: 1, scale: 1, rotationY: 0, duration: 0.9, ease: "back.out(1.4)" }, 4.25);
         // the five stations arrive around it — spring-pop-entrance in ring order
         pop("#act-1b-n-capture", 5.90); tl.fromTo("#act-1b-l-capture", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 6.15);
         pop("#act-1b-n-compile", 6.12); tl.fromTo("#act-1b-l-compile", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 6.37);

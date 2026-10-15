@@ -4,6 +4,7 @@
   <body>
     <template>
       <style>
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: #f6f5fa; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
@@ -41,10 +42,10 @@
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -61,14 +62,18 @@
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
-        #root .ghostvid { position: absolute; left: 120px; right: 120px; top: 112px; bottom: 112px; border-radius: 14px; overflow: hidden; opacity: 0.16; }
-        #root .ghostvid .shot { object-position: right top; }
+        #root .ghostvid { position: absolute; left: 120px; right: 120px; top: 112px; bottom: 112px; border-radius: 14px; overflow: hidden; opacity: 0.26; will-change: opacity; }
+        #root .ghostvid .shot { object-position: center top; transform-origin: 40% 50%; will-change: transform; }
         #root .kep { position: absolute; left: 120px; top: 140px; font-family: "IBM Plex Mono", monospace; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a93b5; opacity: 0; }
         #root .pains { position: absolute; left: 120px; top: 200px; width: 1200px; }
-        #root .pain { position: relative; font-weight: 700; font-size: 44px; letter-spacing: -0.015em; line-height: 1.15; margin-bottom: 26px; padding-bottom: 8px; }
+        #root .pain { position: relative; font-weight: 700; font-size: 44px; letter-spacing: -0.015em; line-height: 1.15; margin-bottom: 26px; padding-bottom: 8px; transform-origin: 0% 50%; will-change: transform; }
         #root .pain .w { display: inline-block; opacity: 0; margin-right: 0.26em; will-change: transform; }
         #root .pain svg { position: absolute; left: 0; bottom: -4px; width: 100%; height: 12px; }
         #root .pain svg path { fill: none; stroke: #d79a3a; stroke-width: 5; stroke-linecap: round; }
@@ -77,9 +82,9 @@
         #root .choice h2 .w { display: inline-block; opacity: 0; margin-right: 0.24em; will-change: transform; }
         #root .choice h2 em { font-style: normal; color: #8b7cf6; }
         #root .reasons { margin-top: 44px; display: flex; gap: 22px; }
-        #root .reason { flex: 1; padding: 22px 24px; border-radius: 14px; background: rgba(14,12,22,0.78); border: 1px solid rgba(139,124,246,0.4); opacity: 0; will-change: transform; }
+        #root .reason { flex: 1; padding: 18px 22px; border-radius: 14px; background: rgba(14,12,22,0.82); border: 1px solid rgba(139,124,246,0.4); opacity: 0; will-change: transform; }
         #root .reason b { display: block; font-family: "IBM Plex Mono", monospace; font-size: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: #d79a3a; }
-        #root .reason p { margin: 10px 0 0; font-size: 24px; line-height: 1.3; color: #f6f5fa; }
+        #root .reason p { margin: 8px 0 0; font-size: 22px; line-height: 1.3; color: #f6f5fa; }
         #root .final { position: absolute; left: 120px; bottom: 120px; font-weight: 800; font-size: 54px; letter-spacing: -0.025em; line-height: 1.1; }
         #root .final .w { display: inline-block; opacity: 0; margin-right: 0.26em; will-change: transform; }
         #root .final em { font-style: normal; color: #8b7cf6; }
@@ -95,7 +100,7 @@
           <svg class="ghost" id="act-12-ghost" viewBox="0 0 1000 1000" aria-hidden="true" data-layout-ignore="true" data-layout-allow-overflow="true" data-layout-allow-occlusion="true"><text x="1000" y="860" text-anchor="end"></text></svg>
 
           <div class="ghostvid" id="act-12-ghostvid">
-            <video id="act-12-vid" class="shot" src="assets/footage/teach-chooser.webm" muted data-start="0" data-duration="41.05" data-media-start="31"></video>
+            <video id="act-12-vid" class="shot" src="assets/footage/act-02.webm" muted data-start="0" data-duration="41.05" data-media-start="2.2" data-playback-rate="0.38"></video>
           </div>
           <div class="kep" id="act-12-kep">Keppel &middot; AI HARVEST &middot; the four problems the brief names</div>
           <div class="pains" id="act-12-pains">
@@ -112,7 +117,7 @@
           <p class="final" id="act-12-final"><span class="w">If</span><span class="w">governance</span><span class="w">holds</span><span class="w"><em>there,</em></span><span class="w">it</span><span class="w">holds</span><span class="w"><em>anywhere.</em></span></p>
   
           <div class="grain"></div>
-          <div class="label" id="act-12-label"><b>Act 12</b><i></i><span>Why this case study</span></div>
+          <div class="label" id="act-12-label"><b>Act 03</b><i></i><span>Why this case study</span></div>
           <div class="tag" id="act-12-tag" style="opacity:0"></div>
           
           <div class="keyston" id="act-12-keyston">
@@ -228,6 +233,25 @@
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
         }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
+        }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {
           tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
@@ -238,18 +262,28 @@
 
         // ---- act-12 ----
         
-        tl.to("#act-12-vid", { scale: 1.3, x: -60, y: -40, duration: 41.05, ease: "none" }, 0);
+        // the incident drawing behind the type: a slow push, then — on the choice — it comes forward and the camera lands on it
+        tl.fromTo("#act-12-vid", { scale: 1.0, x: 0, y: 0 }, { scale: 1.1, x: 40, y: -20, duration: 16.17, ease: "none" }, 0);
+        tl.to("#act-12-vid", { scale: 1.28, x: 150, y: -70, duration: 1.4, ease: "power2.inOut" }, 16.17);
+        tl.to("#act-12-ghostvid", { opacity: 0.5, duration: 1.2, ease: "power2.inOut" }, 16.17);
+        tl.to("#act-12-vid", { scale: 1.34, y: -90, duration: 23.48, ease: "none" }, 17.57);
+        tl.to("#act-12-ghostvid", { opacity: 0.3, duration: 1.0, ease: "power2.inOut" }, 35.75);
         tl.fromTo("#act-12-kep", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 1.20);
         // the four pains, one at a time, each underlined as it lands
         waterfall("#act-12-p0", 4.60); drawPath("#act-12-u0", 5.10, 0.5, "power2.out");
         waterfall("#act-12-p1", 7.27); drawPath("#act-12-u1", 7.77, 0.5, "power2.out");
         waterfall("#act-12-p2", 9.94); drawPath("#act-12-u2", 10.44, 0.5, "power2.out");
         waterfall("#act-12-p3", 12.60); drawPath("#act-12-u3", 13.10, 0.5, "power2.out");
-        // the choice
-        tl.to("#act-12-pains", { opacity: 0, y: -24, duration: 0.5, ease: "power2.in" }, 16.17);
+        // "the smallest situation that contains all four" — the four lines converge into the one case (center-outward-expansion, inward)
+        tl.to("#act-12-p0", { x: -16, y: -12, scale: 0.3, opacity: 0, duration: 0.55, ease: "power3.in" }, 15.92);
+        tl.to("#act-12-p1", { x: -16, y: -98, scale: 0.3, opacity: 0, duration: 0.55, ease: "power3.in" }, 15.99);
+        tl.to("#act-12-p2", { x: -16, y: -184, scale: 0.3, opacity: 0, duration: 0.55, ease: "power3.in" }, 16.06);
+        tl.to("#act-12-p3", { x: -16, y: -270, scale: 0.3, opacity: 0, duration: 0.55, ease: "power3.in" }, 16.13);
         tl.to("#act-12-kep", { opacity: 0, duration: 0.3 }, 16.17);
         waterfall("#act-12-h", 16.77);
         pop("#act-12-r1", 19.67); pop("#act-12-r2", 22.87); pop("#act-12-r3", 32.95);
+        // the reasons step aside for the line that holds
+        tl.to("#act-12-choice .reasons", { opacity: 0.35, y: -10, duration: 0.6, ease: "power2.inOut" }, 35.95);
         // the line that holds
         waterfall("#act-12-final", 36.15);
     

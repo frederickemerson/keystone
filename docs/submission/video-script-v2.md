@@ -46,25 +46,7 @@ acts that answer something he said was *already solved internally* carry none.
 
 ---
 
-## ACT 0 — COLD OPEN · the problem in one shot (0:00–0:17)
-
-| | |
-| --- | --- |
-| **Visual** | Hard cut, already mid-question. A plain chat box — deliberately NOT Keystone, no product chrome: *"After a chilled water leak, who must approve re-energising?"* Answer streams in fast. Slow push-in. |
-| **Motion gfx** | Marker-circle the rule id and the version number it quotes. Both stamp **amber — unverifiable**, not red-wrong. Corner counter spins to `2s`. |
-| **Music** | In on frame one. Driving. No build-up — we're already moving. |
-
-> **VO:**
-> "An AI agent. Asked who signs off before you re-energise after a flood.
-> [beat]
-> Two seconds. Confident. It cites a rule, and it cites a version number.
-> [beat]
-> And you have no way to tell whether it read that somewhere or made it up. Nothing on this
-> screen is checkable. That is the whole problem."
-
----
-
-## ACT 1 — "we lose institutional knowledge" (0:17–0:52)
+## ACT 1 — "we lose institutional knowledge" (0:00–0:21) ← *first: the man, before the machine*
 
 > **QUOTE CARD 1:** *"Every time we have someone leaving the organisation — retirement,
 > changing jobs — we lose some of this institutional knowledge."*
@@ -83,6 +65,24 @@ acts that answer something he said was *already solved internally* carry none.
 > steps. Not which step to break, and when.
 > [beat]
 > That part isn't in any document. It's in him."
+
+---
+
+## ACT 0 — the AI, asked what he knows (0:21–0:41) ← *second: the unverifiable answer, now a follow-on*
+
+| | |
+| --- | --- |
+| **Visual** | Dip from the tower to a plain chat box — deliberately NOT Keystone, no product chrome: *"After a chilled water leak, who must approve re-energising?"* Answer streams in fast. Slow push-in. |
+| **Motion gfx** | Marker-circle the rule id and the version number it quotes. Both stamp **amber — unverifiable**, not red-wrong. Corner counter spins to `2s`. |
+| **Music** | In on frame one. Driving. No build-up — we're already moving. |
+
+> **VO:**
+> "So ask an AI agent instead. Who signs off before you re-energise after a flood?
+> [beat]
+> Two seconds. Confident. It cites a rule, and it cites a version number.
+> [beat]
+> And you have no way to tell whether it read that somewhere or made it up. Nothing on this
+> screen is checkable. That is the whole problem."
 
 ---
 
@@ -130,7 +130,7 @@ acts that answer something he said was *already solved internally* carry none.
 | | |
 | --- | --- |
 | **Visual** | Live `/teach`. It now opens on a chooser — **"What would you like to teach today?"** — two cards: **Describe a situation** and the chilled-water leak (drawn situation, whose judgement, who it involves, the rule it writes). The cursor opens Describe a situation, types a situation nobody has drawn, presses **Draw this situation**; the wait is cut; the drawing lands with its badge naming the model that answered. |
-| **Motion gfx** | Punch in on the Describe card as typing starts; spotlight on the drawing and the badge when it lands. Lower third, four words: *a drawing, not a rule*. |
+| **Motion gfx** | Punch in on the Describe card as typing starts; the camera follows the drawing when it lands and an amber ring draws around the badge (no spotlight dim — the drawing stays readable). Lower third, four words: *a drawing, not a rule*. Then the chooser returns, the camera pushes into the chilled-water card and through it into Act 2 — a move, not a cut. |
 
 > **VO:**
 > "It starts with a choice: teach the chilled-water leak, or describe a situation nobody has
@@ -139,7 +139,9 @@ acts that answer something he said was *already solved internally* carry none.
 > Type what happened in your building. A model fills in a fixed scene schema, and a
 > deterministic renderer draws it. It asks Hunyuan through Tencent TokenHub first, with a
 > fallback behind it, and the badge names who actually answered. A drawing, and only a
-> drawing — no gate ever reads it."
+> drawing — no gate ever reads it.
+> [beat]
+> So we leave that one as a drawing. For this demo, we go with the chilled-water incident."
 
 ---
 
@@ -408,7 +410,7 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 | **Pacing** | Calmer than the rest. Drop the music under. You're talking to another builder now. |
 
 > **VO:**
-> "Quickly, how it got built — four things worth stealing.
+> "Quickly, how it got built — three things worth stealing.
 > [beat]
 > CodeBuddy in Plan mode first. It writes the plan as markdown and you argue with *that*
 > before it touches a file.
@@ -417,10 +419,11 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
 > closes.
 > [beat]
 > Safety rules as tests, not comments — evidence can't be faked open, the author can't
-> approve their own version. Eleven hundred of them. That's the part you can actually run.
-> [beat]
-> And the model only ever does language; every decision is a pure function. So swapping the
-> model can't change a safety outcome. Not a promise — the shape of the code."
+> approve their own version. Eleven hundred of them. That's the part you can actually run."
+
+> *Cut for length (15 Oct), per the cut order in the production notes — the fourth tip, "the model only
+> ever does language; every decision is a pure function, so swapping the model can't change a safety
+> outcome", is the claim Act 4 already lands on screen ("takes no AI output at all — the architecture").*
 
 ---
 
@@ -447,7 +450,7 @@ behaviour this whole submission argues for. Do not re-shoot waiting for somethin
   take comes in slower than 150 wpm it will scrape the ceiling, so watch the clock on the
   read rather than trusting this number afterwards.
 - **If it runs long**, cut in this order: Act 10's two-metre beat → Act 8 entirely → the last
-  tip in Act 11. Do **not** cut Act 9; it is the strongest thing in the film.
+  tip in Act 11 (all three now applied). Do **not** cut Act 9; it is the strongest thing in the film.
 - **If it runs short**, the eval/drift replay (`/learning`) is the one real feature still
   unshown and would add ~40s.
 - **Never hold a static screen past 3 seconds.** Push-in, parallax, or a graphic landing —

@@ -4,6 +4,7 @@
   <body>
     <template>
       <style>
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: #f6f5fa; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
@@ -41,10 +42,10 @@
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -61,12 +62,17 @@
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
         #root .frame { left: 120px; right: 120px; top: 112px; bottom: 150px; }
         #root .find { position: absolute; right: 150px; top: 180px; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
         #root .find .chip { position: static; font-size: 24px; }
+        #root .find .chip b { font-weight: 700; font-variant-numeric: tabular-nums; }
         #root .dim { position: absolute; inset: 0; background: rgba(14,12,22,0.82); opacity: 0; }
         #root .honest { position: absolute; left: 0; right: 0; top: 50%; margin-top: -80px; text-align: center; font-weight: 900; font-size: 96px; letter-spacing: -0.03em; line-height: 1.05; }
         #root .honest .w { display: inline-block; opacity: 0; margin: 0 0.14em; will-change: transform; }
@@ -93,7 +99,7 @@
             <div class="yt-hl" id="act-09-hl"></div>
           </div>
           <div class="find" id="act-09-find">
-            <span class="chip red" id="act-09-f1">+18% over baseline &middot; four days</span>
+            <span class="chip red" id="act-09-f1"><b id="act-09-n1">+0%</b> over baseline &middot; four days</span>
             <span class="chip green" id="act-09-f2">every reading inside its limits</span>
             <span class="chip amber" id="act-09-f3">replayed through 2 approved pills &middot; 0 rules fired</span>
           </div>
@@ -102,7 +108,7 @@
           <p class="honest2" id="act-09-h2"><span class="w">It</span><span class="w">asks</span><span class="w">the</span><span class="w">person</span><span class="w">who</span><span class="w"><em>knew</em></span><span class="w">—</span><span class="w">and</span><span class="w">their</span><span class="w">answer</span><span class="w">goes</span><span class="w">through</span><span class="w">the</span><span class="w">same</span><span class="w">approval.</span></p>
   
           <div class="grain"></div>
-          <div class="label" id="act-09-label"><b>Act 09</b><i></i><span>A skill nobody wrote down</span></div>
+          <div class="label" id="act-09-label"><b>Act 12</b><i></i><span>A skill nobody wrote down</span></div>
           <div class="tag" id="act-09-tag">IV · LEARN</div>
           <figure class="card" id="act-09-card"><span class="bar"></span><blockquote>&ldquo;How do we capture if there's a new skill discovered? It's a problem&rdquo;</blockquote><figcaption>Keppel &middot; AI HARVEST briefing</figcaption></figure>
           <div class="keyston" id="act-09-keyston">
@@ -218,6 +224,25 @@
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
         }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
+        }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {
           tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
@@ -237,6 +262,7 @@
         // the incident opens: plant eighteen percent over, every reading inside spec
         tl.to("#act-09-cam", { scale: 1.1, y: -60, duration: 10.78, ease: "none" }, 8.34);
         chip("#act-09-f1", 9.04);
+        countUp("#act-09-n1", 9.14, 1.1, 18, (n) => "+" + n + "%");
         chip("#act-09-f2", 11.64);
         // "replay it through every approved pill and not one rule fires"
         chip("#act-09-f3", 21.62);

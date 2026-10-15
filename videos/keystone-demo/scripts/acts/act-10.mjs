@@ -3,7 +3,8 @@
 //
 // Blueprint: grid-card-assemble (three chips self-assemble). Registry/rules:
 // spring-pop-entrance, yt-camera-move (punch to the blind-spot row),
-// yt-feather-highlight, css-marker-patterns (highlight), waterfall-entry.
+// yt-feather-highlight, css-marker-patterns (highlight), waterfall-entry,
+// counting-dynamic-scale (the three tallies tick up).
 import { focus } from '../lib/chrome.mjs';
 const ROW = focus(0.5, 0.55, 1.3);
 
@@ -17,7 +18,7 @@ export default {
         #root .frame { left: 120px; right: 120px; top: 112px; bottom: 150px; }
         #root .rec { position: absolute; right: 150px; top: 180px; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
         #root .rec .chip { position: static; font-size: 26px; }
-        #root .rec .chip b { font-weight: 700; color: #f6f5fa; margin-left: 10px; }
+        #root .rec .chip b { font-weight: 700; color: #f6f5fa; margin-left: 10px; font-variant-numeric: tabular-nums; }
         #root .key { position: absolute; left: 150px; top: 180px; font-family: "IBM Plex Mono", monospace; font-size: 30px; font-weight: 700; color: #f6f5fa; padding: 10px 18px; opacity: 0; }
         #root .key .hl { position: absolute; inset: 0 -4px; border-radius: 6px; background: rgba(215,154,58,0.42); transform: scaleX(0); transform-origin: left center; }
         #root .key .t { position: relative; }
@@ -31,9 +32,9 @@ export default {
             <div class="yt-hl" id="act-10-hl"></div>
           </div>
           <div class="rec" id="act-10-rec">
-            <span class="chip amber" id="act-10-c1">recurring <b>&times;4</b></span>
-            <span class="chip" id="act-10-c2">seen once <b>&times;3</b></span>
-            <span class="chip red" id="act-10-c3">not in the record <b>&times;6</b></span>
+            <span class="chip amber" id="act-10-c1">recurring <b>&times;<span id="act-10-n1">0</span></b></span>
+            <span class="chip" id="act-10-c2">seen once <b>&times;<span id="act-10-n2">0</span></b></span>
+            <span class="chip red" id="act-10-c3">not in the record <b>&times;<span id="act-10-n3">0</span></b></span>
           </div>
           <div class="key" id="act-10-key"><span class="hl" id="act-10-keyhl"></span><span class="t">distance_to_electrical_m</span></div>
           <p class="lower" id="act-10-low"><span class="w">it</span><span class="w">found</span><span class="w">a</span><span class="w">question</span><span class="w">we</span><span class="w"><em>forgot</em></span><span class="w"><em>to</em></span><span class="w"><em>ask</em></span></p>
@@ -47,6 +48,9 @@ export default {
         chip("#act-10-c1", ${(g0 + 8.2).toFixed(2)});
         chip("#act-10-c2", ${(g0 + 9.0).toFixed(2)});
         chip("#act-10-c3", ${(g0 + 10.4).toFixed(2)});
+        countUp("#act-10-n1", ${(g0 + 8.4).toFixed(2)}, 0.6, 4);
+        countUp("#act-10-n2", ${(g0 + 9.2).toFixed(2)}, 0.6, 3);
+        countUp("#act-10-n3", ${(g0 + 10.6).toFixed(2)}, 0.7, 6);
         tl.to("#act-10-rec", { opacity: 0, y: -12, duration: 0.4, ease: "power2.in" }, ${(g1 - 0.4).toFixed(2)});
         // "and this row is the one that started it" — punch to the blind-spot panel
         cam("#act-10-cam", ${(g1 + 0.2).toFixed(2)}, { zoom: ${ROW.zoom}, slideX: ${ROW.slideX}, slideY: ${ROW.slideY}, dur: 1.2 });

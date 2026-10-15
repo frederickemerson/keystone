@@ -1,12 +1,19 @@
-// ACT 1B — how it builds together. The solution diagram's own structure as one
-// connected loop: a pill at the centre, five stations in a ring, a camera that
-// visits each as the narration names it, and a token riding the loop.
+// ACT 1B — how it builds together. The name first, then the solution
+// diagram's own structure as one connected loop: a pill at the centre, five
+// stations in a ring, a camera that visits each as the narration names it,
+// and a token riding the loop.
 //
-// Blueprint: spatial-pan-stations (Problem variant: stations on one oversized
-// canvas, leading lines drawn ahead of the camera) closed into a loop.
-// Rules: viewport-change (one .world transform, T = -offset × S),
+// Opens on "This is Keystone": blueprints/logo-assemble-lockup (parts-arrive
+// build — the two voussoirs lean in, the keystone drops and locks, the
+// wordmark cascades; brandIn() in lib/chrome.mjs), then rules/scale-swap-
+// transition into the pill it produces.
+// Blueprint for the loop: spatial-pan-stations (Problem variant: stations on
+// one oversized canvas, leading lines drawn ahead of the camera) closed into
+// a loop. Rules: viewport-change (one .world transform, T = -offset × S),
 // multi-phase-camera (pan beats), svg-path-draw (connectors), spring-pop-
 // entrance (station callouts), ambient-glow-bloom (centre), waterfall-entry.
+import { brandLockup } from '../lib/chrome.mjs';
+
 const CX = 960, CY = 560, RX = 640, RY = 330;
 const STATIONS = [
   { k: 'capture', n: 'I', name: 'Capture', deg: 162, pt: 2, lines: ['Onboarding call — "walk me through the last time"', 'Contradictions resolved into conditions', 'Expert confirms, edits or rejects each rule'] },
@@ -27,7 +34,7 @@ export default {
   fallbackDuration: 26,
   keystonAt: 1.2,
   css: () => `
-        #root .world { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; }
+        #root .world { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform; z-index: 2; }   /* the pill pops in FRONT of the fading name (scale-swap: incoming above outgoing) */
         #root .world svg.wires { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
         #root .wire { fill: none; stroke: rgba(139,124,246,0.75); stroke-width: 3; stroke-linecap: round; }
         #root .token { fill: #f6f5fa; filter: drop-shadow(0 0 12px rgba(139,124,246,0.9)); opacity: 0; }
@@ -49,9 +56,7 @@ export default {
         #root .station.left .sname { left: auto; right: 62px; }
         #root .station.left .callout { left: auto; right: 62px; transform-origin: 100% 0; }
         #root .station.below .callout { top: 54px; }
-        #root .problem { position: absolute; left: 120px; top: 136px; max-width: 1200px; font-weight: 700; font-size: 34px; line-height: 1.25; color: #f6f5fa; opacity: 0; }
-        #root .problem .pt { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #8b7cf6; color: #15121f; font-family: "IBM Plex Mono", monospace; font-size: 18px; margin-right: 12px; vertical-align: 4px; }
-        #root .problem em { font-style: normal; color: #9a93b5; font-weight: 400; font-size: 24px; display: block; margin-top: 6px; }
+        #root .brand { position: absolute; left: 0; right: 0; top: 50%; height: 170px; margin-top: -85px; z-index: 1; }
         #root .rail { position: absolute; left: 120px; right: 120px; bottom: 54px; padding: 14px 22px; border-radius: 10px; background: rgba(139,124,246,0.14); border: 1px solid rgba(139,124,246,0.4);
           font-family: "IBM Plex Mono", monospace; font-size: 17px; letter-spacing: 0.04em; color: #e4e0f0; opacity: 0; display: flex; gap: 26px; align-items: center; }
         #root .rail .pt { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #8b7cf6; color: #15121f; font-weight: 700; }
@@ -82,7 +87,6 @@ export default {
             </div>`;
     }).join('');
     return `
-          <div class="problem" id="act-1b-problem"><span class="pt">1</span>Judgement about a leak sits with a few senior engineers, is applied inconsistently, and leaves when they retire.<em>A chatbot cannot be trusted to act on it. Keystone turns the judgement into a governed Intelligence Pill.</em></div>
           <div class="world" id="act-1b-world">
             <svg class="wires" viewBox="0 0 1920 1080">
               ${wires}
@@ -97,6 +101,7 @@ export default {
             </div>
             ${stations}
           </div>
+          ${brandLockup('act-1b', { mark: 150, word: 136 })}
           <p class="loopline" id="act-1b-line"><span class="w">capture</span><span class="w arrow">&rarr;</span><span class="w">compile</span><span class="w arrow">&rarr;</span><span class="w">apply</span><span class="w arrow">&rarr;</span><span class="w">learn</span><span class="w arrow">&rarr;</span><span class="w">reuse</span><span class="w arrow">&rarr;</span><span class="w">capture</span></p>
           <div class="rail" id="act-1b-rail"><span class="pt">8</span><span>Running today: Next.js on Vercel &middot; hy4-preview via Tencent TokenHub &middot; deterministic engine &middot; CodeBuddy skill (verified) &middot; ADP agent</span></div>
     `;
@@ -115,11 +120,11 @@ export default {
         const applyCam = () => { world.style.transform = "translate(" + vcam.x + "px, " + vcam.y + "px) scale(" + vcam.s + ")"; };
         applyCam();
         const TARGETS = [${camTargets}];
-        // 1 — the business problem, first
-        tl.fromTo("#act-1b-problem", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 0.3);
-        tl.to("#act-1b-problem", { opacity: 0, y: -12, duration: 0.5, ease: "power2.in" }, ${(t0 + 3.2).toFixed(2)});
-        // the pill artifact forms at the centre as it is named
-        tl.fromTo("#act-1b-pill", { opacity: 0, scale: 0.6, rotationY: -40, transformPerspective: 1200 }, { opacity: 1, scale: 1, rotationY: 0, duration: 0.9, ease: "back.out(1.4)" }, ${(t0 + 2.6).toFixed(2)});
+        // "This is Keystone." — the mark locks and the wordmark cascades (logo-assemble-lockup, parts-arrive build)
+        brandIn("act-1b", ${(t0 + 0.05).toFixed(2)});
+        // "...into an Intelligence Pill" — scale-swap-transition: the name shrinks away, the pill it produces pops in its place
+        tl.to("#act-1b-brand", { scale: 0.72, opacity: 0, duration: 0.35, ease: "power2.in" }, ${(t0 + 3.35).toFixed(2)});
+        tl.fromTo("#act-1b-pill", { opacity: 0, scale: 0.6, rotationY: -40, transformPerspective: 1200 }, { opacity: 1, scale: 1, rotationY: 0, duration: 0.9, ease: "back.out(1.4)" }, ${(t0 + 3.55).toFixed(2)});
         // the five stations arrive around it — spring-pop-entrance in ring order
         ${STATIONS.map((s, i) => `pop("#act-1b-n-${s.k}", ${(t0 + 5.2 + i * 0.22).toFixed(2)}); tl.fromTo("#act-1b-l-${s.k}", { opacity: 0, x: ${pts[i][0] < CX - 100 ? 16 : -16} }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, ${(t0 + 5.45 + i * 0.22).toFixed(2)});`).join('\n        ')}
         // the loop closes: connectors draw ahead of the camera
@@ -147,7 +152,8 @@ export default {
     const t1 = c.at(1) ?? (t0 + 13.5);
     const tourStep = c.vo[1] ? (c.vo[1].seconds - 1.2) / 5 : 1.9;
     return [
-      { name: 'pop', at: t0 + 2.6, vol: 0.3 },
+      { name: 'impact-bass-2', at: t0 + 0.86, vol: 0.32 },
+      { name: 'pop', at: t0 + 3.55, vol: 0.3 },
       { name: 'sparkle', at: t0 + 7.6, vol: 0.22 },
       ...STATIONS.map((s, i) => ({ name: 'click', at: t1 + i * tourStep + 0.55, vol: 0.28 })),
     ];

@@ -1,12 +1,13 @@
-// ACT 0 — cold open. A plain assistant, no product chrome. The question types,
-// the answer streams, a timer lands on 2.0 s, and the two things it cites get
-// circled and stamped unverifiable.
+// ACT 0 — the AI, asked what Tan knows. A plain assistant, no product chrome.
+// The question types, the answer streams, a timer lands on 2.0 s, and the two
+// things it cites get circled, shaken, and stamped unverifiable.
 //
 // Blueprint: prompt-type-submit-generate (sub-shape B — typed ask, status
 // theater, streaming answer). Rules: discrete-text-sequence (typing),
 // context-sensitive-cursor (caret), streaming-text's measured token rhythm,
-// css-marker-patterns (circle), headline-slam signature (stamp),
-// multi-phase-camera (one slow push).
+// css-marker-patterns (circle), chromatic-glitch (emphasis burst on "made it
+// up": quantized-time jitter on a deterministic hash, clamped to rest),
+// headline-slam signature (stamp), multi-phase-camera (one slow push).
 const QUESTION = 'After a chilled water leak, who must approve re-energising?';
 
 export default {
@@ -18,14 +19,14 @@ export default {
   css: () => `
         #root .co { position: absolute; left: 50%; top: 50%; width: 1440px; margin-left: -720px; margin-top: -330px;
           background: #ffffff; color: #15121f; border-radius: 18px; padding: 54px 64px 70px; box-shadow: 0 60px 140px rgba(0,0,0,0.65); will-change: transform; }
-        #root .co-chrome { font-family: "IBM Plex Mono", monospace; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; color: #9a93b5; display: flex; justify-content: space-between; }
+        #root .co-chrome { font-family: "IBM Plex Mono", monospace; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; color: #6b6484; display: flex; justify-content: space-between; }
         #root .co-q { margin: 30px 0 34px; font-size: 48px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; min-height: 116px; }
         #root .co-q .caret { display: inline-block; width: 4px; height: 44px; background: #15121f; vertical-align: -6px; margin-left: 6px; }
         #root .co-status { font-family: "IBM Plex Mono", monospace; font-size: 22px; color: #9a93b5; opacity: 0; height: 30px; position: relative; overflow: hidden; }
         #root .co-status .sheen { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0) 100%); }
         #root .co-a { font-size: 38px; line-height: 1.42; color: #2a2740; margin-top: 10px; min-height: 170px; }
         #root .co-a .w { opacity: 0; }
-        #root .co-timer { font-family: "IBM Plex Mono", monospace; font-size: 22px; color: #9a93b5; font-variant-numeric: tabular-nums; }
+        #root .co-timer { font-family: "IBM Plex Mono", monospace; font-size: 22px; color: #6b6484; font-variant-numeric: tabular-nums; }
         #root .co .stamp { left: 64px; bottom: -40px; color: #d79a3a; }
         #root .co-hint { position: absolute; right: 64px; bottom: 26px; font-family: "IBM Plex Mono", monospace; font-size: 17px; letter-spacing: 0.12em; text-transform: uppercase; color: #c9c3d9; opacity: 0; }
   `,
@@ -76,6 +77,14 @@ export default {
         ring("#act-00-r1", ${(t1 + 1.9).toFixed(2)}, "#d79a3a");
         ring("#act-00-r2", ${(t1 + 3.2).toFixed(2)}, "#d79a3a");
         tl.to(["#act-00-m1", "#act-00-m2"], { color: "#b87b1e", duration: 0.4, stagger: 1.3 }, ${(t1 + 1.9).toFixed(2)});
+        // "...or made it up" — the two citations stutter in place and snap back sharp (chromatic-glitch, emphasis burst)
+        const gh = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+        const G0 = ${(t2 + 2.6).toFixed(2)}, GD = 0.4, STEP = 1 / 15;
+        for (let k = 0; k * STEP < GD; k++) {
+          const amp = 1 - (k * STEP) / GD;
+          ["#act-00-m1", "#act-00-m2"].forEach((sel, L) => tl.set(sel, { x: (gh(k * 13 + L * 7) * 2 - 1) * 9 * amp, y: (gh(k * 29 + L * 11) * 2 - 1) * 3 * amp }, G0 + k * STEP));
+        }
+        tl.set(["#act-00-m1", "#act-00-m2"], { x: 0, y: 0 }, G0 + GD);
         // nothing on this screen is checkable
         stamp("#act-00-stamp", ${(t2 + 3.9).toFixed(2)});
         tl.fromTo("#act-00-hint", { opacity: 0, x: 14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, ${(t2 + 5.2).toFixed(2)});

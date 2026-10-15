@@ -80,7 +80,7 @@ for (let i = 0; i < acts.length; i++) {
     r2,
   };
 
-  const number = id === 'close' ? '' : id.slice(4).toUpperCase();
+  const number = id === 'close' ? '' : String(i + 1).padStart(2, '0');   // the film's own order, not the script's section id
   const label = mod.label ?? act.title.replace(/^[—-]\s*/, '');
   const card = act.card
     ? `<figure class="card" id="${id}-card"><span class="bar"></span><blockquote>&ldquo;${esc(act.card)}&rdquo;</blockquote><figcaption>Keppel &middot; AI HARVEST briefing</figcaption></figure>`
@@ -169,8 +169,9 @@ const gateAt = stopAt ? r2(starts['act-04'] + (stopAt.vo[1]?.at ?? 6) + 6.2) : n
 
 const S = (id) => starts[id] ?? starts['act-09'];
 const lanePoints = [
-  { t: 0, v: 0 }, { t: 0.35, v: 0.62 },
-  { t: starts['act-01'], v: 0.62 }, { t: starts['act-01'] + 1, v: 0.5 },
+  { t: 0, v: 0 }, { t: 0.35, v: 0.5 },
+  { t: starts['act-00'], v: 0.5 }, { t: starts['act-00'] + 0.6, v: 0.62 },
+  { t: starts['act-12'], v: 0.62 }, { t: starts['act-12'] + 1, v: 0.5 },
   { t: starts['act-1b'], v: 0.5 }, { t: starts['act-1b'] + 1, v: 0.56 },
   { t: starts['act-2a'], v: 0.56 }, { t: starts['act-2a'] + 1, v: 0.46 },
 ];
@@ -182,7 +183,7 @@ lanePoints.push(
   { t: S('act-08'), v: 0.58 }, { t: S('act-08') + 1, v: 0.46 },
   { t: cut - 1.5, v: 0.46 }, { t: cut + 1.5, v: 0 },
 );
-const laneA = { version: 1, lanes: [{ target: 'volume', points: lanePoints.filter((p) => p.t <= cut + 1.5).map((p) => ({ t: r2(p.t), v: p.v })) }] };
+const laneA = { version: 1, lanes: [{ target: 'volume', points: lanePoints.filter((p) => p.t <= cut + 1.5).map((p) => ({ t: r2(p.t), v: p.v })).sort((a, b) => a.t - b.t) }] };
 const bStart = r2(cut - 1.5);
 const laneB = { version: 1, lanes: [{ target: 'volume', points: [
   { t: 0, v: 0 }, { t: 3, v: 0.28 },

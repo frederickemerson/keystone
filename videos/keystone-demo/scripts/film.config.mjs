@@ -53,16 +53,19 @@ export const MOOD = {
 
 /**
  * How each act is entered. One primary (push) for related points, with accents
- * where the story turns: zoom-through into the loop, the callback and the
- * strongest act; blur where the picture continues; a dip where the register
- * changes. Values are the transition names in scripts/lib/chrome.mjs.
+ * where the story turns: zoom-through into the loop, the callback, the
+ * strongest act, and from the chooser's chilled-water card into the session;
+ * blur where the picture continues; a dip where the register changes. Values
+ * are the transition names in scripts/lib/chrome.mjs. The film opens on Tan
+ * (act-01), then the AI asked what he knows (act-00): the script's section
+ * order is the film's order.
  */
 export const TRANSITION_IN = {
-  'act-00': 'fade',
-  'act-01': 'dip',
+  'act-01': 'fade',
+  'act-00': 'dip',
   'act-1b': 'zoom',
   'act-2a': 'push',
-  'act-02': 'push',
+  'act-02': 'zoom',   // through the chilled-water card on the chooser, into the session
   'act-03': 'push',
   'act-04': 'push',
   'act-05': 'zoom',

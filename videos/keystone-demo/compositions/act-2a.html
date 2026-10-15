@@ -4,6 +4,7 @@
   <body>
     <template>
       <style>
+        @font-face { font-family: "Geist"; font-style: normal; font-weight: 100 900; src: url("assets/fonts/geist-latin.woff2") format("woff2"); }
         #root { position: absolute; inset: 0; overflow: hidden; background: transparent;
                 font-family: "Montserrat", sans-serif; color: #f6f5fa; }
         #root .stage { position: absolute; inset: 0; overflow: hidden; background: #15121f; will-change: transform; }
@@ -41,10 +42,10 @@
         #root .cam { position: absolute; inset: 0; will-change: transform; }
         #root .frame .cam { contain: paint; }
         #root .shot { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.62;
+        #root .yt-hl { --yt-hl-x: 50%; --yt-hl-y: 50%; --yt-hl-rx: 22%; --yt-hl-ry: 26%; --yt-hl-dim: 0.42;
           position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 2; background: rgba(8,6,14,var(--yt-hl-dim));
-          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%);
-          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 52%, black 88%); }
+          -webkit-mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%);
+          mask-image: radial-gradient(ellipse var(--yt-hl-rx) var(--yt-hl-ry) at var(--yt-hl-x) var(--yt-hl-y), transparent 0%, transparent 60%, black 100%); }
         #root .chip { position: absolute; display: inline-block; padding: 12px 20px; border-radius: 10px; font-family: "IBM Plex Mono", monospace;
           font-size: 24px; letter-spacing: 0.02em; color: #f6f5fa; background: rgba(14,12,22,0.9); border: 1px solid rgba(139,124,246,0.5);
           box-shadow: 0 18px 50px rgba(0,0,0,0.5); white-space: nowrap; opacity: 0; will-change: transform; }
@@ -61,11 +62,17 @@
         #root .ring { position: absolute; left: -14px; right: -14px; top: -10px; bottom: -10px; width: calc(100% + 28px); height: calc(100% + 20px);
           pointer-events: none; overflow: visible; }
         #root .ring path { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; }
+        #root .brand { display: flex; justify-content: center; align-items: center; gap: 0.16em; opacity: 0; will-change: transform; }
+        #root .brand .bmark { display: block; overflow: visible; flex: none; }
+        #root .brand .bword { font-family: "Geist", "Inter", -apple-system, "Helvetica Neue", sans-serif; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #ffffff; white-space: nowrap; }
+        #root .brand .bword .l { display: inline-block; opacity: 0; will-change: transform; }
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
         #root .frame { left: 120px; right: 120px; top: 112px; bottom: 150px; }
         #root .shotb { opacity: 0; }
+        #root .cam .shot.over { position: absolute; inset: 0; opacity: 0; }
+        #root .cam .ring { position: absolute; right: auto; bottom: auto; z-index: 2; opacity: 0; }
         #root .type { position: absolute; left: 120px; bottom: 56px; font-weight: 700; font-size: 34px; letter-spacing: -0.01em; color: #f6f5fa; }
         #root .type .w { display: inline-block; opacity: 0; margin-right: 0.26em; will-change: transform; }
         #root .type em { font-style: normal; color: #8b7cf6; }
@@ -74,7 +81,7 @@
   
       </style>
 
-      <div id="root" data-composition-id="act-2a" data-width="1920" data-height="1080" data-duration="25.43">
+      <div id="root" data-composition-id="act-2a" data-width="1920" data-height="1080" data-duration="31.51">
         <div class="stage" id="act-2a-stage">
           <div class="bg"></div>
           <div class="glow glow-a" id="act-2a-glow-a" data-layout-allow-overflow="true"></div>
@@ -88,15 +95,16 @@
               <video id="act-2a-vid-a" class="shot" src="assets/footage/teach-chooser.webm" muted data-start="0.3" data-duration="13.30" data-media-start="0.8" data-hf-media-start-basis="local"></video>
             </div>
             <div class="cam shotb" id="act-2a-cam-b" data-layout-allow-overflow="true">
-              <video id="act-2a-vid-b" class="shot" src="assets/footage/teach-chooser.webm" muted data-start="13.60" data-duration="10.40" data-media-start="29.4" data-hf-media-start-basis="local"></video>
+              <video id="act-2a-vid-b" class="shot" src="assets/footage/teach-chooser.webm" muted data-start="13.60" data-duration="10.50" data-media-start="29.4" data-hf-media-start-basis="local"></video>
+              <video id="act-2a-vid-c" class="shot over" src="assets/footage/teach-chooser.webm" muted data-start="23.40" data-duration="8.11" data-media-start="35.2" data-playback-rate="0.5" data-hf-media-start-basis="local"></video>
+              <svg class="ring" id="act-2a-ring" viewBox="0 0 200 100" preserveAspectRatio="none" style="left:225px;top:748px;width:290px;height:50px"></svg>
             </div>
-            <div class="yt-hl" id="act-2a-hl"></div>
           </div>
           <p class="type" id="act-2a-t1"><span class="w">Teach</span><span class="w">the</span><span class="w">chilled-water</span><span class="w">leak</span><span class="w">—</span><span class="w">or</span><span class="w"><em>describe</em></span><span class="w"><em>a</em></span><span class="w"><em>situation</em></span><span class="w">nobody</span><span class="w">has</span><span class="w">drawn.</span></p>
           <p class="type" id="act-2a-t2"><span class="w">A</span><span class="w">model</span><span class="w">fills</span><span class="w">a</span><span class="w">fixed</span><span class="w">scene</span><span class="w">schema;</span><span class="w">a</span><span class="w">deterministic</span><span class="w">renderer</span><span class="w">draws</span><span class="w">it.</span><small><span class="w">the</span><span class="w">badge</span><span class="w">names</span><span class="w">who</span><span class="w">answered</span><span class="w">·</span><span class="w">a</span><span class="w">drawing,</span><span class="w">not</span><span class="w">a</span><span class="w">rule</span><span class="w">·</span><span class="w">no</span><span class="w">gate</span><span class="w">reads</span><span class="w">it</span></small></p>
     
           <div class="grain"></div>
-          <div class="label" id="act-2a-label"><b>Act 2A</b><i></i><span>What would you like to teach today?</span></div>
+          <div class="label" id="act-2a-label"><b>Act 05</b><i></i><span>What would you like to teach today?</span></div>
           <div class="tag" id="act-2a-tag">I · CAPTURE</div>
           
           <div class="keyston" id="act-2a-keyston">
@@ -212,6 +220,25 @@
           tl.fromTo(sel, { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, at);
           if (hold) tl.to(sel, { opacity: 0, y: -14, duration: 0.3, ease: "power2.in" }, at + hold);
         }
+        // --- rules/counting-dynamic-scale: the value as frame rows set on the timeline (seek-exact), tabular numerals ---
+        function countUp(sel, at, dur, target, fmt) {
+          const F = 30, last = Math.max(1, Math.round(dur * F)); const ease = gsap.parseEase("power3.out");
+          for (let f = 0; f <= last; f++) tl.set(sel, { textContent: (fmt || String)(Math.round(target * ease(f / last))) }, at + dur * (f / last));
+        }
+        // --- blueprints/logo-assemble-lockup (parts-arrive build): the two voussoirs lean in, the keystone
+        //     drops and locks the arch, the arch takes the weight, then the wordmark cascades letter by letter ---
+        function brandIn(id, at) {
+          const M = "#" + id + "-bmark";
+          tl.fromTo("#" + id + "-brand", { opacity: 0 }, { opacity: 1, duration: 0.2 }, at);
+          tl.fromTo("#" + id + "-bvl", { x: -9, y: 1.5, opacity: 0, rotation: -16, svgOrigin: "7.4 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bvr", { x: 9, y: 1.5, opacity: 0, rotation: 16, svgOrigin: "24.6 27" }, { x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.55, ease: "power3.out" }, at + 0.05);
+          tl.fromTo("#" + id + "-bks", { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.in" }, at + 0.42);
+          tl.to(M, { y: 6, duration: 0.08, ease: "power2.out" }, at + 0.84);
+          tl.to(M, { y: 0, duration: 0.5, ease: "elastic.out(1, 0.45)" }, at + 0.92);
+          const ls = qa("#" + id + "-bword .l");
+          let t = at + 0.9;
+          ls.forEach((l) => { tl.set(l, { opacity: 1, y: 44 }, t); tl.to(l, { y: 0, duration: 0.32, ease: "power4.out" }, t); t += 0.055; });
+        }
         // --- Keyston reacts: a hop and a tilt on the act's own beat ---
         function react(at, tilt) {
           tl.to("#" + ID + "-keyston .mascot-body", { y: -16, duration: 0.18, ease: "power2.out" }, at);
@@ -228,28 +255,38 @@
         // the splice: a whip of blur covers the eighteen seconds the model took — honest cut, same source
         tl.to("#act-2a-cam", { filter: "blur(10px)", opacity: 0, duration: 0.25, ease: "power2.in" }, 13.50);
         tl.fromTo("#act-2a-cam-b", { opacity: 0, filter: "blur(10px)", scale: 1.28, x: 360, y: 40 }, { opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "power2.out" }, 13.70);
-        // settle onto the drawing and its badge: Live · hy4-preview via TokenHub
-        tl.to("#act-2a-cam-b", { scale: 1.42, x: 470, y: -120, duration: 1.4, ease: "power2.inOut" }, 15.20);
-        hlIn("#act-2a-hl", 16.60, { x: "34%", y: "72%", rx: "26%", ry: "18%" });
-        hlOut("#act-2a-hl", 20.00);
-        tl.to("#act-2a-cam-b", { scale: 1.18, x: 230, y: -40, duration: 1.4, ease: "power2.inOut" }, 19.80);
+        // the camera follows the drawing as it lands — the badge stays in frame beneath it
+        tl.to("#act-2a-cam-b", { scale: 1.3, x: 328, y: -119, duration: 1.3, ease: "power2.inOut" }, 15.00);
+        tl.to("#act-2a-cam-b", { scale: 1.34, y: -133, duration: 8.53, ease: "none" }, 16.40);
+        // "the badge names who actually answered" — an amber ring draws around it (css-marker-patterns, circle)
+        tl.set("#act-2a-ring", { opacity: 1 }, 18.49);
+        ring("#act-2a-ring", 18.49, "#d79a3a");
+        tl.to("#act-2a-ring", { opacity: 0, duration: 0.3 }, 24.33);
+        // the finished chooser, held: dissolves in under the same camera before the source runs out
+        tl.fromTo("#act-2a-vid-c", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "none" }, 23.40);
+        // "So we leave that one as a drawing" — pull back: both cards, the drawing on the left, the pill's case on the right
+        camReset("#act-2a-cam-b", 24.93, 1.3);
+        // "we go with the chilled-water incident" — push into its card, and keep pushing through the exit into Act 2
+        tl.to("#act-2a-cam-b", { scale: 1.4, x: -336, y: -115, duration: 1.3, ease: "power2.inOut" }, 27.13);
+        tl.to("#act-2a-cam-b", { scale: 1.54, x: -370, y: -127, duration: 3.08, ease: "power1.in" }, 28.43);
         waterfall("#act-2a-t1", 1.00);
         clearLower("#act-2a-t1", 6.34);
         waterfall("#act-2a-t2", 7.09);
+        clearLower("#act-2a-t2", 24.23);
     
         // ---- chrome ----
         tl.fromTo("#act-2a-label", { opacity: 0, x: -18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.25);
         tl.fromTo("#act-2a-label i", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.45);
         tl.to("#act-2a-label", { opacity: 0, x: -10, duration: 0.4, ease: "power2.in" }, 4.60);
         tl.fromTo("#act-2a-tag", { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.4);
-        tl.fromTo("#act-2a-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 12.71, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
-        tl.fromTo("#act-2a-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 12.71, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
-        tl.fromTo("#act-2a-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 25.43, ease: "none" }, 0);
+        tl.fromTo("#act-2a-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 15.76, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-2a-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 15.76, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-2a-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 31.51, ease: "none" }, 0);
         tl.fromTo("#act-2a-keyston", { opacity: 0, y: 26, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1);
-        breathe("#act-2a-keyston .mascot-body", 1.7, 1.6, -5, 25.43);
+        breathe("#act-2a-keyston .mascot-body", 1.7, 1.6, -5, 31.51);
         react(14.5, -6);
         tl.fromTo(S, { x: 1920 }, { x: 0, duration: 0.5, ease: "power3.inOut" }, 0);
-        tl.to(S, { x: -1920, duration: 0.5, ease: "power3.inOut" }, 24.93);
+        tl.to(S, { scale: 1.22, filter: "blur(18px)", opacity: 0, duration: 0.55, ease: "power3.in" }, 30.96);
         window.__timelines["act-2a"] = tl;
       </script>
     </template>
