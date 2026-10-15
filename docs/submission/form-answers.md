@@ -9,8 +9,8 @@ The code blocks below contain only claims backed by this repository or by a cite
 - [ ] **[verify]** Average commercial water-damage loss ≈ US$89,000 (ATI Restoration whitepaper, 470k+ claims). The research dossier marks the source method as unclear. If a primary-source check confirms it, you may add to "The cost of the problem": `• An average commercial water-damage loss is about US$89,000 (ATI Restoration whitepaper, 470k+ claims).`
 - [ ] **[verify]** About 40% of Singapore's Built Environment PMETs are aged 50+ (MND, 2022). If confirmed, you may add: `• About 40% of Singapore's Built Environment PMETs are aged 50+ (MND, 2022).`
 - [ ] **[verify]** No pilot cost has been estimated, so the answers do not claim that one avoided flood "pays for the pilot". Add that only with a cost estimate.
-- [ ] **[verify]** The GitHub repository is private. Grant the judges access, or make it public.
-- [ ] **[verify]** Re-run `npx vitest run` just before submitting. The answers say "1,000+ automated tests"; the last run (13 Oct 2026) was 87 files, 1,061 tests, all passing. Build first (`npx next build`), or the client-bundle scan is skipped and the run reads 1,060 passed, 1 skipped.
+- [x] **The GitHub repository is public** (checked 15 Oct 2026: the GitHub API reports `"private": false`). This matters more than it looks: the form has no field for a repository, and no judge usernames are published, so there is no mechanism to grant access to a private one. The link travels in the Project link field below, and a judge who cannot open it cannot see the source the challenge statement asks for.
+- [ ] **[verify]** Re-run `npx vitest run` just before submitting. The answers quote an exact count; the last run (15 Oct 2026) was 106 files, 1,329 tests, all passing. Build first (`npx next build`), or the client-bundle scan is skipped and the run reads 1,060 passed, 1 skipped.
 - [ ] **[verify]** Sign in on the live URL and check that the live drafting badge reads `Live · hy4-preview via TokenHub` (or `Recorded output`), as described below.
 - [ ] **[verify]** Walk the frontline capture path on the live URL from a fresh browser profile: Rajesh is blocked by TS-07 at step 10 → note → read-back → draft → Tan Wei Ming proposes TS-14 in v1.3.0 → Priya is refused at Promote to Shadow → Muhammad Hafiz confirms → Priya promotes.
 - [ ] **[do not claim]** Speech recognition on real Singapore-accented speech is untested. The Tencent Cloud ASR adapter reports "not configured", and the OpenAI transcription path has never been run live. Do not claim accuracy, and do not claim that speech is processed in Singapore: the browser's speech service decides where audio goes.
@@ -44,6 +44,8 @@ technical design including how prompts drive the AI, then the value. Paste as is
 
 ```
 In building operations the judgement that keeps a tower safe sits with a handful of senior engineers. Keppel's brief for this challenge says as much: critical knowledge is concentrated in a few experts, new staff need years to build it, best practice is applied inconsistently, and when someone retires it leaves with them. The obvious answer is an AI assistant on top of the manuals. But an assistant that can answer anything will also answer when it should not, so nobody can let one act during a live incident. Keystone is built for the organisations that live with that problem: REIT managers and the facility management companies that run mixed portfolios of offices, data centres and logistics assets. We model the real chain from REIT manager to facility manager to FM contractor, across fifteen named roles that run from the retiring Chief Engineer who owns the knowledge to the technician who meets the problem at two in the morning. What Keystone makes for them is an Intelligence Pill: a versioned folder of plain text the organisation owns, holding the rules, the vocabulary of evidence they depend on, the provenance of each rule, a set of evals and a changelog. Capturing one is an exercise rather than an interview. The expert answers a single open question, and after that only the questions his own answer left unresolved. Each answer carries a short claim about one field of a rule, so two answers that disagree are found by comparing them rather than by asking a model whether they conflict. Neither statement is discarded when that happens. The system asks instead for the condition that separates them, so "always isolate the riser" and "isolate the sub-valve" become one rule with a distinguishing condition rather than an argument someone settles months later. Every rule keeps the sentence it came from, the moment it was said, and the name of whoever confirmed it. Applying the pill is where the architecture earns its keep. The engine that evaluates it is ordinary TypeScript with no model anywhere in its path, so a prompt cannot argue with it. A rule whose trigger does not match is not applicable. A rule whose required evidence is missing is blocked. Only once both of those are settled does the engine ask whether the action must be escalated, needs approval, or may be recommended. Evidence counts only when it is confirmed and exactly true, and an exception may add a requirement but can never relax one. That is what stops the demonstration's AI proposal to re-energise an air-handling unit after a chilled-water leak: rule TS-07 blocks it while no Licensed Electrical Worker has signed off, and escalates the decision to the duty LEW by name. Nothing the system produces is ever executed, because every outcome is held for a person. Improving a pill afterwards is governed just as literally. A technician's note becomes a draft only after the speaker has checked a read-back of its numbers, tags and roles. A colleague who neither said it nor proposed it must then confirm it, and the new version is replayed against six closed incidents in shadow before anyone may approve it. The author, the person who ran the shadow and the approver have to be three different people, which the code enforces and audits rather than leaving to policy. Any release rolls back in one click, because the history is append-only. The same pill extends across the portfolio through asset overrides, so at a colocation data centre the identical rule escalates to the Critical Facilities Manager and the tenant notice becomes a client-SLA notice. The language model does only the work that language requires. It elicits with probes drawn from the Critical Decision Method and ACTA, extracts rule candidates under a schema that constrains what it may emit, and drafts tenant notices inside the Tenant Experience pill's hard rules. In every case what it returns is a draft that a named human confirms, never a decision. The application is Next.js 15 on Vercel, and Hunyuan hy4-preview and MiniMax Speech 2.8 HD are integrated through Tencent TokenHub on a Singapore endpoint. The pill also installs unchanged as a native CodeBuddy skill, where it reached the same TS-07 decision our own engine does, which is how we know the knowledge is portable rather than merely saying so. 1,302 automated tests hold these invariants in place. The value is easy to put a number against. Replacing an employee costs between half and twice their annual salary. More than half of significant data-centre outages cost over US$100,000. One ten-thousand square foot Grade A floor earns roughly S$125,000 a month. Avoiding a single unsafe re-energisation, or keeping one anchor tenant's floor open, therefore covers the work several times over. Keystone already reports time to isolate, how many of a replay's assertions a new version agrees on, and eval and shadow agreement for every pill. A pilot would add override rate and rollback frequency, measured against Keppel's own stated goal of cutting downtime and costs.
+
+Live demo: https://keystone-tencent.vercel.app (passcode: keystone). Source code: https://github.com/frederickemerson/keystone
 ```
 
 (One paragraph. Every number in it is checkable: the test
@@ -272,11 +274,12 @@ chrome) and the close.
 ## Project link (optional, earns bonus points)
 
 ```
-https://keystone-tencent.vercel.app
+Live demo: https://keystone-tencent.vercel.app
+Source code: https://github.com/frederickemerson/keystone (public)
 Demo passcode: keystone (it is also shown on the sign-in page). Pick any persona. Each one sees what its role allows, enforced on the server.
 Fastest path: sign in as Priya Nair (Asset Operations Manager), then go to /incident/INC-2026-1011?step=10 to see TS-07 block the AI proposal.
 Frontline capture: sign in as Rajesh Kumar (Technician) and open /c/AHU-23-01, or escalate at step 10 of the same incident and answer "Tell us why — 20 seconds".
-Live AI on this deployment is Hunyuan hy4-preview via TokenHub, running in Singapore, or recorded output; the badge on each output names which. Hunyuan via CodeBuddy runs in local development with CodeBuddy credentials.
+Live AI on this deployment asks Hunyuan hy4-preview via Tencent TokenHub first and falls back to OpenAI if TokenHub does not answer; where neither does, recorded output is shown and labelled as recorded. The badge on every output names who actually answered, the model and the latency. Hunyuan via CodeBuddy is used in local development with CodeBuddy credentials.
 All assets, people, tenants and incidents are fictional.
 ```
 
@@ -286,7 +289,18 @@ All assets, people, tenants and incidents are fictional.
 https://github.com/frederickemerson/keystone
 ```
 
-See the "Verify before submitting" checklist: the repository is currently private.
+**There is no GitHub field on the form.** Handbook §8 lists seven submission items —
+project title, short blurb, project description, CodeBuddy/WorkBuddy conversation
+history, cover image, demo video (optional), project link (optional) — plus a row for
+"Other Requirements as per the Challenge Statement". The repository is one of those
+other requirements: the Keppel track's "The Solution Should Include" asks for "Source
+Code — Complete source code submitted through a GitHub repository."
+
+So the link goes in the **Project link** field, alongside the live URL, which is the
+only field that takes a URL the judges will follow. It is also the last line of the
+project description, which is the one required free-text field a judge certainly reads. The repository is public (verified 15 Oct 2026); the handbook does
+not use the word "public", but with no repository field and no named judge accounts
+there is nothing to grant access to a private repository with.
 
 ## Challenge-specific requirements
 
