@@ -236,7 +236,7 @@ set, and what is novel. Built from `deck.html`; see `deck/README.md`.
 - If the form accepts a larger file, use `docs/submission/cover.png` (1520×864, the same image at 4×). It stays sharp on high-DPI showcase pages.
 - The source is `docs/submission/cover.html`; re-render both with `node docs/submission/render-art.mjs`.
 - It is the landing hero held still: the mark and wordmark centred, the headline
-  under them, and the chief engineer where the site puts him. Around him are six
+  under them as one block, and the chief engineer where the site puts him. Around him are six
   real eval cases from the two pills — TS-07, TS-05, TS-06, TS-10, TE-03, TE-06 —
   each with the status the engine actually returns for it, so the cover cannot
   claim an outcome the repository does not produce. The strip across the foot is
