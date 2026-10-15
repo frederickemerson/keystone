@@ -639,9 +639,15 @@ as Singapore, which is the separate chat inference service.
 
 The eliciting surface is **`/teach`**, and three things about its shape are the design:
 
-1. **It opens with the situation, animated** — the Level 28 coupling, the water through
-   the ceiling void, the track along the conduit toward DB-27B. Judgement does not exist
-   in the abstract; it only appears against a case.
+0. **It opens on a choice, not on a case.** `/teach` lists every pill whose rules carry
+   enough to ask about, each shown the way its session opens: the drawn situation where
+   somebody has drawn one, the expert the knowledge came from, every role its rules route
+   a decision to, the rule the session writes, and how many questions it asks. A session
+   lives at `/teach?pill=<id>`. The chilled-water leak is one of them, which is the point
+   — a screen that opened straight into it read as a chilled-water app.
+1. **A session opens with the situation, animated** — the Level 28 coupling, the water
+   through the ceiling void, the track along the conduit toward DB-27B. Judgement does
+   not exist in the abstract; it only appears against a case.
 2. **The first question is deliberately the widest one available** and everything after
    it is chosen by what that account did *not* settle. "Still unknown" is computed
    against the fields of an engine `Rule` (`lib/teach/parts`, every key proved at compile

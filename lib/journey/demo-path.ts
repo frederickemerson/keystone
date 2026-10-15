@@ -46,7 +46,10 @@ export const DEMO_PATH: readonly DemoStep[] = [
     stage: 'capture',
     title: 'Teach a skill',
     role: 'chief_engineer',
-    href: routes.teach(),
+    // Straight into the chilled-water exercise. /teach itself is the chooser
+    // now, and "step through the situation" is an instruction about this
+    // session, not about picking one.
+    href: routes.teach(DEMO_PILL_ID),
     doThis:
       'Step through the situation, answer the open question in your own words, then answer the few that follow. Say the riser first, and the sub-valve when the branch-leak case comes up.',
     notice:

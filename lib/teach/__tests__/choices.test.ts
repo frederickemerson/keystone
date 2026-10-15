@@ -9,6 +9,8 @@
 import { describe, expect, it } from 'vitest';
 import { loadPill, listPillRefs } from '@/lib/pills/load';
 import { roleLabel } from '@/lib/governance/access';
+import { DEMO_PILL_ID, routes } from '@/lib/journey/routes';
+import { DEMO_PATH } from '@/lib/journey/demo-path';
 import { teachChoice, teachChoices } from '../choices';
 import { loadExercise } from '../load';
 import { scenarioStages } from '../scenario';
@@ -92,6 +94,14 @@ describe('the pills offered on the chooser', () => {
       // so counting it would promise an argument that may never happen.
       expect(choice.questionCount).toBeLessThanOrEqual(1 + exercise.questions.length);
     }
+  });
+
+  it('sends the guided demo into a session rather than at the chooser', () => {
+    // /teach is the chooser, so a step whose instructions are about working
+    // the chilled-water exercise has to address that exercise directly.
+    const step = DEMO_PATH.find((candidate) => candidate.id === 'teach-skill');
+    expect(step?.href).toBe(routes.teach(DEMO_PILL_ID));
+    expect(teachChoice(DEMO_PILL_ID)).not.toBeNull();
   });
 
   it('shows a drawing only for the pill somebody drew one for', () => {

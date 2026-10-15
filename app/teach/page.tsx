@@ -1,12 +1,18 @@
-// Server component — loads the exercise for a pill (authored where one exists,
-// derived from the pill's own rules where it does not), the scenario drawing
-// if there is one, and whether a server recogniser is usable.
+// Teaching a skill: the chooser first, a session behind it.
 //
-// `?pill=` chooses which pill to teach. It exists so the generated path is
-// reachable and inspectable, not just asserted: point it at a pill nobody has
-// written questions for and the screen still works.
+// Why the screen is split. For most of its life this route opened straight
+// into the chilled-water leak, which made the honest reading of the demo
+// "this is a chilled-water app". That leak is one case. What the screen does
+// is teach any pill whose rules carry enough to ask about — so that is what
+// it opens on, and a session is something you choose.
+//
+// `?pill=` is therefore not a developer's escape hatch any more; it is the
+// address of a session. Without it there is nothing to resume and nothing to
+// assume, so the screen asks instead of picking for you.
 
 import { TeachClient } from '@/components/teach/TeachClient';
+import { TeachChooser } from '@/components/teach/TeachChooser';
+import { PageHeader } from '@/components/mosaic';
 import { loadExercise } from '@/lib/teach/load';
 import { teachChoices } from '@/lib/teach/choices';
 import { scenarioStages } from '@/lib/teach/scenario';
@@ -19,8 +25,6 @@ import Link from 'next/link';
 // Provider availability is read per request, not baked in at build time.
 export const dynamic = 'force-dynamic';
 
-const DEFAULT_PILL_ID = 'technical-services-chilled-water-leak';
-
 export const metadata = { title: 'Teach a skill · Keystone' };
 
 export default async function TeachPage({
@@ -29,18 +33,31 @@ export default async function TeachPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const requested = (await searchParams).pill;
-  const pillId = typeof requested === 'string' && requested.trim() ? requested.trim() : DEFAULT_PILL_ID;
+  const pillId = typeof requested === 'string' && requested.trim() ? requested.trim() : null;
+
+  if (!pillId) {
+    // Every pill the screen can teach, described. Named here rather than in
+    // the catalogue because the human title comes from the pill bundle, and
+    // lib/ has no business importing a component module to get it.
+    const choices = teachChoices().map((choice) => {
+      const bundle = loadPill(choice.id);
+      return { ...choice, name: bundle ? pillTitle(bundle) : choice.id };
+    });
+
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          eyebrow={<span>Teach a skill</span>}
+          title="What would you like to teach today?"
+          subtitle="Each one opens the same way: the situation first where somebody has drawn one, then one wide question, then only what that answer left open. A session ends in a draft rule for whoever may edit that pill — never in a change."
+        />
+        <TeachChooser choices={choices} />
+      </div>
+    );
+  }
 
   const loaded = loadExercise(pillId);
   const pill = loadPill(pillId);
-
-  // Every pill the screen can teach, described. Named here rather than in the
-  // catalogue because the human title comes from the pill bundle, and lib/
-  // has no business importing a component module to get it.
-  const choices = teachChoices().map((choice) => {
-    const bundle = loadPill(choice.id);
-    return { ...choice, name: bundle ? pillTitle(bundle) : choice.id };
-  });
 
   if (!loaded) {
     return (
@@ -49,8 +66,8 @@ export default async function TeachPage({
           There is no exercise for “{pillId}”. Either no pill with that id loads, or its rules carry too little to
           ask about.
         </p>
-        <Link href={routes.registry()} className="btn-pill text-xs">
-          Browse the pills
+        <Link href={routes.teach()} className="btn-pill text-xs">
+          Choose a skill
         </Link>
       </div>
     );
@@ -68,7 +85,6 @@ export default async function TeachPage({
       exercise={loaded.exercise}
       origin={loaded.origin}
       pillName={pill ? pillTitle(pill) : pillId}
-      choices={choices}
       stages={scenarioStages(loaded.exercise.scenarioId)}
       serverAsrAvailable={selectServerAsr() !== null}
     />

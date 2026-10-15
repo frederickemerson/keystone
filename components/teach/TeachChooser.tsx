@@ -2,10 +2,11 @@
 //
 // Why this exists. The screen taught whichever pill it was pointed at and said
 // so nowhere, so the honest reading of the demo was "this is a chilled-water
-// app". The first fix was a row of links, which made the capability visible
-// and still answered none of the questions a person actually has before
-// giving up ten minutes of their time: what situation is this, who is
-// involved, what will it ask me.
+// app". A row of links was the first fix: it made the capability visible and
+// still answered none of the questions a person actually has before giving up
+// ten minutes of their time — what situation is this, who is involved, what
+// will it ask me. So this is the screen /teach opens on, and a session is
+// what you get by choosing one.
 //
 // So each choice is shown the way the session itself opens — with the drawn
 // situation where there is one, the expert whose knowledge it is, the roles
@@ -20,7 +21,6 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { routes } from '@/lib/journey/routes';
-import { cn } from '@/lib/ui/cn';
 import type { TeachChoiceData } from '@/lib/teach/choices';
 import { ScenarioStage } from './ScenarioStage';
 
@@ -31,7 +31,6 @@ export interface TeachChoice extends TeachChoiceData {
 
 export interface TeachChooserProps {
   choices: readonly TeachChoice[];
-  currentId: string;
 }
 
 const ORIGIN_NOTE: Record<TeachChoice['origin'], string> = {
@@ -49,23 +48,15 @@ function rolesLine(roles: readonly string[]): string {
   return `${roles.slice(0, ROLES_SHOWN).join(' · ')} · +${rest} more`;
 }
 
-function ChoiceCard({ choice, current }: { choice: TeachChoice; current: boolean }) {
+function ChoiceCard({ choice }: { choice: TeachChoice }) {
   // The last stage, because it is the one that holds the whole situation —
   // the first is a quiet ceiling void and tells a chooser nothing.
   const lastStage = choice.stages?.[choice.stages.length - 1];
 
   return (
-    <article
-      className={cn(
-        'flex flex-col rounded-xl border bg-surface p-4',
-        current ? 'border-marker/40 bg-dew-drop' : 'border-line',
-      )}
-    >
+    <article className="flex flex-col rounded-xl border border-line bg-surface p-4">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-[15px] font-semibold text-ink">{choice.name}</h3>
-        {/* The rule count on every card, including the one being taught: a
-            badge that changes meaning between cards is not a comparison. The
-            current pill is already marked by its tint and its button. */}
         <span className="shrink-0 font-mono text-[11px] uppercase tracking-wide text-ink-muted">
           {choice.ruleCount} rules
         </span>
@@ -114,42 +105,33 @@ function ChoiceCard({ choice, current }: { choice: TeachChoice; current: boolean
 
       <p className="mt-3 text-[12px] leading-relaxed text-ink-muted">{ORIGIN_NOTE[choice.origin]}</p>
 
-      {/* Pinned to the foot so the two cards' buttons line up however tall
-          their situations are. */}
+      {/* Pinned to the foot so the cards' buttons line up however tall their
+          situations are. */}
       <div className="mt-auto pt-4">
-        {current ? (
-          <span className="btn-pill cursor-default text-xs font-semibold shadow-none" aria-current="page">
-            You are teaching this one
-          </span>
-        ) : (
-          <Link href={routes.teach(choice.id)} className="btn-pill btn-pill-primary text-xs">
-            Teach {choice.name.toLowerCase()} <ArrowRight className="size-3.5" aria-hidden="true" />
-          </Link>
-        )}
+        <Link href={routes.teach(choice.id)} className="btn-pill btn-pill-primary text-xs">
+          Teach {choice.name.toLowerCase()} <ArrowRight className="size-3.5" aria-hidden="true" />
+        </Link>
       </div>
     </article>
   );
 }
 
-export function TeachChooser({ choices, currentId }: TeachChooserProps) {
-  // One teachable pill is not a choice, and a chooser of one reads as a mistake.
-  if (choices.length < 2) return null;
+export function TeachChooser({ choices }: TeachChooserProps) {
+  if (choices.length === 0) {
+    return (
+      <p className="rounded-xl border border-line bg-surface p-4 text-[13px] leading-relaxed text-ink-muted">
+        No pill in this repository carries enough in its rules to ask about yet.
+      </p>
+    );
+  }
 
   return (
-    <section aria-labelledby="teach-chooser" className="rounded-2xl border border-line bg-cream-paper p-5">
-      <h2 id="teach-chooser" className="text-[17px] font-semibold text-ink">
-        What would you like to teach today?
-      </h2>
-      <p className="mt-1 max-w-[70ch] text-[13px] leading-relaxed text-ink-muted">
-        Teaching is not tied to one situation. Every pill below opens the same way — the situation first where
-        someone has drawn one, then one wide question, then only what that answer left open. Each session
-        ends in a draft rule for whoever may edit that pill, never in a change.
-      </p>
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        {choices.map((choice) => (
-          <ChoiceCard key={choice.id} choice={choice} current={choice.id === currentId} />
-        ))}
-      </div>
-    </section>
+    <ul className="grid list-none gap-4 p-0 lg:grid-cols-2">
+      {choices.map((choice) => (
+        <li key={choice.id} className="contents">
+          <ChoiceCard choice={choice} />
+        </li>
+      ))}
+    </ul>
   );
 }

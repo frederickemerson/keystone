@@ -20,7 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, LayoutGrid, Play, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, LayoutGrid, Play, RotateCcw, Shapes, Volume2, VolumeX } from 'lucide-react';
 import { PageHeader } from '@/components/mosaic';
 import { useMounted } from '@/components/mosaic/useMounted';
 import { routes } from '@/lib/journey/routes';
@@ -46,7 +46,6 @@ import { CoverageBoard } from './CoverageBoard';
 import { DraftPreview } from './DraftPreview';
 import { Dictation } from './Dictation';
 import { Mascot, moodFor } from './Mascot';
-import { TeachChooser, type TeachChoice } from './TeachChooser';
 import { QuestionCard } from './QuestionCard';
 import { ContradictionPanel } from './ContradictionPanel';
 import { ScenarioStage } from './ScenarioStage';
@@ -58,8 +57,6 @@ export interface TeachClientProps {
   /** Authored by hand, or derived from the pill's own rules. Said out loud on screen. */
   origin: ExerciseOrigin;
   pillName: string;
-  /** Every pill this screen can teach, described well enough to choose between. */
-  choices: readonly TeachChoice[];
   /** The drawn situation, or null when nobody has drawn one for this pill. */
   stages: readonly ScenarioStageData[] | null;
   /** Whether a server recogniser is usable, read on the server (no secrets). */
@@ -68,7 +65,7 @@ export interface TeachClientProps {
 
 type Phase = 'scenario' | 'questions' | 'done';
 
-export function TeachClient({ exercise, origin, pillName, choices, stages, serverAsrAvailable }: TeachClientProps) {
+export function TeachClient({ exercise, origin, pillName, stages, serverAsrAvailable }: TeachClientProps) {
   const mounted = useMounted();
   const voice = useVoice();
 
@@ -252,6 +249,9 @@ export function TeachClient({ exercise, origin, pillName, choices, stages, serve
                 <RotateCcw className="size-3.5" aria-hidden="true" /> Start again
               </button>
             ) : null}
+            <Link href={routes.teach()} className="btn-pill text-xs">
+              <Shapes className="size-3.5" aria-hidden="true" /> All skills
+            </Link>
             <Link href={routes.canvas(exercise.pillId)} className="btn-pill text-xs">
               <LayoutGrid className="size-3.5" aria-hidden="true" /> Decision canvas
             </Link>
@@ -424,10 +424,6 @@ export function TeachClient({ exercise, origin, pillName, choices, stages, serve
           </section>
         </div>
       </div>
-
-      {/* Full width, and last: choosing what to teach next is not a sidebar
-          note, and the previews need the room to show a situation. */}
-      <TeachChooser choices={choices} currentId={exercise.pillId} />
     </div>
   );
 }
