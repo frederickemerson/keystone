@@ -6,96 +6,195 @@
 <meta name="viewport" content="width=1520">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&family=Caveat:wght@600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
+  /* The cover is the landing hero's composition, stilled: the dusk sky, the
+     expert at the centre, and the decisions his sentences now govern floating
+     around him. Every scenario is a real eval case under a pill's evals
+     directory - rule id, situation and status all come from the expert ground
+     truth, so the cover cannot drift from what the engine actually decides.
+     (No closing-comment slash before the end of this note: a path written with
+     a star followed by a slash ends the comment early and silently drops the
+     :root block below, which is exactly what happened the first time.) */
   :root {
-    --cream: #f6f5fa; --dew: #eeecf4; --charcoal: #1d1a2b; --cocoa: #1d1a2b;
-    --marker: #5643c4; --marker-ink: #5643c4; --muted: #57526b; --line: #e0dde9;
-    --blocked: #b42318; --blocked-bg: #fdecea; --escalate: #a8410a; --escalate-bg: #fdf0e6;
+    --ink: #ffffff;
+    --soft: rgba(255,255,255,.82);
+    --faint: rgba(255,255,255,.62);
+    --glass: rgba(30,24,52,.46);
+    --edge: rgba(255,255,255,.16);
+    --lavender: #8b7cf6;
+    --indigo: #5643c4;
+    --brand-keystone: #ff6f1e;
+    --blocked: #ffd0d0; --blocked-bg: rgba(255,107,107,.26); --blocked-edge: rgba(255,138,138,.45);
+    --escalate: #ffdcb5; --escalate-bg: rgba(255,150,60,.24); --escalate-edge: rgba(255,170,90,.46);
+    --approval: #fbe7b4; --approval-bg: rgba(240,190,70,.22); --approval-edge: rgba(240,200,110,.44);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 1520px; height: 864px; overflow: hidden; background: var(--cream); }
-  body { font-family: 'Geist', system-ui, sans-serif; color: var(--charcoal); -webkit-font-smoothing: antialiased; position: relative; }
+  html, body { width: 1520px; height: 864px; overflow: hidden; }
+  body {
+    font-family: 'Geist', system-ui, sans-serif; color: var(--ink); position: relative;
+    -webkit-font-smoothing: antialiased;
+    background: linear-gradient(180deg,#5d5577 0%,#8a7a91 20%,#97858f 36%,#3a3150 70%,#211b31 100%);
+  }
 
-  .grid-bg { position: absolute; inset: 0;
-    background-image: linear-gradient(var(--dew) 1px, transparent 1px), linear-gradient(90deg, var(--dew) 1px, transparent 1px);
-    background-size: 48px 48px; opacity: .55; }
+  /* The expert sits low and centred; the photo's sky dissolves into the panel's. */
+  .photo { position: absolute; left: 500px; top: 292px; width: 520px; height: 436px; overflow: hidden; opacity: .96;
+    -webkit-mask-image: radial-gradient(ellipse 52% 60% at 50% 50%, #000 34%, transparent 86%);
+    mask-image: radial-gradient(ellipse 52% 60% at 50% 50%, #000 34%, transparent 86%); }
+  .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%;
+    filter: saturate(.86) brightness(.88) contrast(1.06); }
+  .vignette { position: absolute; inset: 0; background:
+      linear-gradient(180deg, rgba(36,30,62,.34) 0%, rgba(36,30,62,0) 26%, rgba(33,27,49,.30) 78%, rgba(33,27,49,.72) 100%); }
 
-  .left { position: absolute; left: 88px; top: 76px; width: 760px; }
-  .brand { display: flex; align-items: center; gap: 18px; }
-  .brand svg { width: 76px; height: 76px; }
-  .brand span { font-size: 64px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  /* Centre column: mark, wordmark, the line the whole product argues for. */
+  .centre { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); width: 760px; text-align: center; }
+  .lockup { display: inline-flex; align-items: center; gap: 14px; }
+  .lockup svg { width: 46px; height: 46px; }
+  .lockup span { font-size: 40px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
 
-  h1 { margin-top: 70px; font-size: 104px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.0; color: var(--cocoa); }
-  h1 .hl { position: relative; white-space: nowrap; }
-  h1 .hl svg { position: absolute; left: -4px; right: -4px; bottom: -4px; width: calc(100% + 8px); height: 20px; }
+  h1 { margin-top: 44px; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400;
+    font-size: 76px; line-height: 0.98; letter-spacing: -0.015em; text-shadow: 0 2px 30px rgba(20,16,40,.4); }
+  h1 em { font-style: italic; color: rgba(255,255,255,.9); }
+  .sub { margin: 20px auto 0; max-width: 596px; font-size: 19.5px; line-height: 1.5; color: var(--soft); }
 
-  .right { position: absolute; right: 80px; top: 70px; width: 560px; }
-  .quote { background: #fff; border: 2px solid var(--charcoal); border-radius: 18px; padding: 30px 34px 26px; transform: rotate(-1.6deg);
-    box-shadow: rgba(0,0,0,.07) 0 4px 26px; }
-  .quote p { font-family: 'Caveat', cursive; font-size: 56px; line-height: 1.02; color: var(--marker-ink); }
-  .quote .who { margin-top: 14px; font-size: 22px; color: var(--muted); font-weight: 500; }
-  .quote .who b { font-family: 'Geist Mono', monospace; font-weight: 600; color: var(--charcoal); }
+  /* Scenario cards. */
+  .card { position: absolute; width: 396px; padding: 16px 18px 15px; border-radius: 16px;
+    background: var(--glass); border: 1px solid var(--edge); backdrop-filter: blur(14px);
+    box-shadow: 0 18px 50px -20px rgba(10,8,30,.65); }
+  .card .meta { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--faint); }
+  .card .rid { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 11.5px; letter-spacing: .02em;
+    color: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.28); border-radius: 6px; padding: 2px 7px; }
+  .card .what { margin-top: 10px; font-size: 15.5px; line-height: 1.42; color: rgba(255,255,255,.96); }
+  .card .then { margin-top: 11px; display: flex; align-items: flex-start; gap: 9px; }
+  .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    font-size: 12.5px; font-weight: 600; border-radius: 999px; padding: 4px 11px; }
+  .chip svg { width: 13px; height: 13px; }
+  .b { color: var(--blocked); background: var(--blocked-bg); box-shadow: inset 0 0 0 1px var(--blocked-edge); }
+  .e { color: var(--escalate); background: var(--escalate-bg); box-shadow: inset 0 0 0 1px var(--escalate-edge); }
+  .a { color: var(--approval); background: var(--approval-bg); box-shadow: inset 0 0 0 1px var(--approval-edge); }
+  .card .why { font-size: 13px; line-height: 1.38; color: rgba(255,255,255,.76); }
 
-  .arrow { display: block; margin: 6px 0 4px 120px; width: 120px; height: 84px; }
+  .l1 { left: 56px;   top: 168px; }
+  .l2 { left: 56px;   top: 352px; }
+  .l3 { left: 56px;   top: 536px; }
+  .r1 { right: 56px;  top: 168px; }
+  .r2 { right: 56px;  top: 352px; }
+  .r3 { right: 56px;  top: 536px; }
 
-  .rule { background: #fff; border: 2px solid var(--charcoal); border-radius: 18px; padding: 24px 32px 26px;
-    box-shadow: rgba(0,0,0,.07) 0 4px 26px; }
-  .rule .top { display: flex; align-items: center; gap: 16px; }
-  .rid { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 26px; border: 2px solid var(--charcoal); border-radius: 8px; padding: 3px 10px; }
-  .ver { font-family: 'Geist Mono', monospace; font-size: 22px; color: var(--muted); }
-  .rule h2 { margin-top: 16px; font-size: 36px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
-  .chips { margin-top: 20px; display: flex; align-items: center; gap: 14px; }
-  .gate { display: inline-flex; align-items: center; gap: 12px; font-size: 34px; font-weight: 700;
-    color: var(--blocked); background: var(--blocked-bg); border: 2px solid var(--blocked); border-radius: 999px; padding: 8px 24px 8px 16px; }
-  .gate svg { width: 34px; height: 34px; }
-  .esc { white-space: nowrap; display: inline-flex; align-items: center; font-size: 24px; font-weight: 600; color: var(--escalate);
-    background: var(--escalate-bg); border: 1.5px solid var(--escalate); border-radius: 999px; padding: 8px 18px; }
+  /* The sentence, and the rule it became. The product in one strip. */
+  .strip { position: absolute; left: 50%; transform: translateX(-50%); top: 694px; display: flex; align-items: center; gap: 20px;
+    padding: 12px 24px; border-radius: 999px; background: rgba(23,18,42,.56); border: 1px solid var(--edge);
+    backdrop-filter: blur(14px); box-shadow: 0 18px 50px -20px rgba(10,8,30,.7); }
+  .strip .said p { font-family: 'Caveat', cursive; font-size: 30px; line-height: 1.05; color: #e7e1ff; }
+  .strip .said .who { margin-top: 2px; font-size: 12.5px; color: var(--faint); }
+  .strip .said .who b { font-family: 'Geist Mono', monospace; font-weight: 600; color: rgba(255,255,255,.86); }
+  .strip .arrow { width: 38px; height: 14px; flex: none; }
+  .strip .became { display: flex; align-items: center; gap: 9px; }
+  .strip .became .rid { font-family: 'Geist Mono', monospace; font-weight: 600; font-size: 15px;
+    border: 1px solid rgba(255,255,255,.34); border-radius: 8px; padding: 3px 9px; }
+  .strip .became .ver { font-family: 'Geist Mono', monospace; font-size: 12.5px; color: var(--faint); }
 
-  .band { position: absolute; left: 0; right: 0; bottom: 0; height: 104px; background: var(--marker); border-radius: 56px 56px 0 0;
-    display: flex; align-items: center; justify-content: space-between; padding: 0 88px; color: #ffffff; }
-  .band .event { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
-  .band .event i { font-style: normal; opacity: .55; padding: 0 12px; }
-  .band .tag { font-size: 26px; font-weight: 500; }
+  .band { position: absolute; left: 0; right: 0; bottom: 0; height: 82px; background: linear-gradient(90deg,#46369f 0%,#5643c4 58%,#6150d2 100%);
+    border-radius: 46px 46px 0 0; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 86px; color: #ffffff; }
+  .band .event { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .band .event i { font-style: normal; opacity: .55; padding: 0 11px; }
+  .band .url { font-family: 'Geist Mono', monospace; font-size: 21px; color: rgba(255,255,255,.92); }
 </style>
 </head>
 <body>
-  <div class="grid-bg"></div>
+  <div class="photo">
+    <img src="../../public/landing/expert-dusk.jpg" alt="">
+  </div>
+  <div class="vignette"></div>
 
-  <div class="left">
-    <div class="brand">
+  <div class="centre">
+    <div class="lockup">
       <svg viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#171717"/>
-        <path d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#171717"/>
+        <path d="M11.16 25 L9.34 14 L3.6 17.2 L7.4 27.2Z" fill="#ffffff"/>
+        <path d="M20.84 25 L22.66 14 L28.4 17.2 L24.6 27.2Z" fill="#ffffff"/>
         <path d="M13 24 L10 6 L22 6 L19 24Z" fill="#ff6f1e"/>
       </svg>
       <span>Keystone</span>
     </div>
-    <h1>The expert retires.<br>His <span class="hl">judgement<svg viewBox="0 0 120 10" preserveAspectRatio="none"><path d="M2 6.4C20 3.6 38 3.1 58 4.6c18 1.4 35 2.6 60-.8" fill="none" stroke="#8b7cf6" stroke-width="7" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></span> stays.</h1>
+    <h1>The expert retires.<br><em>His judgement stays.</em></h1>
+    <p class="sub">One interview became thirteen rules. Every decision around him is made by those rules, traced to the sentence it came from.</p>
   </div>
 
-  <div class="right">
-    <div class="quote">
+  <!-- Left: the plant room. TS-07, TS-05, TS-06 on their own eval cases. -->
+  <div class="card l1">
+    <div class="meta"><span class="rid">TS-07</span>Harbourfront One · L23</div>
+    <p class="what">A chilled-water riser joint fails and the water tracks toward the electrical room.</p>
+    <div class="then">
+      <span class="chip b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M5.5 5.5l13 13"/></svg>Blocked</span>
+      <span class="why">No re-energising until LEW sign-off, insulation resistance and a dry area.</span>
+    </div>
+  </div>
+
+  <div class="card l2">
+    <div class="meta"><span class="rid">TS-05</span>Harbourfront One · L5</div>
+    <p class="what">A sprinkler head fails; isolating the zone takes the fire-alarm interlock with it.</p>
+    <div class="then">
+      <span class="chip a">Needs approval</span>
+      <span class="why">The FSM authorises the impairment, red-tag raised, fire watch posted.</span>
+    </div>
+  </div>
+
+  <div class="card l3">
+    <div class="meta"><span class="rid">TS-06</span>Harbourfront One · B2</div>
+    <p class="what">Monsoon seepage puts water in the lift pit overnight.</p>
+    <div class="then">
+      <span class="chip a">Needs approval</span>
+      <span class="why">Lift out of service via the FCC; back only on contractor clearance.</span>
+    </div>
+  </div>
+
+  <!-- Right: the data hall and the people. TS-10, TE-03, TE-06. -->
+  <div class="card r1">
+    <div class="meta"><span class="rid">TS-10</span>Harbourfront DC1 · data hall</div>
+    <p class="what">A CRAH condensate leak, underfloor detection and a humidity alarm at once.</p>
+    <div class="then">
+      <span class="chip e">Escalate</span>
+      <span class="why">To the Critical Facilities Manager. Technical Services powers nothing down.</span>
+    </div>
+  </div>
+
+  <div class="card r2">
+    <div class="meta"><span class="rid">TE-03</span>Tenant first notice</div>
+    <p class="what">The draft notice names a cause before anyone has confirmed the source.</p>
+    <div class="then">
+      <span class="chip b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M5.5 5.5l13 13"/></svg>Blocked</span>
+      <span class="why">The cause language comes out before the message can be sent.</span>
+    </div>
+  </div>
+
+  <div class="card r3">
+    <div class="meta"><span class="rid">TE-06</span>Hyperscale client</div>
+    <p class="what">The same leak reaches a data-centre client under an SLA.</p>
+    <div class="then">
+      <span class="chip e">Escalate</span>
+      <span class="why">SLA notice through the CFM, inside the 15-minute window.</span>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="said">
       <p>“Never re-energise before the LEW signs off.”</p>
       <div class="who">Tan Wei Ming, Chief Engineer · <b>00:14:32</b></div>
     </div>
-    <svg class="arrow" viewBox="0 0 120 84" aria-hidden="true">
-      <path d="M20 4 C 10 40, 40 66, 92 70" fill="none" stroke="#8b7cf6" stroke-width="5" stroke-linecap="round"/>
-      <path d="M78 54 L95 70 L76 82" fill="none" stroke="#8b7cf6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg class="arrow" viewBox="0 0 38 14" aria-hidden="true">
+      <path d="M1 7h30" fill="none" stroke="#8b7cf6" stroke-width="3" stroke-linecap="round"/>
+      <path d="M27 2.5 L33 7 L27 11.5" fill="none" stroke="#8b7cf6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
-    <div class="rule">
-      <div class="top"><span class="rid">TS-07</span><span class="ver">rule · v1.2.0</span></div>
-      <h2>No re-energisation without LEW sign-off</h2>
-      <div class="chips">
-        <span class="gate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M5.5 5.5l13 13"/></svg>Blocked</span>
-        <span class="esc">Escalate to LEW</span>
-      </div>
+    <div class="became">
+      <span class="rid">TS-07</span>
+      <span class="ver">rule · v1.2.0</span>
     </div>
   </div>
 
   <div class="band">
     <div class="event">Keppel AI HARVEST<i>·</i>Tencent Cloud AI CAN DO IT 2026</div>
-    <div class="tag">Expert judgement, governed.</div>
+    <div class="url">keystone-tencent.vercel.app</div>
   </div>
 </body>
 </html>
