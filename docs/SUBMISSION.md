@@ -367,18 +367,44 @@ transcription. Full Mermaid diagrams in `docs/ARCHITECTURE.md`.
 
 ### 5.3 How prompts drive AI generation
 
-The LLM is confined to **language work**. Extraction (from the onboarding transcript
-or a frontline note) and tenant drafting have opt-in live endpoints: Hunyuan hy4-preview via the **CodeBuddy Agent SDK** when a
-CodeBuddy key or local login exists, otherwise Hunyuan hy4-preview via TokenHub, with
-OpenAI (gpt-5.4-mini) as a fallback; the public Vercel deployment tries TokenHub first. Interviewer probes and
-contradiction detection remain scripted/recorded, not live inference. All screens
-default to recorded fixtures in `data/fixtures/llm/`. The prompts below describe the
-design; items 1 and 3 run as recorded output in the demo:
+**Where the model acts.** Five distinct jobs, each one hard language work, and each
+one constrained so that its output can be checked rather than trusted:
+
+| Job | Model and route | What constrains it | What checks it | In the demo |
+|---|---|---|---|---|
+| **Choosing the next probe** to ask a live expert | hy4-preview · `/api/llm/probe` | A 31-probe CDM/ACTA library, plus the window of the call so far and the rules already captured | A grounding guard: a probe citing a moment the expert did not say is refused, and the reason is shown | **Live** (`LiveProbePanel` on `/capture`) |
+| **Extracting rule candidates** | hy4-preview · `/api/llm/extract` | Strict `json_schema` decoding against the `rules.yaml` shape | Every candidate re-validated field by field; rejects are named, not hidden | **Live** |
+| **Drafting a tenant notice** | hy4-preview · `/api/llm/tenant-message` | The Tenant Experience pill's own rules — no cause before the source is confirmed (TE-03), no completion time (TE-02), PII masked (TE-05) | The engine: the draft is `needs_approval` and a gate blocks a cause claim | **Live** |
+| **Drawing a described situation** | hy4-preview · `/api/llm/scene` | A fixed scene schema (`lib/scene/schema`) — floors, origin, travel, threat, measure | A deterministic renderer draws only values that passed; a rejected field means no picture | **Live** |
+| **Speaking** | MiniMax Speech 2.8 HD · TokenHub | — | The badge names the model, gateway and latency on every output | **Live** (72 clips pre-rendered) |
+
+What makes automating all five safe is the constraint on each, not the absence of a
+model: every output is a draft a named human confirms, and **none of them can reach a
+gate**. That is the difference between a model that drafts during a live incident and
+a model nobody dares switch on.
+
+**The same knowledge runs somewhere else, unchanged.** The pill installs as a native
+CodeBuddy skill and, asked the same question, reached the **same TS-07 decision** this
+engine reaches — a different runtime, a different model, the same answer, verified and
+screenshotted (`docs/proof/04a`, `04b`). The rules are plain text with no prompt tuned
+to one vendor, which is what "portable" has to mean if it means anything.
+
+Routing: Hunyuan hy4-preview via the **CodeBuddy Agent SDK** when a CodeBuddy key or
+local login exists, otherwise Hunyuan hy4-preview via TokenHub, with OpenAI
+(gpt-5.4-mini) as a fallback; the public Vercel deployment tries TokenHub first and is
+answering through it. Where nothing answers, screens fall back to recorded fixtures in
+`data/fixtures/llm/` — except where a recorded answer would be a reading of something
+the person just typed, which is refused outright (`lib/teach/extraction`,
+`/api/llm/scene`). The prompts below describe each job in detail:
 
 1. **Interviewer probes (Expert Capture).** The scripted demo interview is tagged
    against a 31-probe library drawn from the Critical Decision Method and ACTA
    (`research_domain.md` §1.3), anchored to the last incident ("walk me through the
-   last time…"). Live adaptive probing is proposed, not implemented.
+   last time…"). **Live adaptive probing is implemented**, not merely proposed: the
+   panel sends the call so far and the rules already captured, and the model proposes
+   the next probe against what is still unsettled. Its answer passes a grounding guard
+   first — a probe that cites a moment the expert did not say is refused and the
+   recorded probe shown instead, with the guard's own reason on screen.
 2. **Rule extraction.** The scribe prompt maps expert speech into the `rules.yaml`
    schema: `trigger` conditions, `required_evidence`, `decision`, `allowed_actions`,
    `forbidden_actions`, `exceptions`, `action_class`, `escalate_to`, `owner`, `deadline`,
