@@ -34,6 +34,16 @@ The domain skills (`/hyperframes-core`, `/hyperframes-animation`, `/hyperframes-
 > everything already installed — neither pulls the full set. Restart the agent session so
 > newly installed skills load.
 
+## Before you change narration
+
+Acts whose camera beats are keyed to footage marks (act-02 above all) are tuned
+to the exact audio durations they were built against. Re-voicing returns a
+different length even for identical text, which silently desynchronises the
+camera from the footage. Deleting an act's mp3s is destructive in a way git
+cannot undo: assets/audio is gitignored, so the durations the choreography
+depends on are gone the moment the files are. Re-render and sample the beat
+before trusting any narration change.
+
 ## Commands
 
 ```bash

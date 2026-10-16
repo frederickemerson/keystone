@@ -1,3 +1,12 @@
+// FRAGILITY, learned the hard way: this act's beats are anchored to BOTH the
+// narration (c.at(n)) and to source timestamps inside the footage (local(29.8)
+// is the contradiction). Those two anchors only agree for the exact audio
+// durations the act was tuned against. Re-voicing a line — even with the same
+// words — returns a different length from MiniMax (a restore came back 12s
+// longer for identical text), the two anchors drift apart, and the
+// contradiction slides out of frame without anything failing or warning. If
+// the narration for this act changes at all, re-derive the marks and retime
+// the camera, then verify by snapshotting around local(29.8).
 // ACT 2 — capturing the judgement. The chilled-water session on /teach: the
 // drawn situation, one wide question, the coverage board, the contradiction.
 //
