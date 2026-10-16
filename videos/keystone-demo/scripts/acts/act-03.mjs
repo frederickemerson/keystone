@@ -45,7 +45,7 @@ export default {
     return `
         frameIn("#act-03-frame", 0.15);
         // the gate, blocked: a slow push while the quote card is read
-        tl.to("#act-03-cam", { scale: 1.07, y: -20, duration: ${(g1 - 0.4).toFixed(2)}, ease: "none" }, 0.9);
+        tl.to("#act-03-cam", { scale: 1.605, y: -20, duration: ${(g1 - 0.4).toFixed(2)}, ease: "none" }, 0.9);
         // "it asks him why" — punch to the capture task, spotlight the consent boxes
         cam("#act-03-cam", ${(g1 + 0.2).toFixed(2)}, { zoom: ${F1.zoom}, slideX: ${F1.slideX}, slideY: ${F1.slideY}, dur: 1.0 });
         // No feather highlight: it washed out the panel it was pointing at.
@@ -62,7 +62,7 @@ export default {
         chip("#act-03-r3", ${(g2 + 10.8).toFixed(2)});
         tl.to("#act-03-roles", { opacity: 0, y: -12, duration: 0.4, ease: "power2.in" }, ${(g3 - 0.3).toFixed(2)});
         // "whose knowledge it is" — a slow drift on the draft and the attribution line
-        tl.to("#act-03-cam", { scale: 1.1, y: -50, duration: ${(c.D - g3).toFixed(2)}, ease: "none" }, ${g3.toFixed(2)});
+        tl.to("#act-03-cam", { scale: 1.65, y: -50, duration: ${(c.D - g3).toFixed(2)}, ease: "none" }, ${g3.toFixed(2)});
         waterfall("#act-03-low", ${(g3 + 2.6).toFixed(2)});
     `;
   },

@@ -19,12 +19,13 @@ const TESTS = 1351, FILES = 108;
 
 export default {
   label: 'How it was built',
+  tail: 5.6,
   lead: 0.7,
   keystonAt: 1.0,
   reactAt: (c) => (c.at(3) ?? 19.1) + 7.4,
   reactTilt: 4,
   css: () => `
-        #root .deck { position: absolute; left: 860px; top: 120px; width: 940px; height: 800px; perspective: 1600px; }
+        #root .deck { position: absolute; left: 790px; top: 96px; width: 1010px; height: 860px; perspective: 1600px; }
         #root .cardimg { position: absolute; inset: 0; border-radius: 14px; overflow: hidden; background: #0e0c16; box-shadow: 0 50px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,124,246,0.25);
           opacity: 0; will-change: transform, filter; }
         #root .cardimg img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
@@ -35,9 +36,16 @@ export default {
           font-family: "IBM Plex Mono", monospace; font-size: 24px; font-weight: 700; color: #8b7cf6; }
         #root .tip h3 { margin: 0; font-weight: 800; font-size: 36px; letter-spacing: -0.02em; line-height: 1.1; }
         #root .tip p { margin: 8px 0 0; font-size: 22px; line-height: 1.35; color: #cfc9e0; }
-        #root .count { position: absolute; left: 120px; bottom: 150px; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; opacity: 0; will-change: transform; }
+        #root .count { position: absolute; left: 120px; bottom: 268px; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; opacity: 0; will-change: transform; }
         #root .count b { font-size: 84px; font-weight: 700; color: #f6f5fa; letter-spacing: -0.03em; }
         #root .count span { font-size: 26px; color: #9a93b5; margin-left: 14px; }
+        #root .stack { position: absolute; left: 120px; bottom: 150px; display: flex; gap: 9px; max-width: 640px; }
+        #root .runs { opacity: 0; padding: 9px 11px; border-radius: 12px; background: rgba(14,12,22,0.9);
+          border: 1px solid rgba(139,124,246,0.42); will-change: transform; }
+        #root .runs b { display: block; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; color: #f6f5fa; }
+        #root .runs span { display: block; margin-top: 4px; font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+          letter-spacing: 0.06em; color: #9a93b5; }
+        #root .runs.ok span { color: #8ef0a8; }
   `,
   stage: () => `
           <div class="deck" id="act-11-deck">
@@ -48,10 +56,19 @@ export default {
             <div class="tip" id="act-11-t2"><span class="n">2</span><h3>Freeze scope, close one loop</h3><p>Seven half-working screens lose to one that closes.</p></div>
             <div class="tip" id="act-11-t3"><span class="n">3</span><h3>Safety as tests, not comments</h3><p>Evidence can't be faked open; the author can't approve their own version.</p></div>
           </div>
+          <div class="stack">
+            <div class="runs ok" id="act-11-k0"><b>CodeBuddy</b><span>skill &middot; same TS-07 decision</span></div>
+            <div class="runs ok" id="act-11-k1"><b>Tencent Cloud ADP</b><span>agent &middot; reports what grounded it</span></div>
+            <div class="runs ok" id="act-11-k2"><b>TokenHub</b><span>Hunyuan hy4-preview &middot; drafts only</span></div>
+            <div class="runs ok" id="act-11-k3"><b>MiniMax Speech 2.8 HD</b><span>this voice</span></div>
+          </div>
           <div class="count" id="act-11-count"><b id="act-11-num">0</b><span>tests &middot; ${FILES} files &middot; all green</span></div>
   `,
   motion: (c) => {
     const g1 = c.at(1) ?? 5.6, g2 = c.at(2) ?? 12.6, g3 = c.at(3) ?? 19.1;
+    // The stack lands after the narration stops: four products in a held beat,
+    // which is the only silence of its length in the film and the point of it.
+    const stack = Math.max(g3 + 6.0, c.D - 5.4);
     const beats = [1.0, g2, g3];
     return `
         // the stills: one tilted card at a time, entering from the right, the previous leaving left (split-tilt-cards, one side)
@@ -64,6 +81,9 @@ export default {
         // "that's the part you can actually run" — the measured count, rows set on the timeline, then a landing pulse
         const rows = []; const F = 30, DUR = 1.6, last = Math.round(DUR * F); const ease = gsap.parseEase("sine.inOut");
         for (let f = 0; f <= last; f++) rows.push(Math.round(${TESTS} * ease(f / last)).toLocaleString("en-US"));
+        // the stack: four products, each with the thing that was actually
+        // proved about it, landing under "the model only ever does language"
+        ${[0, 1, 2, 3].map((i) => `tl.fromTo("#act-11-k${i}", { opacity: 0, y: 22, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, ${(stack + i * 0.42).toFixed(2)});`).join('\n        ')}
         tl.fromTo("#act-11-count", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, ${(g3 + 5.2).toFixed(2)});
         rows.forEach((r, f) => tl.set("#act-11-num", { textContent: r }, ${(g3 + 5.3).toFixed(2)} + DUR * (f / last)));
         tl.to("#act-11-count", { scale: 1.06, duration: 0.17, ease: "power3.out", transformOrigin: "0 100%" }, ${(g3 + 5.3 + 1.6).toFixed(2)});

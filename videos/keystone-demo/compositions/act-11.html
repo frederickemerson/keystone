@@ -69,7 +69,7 @@
         #root .disclosure { position: absolute; left: 0; right: 0; bottom: 26px; text-align: center; font-family: "IBM Plex Mono", monospace;
           font-size: 19px; letter-spacing: 0.04em; color: #9a93b5; opacity: 0; }
 
-        #root .deck { position: absolute; left: 860px; top: 120px; width: 940px; height: 800px; perspective: 1600px; }
+        #root .deck { position: absolute; left: 790px; top: 96px; width: 1010px; height: 860px; perspective: 1600px; }
         #root .cardimg { position: absolute; inset: 0; border-radius: 14px; overflow: hidden; background: #0e0c16; box-shadow: 0 50px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,124,246,0.25);
           opacity: 0; will-change: transform, filter; }
         #root .cardimg img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
@@ -80,13 +80,20 @@
           font-family: "IBM Plex Mono", monospace; font-size: 24px; font-weight: 700; color: #8b7cf6; }
         #root .tip h3 { margin: 0; font-weight: 800; font-size: 36px; letter-spacing: -0.02em; line-height: 1.1; }
         #root .tip p { margin: 8px 0 0; font-size: 22px; line-height: 1.35; color: #cfc9e0; }
-        #root .count { position: absolute; left: 120px; bottom: 150px; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; opacity: 0; will-change: transform; }
+        #root .count { position: absolute; left: 120px; bottom: 268px; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; opacity: 0; will-change: transform; }
         #root .count b { font-size: 84px; font-weight: 700; color: #f6f5fa; letter-spacing: -0.03em; }
         #root .count span { font-size: 26px; color: #9a93b5; margin-left: 14px; }
+        #root .stack { position: absolute; left: 120px; bottom: 150px; display: flex; gap: 9px; max-width: 640px; }
+        #root .runs { opacity: 0; padding: 9px 11px; border-radius: 12px; background: rgba(14,12,22,0.9);
+          border: 1px solid rgba(139,124,246,0.42); will-change: transform; }
+        #root .runs b { display: block; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; color: #f6f5fa; }
+        #root .runs span { display: block; margin-top: 4px; font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+          letter-spacing: 0.06em; color: #9a93b5; }
+        #root .runs.ok span { color: #8ef0a8; }
   
       </style>
 
-      <div id="root" data-composition-id="act-11" data-width="1920" data-height="1080" data-duration="29.38">
+      <div id="root" data-composition-id="act-11" data-width="1920" data-height="1080" data-duration="34.28">
         <div class="stage" id="act-11-stage">
           <div class="bg"></div>
           <div class="glow glow-a" id="act-11-glow-a" data-layout-allow-overflow="true"></div>
@@ -101,6 +108,12 @@
             <div class="tip" id="act-11-t1"><span class="n">1</span><h3>Plan mode first</h3><p>The plan is markdown. Argue with that before it touches a file.</p></div>
             <div class="tip" id="act-11-t2"><span class="n">2</span><h3>Freeze scope, close one loop</h3><p>Seven half-working screens lose to one that closes.</p></div>
             <div class="tip" id="act-11-t3"><span class="n">3</span><h3>Safety as tests, not comments</h3><p>Evidence can't be faked open; the author can't approve their own version.</p></div>
+          </div>
+          <div class="stack">
+            <div class="runs ok" id="act-11-k0"><b>CodeBuddy</b><span>skill &middot; same TS-07 decision</span></div>
+            <div class="runs ok" id="act-11-k1"><b>Tencent Cloud ADP</b><span>agent &middot; reports what grounded it</span></div>
+            <div class="runs ok" id="act-11-k2"><b>TokenHub</b><span>Hunyuan hy4-preview &middot; drafts only</span></div>
+            <div class="runs ok" id="act-11-k3"><b>MiniMax Speech 2.8 HD</b><span>this voice</span></div>
           </div>
           <div class="count" id="act-11-count"><b id="act-11-num">0</b><span>tests &middot; 108 files &middot; all green</span></div>
   
@@ -259,7 +272,7 @@
         tl.to("#act-11-s1 img", { y: -60, duration: 6.52, ease: "none" }, 12.03);
         tl.to("#act-11-s1", { opacity: 0, x: -360, rotationY: 10, filter: "blur(8px)", duration: 0.45, ease: "power3.in" }, 17.95);
         tl.fromTo("#act-11-s2", { opacity: 0, x: 520, rotationY: -22, filter: "blur(10px)" }, { opacity: 1, x: 0, rotationY: -8, filter: "blur(0px)", duration: 0.7, ease: "power3.out" }, 18.05);
-        tl.to("#act-11-s2 img", { y: -60, duration: 11.33, ease: "none" }, 18.55);
+        tl.to("#act-11-s2 img", { y: -60, duration: 16.23, ease: "none" }, 18.55);
         
         // the three tips land with the narration
         tl.fromTo("#act-11-t1", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 4.53);
@@ -268,6 +281,12 @@
         // "that's the part you can actually run" — the measured count, rows set on the timeline, then a landing pulse
         const rows = []; const F = 30, DUR = 1.6, last = Math.round(DUR * F); const ease = gsap.parseEase("sine.inOut");
         for (let f = 0; f <= last; f++) rows.push(Math.round(1351 * ease(f / last)).toLocaleString("en-US"));
+        // the stack: four products, each with the thing that was actually
+        // proved about it, landing under "the model only ever does language"
+        tl.fromTo("#act-11-k0", { opacity: 0, y: 22, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 28.88);
+        tl.fromTo("#act-11-k1", { opacity: 0, y: 22, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 29.30);
+        tl.fromTo("#act-11-k2", { opacity: 0, y: 22, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 29.72);
+        tl.fromTo("#act-11-k3", { opacity: 0, y: 22, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, 30.14);
         tl.fromTo("#act-11-count", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 23.25);
         rows.forEach((r, f) => tl.set("#act-11-num", { textContent: r }, 23.35 + DUR * (f / last)));
         tl.to("#act-11-count", { scale: 1.06, duration: 0.17, ease: "power3.out", transformOrigin: "0 100%" }, 24.95);
@@ -278,14 +297,14 @@
         tl.fromTo("#act-11-label i", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power3.out" }, 0.45);
         tl.to("#act-11-label", { opacity: 0, x: -10, duration: 0.4, ease: "power2.in" }, 4.60);
         tl.fromTo("#act-11-tag", { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.4);
-        tl.fromTo("#act-11-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 14.69, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
-        tl.fromTo("#act-11-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 14.69, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
-        tl.fromTo("#act-11-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 29.38, ease: "none" }, 0);
+        tl.fromTo("#act-11-glow-a", { scale: 0.9 }, { scale: 1.15, duration: 17.14, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-11-glow-b", { scale: 1.1 }, { scale: 0.88, duration: 17.14, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0);
+        tl.fromTo("#act-11-ghost", { x: -60, y: 0 }, { x: 60, y: 30, duration: 34.28, ease: "none" }, 0);
         tl.fromTo("#act-11-keyston", { opacity: 0, y: 26, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 1);
-        breathe("#act-11-keyston .mascot-body", 1.7, 1.6, -5, 29.38);
+        breathe("#act-11-keyston .mascot-body", 1.7, 1.6, -5, 34.28);
         react(25.450000000000003, 4);
         tl.fromTo(S, { opacity: 0, filter: "blur(14px)", scale: 0.97 }, { opacity: 1, filter: "blur(0px)", scale: 1, duration: 0.5, ease: "power2.inOut" }, 0.1);
-        tl.to(S, { filter: "blur(12px)", scale: 1.03, opacity: 0, duration: 0.6, ease: "power2.inOut" }, 28.78);
+        tl.to(S, { filter: "blur(12px)", scale: 1.03, opacity: 0, duration: 0.6, ease: "power2.inOut" }, 33.68);
         window.__timelines["act-11"] = tl;
       </script>
     </template>

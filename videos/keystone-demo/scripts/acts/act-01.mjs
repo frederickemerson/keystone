@@ -17,6 +17,17 @@ export default {
   reactAt: (c) => (c.at(2) ?? 16.2) + 0.3,
   reactTilt: 6,
   css: () => `
+        /* The first seven seconds were a silhouette and a small figure while
+           the narration said a man has run technical services for eighteen
+           years. This is that man — the product's own landing photograph —
+           feathered into the stage so it reads as the film's image, not a
+           photo dropped on it. */
+        #root .portrait { position: absolute; left: 0; top: 0; width: 1180px; height: 1080px; opacity: 0;
+          -webkit-mask-image: radial-gradient(ellipse 62% 74% at 42% 46%, #000 38%, rgba(0,0,0,0.55) 66%, transparent 86%);
+          mask-image: radial-gradient(ellipse 62% 74% at 42% 46%, #000 38%, rgba(0,0,0,0.55) 66%, transparent 86%);
+          will-change: transform, opacity; }
+        #root .portrait img { width: 100%; height: 100%; object-fit: cover; object-position: 48% 34%;
+          filter: saturate(0.82) contrast(1.06) brightness(0.86); }
         #root .tower { position: absolute; left: 0; right: 0; top: 0; bottom: 0; transform-origin: 64% 46%; will-change: transform; }
         #root .tower svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
         #root .floor { fill: rgba(246,245,250,0.05); stroke: rgba(246,245,250,0.12); }
@@ -50,6 +61,7 @@ export default {
     const threads = Array.from({ length: N - 1 }, (_, i) =>
       `<path class="thread" id="act-01-th-${i}" d="M${X(i) + 72} 660 C ${X(i) + 130} 520, ${X(i + 1) + 14} 520, ${X(i + 1) + 72} 660" />`).join('');
     return `
+          <div class="portrait" id="act-01-portrait"><img src="assets/stills/expert-dusk.jpg" alt="" /></div>
           <div class="tower" id="act-01-tower">
             <svg viewBox="0 0 1920 1080">
               <rect x="1370" y="140" width="380" height="800" rx="6" fill="rgba(246,245,250,0.04)" stroke="rgba(246,245,250,0.16)" />
@@ -72,7 +84,12 @@ export default {
         tl.fromTo("#act-01-tower", { scale: 1 }, { scale: 1.07, duration: ${c.D.toFixed(2)}, ease: "none" }, 0);
         // the tower's lit windows breathe out of phase — a building at dusk, alive
         for (let i = 0; i < 11; i++) tl.fromTo("#act-01-lit-" + i, { opacity: 0.35 + (i % 3) * 0.2 }, { opacity: 0.9 - (i % 4) * 0.15, duration: 1.2 + (i % 5) * 0.3, ease: "sine.inOut", yoyo: true, repeat: 5 }, 0.2 + i * 0.13);
-        tl.fromTo("#act-01-figure", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.8, ease: "power2.out" }, 0.4);
+        // the man first, before anything abstract
+        tl.fromTo("#act-01-portrait", { opacity: 0, scale: 1.14, x: -30 }, { opacity: 1, scale: 1.06, x: 0, duration: 1.5, ease: "power2.out" }, 0.15);
+        tl.to("#act-01-portrait", { scale: 1.0, duration: ${(t1 - 1.0).toFixed(2)}, ease: "none" }, 1.4);
+        // he steps back as the procedures take the stage
+        tl.to("#act-01-portrait", { opacity: 0.18, scale: 0.98, duration: 1.1, ease: "power2.inOut" }, ${(t1 - 0.2).toFixed(2)});
+        tl.fromTo("#act-01-figure", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.8, ease: "power2.out" }, ${(t1 + 0.1).toFixed(2)});
         // the procedures: spring-pop-entrance, staggered so the row reads as one beat
         for (let i = 0; i < ${N}; i++) tl.fromTo("#act-01-doc-" + i, { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }, ${(t1 + 0.3).toFixed(2)} + i * 0.07);
         // the judgement BETWEEN them draws itself

@@ -238,3 +238,8 @@ writeFileSync(join(ROOT, 'timings.json'), JSON.stringify({ fps: FPS, total, acts
 const mm = Math.floor(total / 60), ss = Math.round(total % 60);
 console.log(`${acts.length} acts · ${audio.length} VO clips · ${sfx.length} sfx · ${mm}:${String(ss).padStart(2, '0')}`);
 for (const t of timings) console.log(`  ${t.id.padEnd(8)} ${String(t.start).padStart(7)}s  +${String(t.content).padStart(6)}s${t.voiced ? '' : '   (unvoiced: type + music)'}`);
+console.log(
+  '\n  ! index.html is freshly generated, so the music bed is NOT carved.\n' +
+  '    Run the carve before rendering or the bed sits flat over every line:\n' +
+  '    node ~/.claude/skills/hyperframes-audio/scripts/carve.mjs --comp index.html --bed music-bed-a --strength 0.85',
+);

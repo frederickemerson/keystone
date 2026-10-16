@@ -59,8 +59,22 @@ async function shoot(id, role, fn) {
   if (only.length && !only.includes(id)) return;
   const browser = await chromium.launch();
   const ctx = await browser.newContext({
-    viewport: { width: 1920, height: 1080 },
-    recordVideo: { dir: RAW, size: { width: 1920, height: 1080 } },
+    // WARNING before you re-record: every act keys its camera beats to source
+    // seconds inside its clip (see each act module's header and
+    // assets/footage/teach-marks.json). A fresh take runs to a different
+    // length — the first 1280 re-record of act-02 came out 33.7s against the
+    // original 63.4s — so re-recording means re-deriving the marks for that
+    // clip and retiming its act. Do not re-record one clip casually.
+    //
+    // Recorded at a 1280 viewport with 2x device scale, not at 1920x1 — the
+    // app rendered at full desktop width made its own UI proportionally tiny,
+    // so a shot of a screen was a shot nobody could read, and the acts' 2x
+    // push-ins were upscales of an already-small capture. At 1280 the UI is
+    // half again as large in the frame, and at deviceScaleFactor 2 the capture
+    // carries 2560 physical pixels for a 1920 frame to sample from.
+    viewport: { width: 1280, height: 720 },
+    deviceScaleFactor: 2,
+    recordVideo: { dir: RAW, size: { width: 2560, height: 1440 } },
   });
   await ctx.addCookies([{ name: 'keystone_session', value: await cookieFor(role), domain: DOMAIN, path: '/', httpOnly: true, secure: BASE.startsWith('https'), sameSite: 'Lax' }]);
   const page = await ctx.newPage();

@@ -70,7 +70,7 @@ export default {
         tl.set("#act-07-tq", { textContent: "After a chilled water leak, who must approve re-energising?" }, ${(g0 + 5.0).toFixed(2)});
         tl.to("#act-07-task", { opacity: 0, y: -16, duration: 0.35, ease: "power2.in" }, ${(g1 + 6.8).toFixed(2)});
         // they answer, it becomes a draft — a slow push on the form while the relay is spoken
-        tl.to("#act-07-cam", { scale: 1.12, y: -80, duration: ${(c.D - g1 - 1).toFixed(2)}, ease: "none" }, ${(g1 + 1).toFixed(2)});
+        tl.to("#act-07-cam", { scale: 1.792, y: -80, duration: ${(c.D - g1 - 1).toFixed(2)}, ease: "none" }, ${(g1 + 1).toFixed(2)});
         // the relay: four beats, 3–4 s each in the script; here they snap in on the narration's own list
         ${['c1', 'c2', 'c3', 'c4'].map((k, i) => `chip("#act-07-${k}", ${(g2 + 0.4 + i * 0.62).toFixed(2)});`).join('\n        ')}
         ${['a1', 'a2', 'a3'].map((k, i) => `tl.fromTo("#act-07-${k}", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.25, ease: "power2.out" }, ${(g2 + 0.75 + i * 0.62).toFixed(2)});`).join('\n        ')}

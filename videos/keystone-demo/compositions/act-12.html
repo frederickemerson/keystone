@@ -81,13 +81,14 @@
            heading lands, and white-on-pale-screenshot is unreadable. A scrim
            under the text, and the children positioned so they paint over it. */
         #root .choice { position: absolute; left: 120px; top: 200px; width: 1500px; }
-        #root .choice::before { content: ""; position: absolute; left: -56px; right: -140px; top: -64px; bottom: -48px;
-          background: linear-gradient(90deg, rgba(14,12,22,0.93) 0%, rgba(14,12,22,0.88) 52%, rgba(14,12,22,0.0) 100%);
-          border-radius: 26px; }
+        /* Feathered on every edge rather than a rectangle with a gradient on
+           one side: the first version solved the contrast and announced
+           itself as a black box dropped on the footage. */
+        #root .choice::before { content: ""; position: absolute; left: -220px; right: -320px; top: -200px; bottom: -180px;
+          background: radial-gradient(ellipse 58% 62% at 32% 50%, rgba(14,12,22,0.95) 0%, rgba(14,12,22,0.9) 42%, rgba(14,12,22,0.62) 66%, rgba(14,12,22,0) 100%); }
         #root .choice h2, #root .choice .reasons { position: relative; }
-        #root .pains::before { content: ""; position: absolute; left: -56px; right: -140px; top: -40px; bottom: -28px;
-          background: linear-gradient(90deg, rgba(14,12,22,0.90) 0%, rgba(14,12,22,0.82) 52%, rgba(14,12,22,0.0) 100%);
-          border-radius: 26px; }
+        #root .pains::before { content: ""; position: absolute; left: -220px; right: -320px; top: -160px; bottom: -140px;
+          background: radial-gradient(ellipse 56% 60% at 30% 50%, rgba(14,12,22,0.93) 0%, rgba(14,12,22,0.86) 44%, rgba(14,12,22,0.55) 68%, rgba(14,12,22,0) 100%); }
         #root .pain { position: relative; }
         #root .choice h2 { margin: 0; font-weight: 900; font-size: 86px; letter-spacing: -0.035em; line-height: 1.0; }
         #root .choice h2 .w { display: inline-block; opacity: 0; margin-right: 0.24em; will-change: transform; }

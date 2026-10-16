@@ -71,7 +71,7 @@ export default {
         tl.fromTo("#act-05-frame", { opacity: 1, rotationY: -90, transformPerspective: 1600 }, { rotationY: 0, duration: 0.5, ease: "power2.out" }, ${(g0 + 1.82).toFixed(2)});
         tl.fromTo("#act-05-frame .edge", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.out" }, ${(g0 + 2.2).toFixed(2)});
         // Duty LEW. All three items. TS-07, 1.2.0 — green, and five passages
-        tl.to("#act-05-cam", { scale: 1.2, y: -60, duration: 1.2, ease: "power2.inOut" }, ${(g1 + 0.2).toFixed(2)});
+        tl.to("#act-05-cam", { scale: 1.944, y: -60, duration: 1.2, ease: "power2.inOut" }, ${(g1 + 0.2).toFixed(2)});
         ring("#act-05-r1", ${(g1 + 1.0).toFixed(2)}, "#3fb97a");
         ring("#act-05-r2", ${(g1 + 2.6).toFixed(2)}, "#3fb97a");
         stamp("#act-05-stamp", ${(g1 + 7.4).toFixed(2)});
@@ -79,8 +79,8 @@ export default {
         tl.to("#act-05-stamp", { opacity: 0, y: -12, duration: 0.35, ease: "power2.in" }, ${(g2 - 0.4).toFixed(2)});
         // "then ask it something the pill does not cover" — the refusal take, crossfaded in the same frame
         tl.to("#act-05-cam", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, ${(g2 - 0.1).toFixed(2)});
-        tl.fromTo("#act-05-cam2", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1.12, duration: 0.6, ease: "power2.inOut" }, ${(g2 - 0.1).toFixed(2)});
-        tl.to("#act-05-cam2", { scale: 1.22, y: -50, duration: ${(c.D - g2 - 0.6).toFixed(2)}, ease: "none" }, ${(g2 + 0.5).toFixed(2)});
+        tl.fromTo("#act-05-cam2", { opacity: 0, scale: 1.685 }, { opacity: 1, scale: 1.12, duration: 0.6, ease: "power2.inOut" }, ${(g2 - 0.1).toFixed(2)});
+        tl.to("#act-05-cam2", { scale: 1.976, y: -50, duration: ${(c.D - g2 - 0.6).toFixed(2)}, ease: "none" }, ${(g2 + 0.5).toFixed(2)});
         // no spotlight on the white page — the push-in is the pointer; the line lands under the frame
         waterfall("#act-05-low", ${(g2 + 2.6).toFixed(2)});
     `;

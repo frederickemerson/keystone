@@ -61,22 +61,22 @@ export default {
         // entered by zoom-through from the chooser's chilled-water card: the frame is already here, only its edge draws
         tl.fromTo("#act-02-frame .edge", { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power2.out" }, 0.3);
         // the drawn situation first: a slow push while the stages play
-        tl.to("#act-02-cam", { scale: 1.08, y: -30, duration: ${(board - 1.2).toFixed(2)}, ease: "none" }, 0.9);
+        tl.to("#act-02-cam", { scale: 1.566, y: -30, duration: ${(board - 1.2).toFixed(2)}, ease: "none" }, 0.9);
         // "that panel isn't progress through a script" — punch to the coverage board, spotlight the grey
-        cam("#act-02-cam", ${board.toFixed(2)}, { zoom: 0.42, slideX: -520, slideY: 170, dur: 1.1 });
+        cam("#act-02-cam", ${board.toFixed(2)}, { zoom: ${BOARD.zoom}, slideX: ${BOARD.slideX}, slideY: ${BOARD.slideY}, dur: 1.1 });
         // No feather highlight on the board: it is a pale panel and the glow
         // erased it. The camera is the pointer here, as in act-05.
         hlOut("#act-02-hl", ${(board + 0.2).toFixed(2)});
         // back wide for the question cards
         camReset("#act-02-cam", ${(board + 5.4).toFixed(2)}, 1.1);
         // "and it catches him" — the amber panel, held
-        cam("#act-02-cam", ${(contra + 0.3).toFixed(2)}, { zoom: 0.34, slideX: 250, slideY: 200, dur: 1.0 });
+        cam("#act-02-cam", ${(contra + 0.3).toFixed(2)}, { zoom: ${CONTRA.zoom}, slideX: ${CONTRA.slideX}, slideY: ${CONTRA.slideY}, dur: 1.0 });
         // Same here: the contradiction lands in the caption and the push-in,
         // not under a white ellipse sitting on the two statements.
         hlOut("#act-02-hl", ${(contra + 0.2).toFixed(2)});
         camReset("#act-02-cam", ${Math.max(contra + 8.2, g3 + 3.4).toFixed(2)}, 1.2);
         // the draft: a gentle drift while it is read
-        tl.to("#act-02-cam", { scale: 1.06, y: -24, duration: ${(c.D - local(46.7) - 1).toFixed(2)}, ease: "none" }, ${(local(46.7) + 0.5).toFixed(2)});
+        tl.to("#act-02-cam", { scale: 1.537, y: -24, duration: ${(c.D - local(46.7) - 1).toFixed(2)}, ease: "none" }, ${(local(46.7) + 0.5).toFixed(2)});
         // "the code compares two strings" — the two values, side by side, as strings
         chip("#act-02-p1", ${(g5 + 5.6).toFixed(2)});
         tl.fromTo("#act-02-neq", { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, ${(g5 + 6.1).toFixed(2)});

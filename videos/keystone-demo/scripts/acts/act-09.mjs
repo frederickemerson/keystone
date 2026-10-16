@@ -54,7 +54,7 @@ export default {
         cam("#act-09-cam", 1.2, { zoom: ${PANEL.zoom}, slideX: ${PANEL.slideX}, slideY: ${PANEL.slideY}, dur: 1.2 });
         camReset("#act-09-cam", ${(g1 + 2.8).toFixed(2)}, 1.0);
         // the incident opens: plant eighteen percent over, every reading inside spec
-        tl.to("#act-09-cam", { scale: 1.1, y: -60, duration: ${(g2 - g1 - 3).toFixed(2)}, ease: "none" }, ${(g1 + 3.9).toFixed(2)});
+        tl.to("#act-09-cam", { scale: 1.76, y: -60, duration: ${(g2 - g1 - 3).toFixed(2)}, ease: "none" }, ${(g1 + 3.9).toFixed(2)});
         chip("#act-09-f1", ${(g1 + 4.6).toFixed(2)});
         countUp("#act-09-n1", ${(g1 + 4.7).toFixed(2)}, 1.1, 18, (n) => "+" + n + "%");
         chip("#act-09-f2", ${(g1 + 7.2).toFixed(2)});
@@ -64,7 +64,7 @@ export default {
         // the honest thing — the frame dims to one line, said slowly
         tl.to("#act-09-find", { opacity: 0, y: -12, duration: 0.4, ease: "power2.in" }, ${(g3 - 0.2).toFixed(2)});
         tl.to("#act-09-dim", { opacity: 1, duration: 0.6, ease: "power2.inOut" }, ${(g3 + 1.6).toFixed(2)});
-        tl.to("#act-09-cam", { filter: "blur(6px)", scale: 1.14, duration: 0.8, ease: "power2.inOut" }, ${(g3 + 1.6).toFixed(2)});
+        tl.to("#act-09-cam", { filter: "blur(6px)", scale: 1.824, duration: 0.8, ease: "power2.inOut" }, ${(g3 + 1.6).toFixed(2)});
         waterfall("#act-09-h1", ${(g3 + 2.2).toFixed(2)});
         tl.to("#act-09-h1 .w.red", { scale: 1.12, duration: 0.25, ease: "power2.out" }, ${(g3 + 3.3).toFixed(2)});
         tl.to("#act-09-h1 .w.red", { scale: 1, duration: 0.4, ease: "power2.inOut" }, ${(g3 + 3.55).toFixed(2)});
