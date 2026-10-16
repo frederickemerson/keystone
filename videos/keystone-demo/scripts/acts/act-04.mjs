@@ -52,10 +52,9 @@ export default {
     return `
         frameIn("#act-04-frame", 0.15);
         // evidence arriving: a slow push, the room alive
-        tl.to("#act-04-cam", { scale: 1.1, y: -30, duration: ${(stop - 0.9).toFixed(2)}, ease: "none" }, 0.9);
+        tl.to("#act-04-cam", { scale: 1.75, x: 150, y: 40, duration: ${(stop - 0.9).toFixed(2)}, ease: "none" }, 0.9);
         // "— and here it stops." Everything else goes grey; the gate stays lit. One clunk.
-        tl.to("#act-04-cam", { filter: "grayscale(1) brightness(0.62)", scale: 1.14, y: -40, duration: 0.22, ease: "power3.out" }, ${stop.toFixed(2)});
-        hlIn("#act-04-hl", ${stop.toFixed(2)}, { x: "${GATE.x}", y: "${GATE.y}", rx: "28%", ry: "26%" });
+        tl.to("#act-04-cam", { filter: "grayscale(1) brightness(0.62)", scale: 1.82, x: 150, y: 30, duration: 0.22, ease: "power3.out" }, ${stop.toFixed(2)});
         stamp("#act-04-blocked", ${(stop + 0.05).toFixed(2)});
         // three things confirmed by a named person — a padlock, not a spinner
         drawPath("#act-04-lock-body", ${(stop + 1.4).toFixed(2)}, 0.5);

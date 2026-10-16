@@ -245,12 +245,10 @@
         frameIn("#act-06-frame", 0.15);
         // the chips, punched: "now ask a follow-up with the word that in it"
         cam("#act-06-cam", 1.00, { zoom: 0.26, slideX: 85, slideY: -104, dur: 1.0 });
-        hlIn("#act-06-hl", 1.70, { x: "50%", y: "81%", rx: "36%", ry: "16%" });
         // hold one beat on the word — ringed
         tl.fromTo("#act-06-that", { opacity: 0, y: 16, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.5)" }, 2.90);
         ring("#act-06-ring", 3.30, "#d79a3a");
         tl.to("#act-06-that", { opacity: 0, y: -14, duration: 0.35, ease: "power2.in" }, 6.93);
-        hlOut("#act-06-hl", 6.53);
         // the follow-up lands, indented under the first — follow it down
         tl.to("#act-06-cam", { scale: 1.2, x: 81, y: -76, duration: 1.4, ease: "power2.inOut" }, 7.13);
         chip("#act-06-counter", 9.53);

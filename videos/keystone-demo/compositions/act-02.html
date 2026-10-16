@@ -251,14 +251,16 @@
         tl.to("#act-02-cam", { scale: 1.08, y: -30, duration: 15.52, ease: "none" }, 0.9);
         // "that panel isn't progress through a script" — punch to the coverage board, spotlight the grey
         cam("#act-02-cam", 16.72, { zoom: 0.42, slideX: -520, slideY: 170, dur: 1.1 });
-        hlIn("#act-02-hl", 17.62, { x: "82%", y: "40%", rx: "22%", ry: "30%" });
-        hlOut("#act-02-hl", 21.92);
+        // No feather highlight on the board: it is a pale panel and the glow
+        // erased it. The camera is the pointer here, as in act-05.
+        hlOut("#act-02-hl", 16.92);
         // back wide for the question cards
         camReset("#act-02-cam", 22.12, 1.1);
         // "and it catches him" — the amber panel, held
         cam("#act-02-cam", 29.48, { zoom: 0.34, slideX: 250, slideY: 200, dur: 1.0 });
-        hlIn("#act-02-hl", 30.28, { x: "30%", y: "34%", rx: "30%", ry: "22%" });
-        hlOut("#act-02-hl", 36.68);
+        // Same here: the contradiction lands in the caption and the push-in,
+        // not under a white ellipse sitting on the two statements.
+        hlOut("#act-02-hl", 29.38);
         camReset("#act-02-cam", 37.38, 1.2);
         // the draft: a gentle drift while it is read
         tl.to("#act-02-cam", { scale: 1.06, y: -24, duration: 14.90, ease: "none" }, 47.10);

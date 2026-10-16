@@ -43,12 +43,10 @@ export default {
         frameIn("#act-06-frame", 0.15);
         // the chips, punched: "now ask a follow-up with the word that in it"
         cam("#act-06-cam", ${(g0 + 0.3).toFixed(2)}, { zoom: ${CHIPS.zoom}, slideX: ${CHIPS.slideX}, slideY: ${CHIPS.slideY}, dur: 1.0 });
-        hlIn("#act-06-hl", ${(g0 + 1.0).toFixed(2)}, { x: "${CHIPS_AT.x}", y: "${CHIPS_AT.y}", rx: "36%", ry: "16%" });
         // hold one beat on the word — ringed
         tl.fromTo("#act-06-that", { opacity: 0, y: 16, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "back.out(1.5)" }, ${(g0 + 2.2).toFixed(2)});
         ring("#act-06-ring", ${(g0 + 2.6).toFixed(2)}, "#d79a3a");
         tl.to("#act-06-that", { opacity: 0, y: -14, duration: 0.35, ease: "power2.in" }, ${(g1 + 2.4).toFixed(2)});
-        hlOut("#act-06-hl", ${(g1 + 2.0).toFixed(2)});
         // the follow-up lands, indented under the first — follow it down
         tl.to("#act-06-cam", { scale: ${1 + THREAD.zoom}, x: ${THREAD.slideX}, y: ${THREAD.slideY}, duration: 1.4, ease: "power2.inOut" }, ${(g1 + 2.6).toFixed(2)});
         chip("#act-06-counter", ${(g1 + 5.0).toFixed(2)});

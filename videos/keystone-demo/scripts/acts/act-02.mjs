@@ -9,6 +9,15 @@
 // Footage marks (assets/footage/teach-marks.json, source seconds): scenario
 // 2.6 · question 13.6 · account given 15.9 · contradiction 29.8 · condition
 // confirmed 35.4 · answers done 38.8 · tour 46.7 · end 62.4.
+import { focus } from '../lib/chrome.mjs';
+
+// The coverage board on the right, and the two contradicting answers on the
+// left. Pushed to ~2x: at 1.4x the app's own body text was about 14px on
+// screen, so a viewer could see that a screen existed without reading a word
+// of it.
+const BOARD = focus(0.78, 0.46, 2.0);
+const CONTRA = focus(0.33, 0.44, 1.95);
+
 const SRC = 'assets/footage/act-02.webm';
 const FROM = 1.5;
 const RATE = 0.97;
@@ -55,14 +64,16 @@ export default {
         tl.to("#act-02-cam", { scale: 1.08, y: -30, duration: ${(board - 1.2).toFixed(2)}, ease: "none" }, 0.9);
         // "that panel isn't progress through a script" — punch to the coverage board, spotlight the grey
         cam("#act-02-cam", ${board.toFixed(2)}, { zoom: 0.42, slideX: -520, slideY: 170, dur: 1.1 });
-        hlIn("#act-02-hl", ${(board + 0.9).toFixed(2)}, { x: "82%", y: "40%", rx: "22%", ry: "30%" });
-        hlOut("#act-02-hl", ${(board + 5.2).toFixed(2)});
+        // No feather highlight on the board: it is a pale panel and the glow
+        // erased it. The camera is the pointer here, as in act-05.
+        hlOut("#act-02-hl", ${(board + 0.2).toFixed(2)});
         // back wide for the question cards
         camReset("#act-02-cam", ${(board + 5.4).toFixed(2)}, 1.1);
         // "and it catches him" — the amber panel, held
         cam("#act-02-cam", ${(contra + 0.3).toFixed(2)}, { zoom: 0.34, slideX: 250, slideY: 200, dur: 1.0 });
-        hlIn("#act-02-hl", ${(contra + 1.1).toFixed(2)}, { x: "30%", y: "34%", rx: "30%", ry: "22%" });
-        hlOut("#act-02-hl", ${Math.max(contra + 7.5, g3 + 3.0).toFixed(2)});
+        // Same here: the contradiction lands in the caption and the push-in,
+        // not under a white ellipse sitting on the two statements.
+        hlOut("#act-02-hl", ${(contra + 0.2).toFixed(2)});
         camReset("#act-02-cam", ${Math.max(contra + 8.2, g3 + 3.4).toFixed(2)}, 1.2);
         // the draft: a gentle drift while it is read
         tl.to("#act-02-cam", { scale: 1.06, y: -24, duration: ${(c.D - local(46.7) - 1).toFixed(2)}, ease: "none" }, ${(local(46.7) + 0.5).toFixed(2)});

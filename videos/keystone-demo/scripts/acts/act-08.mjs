@@ -40,10 +40,8 @@ export default {
         tl.to("#act-08-cam", { scale: 1.06, y: -20, duration: ${(g1 - 0.6).toFixed(2)}, ease: "none" }, 0.9);
         // "five, worst first" — push in on row one, and the reason sentence under it
         cam("#act-08-cam", ${(g1 + 0.2).toFixed(2)}, { zoom: ${ROW.zoom}, slideX: ${ROW.slideX}, slideY: ${ROW.slideY}, dur: 1.1 });
-        hlIn("#act-08-hl", ${(g1 + 1.0).toFixed(2)}, { x: "50%", y: "50%", rx: "42%", ry: "16%" });
         // "each one saying why it's there and who it's waiting on" — the three things it names
         ${['e1', 'e2', 'e3'].map((k, i) => `chip("#act-08-${k}", ${(g1 + 2.2 + i * 0.5).toFixed(2)});`).join('\n        ')}
-        hlOut("#act-08-hl", ${(g2 + 1.4).toFixed(2)});
         tl.to("#act-08-ev", { opacity: 0, y: -12, duration: 0.4, ease: "power2.in" }, ${(g2 + 1.6).toFixed(2)});
         camReset("#act-08-cam", ${(g2 + 1.6).toFixed(2)}, 1.3);
         tl.to("#act-08-cam", { scale: 1.05, y: -30, duration: ${(c.D - g2 - 3).toFixed(2)}, ease: "none" }, ${(g2 + 2.9).toFixed(2)});

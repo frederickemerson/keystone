@@ -9,10 +9,10 @@
 // read-back ~12–16.4 · draft ~16.4 · scroll ~19.4.
 import { focus, view } from '../lib/chrome.mjs';
 const SRC = 'assets/footage/act-03.webm';
-const F1 = focus(0.55, 0.42, 1.3);   // the capture task
-const F2 = focus(0.55, 0.45, 1.3);   // the read-back and the draft
-const V1 = view(0.55, 0.42, 1.3, F1.slideX, F1.slideY);
-const V2 = view(0.55, 0.45, 1.3, F2.slideX, F2.slideY);
+const F1 = focus(0.55, 0.42, 2.05);   // the capture task
+const F2 = focus(0.55, 0.45, 2.05);   // the read-back and the draft
+const V1 = view(0.55, 0.42, 2.05, F1.slideX, F1.slideY);
+const V2 = view(0.55, 0.45, 2.05, F2.slideX, F2.slideY);
 
 export default {
   label: 'Frontline capture',
@@ -48,7 +48,7 @@ export default {
         tl.to("#act-03-cam", { scale: 1.07, y: -20, duration: ${(g1 - 0.4).toFixed(2)}, ease: "none" }, 0.9);
         // "it asks him why" — punch to the capture task, spotlight the consent boxes
         cam("#act-03-cam", ${(g1 + 0.2).toFixed(2)}, { zoom: ${F1.zoom}, slideX: ${F1.slideX}, slideY: ${F1.slideY}, dur: 1.0 });
-        hlIn("#act-03-hl", ${(g1 + 1.4).toFixed(2)}, { x: "${V1.x}", y: "${V1.y}", rx: "26%", ry: "24%" });
+        // No feather highlight: it washed out the panel it was pointing at.
         // "watch who checks the numbers" — the read-back, each one his
         cam("#act-03-cam", ${(g2 + 0.4).toFixed(2)}, { zoom: ${F2.zoom}, slideX: ${F2.slideX}, slideY: ${F2.slideY}, dur: 0.9 });
         hlTo("#act-03-hl", ${(g2 + 0.6).toFixed(2)}, { x: "${V2.x}", y: "${V2.y}", rx: "30%", ry: "28%" }, 0.9);

@@ -52,8 +52,6 @@ export default {
         frameIn("#act-09-frame", 0.15);
         // the sentence reads itself: "1 of the 4 incidents... fired no rule at all"
         cam("#act-09-cam", 1.2, { zoom: ${PANEL.zoom}, slideX: ${PANEL.slideX}, slideY: ${PANEL.slideY}, dur: 1.2 });
-        hlIn("#act-09-hl", 2.2, { x: "50%", y: "50%", rx: "38%", ry: "22%" });
-        hlOut("#act-09-hl", ${(g1 + 2.6).toFixed(2)});
         camReset("#act-09-cam", ${(g1 + 2.8).toFixed(2)}, 1.0);
         // the incident opens: plant eighteen percent over, every reading inside spec
         tl.to("#act-09-cam", { scale: 1.1, y: -60, duration: ${(g2 - g1 - 3).toFixed(2)}, ease: "none" }, ${(g1 + 3.9).toFixed(2)});

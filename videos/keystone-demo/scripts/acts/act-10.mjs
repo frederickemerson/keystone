@@ -6,8 +6,8 @@
 // yt-feather-highlight, css-marker-patterns (highlight), waterfall-entry,
 // counting-dynamic-scale (the three tallies tick up).
 import { focus, view } from '../lib/chrome.mjs';
-const ROW = focus(0.5, 0.52, 1.3);   // centred just above the row so the painted footage fills the frame (fy <= 818 - 409/S)
-const ROW_AT = view(0.5, 0.55, 1.3, ROW.slideX, ROW.slideY);
+const ROW = focus(0.5, 0.52, 1.95);   // centred just above the row so the painted footage fills the frame (fy <= 818 - 409/S)
+const ROW_AT = view(0.5, 0.55, 1.95, ROW.slideX, ROW.slideY);
 
 export default {
   label: 'One-off, or systemic',
@@ -55,12 +55,10 @@ export default {
         tl.to("#act-10-rec", { opacity: 0, y: -12, duration: 0.4, ease: "power2.in" }, ${(g1 - 0.4).toFixed(2)});
         // "and this row is the one that started it" — punch to the blind-spot panel
         cam("#act-10-cam", ${(g1 + 0.2).toFixed(2)}, { zoom: ${ROW.zoom}, slideX: ${ROW.slideX}, slideY: ${ROW.slideY}, dur: 1.2 });
-        hlIn("#act-10-hl", ${(g1 + 1.2).toFixed(2)}, { x: "${ROW_AT.x}", y: "${ROW_AT.y}", rx: "40%", ry: "20%" });
         // the key the record always had, that no rule read
         tl.fromTo("#act-10-key", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, ${(g1 + 3.6).toFixed(2)});
         tl.to("#act-10-keyhl", { scaleX: 1, duration: 0.5, ease: "power2.out" }, ${(g1 + 4.4).toFixed(2)});
         tl.to("#act-10-key", { scale: 1.06, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 3 }, ${(g1 + 5.2).toFixed(2)});
-        hlOut("#act-10-hl", ${(g2 - 0.2).toFixed(2)});
         waterfall("#act-10-low", ${(g2 + 0.2).toFixed(2)});
     `;
   },

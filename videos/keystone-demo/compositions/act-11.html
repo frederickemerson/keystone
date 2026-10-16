@@ -102,7 +102,7 @@
             <div class="tip" id="act-11-t2"><span class="n">2</span><h3>Freeze scope, close one loop</h3><p>Seven half-working screens lose to one that closes.</p></div>
             <div class="tip" id="act-11-t3"><span class="n">3</span><h3>Safety as tests, not comments</h3><p>Evidence can't be faked open; the author can't approve their own version.</p></div>
           </div>
-          <div class="count" id="act-11-count"><b id="act-11-num">0</b><span>tests &middot; 106 files &middot; all green</span></div>
+          <div class="count" id="act-11-count"><b id="act-11-num">0</b><span>tests &middot; 108 files &middot; all green</span></div>
   
           <div class="grain"></div>
           <div class="label" id="act-11-label"><b>Act 14</b><i></i><span>How it was built</span></div>
@@ -267,7 +267,7 @@
         tl.fromTo("#act-11-t3", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 18.05);
         // "that's the part you can actually run" — the measured count, rows set on the timeline, then a landing pulse
         const rows = []; const F = 30, DUR = 1.6, last = Math.round(DUR * F); const ease = gsap.parseEase("sine.inOut");
-        for (let f = 0; f <= last; f++) rows.push(Math.round(1329 * ease(f / last)).toLocaleString("en-US"));
+        for (let f = 0; f <= last; f++) rows.push(Math.round(1351 * ease(f / last)).toLocaleString("en-US"));
         tl.fromTo("#act-11-count", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 23.25);
         rows.forEach((r, f) => tl.set("#act-11-num", { textContent: r }, 23.35 + DUR * (f / last)));
         tl.to("#act-11-count", { scale: 1.06, duration: 0.17, ease: "power3.out", transformOrigin: "0 100%" }, 24.95);

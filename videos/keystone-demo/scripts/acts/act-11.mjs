@@ -7,14 +7,15 @@
 // cards (one card, tilted, entering from its side), motion-blur-streak (the
 // card's fast leg), waterfall-entry (tips), counting-dynamic-scale (the
 // counter: frame rows set on the timeline, tabular numerals, a landing pulse —
-// the registry count-up's mechanic). Figures measured 15 Oct 2026: 1,329
-// tests across 106 files (npx vitest run).
+// the registry count-up's mechanic). Figures measured 16 Oct 2026: 1,351
+// tests across 108 files (npx vitest run) — the film states a number, so the
+// number has to be re-measured before every render, not carried forward.
 const STILLS = [
   { f: '01b-codebuddy-plan-clarifying-questions.png', cap: 'CodeBuddy · Plan mode · the plan, as markdown, argued with first' },
   { f: '02b-codebuddy-scaffold-tasks-smoke-test.png', cap: 'CodeBuddy · one closed loop, smoke-tested' },
   { f: '04b-codebuddy-skill-ts07-answer.png', cap: 'CodeBuddy · the pill as a native skill, answering TS-07' },
 ];
-const TESTS = 1329, FILES = 106;
+const TESTS = 1351, FILES = 108;
 
 export default {
   label: 'How it was built',

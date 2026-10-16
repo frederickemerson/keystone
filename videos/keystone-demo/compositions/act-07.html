@@ -262,9 +262,7 @@
         
         frameIn("#act-07-frame", 0.15);
         // the click: "This answer is wrong." — spotlight it
-        cam("#act-07-cam", 1.90, { zoom: 0.21999999999999997, slideX: 102, slideY: -89, dur: 0.9 });
-        hlIn("#act-07-hl", 2.70, { x: "50%", y: "73%", rx: "26%", ry: "16%" });
-        hlOut("#act-07-hl", 5.50);
+        cam("#act-07-cam", 1.90, { zoom: 0.95, slideX: 164, slideY: -142, dur: 0.9 });
         // the question lifts off the chat and flies to the task — motion-blur-streak on the fast leg
         tl.fromTo("#act-07-q", { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.4)" }, 4.90);
         tl.to("#act-07-q", { x: 90, y: -30, duration: 0.5, ease: "power3.in" }, 5.60);

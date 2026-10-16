@@ -253,10 +253,9 @@
         
         frameIn("#act-04-frame", 0.15);
         // evidence arriving: a slow push, the room alive
-        tl.to("#act-04-cam", { scale: 1.1, y: -30, duration: 8.78, ease: "none" }, 0.9);
+        tl.to("#act-04-cam", { scale: 1.75, x: 150, y: 40, duration: 8.78, ease: "none" }, 0.9);
         // "— and here it stops." Everything else goes grey; the gate stays lit. One clunk.
-        tl.to("#act-04-cam", { filter: "grayscale(1) brightness(0.62)", scale: 1.14, y: -40, duration: 0.22, ease: "power3.out" }, 9.68);
-        hlIn("#act-04-hl", 9.68, { x: "65%", y: "39%", rx: "28%", ry: "26%" });
+        tl.to("#act-04-cam", { filter: "grayscale(1) brightness(0.62)", scale: 1.82, x: 150, y: 30, duration: 0.22, ease: "power3.out" }, 9.68);
         stamp("#act-04-blocked", 9.73);
         // three things confirmed by a named person — a padlock, not a spinner
         drawPath("#act-04-lock-body", 11.08, 0.5);
